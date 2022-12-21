@@ -20,8 +20,10 @@ jobs:
         fetch-depth: 0
         ref: main
         token: ${{ steps.qp-bot-token.outputs.token }}
+    - run: git fetch --tags https://github.com/QunaSys/quri-parts.git
     - run: git pull --ff-only https://github.com/QunaSys/quri-parts.git
     - run: git push
+    - run: git push --tags
     - run: git fetch origin internal-main
     - run: git switch internal-main
     - run: git config --global user.email "quri-parts-bot@qunasys.com"
