@@ -10,10 +10,10 @@
 
 from unittest import mock
 
-from quri_parts.backend import CompositeSamplingJob, MeasurementCounts
+from quri_parts.backend import CompositeSamplingJob, SamplingCounts
 
 
-def create_mock_job(counts: MeasurementCounts) -> mock.Mock:
+def create_mock_job(counts: SamplingCounts) -> mock.Mock:
     job = mock.Mock()
     result = job.result.return_value
     result.counts = counts

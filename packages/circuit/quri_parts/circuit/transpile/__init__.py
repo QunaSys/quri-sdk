@@ -39,6 +39,7 @@ from .multi_pauli_decomposer import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
 )
+from .qubit_remapping import QubitRemappingTranspiler
 from .transpiler import (
     CircuitTranspiler,
     CircuitTranspilerProtocol,
@@ -95,6 +96,7 @@ __all__ = [
     "H2RZSqrtXTranspiler",
     "PauliDecomposeTranspiler",
     "PauliRotationDecomposeTranspiler",
+    "QubitRemappingTranspiler",
     "RX2RZSqrtXTranspiler",
     "RY2RZSqrtXTranspiler",
     "RZSetTranspiler",

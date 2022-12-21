@@ -12,9 +12,7 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type
 
 import numpy as np
-from braket.aws import AwsDevice
 from braket.circuits import Circuit, Gate, Instruction
-from braket.devices import Device
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
@@ -30,7 +28,6 @@ from quri_parts.circuit.gate_names import (
 )
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
-    CZ2CNOTHTranspiler,
     IdentityInsertionTranspiler,
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
@@ -44,28 +41,14 @@ BraketCircuitConverter: TypeAlias = Callable[
 
 class BraketTranspiler(SequentialTranspiler):
     """CircuitTranspiler to convert a circuit configuration suitable for
-    Braket.
+    Braket."""
 
-    Args:
-        device: Target AwsDevice Object.
-
-    Note:
-        This transpiler decomposes also CZ gates only if the device is given and
-        the device does not support CZ gates.
-    """
-
-    def __init__(self, device: Optional[Device] = None):
+    def __init__(self) -> None:
         transpilers = [
             PauliDecomposeTranspiler(),
             PauliRotationDecomposeTranspiler(),
             IdentityInsertionTranspiler(),
         ]
-        if isinstance(device, AwsDevice):
-            device_operation = device.properties.dict()["action"][
-                "braket.ir.jaqcd.program"
-            ]["supportedOperations"]
-            if "cz" not in device_operation:
-                transpilers.append(CZ2CNOTHTranspiler())
         super().__init__(transpilers)
 
 

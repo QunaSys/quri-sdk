@@ -18,17 +18,17 @@ from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 
-#: MeasurementCounts represents count statistics of repeated measurements of a quantum
+#: SamplingCounts represents count statistics of repeated sampling of a quantum
 #: circuit. Keys are observed bit patterns encoded in integers and values are counts
 #: of observation of the corresponding bit patterns.
-MeasurementCounts: TypeAlias = Mapping[int, int]
+SamplingCounts: TypeAlias = Mapping[int, int]
 
 
 class SamplingResult(Protocol):
     """A result of a sampling job."""
 
     @abstractproperty
-    def counts(self) -> MeasurementCounts:
+    def counts(self) -> SamplingCounts:
         """Measurement counts obtained by a sampling measurement."""
         ...
 
@@ -40,7 +40,7 @@ class CompositeSamplingResult(SamplingResult):
     results: Collection[SamplingResult]
 
     @property
-    def counts(self) -> MeasurementCounts:
+    def counts(self) -> SamplingCounts:
         total = Counter[int]()
         for r in self.results:
             total += Counter(r.counts)

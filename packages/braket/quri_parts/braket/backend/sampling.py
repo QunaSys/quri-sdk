@@ -20,18 +20,21 @@ from braket.tasks import GateModelQuantumTaskResult, QuantumTask
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
-    MeasurementCounts,
     SamplingBackend,
+    SamplingCounts,
     SamplingJob,
     SamplingResult,
 )
+from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.braket.circuit import (
     BraketCircuitConverter,
     BraketTranspiler,
     convert_circuit,
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+
+from .transpiler import AwsDeviceTranspiler
 
 
 class BraketSamplingResult(SamplingResult):
@@ -44,12 +47,12 @@ class BraketSamplingResult(SamplingResult):
         self._braket_result = braket_result
 
     @property
-    def counts(self) -> MeasurementCounts:
+    def counts(self) -> SamplingCounts:
         measurements = self._braket_result.measurements
         if measurements is None:
             raise BackendError("No valid measurement results retrieved.")
         m_qubits = self._braket_result.measured_qubits
-        digits = np.fromiter((2**q for q in m_qubits), int, count=len(m_qubits))
+        digits = np.array([2**q for q in m_qubits])
         return Counter(np.dot(digits, m) for m in measurements)
 
 
@@ -72,11 +75,21 @@ class BraketSamplingBackend(SamplingBackend):
         circuit_converter: A function converting \
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to \
             a Braket :class:`braket.circuits.Circuit`.
+        circuit_transpiler: A transpiler applied to the circuit before running it.
+            :class:`~BraketTranspiler` is used when not specified.
         enable_shots_roundup: If True, when a number of shots specified to \
             :meth:`~sample` is smaller than the minimum number of shots supported by \
             the device, it is rounded up to the minimum. In this case, it is possible \
             that shots more than specified are used. If it is strictly not allowed to \
             exceed the specified shot count, set this argument to False.
+        qubit_mapping: If specified, indices of qubits in the circuit are remapped \
+            before running it on the backend. It can be used when you want to use \
+            specific backend qubits, e.g. those with high fidelity. \
+            The mapping should be specified with "from" qubit \
+            indices as keys and "to" qubit indices as values. For example, if \
+            you want to map qubits 0, 1, 2, 3 to backend qubits as 0 → 4, 1 → 2, \
+            2 → 5, 3 → 0, then the ``qubit_mapping`` should be \
+            ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         run_kwargs: Additional keyword arguments for \
             :meth:`braket.devices.Device.run` method.
     """
@@ -87,13 +100,28 @@ class BraketSamplingBackend(SamplingBackend):
         circuit_converter: BraketCircuitConverter = convert_circuit,
         circuit_transpiler: Optional[CircuitTranspiler] = None,
         enable_shots_roundup: bool = True,
+        qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
     ):
         self._device = device
         self._circuit_converter = circuit_converter
+
+        self._qubit_mapping = None
+        if qubit_mapping is not None:
+            self._qubit_mapping = BackendQubitMapping(qubit_mapping)
+
         if circuit_transpiler is None:
-            circuit_transpiler = BraketTranspiler(device)
+            circuit_transpiler = BraketTranspiler()
+        if isinstance(device, AwsDevice):
+            circuit_transpiler = SequentialTranspiler(
+                [circuit_transpiler, AwsDeviceTranspiler(device)]
+            )
+        if self._qubit_mapping:
+            circuit_transpiler = SequentialTranspiler(
+                [circuit_transpiler, self._qubit_mapping.circuit_transpiler]
+            )
         self._circuit_transpiler = circuit_transpiler
+
         self._enable_shots_roundup = enable_shots_roundup
         self._run_kwargs = run_kwargs
 
@@ -140,7 +168,10 @@ class BraketSamplingBackend(SamplingBackend):
                     pass
             raise BackendError("Braket Device.run failed") from e
 
-        if len(tasks) == 1:
-            return BraketSamplingJob(tasks[0])
+        jobs: list[SamplingJob] = [BraketSamplingJob(t) for t in tasks]
+        if self._qubit_mapping is not None:
+            jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
+        if len(jobs) == 1:
+            return jobs[0]
         else:
-            return CompositeSamplingJob(tuple(BraketSamplingJob(t) for t in tasks))
+            return CompositeSamplingJob(jobs)

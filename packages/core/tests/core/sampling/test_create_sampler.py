@@ -11,9 +11,9 @@
 from collections.abc import Sequence
 from unittest import mock
 
-from quri_parts.backend import MeasurementCounts
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.sampling import (
+    MeasurementCounts,
     create_concurrent_sampler_from_sampling_backend,
     create_sampler_from_sampling_backend,
 )
