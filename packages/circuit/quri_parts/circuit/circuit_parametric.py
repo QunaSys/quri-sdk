@@ -99,6 +99,22 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     def parameter_count(self) -> int:
         ...
 
+    @abstractproperty
+    def gates(self) -> Sequence[Union[QuantumGate, ParametricQuantumGate]]:
+        """Returns the gate sequence of the circuit."""
+        ...
+
+    @abstractproperty
+    def has_trivial_parameter_mapping(self) -> bool:
+        """Returns if the input parameters are used for parametric gates
+        without any conversions.
+
+        Note that some parametric circuit,
+        e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
+        mapping of the parameters.
+        """
+        ...
+
 
 class MutableUnboundParametricQuantumCircuitProtocol(
     UnboundParametricQuantumCircuitProtocol, MutableQuantumCircuitProtocol, Protocol
@@ -129,6 +145,14 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
             for index in acting_ids:
                 max_layers_each_qubit[index] = max_layers + 1
         return max(max_layers_each_qubit)
+
+    @property
+    def gates(self) -> Sequence[Union[QuantumGate, ParametricQuantumGate]]:
+        return [gate for gate, _ in self._gates]
+
+    @property
+    def has_trivial_parameter_mapping(self) -> bool:
+        return True
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":
         circuit = UnboundParametricQuantumCircuit(self.qubit_count)

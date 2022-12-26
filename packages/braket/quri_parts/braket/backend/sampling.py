@@ -53,7 +53,7 @@ class BraketSamplingResult(SamplingResult):
             raise BackendError("No valid measurement results retrieved.")
         m_qubits = self._braket_result.measured_qubits
         digits = np.array([2**q for q in m_qubits])
-        return Counter(np.dot(digits, m) for m in measurements)
+        return Counter(int(np.dot(digits, m)) for m in measurements)
 
 
 class BraketSamplingJob(SamplingJob):

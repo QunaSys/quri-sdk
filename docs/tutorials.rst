@@ -9,5 +9,5 @@ Tutorials
     tutorials/parametric
     tutorials/variational
     tutorials/sampling_simulation
-    .. tutorials/sampling_real
+    tutorials/sampling_real
     tutorials/noise_error

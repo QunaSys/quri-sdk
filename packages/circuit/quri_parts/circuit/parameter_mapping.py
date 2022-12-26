@@ -12,7 +12,7 @@ from abc import ABC, abstractproperty
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
-from typing import Callable, Protocol, Union
+from typing import Callable, Protocol, Union, cast
 
 from typing_extensions import TypeAlias
 
@@ -114,6 +114,11 @@ class ParameterMappingBase(ABC):
     @abstractproperty
     def mapper(self) -> Mapper:
         ...
+
+    @abstractproperty
+    def is_trivial_mapping(self) -> bool:
+        """Returns if the mapping is trivial one-to-one mapping (Identity
+        function)."""
 
     @property
     def seq_mapper(self) -> SeqMapper:
@@ -235,6 +240,30 @@ class LinearParameterMapping(ParameterMappingBase):
             return out_param_vals
 
         return m
+
+    @property
+    def is_trivial_mapping(self) -> bool:
+        if len(self.in_params) != len(self.out_params):
+            return False
+
+        used_in_params: list[Parameter] = []
+        for out_param in self.out_params:
+            mapping = self.mapping[out_param]
+            if isinstance(mapping, Parameter):
+                if mapping in used_in_params:
+                    return False
+                used_in_params.append(mapping)
+            else:
+                mapping = cast(LinearParameterFunction, mapping)
+                if (
+                    len(mapping) != 1
+                    or next(iter(mapping.values())) != 1.0
+                    or next(iter(mapping.keys())) in used_in_params
+                ):
+                    return False
+                else:
+                    used_in_params.append(next(iter(mapping.keys())))
+        return True
 
     def get_derivatives(self) -> Sequence["LinearParameterMapping"]:
         r"""Returns a sequence of :class:`~LinearParameterMapping`\ s of

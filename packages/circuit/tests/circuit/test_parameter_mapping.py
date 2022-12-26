@@ -52,6 +52,9 @@ class TestParameterMappingBase:
 
                 return m
 
+            def is_trivial_mapping(self) -> bool:
+                return False
+
         mapping = M()
         seq_mapper = mapping.seq_mapper
 
@@ -80,6 +83,7 @@ class TestLinearParameterMapping:
         )
         mapper = mapping.mapper
 
+        assert not mapping.is_trivial_mapping
         assert mapper({in_p0: 0.2, in_p1: 0.5}) == {
             out_p0: 0.1 * 0.2 + 0.2 * 0.5 + 0.3,
             out_p1: 0.2,
@@ -115,3 +119,18 @@ class TestLinearParameterMapping:
         assert derivative1.mapping == {
             out_p0: {CONST: 0.2},
         }
+
+    def test_trivial_mapping(self) -> None:
+        in_p0 = Parameter("in0")
+        in_p1 = Parameter("in1")
+        out_p0 = Parameter("out0")
+        out_p1 = Parameter("out1")
+        m: Mapping[Parameter, ParameterOrLinearFunction] = {
+            out_p0: {in_p1: 1.0},
+            out_p1: in_p0,
+        }
+        mapping = LinearParameterMapping(
+            in_params=(in_p0, in_p1), out_params=(out_p0, out_p1), mapping=m
+        )
+
+        assert mapping.is_trivial_mapping

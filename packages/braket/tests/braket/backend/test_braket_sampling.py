@@ -61,6 +61,7 @@ class TestBraketSamplingResult:
         result = BraketSamplingResult(braket_result)
         counts = result.counts
         assert counts == {0b00: 2, 0b10: 2}
+        assert all(isinstance(k, int) for k in counts.keys())
 
     def test_large_qubits(self) -> None:
         measurements = np.array(
