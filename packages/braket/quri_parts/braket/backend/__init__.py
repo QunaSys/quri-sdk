@@ -8,10 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .device import device_connectivity_graph
 from .sampling import BraketSamplingBackend, BraketSamplingJob, BraketSamplingResult
 
 __all__ = [
     "BraketSamplingBackend",
     "BraketSamplingJob",
     "BraketSamplingResult",
+    "device_connectivity_graph",
 ]

@@ -9,11 +9,9 @@
 # limitations under the License.
 
 import networkx as nx
-import numpy as np
 import pytest
-from braket.circuits import Circuit
 
-from quri_parts.braket import device_connectivity_graph, graph_state_circuit
+from quri_parts.braket.backend import device_connectivity_graph
 
 
 class MockConnectivity:
@@ -38,7 +36,7 @@ class MockHardware:
         self.properties = properties
 
 
-class TestHTDiagonalization:
+class TestDeviceConnectivity:
     def test_adjacency(self) -> None:
         graph = {"0": ["1"], "1": ["0", "2"], "2": ["1", "3"], "3": ["2"]}
         connectivity = MockConnectivity(fullyConnected=False, graph=graph)
@@ -55,19 +53,6 @@ class TestHTDiagonalization:
 
         print(received_graph.edges, constructed_graph.edges)
         assert nx.is_isomorphic(received_graph, constructed_graph)
-
-    def test_graph_circuit(self) -> None:
-        graph = {"0": ["1"], "1": ["0"]}
-        connectivity = MockConnectivity(fullyConnected=False, graph=graph)
-        paradigm = MockParadigm(connectivity, qubitCount=2)
-        properties = MockProperties(paradigm)
-        device = MockHardware(properties)
-
-        circuit = graph_state_circuit(device)
-
-        correct_circuit = Circuit().cz(0, 1).h(0).h(1)
-
-        np.testing.assert_equal(circuit, correct_circuit)
 
     def test_fully_connected_graph(self) -> None:
         connectivity = MockConnectivity(fullyConnected=True, graph={})

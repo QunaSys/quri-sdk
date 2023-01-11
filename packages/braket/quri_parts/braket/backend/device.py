@@ -10,7 +10,6 @@
 
 import networkx as nx
 from braket.aws import AwsDevice
-from braket.circuits import Circuit
 
 
 def device_connectivity_graph(device: AwsDevice) -> nx.Graph:
@@ -35,33 +34,3 @@ def device_connectivity_graph(device: AwsDevice) -> nx.Graph:
     adj_list = [f"{key} {' '.join(val)}" for key, val in connectivityGraph.items()]
 
     return nx.parse_adjlist(adj_list)
-
-
-def _get_adjacency_list(graph: nx.Graph) -> list[tuple[int, int]]:
-    edge_set = set()
-
-    for edge in graph.edges():
-        # ignoring the weight if any
-        a, b = int(edge[0]), int(edge[1])
-        # ordering to (min, max)
-        a, b = min(a, b), max(a, b)
-
-        if (a, b) not in edge_set:
-            edge_set.add((a, b))
-
-    return list(edge_set)
-
-
-def graph_state_circuit(device: AwsDevice) -> Circuit:
-    graph = device_connectivity_graph(device)
-    num_qubits = getattr(device.properties.paradigm, "qubitCount", -1)
-
-    adj_list = _get_adjacency_list(graph)
-
-    circ = Circuit()
-    for a, b in adj_list:
-        circ.cz(control=a, target=b)
-
-    circ.h(range(num_qubits))
-
-    return circ
