@@ -1,6 +1,6 @@
 ---
 name: certifi
-version: 2022.9.24
+version: 2022.12.7
 type: pip
 summary: Python package for providing Mozilla's CA Bundle.
 homepage: https://github.com/certifi/python-certifi

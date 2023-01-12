@@ -1,6 +1,6 @@
 ---
 name: networkx
-version: 2.8.7
+version: 2.8.8
 type: pip
 summary: Python package for creating and manipulating graphs and networks
 homepage: https://networkx.org/

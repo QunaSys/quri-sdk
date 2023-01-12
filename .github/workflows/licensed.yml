@@ -35,6 +35,7 @@ jobs:
     - uses: jonabc/setup-licensed@v1.1.2
       with:
         version: '3.x'
+        github_token: ${{ secrets.GITHUB_TOKEN }}
     
     - run: licensed cache
     - run: licensed status

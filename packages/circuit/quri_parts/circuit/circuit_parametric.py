@@ -151,6 +151,15 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         return [gate for gate, _ in self._gates]
 
     @property
+    def gates_and_params(
+        self,
+    ) -> Sequence[
+        Union[tuple[QuantumGate, None], tuple[ParametricQuantumGate, Parameter]]
+    ]:
+        """Returns the sequence of the tuples of gate and it's parameter."""
+        return tuple(self._gates)
+
+    @property
     def has_trivial_parameter_mapping(self) -> bool:
         return True
 
