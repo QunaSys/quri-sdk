@@ -13,6 +13,7 @@ pkgs="
     chem
     openfermion
     stim
+    openqasm
 "
 
 for pkg in $pkgs

@@ -38,6 +38,7 @@ quri-parts-qiskit = { version = "*", optional = true }
 quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
+quri-parts-openqasm = { version = "*", optional = true }
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -46,6 +47,7 @@ qiskit = ["quri-parts-qiskit"]
 cirq = ["quri-parts-cirq"]
 openfermion = ["quri-parts-openfermion"]
 stim = ["quri-parts-stim"]
+openqasm = ["quri-parts-openqasm"]
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "packages/circuit", develop = true}
@@ -58,6 +60,7 @@ quri-parts-qiskit = {path = "packages/qiskit", develop = true}
 quri-parts-cirq = {path = "packages/cirq", develop = true}
 quri-parts-openfermion = {path = "packages/openfermion", develop = true}
 quri-parts-stim = {path = "packages/stim", develop = true}
+quri-parts-openqasm = {path = "packages/openqasm", develop = true}
 
 pytest = "^7.0.1"
 black = "^22.1.0"
