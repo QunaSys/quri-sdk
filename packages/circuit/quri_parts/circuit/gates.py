@@ -236,6 +236,7 @@ class U1Factory:
 
 U1 = U1Factory()
 r"""U1 gate is a single-qubit rotation about the Z axis:
+
 :math:`U_1(\lambda) = e^{i\lambda/2} R_Z(\lambda)`.
 Represented by matrix :math:`\begin{pmatrix} 1 & 0 \\ 0 & e^{i\lambda} \end{pmatrix}`
 """
@@ -252,6 +253,7 @@ class U2Factory:
 
 U2 = U2Factory()
 r"""U2 gate is a single-qubit rotation about X + Z axis:
+
 :math:`U_2(\phi, \lambda) = R_Z(\phi)R_Y(\pi/2)R_Z(\lambda)`.
 Represented by matrix :math:`\frac{1}{\sqrt{2}}\begin{pmatrix} 1 & e^{-i\lambda} \\
 e^{i\phi} & e^{i(\phi+\lambda)} \end{pmatrix}`
@@ -370,9 +372,10 @@ class ParametricRXFactory:
 
 ParametricRX = ParametricRXFactory()
 """Parametric RX gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRX, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRX, Parameter).
 """
 
 
@@ -385,9 +388,10 @@ class ParametricRYFactory:
 
 ParametricRY = ParametricRYFactory()
 """Parametric RY gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRY, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRY, Parameter).
 """
 
 
@@ -400,9 +404,10 @@ class ParametricRZFactory:
 
 ParametricRZ = ParametricRZFactory()
 """Parametric RZ gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricRZ, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricRZ, Parameter).
 """
 
 
@@ -421,7 +426,8 @@ class ParametricPauliRotationFactory:
 
 ParametricPauliRotation = ParametricPauliRotationFactory()
 """Parametric Pauli rotation gate.
+
 Note that the instance of this class doesn't contain parameter values.
-Every parametric gate is carried with it's parameter (:class:`~Parameter`) such as
-(ParametricPauliRotation, Parameter).
+Every parametric gate is carried with it's parameter
+(:class:`~Parameter`) such as (ParametricPauliRotation, Parameter).
 """

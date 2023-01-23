@@ -33,7 +33,6 @@ from quri_parts.circuit.transpile import CliffordApproximationTranspiler
 
 class TestCliffordApproximationTranspile:
     def test_cliffordapproximation_transpiler(self) -> None:
-
         gate_list = [
             H(0),
             T(1),
