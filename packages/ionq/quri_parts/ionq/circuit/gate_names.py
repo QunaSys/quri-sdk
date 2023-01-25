@@ -8,20 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .clifford_data_regression import (
-    cdr,
-    create_cdr_estimator,
-    create_exp_regression,
-    create_exp_regression_with_const,
-    create_exp_regression_with_const_log,
-    create_polynomial_regression,
-)
+from typing import Literal
 
-__all__ = [
-    "create_polynomial_regression",
-    "create_exp_regression",
-    "create_exp_regression_with_const",
-    "create_exp_regression_with_const_log",
-    "cdr",
-    "create_cdr_estimator",
-]
+GPi: Literal["GPi"] = "GPi"
+GPi2: Literal["GPi2"] = "GPi2"
+
+XX: Literal["XX"] = "XX"
+MS: Literal["MS"] = "MS"

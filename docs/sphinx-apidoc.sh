@@ -15,6 +15,7 @@ pkgs="
     stim
     openqasm
     honeywell
+    ionq
 "
 
 for pkg in $pkgs

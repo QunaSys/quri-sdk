@@ -11,3 +11,4 @@ Tutorials
     tutorials/sampling_simulation
     tutorials/sampling_real
     tutorials/noise_error
+    tutorials/error_mitigation

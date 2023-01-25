@@ -49,7 +49,7 @@ CircuitScaling: TypeAlias = Callable[
 ]
 
 
-def get_residual_n_gates(
+def _get_residual_n_gates(
     circuit: NonParametricQuantumCircuit, scale_factor: float
 ) -> int:
     """Returns the number of gates that need to be additionally folded after
@@ -79,7 +79,7 @@ def create_folding_left() -> FoldingMethod:
     def folding_left(
         circuit: NonParametricQuantumCircuit, scale_factor: float
     ) -> list[int]:
-        add_gate_num = get_residual_n_gates(circuit, scale_factor)
+        add_gate_num = _get_residual_n_gates(circuit, scale_factor)
         return list(range(add_gate_num))
 
     return folding_left
@@ -95,7 +95,7 @@ def create_folding_right() -> FoldingMethod:
     def folding_right(
         circuit: NonParametricQuantumCircuit, scale_factor: float
     ) -> list[int]:
-        add_gate_num = get_residual_n_gates(circuit, scale_factor)
+        add_gate_num = _get_residual_n_gates(circuit, scale_factor)
         n_gates = len(circuit.gates)
         return list(range(n_gates - add_gate_num, n_gates))
 
@@ -115,7 +115,7 @@ def create_folding_random(seed: Optional[int] = None) -> FoldingMethod:
     def folding_random(
         circuit: NonParametricQuantumCircuit, scale_factor: float
     ) -> list[int]:
-        add_gate_num = get_residual_n_gates(circuit, scale_factor)
+        add_gate_num = _get_residual_n_gates(circuit, scale_factor)
         list_random = np.random.RandomState(seed)
         add_gate_list = list(
             list_random.choice(range(add_gate_num), size=(add_gate_num), replace=False)

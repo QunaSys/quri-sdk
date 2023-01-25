@@ -11,7 +11,8 @@
 import numpy as np
 import pytest
 
-from quri_parts.algo.mitigation.zero_noise_extrapolation import (
+from quri_parts.algo.mitigation.zne.zne import (  # noqa: E501
+    _get_residual_n_gates,
     create_exp_extrapolate,
     create_exp_extrapolate_with_const,
     create_exp_extrapolate_with_const_log,
@@ -21,11 +22,8 @@ from quri_parts.algo.mitigation.zero_noise_extrapolation import (
     create_polynomial_extrapolate,
     create_zne_estimator,
     richardson_extrapolation,
-    zne,
-)
-from quri_parts.algo.mitigation.zero_noise_extrapolation.zero_noise_extrapolation import (  # noqa: E501
-    get_residual_n_gates,
     scaling_circuit_folding,
+    zne,
 )
 from quri_parts.circuit import CNOT, CZ, RX, RY, SWAP, H, QuantumCircuit, Z
 from quri_parts.core.operator.operator import Operator
@@ -40,7 +38,7 @@ test_circuit = QuantumCircuit(qubit_count, gates=gate_list)
 
 
 def test_get_residual_n_gates() -> None:
-    assert get_residual_n_gates(test_circuit, scale_factor) == 4
+    assert _get_residual_n_gates(test_circuit, scale_factor) == 4
 
 
 def test_create_folding_left() -> None:

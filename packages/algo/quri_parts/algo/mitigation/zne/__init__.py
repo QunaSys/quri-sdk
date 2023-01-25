@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .zero_noise_extrapolation import (
+from .zne import (
     create_exp_extrapolate,
     create_exp_extrapolate_with_const,
     create_exp_extrapolate_with_const_log,
@@ -18,6 +18,7 @@ from .zero_noise_extrapolation import (
     create_polynomial_extrapolate,
     create_zne_estimator,
     richardson_extrapolation,
+    scaling_circuit_folding,
     zne,
 )
 
@@ -29,7 +30,8 @@ __all__ = [
     "create_exp_extrapolate",
     "create_exp_extrapolate_with_const",
     "create_exp_extrapolate_with_const_log",
+    "create_zne_estimator",
     "zne",
     "richardson_extrapolation",
-    "create_zne_estimator",
+    "scaling_circuit_folding",
 ]

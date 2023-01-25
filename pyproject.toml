@@ -40,6 +40,7 @@ quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
 quri-parts-openqasm = { version = "*", optional = true }
 quri-parts-honeywell = { version = "*", optional = true }
+quri-parts-ionq = { version = "*", optional = true }
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -50,6 +51,7 @@ openfermion = ["quri-parts-openfermion"]
 stim = ["quri-parts-stim"]
 openqasm = ["quri-parts-openqasm"]
 honeywell = ["quri-parts-honeywell"]
+ionq = ["quri-parts-ionq"]
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "packages/circuit", develop = true}
@@ -64,6 +66,7 @@ quri-parts-openfermion = {path = "packages/openfermion", develop = true}
 quri-parts-stim = {path = "packages/stim", develop = true}
 quri-parts-openqasm = {path = "packages/openqasm", develop = true}
 quri-parts-honeywell = {path = "packages/honeywell", develop = true}
+quri-parts-ionq = {path = "packages/ionq", develop = true}
 
 pytest = "^7.0.1"
 black = "^22.1.0"
