@@ -120,6 +120,13 @@ def test_convert_rotation_gate() -> None:
     )
 
 
+def test_convert_unitary_matrix_gate() -> None:
+    umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
+    expected = qulacs.gate.DenseMatrix(7, umat)
+    converted = convert_gate(gates.UnitaryMatrix((7,), umat))
+    assert gates_equal(converted, expected)
+
+
 def test_convert_u_gate() -> None:
     for g, expected in [
         (gates.U1(7, 0.125), qulacs.gate.U1(7, 0.125)),

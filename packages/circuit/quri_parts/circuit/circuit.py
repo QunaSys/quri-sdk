@@ -31,12 +31,15 @@ from .gates import (
     PauliRotation,
     S,
     Sdag,
+    SingleQubitUnitaryMatrix,
     SqrtX,
     SqrtXdag,
     SqrtY,
     SqrtYdag,
     T,
     Tdag,
+    TwoQubitUnitaryMatrix,
+    UnitaryMatrix,
     X,
     Y,
     Z,
@@ -172,6 +175,33 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     def add_SWAP_gate(self, target_index1: int, target_index2: int) -> None:
         """Add a SWAP gate to the circuit."""
         self.add_gate(SWAP(target_index1, target_index2))
+
+    def add_UnitaryMatrix_gate(
+        self,
+        target_indices: Sequence[int],
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> None:
+        """Add a UnitaryMatrix gate to the circuit."""
+        self.add_gate(UnitaryMatrix(target_indices, unitary_matrix))
+
+    def add_SingleQubitUnitaryMatrix_gate(
+        self,
+        target_index: int,
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> None:
+        """Add a single qubit UnitaryMatrix gate to the circuit."""
+        self.add_gate(SingleQubitUnitaryMatrix(target_index, unitary_matrix))
+
+    def add_TwoQubitUnitaryMatrix_gate(
+        self,
+        target_index1: int,
+        target_index2: int,
+        unitary_matrix: Sequence[Sequence[complex]],
+    ) -> None:
+        """Add a two qubit UnitaryMatrix gate to the circuit."""
+        self.add_gate(
+            TwoQubitUnitaryMatrix(target_index1, target_index2, unitary_matrix)
+        )
 
     def add_Pauli_gate(
         self, target_indices: Sequence[int], pauli_ids: Sequence[int]

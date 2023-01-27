@@ -15,6 +15,7 @@ import numpy as np
 from cirq.devices.line_qubit import LineQubit
 from cirq.ops.common_gates import CNOT, CZ, H, Rx, Ry, Rz, S, T, rx, ry, rz
 from cirq.ops.identity import I
+from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.pauli_gates import X, Y, Z
 from cirq.ops.raw_types import Gate, Operation, Qid
 from cirq.ops.swap_gates import SWAP
@@ -111,6 +112,13 @@ def test_convert_rotation_gate() -> None:
         unitary(convert_gate(gates.RZ(0, np.pi / 2))),
         [[c - s * 1j, 0], [0, c + s * 1j]],
     )
+
+
+def test_convert_unitary_matrix_gate() -> None:
+    umat = ((1, 0), (0, np.cos(np.pi / 4) + 1j * np.sin(np.pi / 4)))
+    converted = convert_gate(gates.UnitaryMatrix((7,), umat))
+    expected = MatrixGate(np.array(umat)).on(LineQubit(7))
+    assert np.allclose(unitary(expected), unitary(converted))
 
 
 def test_convert_u_gate() -> None:

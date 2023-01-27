@@ -31,6 +31,7 @@ from quri_parts.circuit.gate_names import (
     is_parametric_gate_name,
     is_single_qubit_gate_name,
     is_two_qubit_gate_name,
+    is_unitary_matrix_gate_name,
 )
 
 _single_qubit_gate_qulacs: Mapping[
@@ -108,6 +109,8 @@ def convert_gate(
         return _multi_pauli_gate_qulacs[gate.name](
             gate.target_indices, gate.pauli_ids, *neg_params
         )
+    elif is_unitary_matrix_gate_name(gate.name):
+        return qulacs.gate.DenseMatrix(gate.target_indices, gate.unitary_matrix)
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:

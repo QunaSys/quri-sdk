@@ -25,6 +25,7 @@ from quri_parts.circuit.gate_names import (
     is_parametric_gate_name,
     is_single_qubit_gate_name,
     is_two_qubit_gate_name,
+    is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
@@ -138,6 +139,10 @@ def convert_gate(gate: QuantumGate) -> Instruction:
             return Instruction(
                 b_gate, tuple(gate.control_indices) + tuple(gate.target_indices)
             )
+
+    elif is_unitary_matrix_gate_name(gate.name):
+        b_gate = Gate.Unitary(np.array(gate.unitary_matrix))
+        return Instruction(b_gate, gate.target_indices)
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")

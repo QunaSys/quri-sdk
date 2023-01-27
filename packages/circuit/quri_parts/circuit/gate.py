@@ -25,6 +25,7 @@ class QuantumGate(NamedTuple):
     control_indices: Sequence[int] = ()
     params: Sequence[float] = ()
     pauli_ids: Sequence[int] = ()
+    unitary_matrix: Sequence[Sequence[complex]] = ()
 
 
 class ParametricQuantumGate(NamedTuple):
