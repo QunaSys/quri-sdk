@@ -59,6 +59,10 @@ from .transpiler import (
     ParallelDecomposer,
     SequentialTranspiler,
 )
+from .unitary_matrix_decomposer import (
+    SingleQubitUnitaryMatrix2RYRZTranspiler,
+    su2_decompose,
+)
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
@@ -153,6 +157,7 @@ __all__ = [
     "RY2RZSqrtXTranspiler",
     "S2RZTranspiler",
     "Sdag2RZTranspiler",
+    "SingleQubitUnitaryMatrix2RYRZTranspiler",
     "SqrtX2RXTranspiler",
     "SqrtX2RZHTranspiler",
     "SqrtXdag2RXTranspiler",
@@ -176,4 +181,5 @@ __all__ = [
     "Y2RZXTranspiler",
     "Z2HXTranspiler",
     "Z2RZTranspiler",
+    "su2_decompose",
 ]
