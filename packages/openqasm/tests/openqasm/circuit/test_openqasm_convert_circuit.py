@@ -72,17 +72,17 @@ class TestConvertGate:
 
     def test_cnot_gate(self) -> None:
         g = gates.CNOT(123, 456)
-        qasm_expected = "cx q[123] q[456];"
+        qasm_expected = "cx q[123], q[456];"
         assert convert_gate_to_qasm_line(g) == qasm_expected
 
     def test_cz_gate(self) -> None:
         g = gates.CZ(123, 456)
-        qasm_expected = "cz q[123] q[456];"
+        qasm_expected = "cz q[123], q[456];"
         assert convert_gate_to_qasm_line(g) == qasm_expected
 
     def test_swap_gate(self) -> None:
         g = gates.SWAP(123, 456)
-        qasm_expected = "swap q[123] q[456];"
+        qasm_expected = "swap q[123], q[456];"
         assert convert_gate_to_qasm_line(g) == qasm_expected
 
     def test_u1_gate(self) -> None:

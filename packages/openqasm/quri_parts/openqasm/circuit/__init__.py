@@ -143,7 +143,7 @@ def convert_gate_to_qasm_line(gate: "QuantumGate") -> str:
                 _ref_q_str(i)
                 for i in tuple(gate.control_indices) + tuple(gate.target_indices)
             ]
-            return f"{gate_str} {c_q_str} {t_q_str};"
+            return f"{gate_str} {c_q_str}, {t_q_str};"
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")
