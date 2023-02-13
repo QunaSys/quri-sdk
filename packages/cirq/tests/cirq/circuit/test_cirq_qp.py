@@ -19,6 +19,7 @@ from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.pauli_gates import X, Y, Z
 from cirq.ops.raw_types import Gate, Operation, Qid
 from cirq.ops.swap_gates import SWAP
+from cirq.ops.three_qubit_gates import TOFFOLI
 from cirq.protocols.unitary_protocol import unitary
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
@@ -73,6 +74,19 @@ def test_convert_two_qubit_gate() -> None:
         g = qp_fac(11, 7)
         converted = convert_gate(g)
         expected = cirq_gate(LineQubit(11), LineQubit(7))
+        assert gates_equal(converted, expected)
+
+
+three_qubit_gate_mapping: Mapping[Callable[[int, int, int], QuantumGate], Gate] = {
+    gates.TOFFOLI: TOFFOLI,
+}
+
+
+def test_convert_three_qubit_gate() -> None:
+    for qp_fac, cirq_gate in three_qubit_gate_mapping.items():
+        g = qp_fac(11, 7, 5)
+        converted = convert_gate(g)
+        expected = cirq_gate(LineQubit(11), LineQubit(7), LineQubit(5))
         assert gates_equal(converted, expected)
 
 

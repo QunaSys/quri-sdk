@@ -82,6 +82,19 @@ def test_convert_two_qubit_gate() -> None:
         assert instruction_equal(converted, expected)
 
 
+three_qubit_gate_mapping: Mapping[Callable[[int, int, int], QuantumGate], Gate] = {
+    gates.TOFFOLI: Gate.CCNot(),
+}
+
+
+def test_convert_three_qubit_gate() -> None:
+    for qp_factory, braket_gate in three_qubit_gate_mapping.items():
+        qp_gate = qp_factory(11, 7, 5)
+        converted = convert_gate(qp_gate)
+        expected = Instruction(braket_gate, [11, 7, 5])
+        assert instruction_equal(converted, expected)
+
+
 rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], Type[Gate]] = {
     gates.RX: Gate.Rx,
     gates.RY: Gate.Ry,

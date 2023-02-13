@@ -22,6 +22,7 @@ from .gates import (
     RY,
     RZ,
     SWAP,
+    TOFFOLI,
     U1,
     U2,
     U3,
@@ -175,6 +176,12 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     def add_SWAP_gate(self, target_index1: int, target_index2: int) -> None:
         """Add a SWAP gate to the circuit."""
         self.add_gate(SWAP(target_index1, target_index2))
+
+    def add_TOFFOLI_gate(
+        self, control_index1: int, control_index2: int, target_index: int
+    ) -> None:
+        """Add a TOFFOLI gate to the circuit."""
+        self.add_gate(TOFFOLI(control_index1, control_index2, target_index))
 
     def add_UnitaryMatrix_gate(
         self,

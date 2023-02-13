@@ -87,6 +87,21 @@ def test_convert_two_qubit_gate() -> None:
         assert gates_equal(converted, expected)
 
 
+three_qubit_gate_mapping: Mapping[
+    Callable[[int, int, int], QuantumGate], Type[qulacs.QuantumGateBase]
+] = {
+    gates.TOFFOLI: qulacs.gate.TOFFOLI,
+}
+
+
+def test_convert_three_qubit_gate() -> None:
+    for qp_fac, qs_gate in three_qubit_gate_mapping.items():
+        g = qp_fac(11, 7, 5)
+        converted = convert_gate(g)
+        expected = qs_gate(11, 7, 5)
+        assert gates_equal(converted, expected)
+
+
 rotation_gate_mapping: Mapping[
     Callable[[int, float], QuantumGate], Type[qulacs.QuantumGateBase]
 ] = {

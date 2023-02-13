@@ -85,6 +85,11 @@ class TestConvertGate:
         qasm_expected = "swap q[123], q[456];"
         assert convert_gate_to_qasm_line(g) == qasm_expected
 
+    def test_toffoli_gate(self) -> None:
+        g = gates.TOFFOLI(123, 456, 789)
+        qasm_expected = "ccx q[123], q[456], q[789];"
+        assert convert_gate_to_qasm_line(g) == qasm_expected
+
     def test_u1_gate(self) -> None:
         g = gates.U1(123, 1.5)
         qasm_expected = "u1(1.5) q[123];"

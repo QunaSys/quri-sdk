@@ -98,6 +98,19 @@ def is_two_qubit_gate_name(gate_name: str) -> TypeGuard[TwoQubitGateNameType]:
     return gate_name in TWO_QUBIT_GATE_NAMES
 
 
+ThreeQubitGateNameType: TypeAlias = Literal[
+    "TOFFOLI",
+]
+
+TOFFOLI: Literal["TOFFOLI"] = "TOFFOLI"
+
+THREE_QUBIT_GATE_NAMES: set[ThreeQubitGateNameType] = {TOFFOLI}
+
+
+def is_three_qubit_gate_name(gate_name: str) -> TypeGuard[ThreeQubitGateNameType]:
+    return gate_name in THREE_QUBIT_GATE_NAMES
+
+
 MultiQubitGateNameType: TypeAlias = Literal[
     "Pauli",
     "PauliRotation",
@@ -216,6 +229,7 @@ CLIFFORD_GATE_NAMES: set[CliffordGateNameType] = {
 GateNameType: TypeAlias = Literal[
     SingleQubitGateNameType,
     TwoQubitGateNameType,
+    ThreeQubitGateNameType,
     MultiQubitGateNameType,
     UnitaryMatrixGateNameType,
     ParametricGateNameType,
@@ -224,6 +238,7 @@ GateNameType: TypeAlias = Literal[
 GATE_NAMES: set[GateNameType] = (
     SINGLE_QUBIT_GATE_NAMES
     | TWO_QUBIT_GATE_NAMES
+    | THREE_QUBIT_GATE_NAMES
     | MULTI_QUBIT_GATE_NAMES
     | UNITARY_MATRIX_GATE_NAMES
     | PARAMETRIC_GATE_NAMES

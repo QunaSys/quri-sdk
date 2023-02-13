@@ -330,6 +330,23 @@ SWAP = SWAPFactory()
 """SWAP gate."""
 
 
+class TOFFOLIFactory:
+    name: Literal["TOFFOLI"] = gate_names.TOFFOLI
+
+    def __call__(
+        self, control_index1: int, control_index2: int, target_index: int
+    ) -> QuantumGate:
+        return QuantumGate(
+            name=self.name,
+            target_indices=(target_index,),
+            control_indices=(control_index1, control_index2),
+        )
+
+
+TOFFOLI = TOFFOLIFactory()
+"""TOFFOLI gate."""
+
+
 class UnitaryMatrixFactory:
     name: Literal["UnitaryMatrix"] = gate_names.UnitaryMatrix
 

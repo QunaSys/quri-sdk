@@ -17,6 +17,7 @@ from quri_parts.circuit.gate_names import (
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
+    is_three_qubit_gate_name,
     is_two_qubit_gate_name,
 )
 
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from quri_parts.circuit.gate_names import (
         ParametricGateNameType,
         SingleQubitGateNameType,
+        ThreeQubitGateNameType,
         TwoQubitGateNameType,
     )
 
@@ -56,6 +58,10 @@ _two_qubit_gate_stdgates_symbol: Mapping["TwoQubitGateNameType", str] = {
     gate_names.CNOT: "cx",
     gate_names.CZ: "cz",
     gate_names.SWAP: "swap",
+}
+
+_three_qubit_gate_stdgates_symbol: Mapping["ThreeQubitGateNameType", str] = {
+    gate_names.TOFFOLI: "ccx",
 }
 
 _parametric_gate_stdgates_symbol: Mapping["ParametricGateNameType", str] = {
@@ -144,6 +150,15 @@ def convert_gate_to_qasm_line(gate: "QuantumGate") -> str:
                 for i in tuple(gate.control_indices) + tuple(gate.target_indices)
             ]
             return f"{gate_str} {c_q_str}, {t_q_str};"
+
+    elif is_three_qubit_gate_name(gate.name):
+        if gate.name in _three_qubit_gate_stdgates_symbol:
+            gate_str = _three_qubit_gate_stdgates_symbol[gate.name]
+            q_str1, q_str2, q_str3 = [
+                _ref_q_str(i)
+                for i in tuple(gate.control_indices) + tuple(gate.target_indices)
+            ]
+            return f"{gate_str} {q_str1}, {q_str2}, {q_str3};"
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")
