@@ -17,6 +17,7 @@ from quri_parts.circuit import (
     RY,
     RZ,
     SWAP,
+    TOFFOLI,
     U1,
     U2,
     U3,
@@ -57,6 +58,7 @@ from quri_parts.circuit.transpile import (
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
     U2ToRZSqrtXTranspiler,
@@ -235,6 +237,34 @@ class TestRZSetTranspile:
 
         assert transpiled.gates == expect.gates
 
+    def test_toffoli2httdagcnot_transpile(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.add_gate(TOFFOLI(0, 1, 2))
+        transpiled = TOFFOLI2HTTdagCNOTTranspiler()(circuit)
+
+        expect = QuantumCircuit(3)
+        expect.extend(
+            [
+                H(2),
+                CNOT(1, 2),
+                Tdag(2),
+                CNOT(0, 2),
+                T(2),
+                CNOT(1, 2),
+                Tdag(2),
+                CNOT(0, 2),
+                T(1),
+                T(2),
+                H(2),
+                CNOT(0, 1),
+                T(0),
+                Tdag(1),
+                CNOT(0, 1),
+            ]
+        )
+
+        assert transpiled.gates == expect.gates
+
     def test_rx2rzsqrtx_transpile(self) -> None:
         theta = np.random.rand() * 2.0 * np.pi
 
@@ -344,6 +374,7 @@ class TestRZSetTranspile:
                 U1(1, lam),
                 U2(2, phi, lam),
                 U3(0, theta, phi, lam),
+                TOFFOLI(0, 1, 2),
                 SWAP(0, 1),
                 Pauli((0, 1, 2), (1, 2, 3)),
                 PauliRotation((0, 1, 2), (1, 2, 3), theta),
@@ -392,6 +423,26 @@ class TestRZSetTranspile:
                 RZ(0, theta + np.pi),
                 SqrtX(0),
                 RZ(0, phi + 3.0 * np.pi),
+                # TOFFOLI
+                RZ(2, np.pi / 2.0),  # H
+                SqrtX(2),
+                RZ(2, np.pi / 2.0),
+                CNOT(1, 2),
+                RZ(2, -np.pi / 4.0),  # Tdag
+                CNOT(0, 2),
+                RZ(2, np.pi / 4.0),  # T
+                CNOT(1, 2),
+                RZ(2, -np.pi / 4.0),  # Tdag
+                CNOT(0, 2),
+                RZ(1, np.pi / 4.0),  # T
+                RZ(2, np.pi / 4.0),  # T
+                RZ(2, np.pi / 2.0),  # H
+                SqrtX(2),
+                RZ(2, np.pi / 2.0),
+                CNOT(0, 1),
+                RZ(0, np.pi / 4.0),  # T
+                RZ(1, -np.pi / 4.0),  # Tdag
+                CNOT(0, 1),
                 # Swap
                 CNOT(0, 1),
                 CNOT(1, 0),

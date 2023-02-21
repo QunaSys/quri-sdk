@@ -18,8 +18,8 @@ from .transpiler import GateKindDecomposer
 
 
 class CNOT2CZHTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose CNOT gates into sequence of H and CZ
-    gates."""
+    """CircuitTranspiler, which decomposes CNOT gates into sequences of H and
+    CZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -35,8 +35,8 @@ class CNOT2CZHTranspiler(GateKindDecomposer):
 
 
 class CZ2CNOTHTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose CZ gates into sequence of H and CNOT
-    gates."""
+    """CircuitTranspiler, which decomposes CZ gates into sequences of H and
+    CNOT gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -52,6 +52,9 @@ class CZ2CNOTHTranspiler(GateKindDecomposer):
 
 
 class CZ2RXRYCNOTTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes CZ gates into sequences of RX, RY,
+    and CNOT gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.CZ]
@@ -68,8 +71,8 @@ class CZ2RXRYCNOTTranspiler(GateKindDecomposer):
 
 
 class H2RZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose H gates into sequence of RZ and SqrtX
-    gates."""
+    """CircuitTranspiler, which decomposes H gates into sequences of RZ and
+    SqrtX gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -85,6 +88,9 @@ class H2RZSqrtXTranspiler(GateKindDecomposer):
 
 
 class H2RXRYTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes H gates into sequences of RX and RY
+    gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.H]
@@ -98,7 +104,7 @@ class H2RXRYTranspiler(GateKindDecomposer):
 
 
 class RX2RZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose RX gates into sequence of RZ and
+    """CircuitTranspiler, which decomposes RX gates into sequences of RZ and
     SqrtX gates."""
 
     @property
@@ -118,7 +124,7 @@ class RX2RZSqrtXTranspiler(GateKindDecomposer):
 
 
 class RY2RZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose RY gates into sequence of RZ and
+    """CircuitTranspiler, which decomposes RY gates into sequences of RZ and
     SqrtX gates."""
 
     @property
@@ -137,7 +143,7 @@ class RY2RZSqrtXTranspiler(GateKindDecomposer):
 
 
 class S2RZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose S gates into of gates."""
+    """CircuitTranspiler, which decomposes S gates into of gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -149,7 +155,7 @@ class S2RZTranspiler(GateKindDecomposer):
 
 
 class Sdag2RZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose Sdag gates into RZ gates."""
+    """CircuitTranspiler, which decomposes Sdag gates into RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -161,6 +167,8 @@ class Sdag2RZTranspiler(GateKindDecomposer):
 
 
 class SqrtX2RXTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which converts SqrtX gates into RX gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.SqrtX]
@@ -171,8 +179,8 @@ class SqrtX2RXTranspiler(GateKindDecomposer):
 
 
 class SqrtX2RZHTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose SqrtX gates into sequence of RZ and H
-    gates."""
+    """CircuitTranspiler, which decomposes SqrtX gates into sequences of RZ and
+    H gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -188,6 +196,8 @@ class SqrtX2RZHTranspiler(GateKindDecomposer):
 
 
 class SqrtXdag2RXTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which converts SqrtXdag gates into RX gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.SqrtXdag]
@@ -198,7 +208,7 @@ class SqrtXdag2RXTranspiler(GateKindDecomposer):
 
 
 class SqrtXdag2RZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose SqrtXdag gates into sequence of RZ
+    """CircuitTranspiler, which decomposes SqrtXdag gates into sequences of RZ
     and SqrtX gates."""
 
     @property
@@ -215,6 +225,8 @@ class SqrtXdag2RZSqrtXTranspiler(GateKindDecomposer):
 
 
 class SqrtY2RYTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which converts SqrtY gates into RY gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.SqrtY]
@@ -225,7 +237,7 @@ class SqrtY2RYTranspiler(GateKindDecomposer):
 
 
 class SqrtY2RZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose SqrtY gates into sequence of RZ and
+    """CircuitTranspiler, which decomposes SqrtY gates into sequences of RZ and
     SqrtX gates."""
 
     @property
@@ -252,7 +264,7 @@ class SqrtYdag2RYTranspiler(GateKindDecomposer):
 
 
 class SqrtYdag2RZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose SqrtYdag gates into sequence of RZ
+    """CircuitTranspiler, which decomposes SqrtYdag gates into sequences of RZ
     and SqrtX gates."""
 
     @property
@@ -269,7 +281,7 @@ class SqrtYdag2RZSqrtXTranspiler(GateKindDecomposer):
 
 
 class SWAP2CNOTTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose SWAP gates into sequence of CNOT
+    """CircuitTranspiler, which decomposes SWAP gates into sequences of CNOT
     gates."""
 
     @property
@@ -286,7 +298,7 @@ class SWAP2CNOTTranspiler(GateKindDecomposer):
 
 
 class T2RZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose T gates into RZ gates."""
+    """CircuitTranspiler, which decomposes T gates into RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -298,7 +310,7 @@ class T2RZTranspiler(GateKindDecomposer):
 
 
 class Tdag2RZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose Tdag gates into RZ gates."""
+    """CircuitTranspiler, which decomposes Tdag gates into RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -309,8 +321,38 @@ class Tdag2RZTranspiler(GateKindDecomposer):
         return [gates.RZ(target, -np.pi / 4.0)]
 
 
+class TOFFOLI2HTTdagCNOTTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes TOFFOLI gates into sequences of H,
+    T, TDag, and CNOT gates."""
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.TOFFOLI]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        control1, control2 = gate.control_indices
+        target = gate.target_indices[0]
+        return [
+            gates.H(target),
+            gates.CNOT(control2, target),
+            gates.Tdag(target),
+            gates.CNOT(control1, target),
+            gates.T(target),
+            gates.CNOT(control2, target),
+            gates.Tdag(target),
+            gates.CNOT(control1, target),
+            gates.T(control2),
+            gates.T(target),
+            gates.H(target),
+            gates.CNOT(control1, control2),
+            gates.T(control1),
+            gates.Tdag(control2),
+            gates.CNOT(control1, control2),
+        ]
+
+
 class U1ToRZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose U1 gates into RZ gates."""
+    """CircuitTranspiler, which decomposes U1 gates into RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -323,7 +365,7 @@ class U1ToRZTranspiler(GateKindDecomposer):
 
 
 class U2ToRZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose U2 gates into sequence of RZ and
+    """CircuitTranspiler, which decomposes U2 gates into sequences of RZ and
     SqrtX gates."""
 
     @property
@@ -341,6 +383,9 @@ class U2ToRZSqrtXTranspiler(GateKindDecomposer):
 
 
 class U2ToRXRZTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes U2 gates into sequences of RX and RZ
+    gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.U2]
@@ -356,7 +401,7 @@ class U2ToRXRZTranspiler(GateKindDecomposer):
 
 
 class U3ToRZSqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose U3 gates into sequence of RZ and
+    """CircuitTranspiler, which decomposes U3 gates into sequences of RZ and
     SqrtX gates."""
 
     @property
@@ -376,6 +421,9 @@ class U3ToRZSqrtXTranspiler(GateKindDecomposer):
 
 
 class U3ToRXRZTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes U3 gates into sequences of RX and RZ
+    gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.U3]
@@ -393,7 +441,7 @@ class U3ToRXRZTranspiler(GateKindDecomposer):
 
 
 class X2HZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose X gates into sequence of H and Z
+    """CircuitTranspiler, which decomposes X gates into sequences of H and Z
     gates."""
 
     @property
@@ -410,6 +458,8 @@ class X2HZTranspiler(GateKindDecomposer):
 
 
 class X2RXTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which converts X gates into RX gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.X]
@@ -420,7 +470,7 @@ class X2RXTranspiler(GateKindDecomposer):
 
 
 class X2SqrtXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose X gates into sequence of SqrtX
+    """CircuitTranspiler, which decomposes X gates into sequences of SqrtX
     gates."""
 
     @property
@@ -433,7 +483,7 @@ class X2SqrtXTranspiler(GateKindDecomposer):
 
 
 class Y2RZXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose Y gates into sequence of RZ and T
+    """CircuitTranspiler, which decomposes Y gates into sequences of RZ and T
     gates."""
 
     @property
@@ -449,6 +499,8 @@ class Y2RZXTranspiler(GateKindDecomposer):
 
 
 class Y2RYTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which converts Y gates into RY gates."""
+
     @property
     def target_gate_names(self) -> Sequence[str]:
         return [gate_names.Y]
@@ -459,7 +511,7 @@ class Y2RYTranspiler(GateKindDecomposer):
 
 
 class Z2RZTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose Z gates into RZ gates."""
+    """CircuitTranspiler, which decomposes Z gates into RZ gates."""
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -471,7 +523,7 @@ class Z2RZTranspiler(GateKindDecomposer):
 
 
 class Z2HXTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose Z gates into sequence of H and X
+    """CircuitTranspiler, which decomposes Z gates into sequences of H and X
     gates."""
 
     @property

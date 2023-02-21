@@ -32,6 +32,7 @@ from .gate_kind_decomposer import (
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
     U2ToRZSqrtXTranspiler,
@@ -73,6 +74,7 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 CZ2CNOTHTranspiler(),
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
@@ -107,6 +109,7 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
             [
                 PauliDecomposeTranspiler(),
                 PauliRotationDecomposeTranspiler(),
+                TOFFOLI2HTTdagCNOTTranspiler(),
             ]
         ),
         ParallelDecomposer(
@@ -169,6 +172,7 @@ __all__ = [
     "SWAP2CNOTTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "TOFFOLI2HTTdagCNOTTranspiler",
     "U1ToRZTranspiler",
     "U2ToRXRZTranspiler",
     "U2ToRZSqrtXTranspiler",
