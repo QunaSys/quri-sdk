@@ -1,6 +1,6 @@
 ---
 name: typing_extensions
-version: 4.4.0
+version: 4.5.0
 type: pip
 summary: Backported and Experimental Type Hints for Python 3.7+
 homepage: ''

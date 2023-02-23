@@ -14,3 +14,4 @@
 # -e ./packages/openqasm
 # -e ./packages/honeywell
 # -e ./packages/ionq
+# -e ./packages/pyscf

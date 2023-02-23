@@ -21,4 +21,5 @@ API Reference
     quri_parts/openqasm/quri_parts.openqasm
     quri_parts/honeywell/quri_parts.honeywell
     quri_parts/ionq/quri_parts.ionq
+    quri_parts/pyscf/quri_parts.pyscf
 
