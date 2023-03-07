@@ -1,6 +1,6 @@
 ---
 name: matplotlib
-version: 3.7.0
+version: 3.7.1
 type: pip
 summary: Python plotting package
 homepage: https://matplotlib.org
@@ -214,6 +214,29 @@ licenses:
     OF LIABILITY, WHETHER IN \nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
     OR OTHERWISE) \nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
     OF THE \nPOSSIBILITY OF SUCH DAMAGE.\n"
+- sources: LICENSE_QHULL
+  text: "                    Qhull, Copyright (c) 1993-2020\n                    \n
+    \                           C.B. Barber\n                           Arlington,
+    MA \n                          \n                               and\n\n       The
+    National Science and Technology Research Center for\n        Computation and Visualization
+    of Geometric Structures\n                        (The Geometry Center)\n                       University
+    of Minnesota\n\n                       email: qhull@qhull.org\n\nThis software
+    includes Qhull from C.B. Barber and The Geometry Center.  \nFiles derived from
+    Qhull 1.0 are copyrighted by the Geometry Center.  The\nremaining files are copyrighted
+    by C.B. Barber.  Qhull is free software \nand may be obtained via http from www.qhull.org.
+    \ It may be freely copied, \nmodified, and redistributed under the following conditions:\n\n1.
+    All copyright notices must remain intact in all files.\n\n2. A copy of this text
+    file must be distributed along with any copies \n   of Qhull that you redistribute;
+    this includes copies that you have \n   modified, or copies of programs or other
+    software products that \n   include Qhull.\n\n3. If you modify Qhull, you must
+    include a notice giving the\n   name of the person performing the modification,
+    the date of\n   modification, and the reason for such modification.\n\n4. When
+    distributing modified versions of Qhull, or other software \n   products that
+    include Qhull, you must provide notice that the original \n   source code may
+    be obtained as noted above.\n\n5. There is no warranty or other guarantee of fitness
+    for Qhull, it is \n   provided solely \"as is\".  Bug reports or fixes may be
+    sent to \n   qhull_bug@qhull.org; the authors may or may not act on them as \n
+    \  they desire.\n"
 - sources: LICENSE_AMSFONTS
   text: "The cmr10.pfb file is a Type-1 version of one of Knuth's Computer Modern
     fonts.\nIt is included here as test data only, but the following license applies.\n\nCopyright
