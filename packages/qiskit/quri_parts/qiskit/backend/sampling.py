@@ -11,6 +11,7 @@
 from collections.abc import Mapping, MutableMapping
 from typing import Any, Optional
 
+import qiskit
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from qiskit.result import Result
@@ -150,7 +151,11 @@ class QiskitSamplingBackend(SamplingBackend):
         try:
             for s in shot_dist:
                 qiskit_jobs.append(
-                    self._backend.run(qiskit_circuit, shots=s, **self._run_kwargs)
+                    self._backend.run(
+                        qiskit.transpile(qiskit_circuit, self._backend),
+                        shots=s,
+                        **self._run_kwargs,
+                    )
                 )
         except Exception as e:
             for j in qiskit_jobs:
