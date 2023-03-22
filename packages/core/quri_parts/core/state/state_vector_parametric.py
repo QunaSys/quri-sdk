@@ -53,6 +53,18 @@ class ParametricQuantumStateVector(
     def qubit_count(self) -> int:
         return self._n_qubits
 
+    def with_primitive_circuit(self) -> "ParametricQuantumStateVector":
+        """Returns a new ParametricQuantumStateVector whose circuit is replaced
+        with the corresponding primitive circuit.
+
+        The original state is not changed. For details about the
+        primitive circuit, please refer to `.primitive_circuit()` in
+        :class:`UnboundParametricQuantumCircuitProtocol`.
+        """
+        return ParametricQuantumStateVector(
+            self._n_qubits, self._circuit.primitive_circuit(), self.vector
+        )
+
     def with_gates_applied(self, gates: GateSequence) -> "ParametricQuantumStateVector":
         """Returns a new state with the gates applied.
 

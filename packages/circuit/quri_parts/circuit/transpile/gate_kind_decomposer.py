@@ -103,6 +103,18 @@ class H2RXRYTranspiler(GateKindDecomposer):
         ]
 
 
+class Identity2RZTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which converts Identity gates into RZ gates."""
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.Identity]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        target = gate.target_indices[0]
+        return [gates.RZ(target, 0.0)]
+
+
 class RX2RZSqrtXTranspiler(GateKindDecomposer):
     """CircuitTranspiler, which decomposes RX gates into sequences of RZ and
     SqrtX gates."""

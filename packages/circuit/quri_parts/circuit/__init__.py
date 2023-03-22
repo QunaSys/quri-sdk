@@ -22,11 +22,9 @@ from .circuit_linear_mapped import (
     LinearMappedUnboundParametricQuantumCircuitBase,
 )
 from .circuit_parametric import (
-    CONST,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
     MutableUnboundParametricQuantumCircuitProtocol,
-    Parameter,
     UnboundParametricQuantumCircuit,
     UnboundParametricQuantumCircuitBase,
     UnboundParametricQuantumCircuitProtocol,
@@ -68,6 +66,7 @@ from .gates import (
     Z,
 )
 from .inverse_gate import inverse_gate
+from .parameter import CONST, Parameter
 from .parameter_mapping import (
     LinearParameterFunction,
     LinearParameterMapping,

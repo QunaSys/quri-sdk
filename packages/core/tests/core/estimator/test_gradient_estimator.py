@@ -14,12 +14,17 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 
-from quri_parts.circuit import UnboundParametricQuantumCircuit
+from quri_parts.circuit import (
+    LinearMappedUnboundParametricQuantumCircuit,
+    UnboundParametricQuantumCircuit,
+)
 from quri_parts.core.estimator import Estimatable, Estimate
 from quri_parts.core.estimator.gradient import (
     _ParametricStateT,
     create_numerical_gradient_estimator,
+    create_parameter_shift_gradient_estimator,
     numerical_gradient_estimates,
+    parameter_shift_gradient_estimates,
 )
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label, zero
 from quri_parts.core.state import ParametricCircuitQuantumState
@@ -46,6 +51,23 @@ def b_state() -> ParametricCircuitQuantumState:
     return s
 
 
+def c_state() -> ParametricCircuitQuantumState:
+    circuit = LinearMappedUnboundParametricQuantumCircuit(1)
+    theta1 = circuit.add_parameter("theta1")
+    circuit.add_ParametricRX_gate(0, {theta1: 1 / 2})
+    return ParametricCircuitQuantumState(1, circuit)
+
+
+def d_state() -> ParametricCircuitQuantumState:
+    circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+    theta1, theta2 = circuit.add_parameters("theta1", "theta2")
+    circuit.add_H_gate(0)
+    circuit.add_X_gate(1)
+    circuit.add_ParametricRY_gate(0, {theta1: 1})
+    circuit.add_ParametricRY_gate(1, {theta2: 1})
+    return ParametricCircuitQuantumState(2, circuit)
+
+
 class _Estimate:
     @property
     def value(self) -> complex:
@@ -69,7 +91,7 @@ def mock_estimator() -> Mock:
 
 
 class TestGradientEstimator:
-    def test_create_gradient_estimator(self) -> None:
+    def test_create_numerical_gradient_estimator(self) -> None:
         init_params = [0.0]
         delta = 1e-6
         estimator = mock_estimator()
@@ -79,8 +101,17 @@ class TestGradientEstimator:
         assert estimates.values == [0.0]
         assert estimates.error_matrix is None
 
+    def test_create_parameter_shift_gradient_estimator(self) -> None:
+        init_params = [0.0]
+        estimator = mock_estimator()
+        parameter_shift_estimator = create_parameter_shift_gradient_estimator(estimator)
+        estimates = parameter_shift_estimator(zero(), c_state(), init_params)
+        estimator.assert_called_once()
+        assert estimates.values == [0.0]
+        assert estimates.error_matrix is None
 
-class TestGradientEstimate:
+
+class TestNumericalGradientEstimate:
     def test_zero_op(self) -> None:
         init_params = [0.0]
         delta = 1e-6
@@ -121,8 +152,7 @@ class TestGradientEstimate:
         estimates = numerical_gradient_estimates(
             op, b_state(), init_params, estimator, delta
         )
-        assert estimates.values[0] == 0.0
-        assert estimates.values[1] == pytest.approx(1.41421356)
+        assert estimates.values == [0.0, pytest.approx(1.41421356)]
         assert estimates.error_matrix is None
 
     def test_delta(self) -> None:
@@ -145,3 +175,55 @@ class TestGradientEstimate:
         assert abs(estimates1.values[0] - real_value) < 1e-4
         assert abs(estimates2.values[0] - real_value) < 1e-4
         assert abs(estimates3.values[0] - real_value) < 1e-4
+
+
+class TestParameterShiftGradientEstimate:
+    def test_zero_op(self) -> None:
+        init_params = [0.0]
+        estimator = create_qulacs_vector_concurrent_parametric_estimator()
+        estimates = parameter_shift_gradient_estimates(
+            zero(), c_state(), init_params, estimator
+        )
+        assert estimates.values == [0.0]
+        assert estimates.error_matrix is None
+
+    def test_const_op(self) -> None:
+        op = Operator({PAULI_IDENTITY: 3.0})
+        init_params = [0.0]
+        estimator = create_qulacs_vector_concurrent_parametric_estimator()
+        estimates = parameter_shift_gradient_estimates(
+            op, c_state(), init_params, estimator
+        )
+        assert estimates.values == [0.0]
+        assert estimates.error_matrix is None
+
+    def test_pauli_Z_op(self) -> None:
+        op = Operator({pauli_label("Z0"): 2.0})
+        init_params = [np.pi * 0.5]
+        estimator = create_qulacs_vector_concurrent_parametric_estimator()
+        estimates = parameter_shift_gradient_estimates(
+            op, c_state(), init_params, estimator
+        )
+        assert estimates.values[0] == pytest.approx(-0.70710678)
+        assert estimates.error_matrix is None
+
+    def test_multi_params_gradient_estimator(self) -> None:
+        op = Operator({pauli_label("Z0 X1"): 2.0})
+        init_params = [np.pi * 0.5, np.pi * 0.25]
+        estimator = create_qulacs_vector_concurrent_parametric_estimator()
+        estimates = parameter_shift_gradient_estimates(
+            op, d_state(), init_params, estimator
+        )
+        assert estimates.values[0] == pytest.approx(0.0)
+        assert estimates.values[1] == pytest.approx(1.41421356)
+        assert estimates.error_matrix is None
+
+    def test_primitive_unbound_parametric_circuit(self) -> None:
+        op = Operator({pauli_label("Z0 X1"): 2.0})
+        init_params = [np.pi * 0.5, np.pi * 0.25]
+        estimator = create_qulacs_vector_concurrent_parametric_estimator()
+        estimates = parameter_shift_gradient_estimates(
+            op, b_state(), init_params, estimator
+        )
+        assert estimates.values == [0.0, pytest.approx(1.41421356)]
+        assert estimates.error_matrix is None

@@ -55,7 +55,6 @@ def create_equipartition_shots_allocator(
         pauli_sets: Collection[CommutablePauliSet],
         total_shots: int,
     ) -> Collection[PauliSamplingSetting]:
-
         n_terms = len(pauli_sets)
         shots_per_term = _rounddown_to_unit(total_shots / n_terms, shot_unit)
         return frozenset(
@@ -101,7 +100,6 @@ def create_proportional_shots_allocator(
     def allocator(
         operator: Operator, pauli_sets: Collection[CommutablePauliSet], total_shots: int
     ) -> Collection[PauliSamplingSetting]:
-
         pauli_sets = tuple(pauli_sets)  # to fix the order of elements
 
         ratios = _calc_ratios(operator, pauli_sets)

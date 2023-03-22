@@ -30,9 +30,9 @@ _GATES: list[QuantumGate] = [
 _PARAM_VALS: list[float] = [1.0, 0.5]
 
 
-def mutable_circuit() -> tuple[
-    LinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]
-]:
+def mutable_circuit() -> (
+    tuple[LinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]]
+):
     circuit = LinearMappedUnboundParametricQuantumCircuit(2)
     for gate in _GATES:
         circuit.add_gate(gate)
@@ -42,9 +42,9 @@ def mutable_circuit() -> tuple[
     return circuit, params
 
 
-def immutable_circuit() -> tuple[
-    ImmutableLinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]
-]:
+def immutable_circuit() -> (
+    tuple[ImmutableLinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]]
+):
     q_circuit, params = mutable_circuit()
     return ImmutableLinearMappedUnboundParametricQuantumCircuit(q_circuit), params
 

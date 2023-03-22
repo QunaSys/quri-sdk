@@ -191,9 +191,9 @@ def _sequential_parametric_estimate(
     return estimates
 
 
-def create_qulacs_vector_parametric_estimator() -> ParametricQuantumEstimator[
-    QulacsParametricStateT
-]:
+def create_qulacs_vector_parametric_estimator() -> (
+    ParametricQuantumEstimator[QulacsParametricStateT]
+):
     def estimator(
         operator: Estimatable, state: QulacsParametricStateT, param: Sequence[float]
     ) -> Estimate[complex]:

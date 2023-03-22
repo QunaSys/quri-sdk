@@ -17,6 +17,7 @@ from .gate_kind_decomposer import (
     CZ2RXRYCNOTTranspiler,
     H2RXRYTranspiler,
     H2RZSqrtXTranspiler,
+    Identity2RZTranspiler,
     RX2RZSqrtXTranspiler,
     RY2RZSqrtXTranspiler,
     S2RZTranspiler,
@@ -79,6 +80,7 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
         ),
         ParallelDecomposer(
             [
+                Identity2RZTranspiler(),
                 Y2RZXTranspiler(),
                 Z2RZTranspiler(),
                 H2RZSqrtXTranspiler(),
@@ -114,6 +116,7 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
         ),
         ParallelDecomposer(
             [
+                Identity2RZTranspiler(),
                 H2RXRYTranspiler(),
                 X2RXTranspiler(),
                 Y2RYTranspiler(),
@@ -148,6 +151,7 @@ __all__ = [
     "RotationSetTranspiler",
     "CliffordApproximationTranspiler",
     "IdentityInsertionTranspiler",
+    "Identity2RZTranspiler",
     "PauliDecomposeTranspiler",
     "PauliRotationDecomposeTranspiler",
     "CNOT2CZHTranspiler",

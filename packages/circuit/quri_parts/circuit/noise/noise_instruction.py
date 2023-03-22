@@ -583,7 +583,6 @@ class ProbabilisticNoise(GateNoiseInstruction):
         prob_list: Sequence[float],
         gate_matrices: Sequence[Sequence[Sequence[float]]],
     ) -> tuple[Sequence[float], KrausOperatorSequence]:
-
         pl = list(prob_list)
         dl: list[npt.NDArray[np.float64]] = [np.array(m) for m in gate_matrices]
         sum_prob = sum(prob_list)
@@ -977,7 +976,6 @@ class ThermalRelaxationNoise(AbstractKrausNoise):
         gate_time: float,
         esp: float,
     ) -> KrausOperatorSequence:
-
         # NOTE
         # Referring to Qiskit.
         # https://qiskit.org/documentation/_modules/qiskit_aer/noise/errors/standard_errors.html#thermal_relaxation_error

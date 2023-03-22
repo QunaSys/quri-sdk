@@ -10,7 +10,7 @@
 
 import math
 
-from quri_parts.circuit.circuit_parametric import CONST, Parameter
+from quri_parts.circuit.parameter import CONST, Parameter
 from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 from quri_parts.circuit.parameter_shift import ParameterShiftsAndCoef, ShiftedParameters
 

@@ -39,11 +39,11 @@ quri-parts-core = {path = "../core", develop = true}
 quri-parts-chem = {path = "../chem", develop = true}
 
 pytest = "^7.0.1"
-black = "^22.1.0"
 flake8 = "^4.0.1"
 mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
+black = "^23.1.0"
 
 [tool.black]
 line-length = 88

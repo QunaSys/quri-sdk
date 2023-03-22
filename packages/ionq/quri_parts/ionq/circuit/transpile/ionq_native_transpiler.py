@@ -52,12 +52,10 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
-
         phase: MutableMapping[int, float] = defaultdict(float)
         cg = []
 
         for gate in circuit.gates:
-
             if gate.name == gate_names.RZ:
                 target = gate.target_indices[0]
                 theta = gate.params[0]

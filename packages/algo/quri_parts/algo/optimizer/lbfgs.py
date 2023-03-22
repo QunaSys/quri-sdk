@@ -100,7 +100,6 @@ class LBFGS(Optimizer):
         m: int = 5,
         gtol: Optional[float] = 1e-6,
     ):
-
         if not (0.0 < c1 < c2 < 1.0):
             raise ValueError(
                 f"c1 and c2 must satisfy '0 < c1 < c2 < 1',"
@@ -285,7 +284,6 @@ class LBFGS(Optimizer):
             ]
         ] = None,
     ) -> tuple[int, int, float, float, float, "npt.NDArray[np.float_]"]:
-
         alpha, fc, gc, fval, old_fval, gval = line_search_wolfe1(
             f=cost_function,
             fprime=grad_function,

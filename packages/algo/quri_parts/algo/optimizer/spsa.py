@@ -121,7 +121,6 @@ class SPSA(Optimizer):
         cost_function: CostFunction,
         grad_function: Optional[GradientFunction] = None,
     ) -> OptimizerStateSPSA:
-
         if not isinstance(state, OptimizerStateSPSA):
             raise ValueError('state must have type "OptimizerStateSPSA".')
 

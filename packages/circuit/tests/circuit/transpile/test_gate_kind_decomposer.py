@@ -22,6 +22,7 @@ from quri_parts.circuit import (
     U2,
     U3,
     H,
+    Identity,
     Pauli,
     PauliRotation,
     QuantumCircuit,
@@ -42,6 +43,7 @@ from quri_parts.circuit.transpile import (
     CZ2RXRYCNOTTranspiler,
     H2RXRYTranspiler,
     H2RZSqrtXTranspiler,
+    Identity2RZTranspiler,
     RX2RZSqrtXTranspiler,
     RY2RZSqrtXTranspiler,
     RZSetTranspiler,
@@ -137,6 +139,16 @@ class TestFTQCSetTranspile:
 
 
 class TestRZSetTranspile:
+    def test_identity2rz_transpile(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.add_gate(Identity(0))
+        transpiled = Identity2RZTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend([RZ(0, 0.0)])
+
+        assert transpiled.gates == expect.gates
+
     def test_h2rzsqrtx_transpile(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.add_gate(H(0))
@@ -358,6 +370,7 @@ class TestRZSetTranspile:
         circuit = QuantumCircuit(3)
         circuit.extend(
             [
+                Identity(2),
                 X(0),
                 Y(1),
                 Z(2),
@@ -385,6 +398,7 @@ class TestRZSetTranspile:
         expect = QuantumCircuit(3)
         expect.extend(
             [
+                RZ(2, 0.0),  # Idenitty
                 X(0),  # X
                 RZ(1, -np.pi),  # Y
                 X(1),

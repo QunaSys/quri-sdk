@@ -10,8 +10,10 @@
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Optional, TypeVar, Union
+from typing import Optional, TypeVar, Union, cast
 
+from quri_parts.circuit.parameter_mapping import LinearParameterMapping
+from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     Estimatable,
@@ -105,6 +107,87 @@ def create_numerical_gradient_estimator(
             params,
             parametric_estimator,
             delta,
+        )
+
+    return estimator
+
+
+def parameter_shift_gradient_estimates(
+    op: Estimatable,
+    state: _ParametricStateT,
+    params: Sequence[float],
+    estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
+) -> Estimates[complex]:
+    """Estimate a gradient of an expectation value of a given operator for a
+    parametric state with respect to the state parameter by the parameter shift
+    rule.
+
+    The gradient estimates are configured with arguments as follows.
+
+    Args:
+        op: An operator of which expectation value is estimated.
+        state: A parametric quantum state on which the operator
+            expectation is evaluated.
+        params: Parameter values for which the gradient is estimated.
+        estimator: An estimator that estimates expectation values
+            of the operator for the parametric states.
+
+    Returns:
+        The estimated values (can be accessed with :attr:`.values`) with errors
+        of estimation (can be accessed with :attr:`.error_matrix`). Currently,
+        :attr:`.error_matrix` returns `None`.
+    """
+    param_mapping = cast(LinearParameterMapping, state.parametric_circuit.param_mapping)
+    parameter_shift = ShiftedParameters(param_mapping)
+    derivatives = parameter_shift.get_derivatives()
+    shifted_params_and_coefs = [
+        d.get_shifted_parameters_and_coef(params) for d in derivatives
+    ]
+
+    gate_params = set()
+    for params_and_coefs in shifted_params_and_coefs:
+        for p, _ in params_and_coefs:
+            gate_params.add(p)
+    gate_params_list = list(gate_params)
+
+    raw_param_state = state.with_primitive_circuit()
+
+    # When using a bound TypeVar, mypy raises an incompatible types error.
+    # Therefore, after checking the instance type, cast to `_ParametricStateT`.
+    if not (
+        isinstance(raw_param_state, ParametricCircuitQuantumState)
+        or isinstance(raw_param_state, ParametricQuantumStateVector)
+    ):
+        raise NotImplementedError(
+            """
+            Only the case that raw_param_state is _ParametricStateT
+            has been implemented.
+            """
+        )
+
+    estimates = estimator(
+        op, cast(_ParametricStateT, raw_param_state), gate_params_list
+    )
+    estimates_dict = dict(zip(gate_params_list, estimates))
+
+    grad = []
+    for params_and_coefs in shifted_params_and_coefs:
+        g = 0.0 + 0.0j
+        for p, c in params_and_coefs:
+            g += estimates_dict[p].value * c
+        grad.append(g)
+
+    return _Estimates(grad, None)
+
+
+def create_parameter_shift_gradient_estimator(
+    parametric_estimator: ConcurrentParametricQuantumEstimator[_ParametricStateT],
+) -> GradientEstimator[_ParametricStateT]:
+    def estimator(
+        operator: Estimatable, state: _ParametricStateT, params: Sequence[float]
+    ) -> Estimates[complex]:
+        return parameter_shift_gradient_estimates(
+            operator, state, params, parametric_estimator
         )
 
     return estimator

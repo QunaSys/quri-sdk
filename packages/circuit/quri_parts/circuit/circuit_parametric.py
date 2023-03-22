@@ -34,28 +34,8 @@ from .gates import (
     ParametricRZ,
     PauliRotation,
 )
-
-
-class Parameter:
-    """A class representing parameters in parametric quantum circuits.
-
-    A ``Parameter`` is a placeholder and does not hold a concrete value in it.
-
-    Implementation note: equality of Parameters is evaluated as identity of the objects.
-    This means that even if two Parameters have the same name they are not equal if
-    they are different objects. To achieve this behavior, it is avoided to 1) inherit
-    :class:`~NamedTuple` and 2) define ``__eq__`` method.
-    """
-
-    def __init__(self, name: str = ""):
-        self.name = name
-
-    def __repr__(self) -> str:
-        return f"Parameter(name={self.name})"
-
-
-#: A placeholder representing a constant term.
-CONST = Parameter()
+from .parameter import Parameter
+from .parameter_mapping import LinearParameterMapping, ParameterMapping
 
 
 class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
@@ -95,6 +75,34 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """
         ...
 
+    @abstractmethod
+    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+        r"""Returns the parametric circuit where each gate has an independent
+        parameter.
+
+        Note that some parametric circuit,
+        e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
+        mapping of the parameters. In this "primitive circuit", however,
+        gate parameters are treated as independent,
+        even if those in the original circuit depend on the same parameters.
+        For example, if the parametric circuit is defined as:
+
+        .. math::
+            \begin{align}
+                U_1(f(\theta_1, \theta_2)) U_2(g(\theta_1, \theta_2))
+            \end{align}
+
+        the primitive circuit should be as the following:
+
+        .. math::
+            \begin{align}
+                U_1(\psi_1) U_2(\psi_2)
+            \end{align}
+
+        where U1, U2 are rotation gates and f, g are parameter mappings.
+        """
+        ...
+
     @abstractproperty
     def parameter_count(self) -> int:
         ...
@@ -113,6 +121,11 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         e.g. :class:`LinearMappedUnboundParametricQuantumCircuit`, can have non-trivial
         mapping of the parameters.
         """
+        ...
+
+    @abstractproperty
+    def param_mapping(self) -> ParameterMapping:
+        """Returns the parameter mapping of the circuit."""
         ...
 
 
@@ -162,6 +175,15 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
     @property
     def has_trivial_parameter_mapping(self) -> bool:
         return True
+
+    @property
+    def param_mapping(self) -> LinearParameterMapping:
+        return LinearParameterMapping(
+            self._params, self._params, dict(zip(self._params, self._params))
+        )
+
+    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+        return self.freeze()
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":
         circuit = UnboundParametricQuantumCircuit(self.qubit_count)

@@ -61,7 +61,6 @@ class NFTBase(Optimizer):
         cost_function: CostFunction,
         grad_function: Optional[GradientFunction] = None,
     ) -> OptimizerStateNFT:
-
         if not isinstance(state, OptimizerStateNFT):
             raise ValueError('state must have type "OptimizerStateNFT".')
 
@@ -158,13 +157,11 @@ class NFT(NFTBase):
         index_list: "npt.NDArray[np.int64]",
         cost_function: CostFunction,
     ) -> tuple[Params, float, int]:
-
         params = state.params.copy()
         funcalls = state.funcalls
         cost = state.cost
 
         for i, idx in enumerate(index_list):
-
             if i == 0 and state.niter == 0:
                 z0 = cost
             elif (
@@ -238,7 +235,6 @@ class NFTfit(NFTBase):
         index_list: "npt.NDArray[np.int64]",
         cost_function: CostFunction,
     ) -> tuple[Params, float, int]:
-
         x_data = np.pi * np.linspace(-1.0, 1.0, num=self._n_points, endpoint=False)
         y_data: "npt.NDArray[np.float_]" = np.zeros(self._n_points, dtype=float)
 

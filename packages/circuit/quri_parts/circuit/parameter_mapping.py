@@ -16,7 +16,7 @@ from typing import Callable, Protocol, Union, cast
 
 from typing_extensions import TypeAlias
 
-from .circuit_parametric import CONST, Parameter
+from .parameter import CONST, Parameter
 
 #: ParameterValueAssignment represents a :class:`~Mapping` which assigns concrete
 #: values to a set of parameters.

@@ -15,7 +15,7 @@ from typing import NamedTuple, cast
 
 from typing_extensions import TypeAlias
 
-from .circuit_parametric import CONST, Parameter
+from .parameter import CONST, Parameter
 from .parameter_mapping import LinearParameterFunction, LinearParameterMapping
 
 #: Represents a set of parameter shifts appearing in the parameter shift rule.

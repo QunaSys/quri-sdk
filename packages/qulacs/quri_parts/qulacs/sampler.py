@@ -130,7 +130,6 @@ def _create_qulacs_concurrent_sampler_with_noise_model(
     executor: Optional["Executor"],
     concurrency: int,
 ) -> ConcurrentSampler:
-
     noise_sampler = sampler_creator(model)
 
     def _sample_sequentially(
