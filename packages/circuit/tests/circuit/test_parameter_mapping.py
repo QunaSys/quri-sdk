@@ -52,6 +52,7 @@ class TestParameterMappingBase:
 
                 return m
 
+            @property
             def is_trivial_mapping(self) -> bool:
                 return False
 

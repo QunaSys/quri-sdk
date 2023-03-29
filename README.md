@@ -23,6 +23,7 @@ You are also encouraged to propose or author new components as necessary.
   - Quantum circuit simulators
       - `quri-parts-qulacs`: [Qulacs](https://github.com/qulacs/qulacs)
       - `quri-parts-stim`: [Stim](https://github.com/quantumlib/Stim)
+      - `quri-parts-itensor`: [ITensor](https://github.com/ITensor/ITensors.jl)
   - Quantum platforms/SDKs
       - `quri-parts-braket`: [Amazon Braket SDK](https://github.com/aws/amazon-braket-sdk-python)
       - `quri-parts-cirq`: [Cirq](https://quantumai.google/cirq) (Only circuit conversion is supported yet)
@@ -69,6 +70,7 @@ Currently available extras are as follows:
 - `openfermion`
 - `stim`
 - `openqasm`
+- `itensor`
 
 You can also install individual components (`quri-parts-*`) directly.
 In fact, `quri-parts` is a meta package, a convenience method to install those individual components.
