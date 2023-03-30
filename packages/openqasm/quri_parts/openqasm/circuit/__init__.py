@@ -43,9 +43,10 @@ _single_qubit_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
     gate_names.Z: "z",
     gate_names.H: "h",
     gate_names.S: "s",
-    gate_names.Sdag: "sdag",
+    gate_names.SqrtX: "sx",
+    gate_names.Sdag: "sdg",
     gate_names.T: "t",
-    gate_names.Tdag: "tdag",
+    gate_names.Tdag: "tdg",
 }
 
 _single_qubit_rotation_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
@@ -77,7 +78,6 @@ _U_gate_stdgates_symbol: Mapping["SingleQubitGateNameType", str] = {
 }
 
 _not_implemented_gates: set["SingleQubitGateNameType"] = {
-    gate_names.SqrtX,
     gate_names.SqrtXdag,
     gate_names.SqrtY,
     gate_names.SqrtYdag,

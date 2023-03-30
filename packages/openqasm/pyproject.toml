@@ -18,7 +18,6 @@ classifiers = [
 packages = [
     { include = "quri_parts" }
 ]
-include = ["NOTICE"]
 
 [tool.poetry-dynamic-versioning]
 enable = true
