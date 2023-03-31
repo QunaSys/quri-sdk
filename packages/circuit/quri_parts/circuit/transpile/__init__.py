@@ -47,7 +47,10 @@ from .gate_kind_decomposer import (
     Z2HXTranspiler,
     Z2RZTranspiler,
 )
-from .identity_insertion import IdentityInsertionTranspiler
+from .identity_manipulation import (
+    IdentityEliminationTranspiler,
+    IdentityInsertionTranspiler,
+)
 from .multi_pauli_decomposer import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
@@ -150,6 +153,7 @@ __all__ = [
     "RZSetTranspiler",
     "RotationSetTranspiler",
     "CliffordApproximationTranspiler",
+    "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",
     "Identity2RZTranspiler",
     "PauliDecomposeTranspiler",

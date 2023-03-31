@@ -9,7 +9,10 @@
 # limitations under the License.
 
 from quri_parts.circuit import CNOT, SWAP, H, Identity, QuantumCircuit, X
-from quri_parts.circuit.transpile import IdentityInsertionTranspiler
+from quri_parts.circuit.transpile import (
+    IdentityEliminationTranspiler,
+    IdentityInsertionTranspiler,
+)
 
 
 class TestIdentityInsertion:
@@ -41,3 +44,34 @@ class TestIdentityInsertion:
         expect.extend([H(0), SWAP(1, 0)])
 
         assert transpiled.gates == expect.gates
+
+
+class TestIdentityElimination:
+    def test_remove_to_void(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.extend([Identity(0), Identity(1)])
+        transpiled = IdentityEliminationTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+
+        assert transpiled == expect
+
+    def test_remove_id(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.extend([H(0), Identity(0), X(2), Identity(1), CNOT(2, 1), Identity(2)])
+        transpiled = IdentityEliminationTranspiler()(circuit)
+
+        expect = QuantumCircuit(3)
+        expect.extend([H(0), X(2), CNOT(2, 1)])
+
+        assert transpiled == expect
+
+    def test_no_change(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.extend([X(1), H(0), SWAP(0, 1), X(1), CNOT(1, 0)])
+        transpiled = IdentityEliminationTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+        expect.extend([X(1), H(0), SWAP(0, 1), X(1), CNOT(1, 0)])
+
+        assert transpiled == expect

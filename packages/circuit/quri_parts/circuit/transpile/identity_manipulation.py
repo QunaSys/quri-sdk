@@ -8,7 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit, gates
+from quri_parts.circuit import (
+    NonParametricQuantumCircuit,
+    QuantumCircuit,
+    gate_names,
+    gates,
+)
 
 from .transpiler import CircuitTranspilerProtocol
 
@@ -36,3 +41,17 @@ class IdentityInsertionTranspiler(CircuitTranspilerProtocol):
         for q in non_applied:
             cc.add_gate(gates.Identity(q))
         return cc
+
+
+class IdentityEliminationTranspiler(CircuitTranspilerProtocol):
+    """Generate a new circuit by removing all Identity gates from the given
+    circuit."""
+
+    def __call__(
+        self, circuit: NonParametricQuantumCircuit
+    ) -> NonParametricQuantumCircuit:
+        ret = QuantumCircuit(circuit.qubit_count)
+        for gate in circuit.gates:
+            if gate.name != gate_names.Identity:
+                ret.add_gate(gate)
+        return ret
