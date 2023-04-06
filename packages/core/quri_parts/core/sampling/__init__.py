@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Union
+from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence, Union
 
 from typing_extensions import TypeAlias
 
@@ -82,6 +82,13 @@ PauliSamplingShotsAllocator: TypeAlias = Callable[
 ]
 
 
+#: WeightedSamplingShotsAllocator represents a function that distributes
+#: a given number of sampling shots based on a set of weights.
+WeightedSamplingShotsAllocator: TypeAlias = Callable[
+    [Sequence[complex], int], Sequence[int]
+]
+
+
 __all__ = [
     "MeasurementCounts",
     "Sampler",
@@ -91,4 +98,5 @@ __all__ = [
     "create_sampler_from_concurrent_sampler",
     "PauliSamplingSetting",
     "PauliSamplingShotsAllocator",
+    "WeightedSamplingShotsAllocator",
 ]

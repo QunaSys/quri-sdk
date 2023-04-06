@@ -194,3 +194,87 @@ GradientEstimator: TypeAlias = Callable[
     [Estimatable, _ParametricStateT, Sequence[float]],
     Estimates[complex],
 ]
+
+#: OverlapEstimator represents a function that estimates the magnitude squared overlap
+#: of two non-parametric quantum states. This should be used when the magnitude of the
+#: inner product between two quantum states is needed. It should be symmetric in the
+#: input arguments.
+#: This is a generic type and you need to specify what kind of state classes
+#: it is applicable to.
+OverlapEstimator: TypeAlias = Callable[[_StateT, _StateT], Estimate[float]]
+
+
+#: OverlapWeightedSumEstimator represents a function that estimates the magnitude
+#: squared overlaps of two sets of states and produces a weighted sum. It must be
+#: passed three :class:`~Sequence`s with the same length. This can be used to
+#: evaluate overlap based penalty terms in a Hamiltonian as is done with e.g.
+#: VQD. The output should be invariant under permutation of the first and second
+#: input arguments.
+#: This is a generic type and you need to specify what kind of state classes
+#: it is applicable to.
+OverlapWeightedSumEstimator: TypeAlias = Callable[
+    [Sequence[_StateT], Sequence[_StateT], Sequence[complex]], Estimate[complex]
+]
+
+
+#: ParametricOverlapWeightedSumEstimator represents a function that estimates the
+#: magnitude squared overlap of a set of parametric states and returns their
+#: weighted sum. This is intended for use in variational algorithms where a
+#: parametrized overlap penalty term is needed.
+#: The output should be invariant under permutation of the first and second
+#: input arguments.
+#: This is a generic type and you need to specify what kind of state classes
+#: it is applicable to.
+ParametricOverlapWeightedSumEstimator: TypeAlias = Callable[
+    [
+        tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        Sequence[complex],
+    ],
+    Estimate[complex],
+]
+
+
+@overload
+def create_parametric_overlap_weighted_sum_estimator(
+    estimator: OverlapWeightedSumEstimator[
+        Union[CircuitQuantumState, QuantumStateVector]
+    ]
+) -> ParametricOverlapWeightedSumEstimator[
+    Union[ParametricCircuitQuantumState, ParametricQuantumStateVector]
+]:
+    ...
+
+
+@overload
+def create_parametric_overlap_weighted_sum_estimator(
+    estimator: OverlapWeightedSumEstimator[QuantumStateVector],
+) -> ParametricOverlapWeightedSumEstimator[ParametricQuantumStateVector]:
+    ...
+
+
+@overload
+def create_parametric_overlap_weighted_sum_estimator(
+    estimator: OverlapWeightedSumEstimator[CircuitQuantumState],
+) -> ParametricOverlapWeightedSumEstimator[ParametricCircuitQuantumState]:
+    ...
+
+
+def create_parametric_overlap_weighted_sum_estimator(
+    estimator: OverlapWeightedSumEstimator[_StateT],
+) -> ParametricOverlapWeightedSumEstimator[_ParametricStateT]:
+    def parametric_estimator(
+        kets: tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        bras: tuple[_ParametricStateT, Sequence[Sequence[float]]],
+        weights: Sequence[complex],
+    ) -> Estimate[complex]:
+        bound_kets = [
+            cast(_StateT, kets[0].bind_parameters(params)) for params in kets[1]
+        ]
+        bound_bras = [
+            cast(_StateT, bras[0].bind_parameters(params)) for params in bras[1]
+        ]
+
+        return estimator(bound_kets, bound_bras, weights)
+
+    return parametric_estimator

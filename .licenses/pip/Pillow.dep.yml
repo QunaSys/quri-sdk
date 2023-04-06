@@ -1,6 +1,6 @@
 ---
 name: Pillow
-version: 9.4.0
+version: 9.5.0
 type: pip
 summary: Python Imaging Library (Fork)
 homepage: https://python-pillow.org
@@ -9,12 +9,12 @@ licenses:
 - sources: LICENSE
   text: "The Python Imaging Library (PIL) is\n\n    Copyright © 1997-2011 by Secret
     Labs AB\n    Copyright © 1995-2011 by Fredrik Lundh\n\nPillow is the friendly
-    PIL fork. It is\n\n    Copyright © 2010-2023 by Alex Clark and contributors\n\nLike
+    PIL fork. It is\n\n    Copyright © 2010-2023 by Jeffrey A. Clark (Alex) and contributors.\n\nLike
     PIL, Pillow is licensed under the open source HPND License:\n\nBy obtaining, using,
     and/or copying this software and/or its associated\ndocumentation, you agree that
     you have read, understood, and will comply\nwith the following terms and conditions:\n\nPermission
-    to use, copy, modify, and distribute this software and its\nassociated documentation
-    for any purpose and without fee is hereby granted,\nprovided that the above copyright
+    to use, copy, modify and distribute this software and its\ndocumentation for any
+    purpose and without fee is hereby granted,\nprovided that the above copyright
     notice appears in all copies, and that\nboth that copyright notice and this permission
     notice appear in supporting\ndocumentation, and that the name of Secret Labs AB
     or the author not be\nused in advertising or publicity pertaining to distribution

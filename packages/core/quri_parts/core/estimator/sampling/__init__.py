@@ -21,6 +21,12 @@ from .estimator import (
     create_sampling_estimator,
     sampling_estimate,
 )
+from .overlap_estimator import (
+    create_sampling_overlap_estimator,
+    create_sampling_overlap_weighted_sum_estimator,
+    sampling_overlap_estimate,
+    sampling_overlap_weighted_sum_estimate,
+)
 from .pauli import (
     general_pauli_covariance_estimator,
     general_pauli_expectation_estimator,
@@ -59,4 +65,8 @@ __all__ = [
     "create_sampling_estimator",
     "concurrent_sampling_estimate",
     "create_sampling_concurrent_estimator",
+    "sampling_overlap_estimate",
+    "create_sampling_overlap_estimator",
+    "sampling_overlap_weighted_sum_estimate",
+    "create_sampling_overlap_weighted_sum_estimator",
 ]

@@ -11,7 +11,12 @@
 from collections.abc import Mapping
 from typing import Callable, Union
 
-from quri_parts.circuit import gate_names, gates
+from quri_parts.circuit import (
+    NonParametricQuantumCircuit,
+    QuantumCircuit,
+    gate_names,
+    gates,
+)
 
 from .gate import QuantumGate
 from .gate_names import SingleQubitGateNameType, is_single_qubit_gate_name
@@ -60,3 +65,16 @@ def inverse_gate(gate: QuantumGate) -> QuantumGate:
     else:
         inverse_gate = gate
     return inverse_gate
+
+
+def inverse_circuit(
+    circuit: NonParametricQuantumCircuit,
+) -> QuantumCircuit:
+    qubit_count = circuit.qubit_count
+
+    gates_inv = []
+    for gate in circuit.gates:
+        gates_inv.append(inverse_gate(gate))
+    gates_inv.reverse()
+
+    return QuantumCircuit(qubit_count, gates_inv)

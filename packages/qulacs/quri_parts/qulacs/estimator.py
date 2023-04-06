@@ -12,7 +12,6 @@ from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 import qulacs
-from typing_extensions import TypeAlias
 
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.estimator import (
@@ -25,13 +24,9 @@ from quri_parts.core.estimator import (
     create_parametric_estimator,
 )
 from quri_parts.core.operator import zero
-from quri_parts.core.state import (
-    CircuitQuantumState,
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
-    QuantumStateVector,
-)
+from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
 from .circuit import convert_circuit, convert_parametric_circuit
 from .circuit.noise import convert_circuit_with_noise_model
@@ -44,17 +39,6 @@ if TYPE_CHECKING:
 class _Estimate(NamedTuple):
     value: complex
     error: float = 0.0
-
-
-#: A type alias for state classes supported by Qulacs estimators.
-#: Qulacs estimators support both of circuit states and state vectors.
-QulacsStateT: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
-
-#: A type alias for parametric state classes supported by Qulacs estimators.
-#: Qulacs estimators support both of circuit states and state vectors.
-QulacsParametricStateT: TypeAlias = Union[
-    ParametricCircuitQuantumState, ParametricQuantumStateVector
-]
 
 
 def _create_qulacs_initial_state(
