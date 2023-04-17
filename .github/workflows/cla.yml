@@ -31,3 +31,4 @@ jobs:
         branch: 'main'
         path-to-signatures: 'signatures/v1/cla.json'
         custom-notsigned-prcomment: '<br/>Thank you for your submission, we really appreciate it. We ask that $you sign our [Contributor License Agreement](https://cla.qunasys.com) before we can accept your contribution. This CLA will also cover your future contributions submitted to QunaSys. You can sign the CLA by just posting a pull request comment same as the below format.<br/>'
+        allowlist: dependabot*
