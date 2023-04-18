@@ -24,6 +24,8 @@ from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVect
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
+from . import cast_to_list
+
 if TYPE_CHECKING:
     from concurrent.futures import Executor
 
@@ -45,7 +47,7 @@ def _create_qulacs_initial_state(
 ) -> QuantumState:
     qs_state = QuantumState(state.qubit_count)
     if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
-        qs_state.load(state.vector)
+        qs_state.load(cast_to_list(state.vector))
     return qs_state
 
 

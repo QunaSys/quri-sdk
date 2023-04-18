@@ -76,7 +76,8 @@ quri-parts-pyscf = {path = "packages/pyscf", develop = true}
 pytest = "^7.0.1"
 flake8 = "^4.0.1"
 mypy = ">=0.950"
-docformatter = "^1.4"
+# Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
+docformatter = "^1.4,!=1.6.0"
 isort = "^5.10.1"
 
 Sphinx = "^4.4.0"

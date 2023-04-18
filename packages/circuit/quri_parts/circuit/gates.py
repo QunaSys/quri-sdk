@@ -275,6 +275,7 @@ class U3Factory:
 
 U3 = U3Factory()
 r"""U3 gate is a generic single-qubit rotation gate with 3 Euler angles.
+
 Represented by matrix
 :math:`\begin{pmatrix}
 \cos\frac{\theta}{2} & -e^{-i\lambda}\sin\frac{\theta}{2} \\

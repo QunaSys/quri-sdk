@@ -229,9 +229,9 @@ class OpenFermionSymmetryConservingBravyiKitaev(
     then two qubits are dropped using conservation of particle number
     and spin.
 
-    Any operators which don't have particle number and spin
-    symmetry are converted to `Operator()`, whose expectation value is
-    zero for all states.
+    Any operators which don't have particle number and spin symmetry are
+    converted to `Operator()`, whose expectation value is zero for all
+    states.
     """
 
     def get_of_operator_mapper(

@@ -55,5 +55,4 @@ def get_nuc_energy(mo: PySCFMolecularOrbitals) -> float:
     Args:
         mo: :class:`PySCFMolecularOrbitals` of the molecule.
     """
-
     return cast(float, mo.mol.energy_nuc())

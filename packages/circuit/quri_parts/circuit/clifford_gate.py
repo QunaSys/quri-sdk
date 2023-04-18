@@ -31,7 +31,6 @@ def is_clifford(gate: QuantumGate, rtol: float = 1.0e-5, atol: float = 1.0e-8) -
         atol: The absolute tolerance parameter determines how close the angle of
             rotation is to the angle in the Clifford angle set.
     """
-
     if gate.name in CLIFFORD_GATE_NAMES:
         return True
 

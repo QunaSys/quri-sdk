@@ -21,7 +21,6 @@ def convert_exp_single_pauli_gate(pauli: PauliLabel, coef: float) -> QuantumGate
         pauli: :class:`PauliLabel` for the exponentiated single Pauli.
         coef: A real number that is a coefficient of an exponentiated single Pauli.
     """
-
     target_indices, pauli_ids = zip(*pauli)
     c = -1 * coef
     return PauliRotation(target_indices, pauli_ids, 2 * c)

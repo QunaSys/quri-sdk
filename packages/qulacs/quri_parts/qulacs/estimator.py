@@ -28,6 +28,7 @@ from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVect
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
+from . import cast_to_list
 from .circuit import convert_circuit, convert_parametric_circuit
 from .circuit.noise import convert_circuit_with_noise_model
 from .operator import convert_operator
@@ -46,7 +47,7 @@ def _create_qulacs_initial_state(
 ) -> qulacs.QuantumState:
     qs_state = qulacs.QuantumState(state.qubit_count)
     if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
-        qs_state.load(state.vector)
+        qs_state.load(cast_to_list(state.vector))
     return qs_state
 
 
@@ -220,7 +221,7 @@ def create_qulacs_density_matrix_estimator(
         circuit = convert_circuit_with_noise_model(state.circuit, model)
         qs_state = qulacs.DensityMatrix(state.qubit_count)
         if isinstance(state, QuantumStateVector):
-            qs_state.load(state.vector)
+            qs_state.load(cast_to_list(state.vector))
         op = convert_operator(operator, state.qubit_count)
         circuit.update_quantum_state(qs_state)
         exp = op.get_expectation_value(qs_state)
@@ -256,7 +257,7 @@ def create_qulacs_density_matrix_concurrent_estimator(
         qubit_count = state.qubit_count
         qs_state = qulacs.DensityMatrix(qubit_count)
         if isinstance(state, QuantumStateVector):
-            qs_state.load(state.vector)
+            qs_state.load(cast_to_list(state.vector))
         circuit.update_quantum_state(qs_state)
         results = []
         for op in operators:
@@ -302,7 +303,7 @@ def create_qulacs_density_matrix_concurrent_parametric_estimator(
             qs_circuit = convert_circuit_with_noise_model(circuit, model)
             qs_state = qulacs.DensityMatrix(qubit_count)
             if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
-                qs_state.load(state.vector)
+                qs_state.load(cast_to_list(state.vector))
             qs_circuit.update_quantum_state(qs_state)
             exp = op.get_expectation_value(qs_state)
             estimates.append(_Estimate(value=exp))
