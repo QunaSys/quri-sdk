@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import cmath
+
 from .pauli import PAULI_IDENTITY, PauliLabel, pauli_product
 
 
@@ -108,6 +110,20 @@ PauliLabel({(1, <SinglePauli.X: 1>), (2, <SinglePauli.Y: 2>)}): 0.2, PauliLabel(
             return NotImplemented
         return self * other
 
+    def __truediv__(self, other: object) -> "Operator":
+        if not isinstance(other, (int, float, complex)):
+            return NotImplemented
+        copied = self.copy()
+        copied /= other
+        return copied
+
+    def __itruediv__(self, other: object) -> "Operator":
+        if not isinstance(other, (int, float, complex)):
+            return NotImplemented
+        for pauli, coef in self.items():
+            self[pauli] = coef / other
+        return self
+
     def add_term(self, pauli_label: PauliLabel, coef: complex) -> None:
         """Method for adding single-term operator."""
         if coef == 0:
@@ -163,3 +179,32 @@ def commutator(op1: Operator, op2: Operator) -> Operator:
     """
     op_res = op1 * op2 - op2 * op1
     return op_res
+
+
+def is_ops_close(
+    op1: Operator, op2: Operator, rtol: float = 1e-9, atol: float = 0.0
+) -> bool:
+    """Returns ``True`` if two operators are close to each other."""
+    uniq_p_labels = set(op1) | set(op2)
+
+    for pauli in uniq_p_labels:
+        op1_coeff = op1.get(pauli, 0.0)
+        op2_coeff = op2.get(pauli, 0.0)
+        if not cmath.isclose(op1_coeff, op2_coeff, rel_tol=rtol, abs_tol=atol):
+            return False
+    return True
+
+
+def truncate(op: Operator, atol: float = 1e-8) -> Operator:
+    """Returns truncated operator by eliminating terms whose coefficients are
+    smaller than ``atol``."""
+    _op = Operator()
+    for pauli, coef in op.items():
+        if abs(coef) >= atol:
+            _op[pauli] = coef
+    return _op
+
+
+def is_hermitian(op: Operator, atol: float = 1e-8) -> bool:
+    """Returns ``True`` if given operator is hermitian."""
+    return is_ops_close(op, op.hermitian_conjugated(), atol)

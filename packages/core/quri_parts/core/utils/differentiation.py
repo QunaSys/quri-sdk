@@ -8,14 +8,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Sequence
+from abc import abstractmethod
+from typing import Callable, Protocol, Sequence, TypeVar, Union
+
+from typing_extensions import TypeAlias
+
+from quri_parts.core.operator import Operator, truncate
+
+#: Represents a function that generates :class:`Operator` from given
+#: parameters, e.g. generates molecular Hamiltonian from coordinates
+#: of atoms.
+OperatorGenerator: TypeAlias = Callable[[Sequence[float]], Operator]
+
+#: Represents a function that calculates the gradients of an operator
+#: at given parameters.
+OperatorGradientCalculator: TypeAlias = Callable[
+    [Sequence[float], OperatorGenerator], Sequence[Operator]
+]
+
+_T = TypeVar("_T")
+
+
+class DifferentiableObjectProtocol(Protocol):
+    r""".. document private functions.
+
+    .. automethod:: __add__
+
+    .. automethod:: __sub__
+
+    .. automethod:: __truediv__
+    """
+
+    @abstractmethod
+    def __add__(self: _T, other: _T) -> _T:
+        ...
+
+    @abstractmethod
+    def __sub__(self: _T, other: _T) -> _T:
+        ...
+
+    @abstractmethod
+    def __truediv__(self: _T, other: Union[int, float, complex]) -> _T:
+        ...
+
+
+T = TypeVar("T", bound=DifferentiableObjectProtocol)
 
 
 def forward_difference_gradient_formula(
-    f: Callable[[Sequence[float]], float],
+    f: Callable[[Sequence[float]], T],
     params: Sequence[float],
     step: float = 1e-5,
-) -> Sequence[float]:
+) -> Sequence[T]:
     """Returns the gradient of a passed function from `params` with two-point
     forward-difference formula."""
     dim = len(params)
@@ -29,10 +73,10 @@ def forward_difference_gradient_formula(
 
 
 def backward_difference_gradient_formula(
-    f: Callable[[Sequence[float]], float],
+    f: Callable[[Sequence[float]], T],
     params: Sequence[float],
     step: float = 1e-5,
-) -> Sequence[float]:
+) -> Sequence[T]:
     """Returns the gradient of a passed function from `params` with two-point
     backward-difference formula."""
     dim = len(params)
@@ -46,10 +90,10 @@ def backward_difference_gradient_formula(
 
 
 def central_difference_gradient_formula(
-    f: Callable[[Sequence[float]], float],
+    f: Callable[[Sequence[float]], T],
     params: Sequence[float],
     step: float = 1e-5,
-) -> Sequence[float]:
+) -> Sequence[T]:
     """Returns the gradient of a passed function from `params` with central-
     difference formula."""
     dim = len(params)
@@ -69,10 +113,10 @@ def central_difference_gradient_formula(
 
 
 def forward_difference_hessian_formula(
-    f: Callable[[Sequence[float]], float],
+    f: Callable[[Sequence[float]], T],
     params: Sequence[float],
     step: float = 1e-5,
-) -> Sequence[Sequence[float]]:
+) -> Sequence[Sequence[T]]:
     """Returns the hessian of a passed function from `params` with forward-
     difference formula."""
     dim = len(params)
@@ -88,21 +132,22 @@ def forward_difference_hessian_formula(
     f_vals_p = [f(point_i) for point_i in points_p]
     f_val_orig = f(params)
 
-    ret = [[0.0] * dim for _ in range(dim)]
+    ret: list[list[T]] = [[] for _ in range(dim)]
     for i in range(dim):
         for j in range(dim):
-            ret[i][j] = (f_vals_pp[i][j] - f_vals_p[i] - f_vals_p[j] + f_val_orig) / (
-                step * step
+            ret[i].append(
+                (f_vals_pp[i][j] - f_vals_p[i] - f_vals_p[j] + f_val_orig)
+                / (step * step)
             )
 
     return ret
 
 
 def backward_difference_hessian_formula(
-    f: Callable[[Sequence[float]], float],
+    f: Callable[[Sequence[float]], T],
     params: Sequence[float],
     step: float = 1e-5,
-) -> Sequence[Sequence[float]]:
+) -> Sequence[Sequence[T]]:
     """Returns the hessian of a passed function from `params` with backward-
     difference formula."""
     dim = len(params)
@@ -118,21 +163,22 @@ def backward_difference_hessian_formula(
     f_vals_m = [f(point_i) for point_i in points_m]
     f_val_orig = f(params)
 
-    ret = [[0.0] * dim for _ in range(dim)]
+    ret: list[list[T]] = [[] for _ in range(dim)]
     for i in range(dim):
         for j in range(dim):
-            ret[i][j] = (f_val_orig - f_vals_m[i] - f_vals_m[j] + f_vals_mm[i][j]) / (
-                step * step
+            ret[i].append(
+                (f_val_orig - f_vals_m[i] - f_vals_m[j] + f_vals_mm[i][j])
+                / (step * step)
             )
 
     return ret
 
 
 def central_difference_hessian_formula(
-    f: Callable[[Sequence[float]], float],
+    f: Callable[[Sequence[float]], T],
     params: Sequence[float],
     step: float = 1e-5,
-) -> Sequence[Sequence[float]]:
+) -> Sequence[Sequence[T]]:
     """Returns the hessian of a passed function from `params` with central-
     difference formula."""
     dim = len(params)
@@ -170,15 +216,45 @@ def central_difference_hessian_formula(
     f_vals_mp = [[f(point_ij) for point_ij in points_i] for points_i in points_mp]
     f_vals_mm = [[f(point_ij) for point_ij in points_i] for points_i in points_mm]
 
-    ret = [[0.0] * dim for _ in range(dim)]
+    ret: list[list[T]] = [[] for _ in range(dim)]
     for i in range(dim):
         for j in range(dim):
-            ret[i][j] = (
-                f_vals_pp[i][j] - f_vals_pm[i][j] - f_vals_mp[i][j] + f_vals_mm[i][j]
-            ) / (4 * step * step)
+            ret[i].append(
+                (f_vals_pp[i][j] - f_vals_pm[i][j] - f_vals_mp[i][j] + f_vals_mm[i][j])
+                / (4 * step * step)
+            )
 
     return ret
 
 
 gradient = central_difference_gradient_formula
 hessian = central_difference_hessian_formula
+
+
+def numerical_operator_gradient(
+    params: Sequence[float],
+    operator_generator: OperatorGenerator,
+    difference_formula: Callable[
+        [Callable[[Sequence[float]], Operator], Sequence[float], float],
+        Sequence[Operator],
+    ] = gradient,
+    step: float = 1e-5,
+    atol: float = 1e-8,
+) -> Sequence[Operator]:
+    """Function that returns the numerical gradient of an :class:`Operator`
+    with respect to the operator parameters.
+
+    Args:
+        params: Parameters at which the gradient is calculated.
+        operator_generator: :class:`OperatorGenerator`.
+        difference_formula: Method to calculate gradients.
+        step: Step size for ``difference_formula``.
+        atol: Absolute tolerance. Terms whose coefficients are smaller than ``atol``
+            will be ignored.
+    """
+
+    ops = [
+        truncate(op, atol)
+        for op in difference_formula(operator_generator, params, step)
+    ]
+    return ops
