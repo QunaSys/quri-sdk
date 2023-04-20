@@ -124,6 +124,22 @@ def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
     return _sample_with_noise
 
 
+def create_qulacs_noisesimulator_sampler(model: NoiseModel) -> Sampler:
+    """Returns a :class:`~Sampler` that uses Qulacs NoiseSimulator."""
+
+    def _sample_with_noise(
+        circuit: NonParametricQuantumCircuit, shots: int
+    ) -> MeasurementCounts:
+        qubit_count = circuit.qubit_count
+        qs_circuit = convert_circuit_with_noise_model(circuit, model)
+        state = qulacs.QuantumState(qubit_count)
+        sim = qulacs.NoiseSimulator(qs_circuit, state)
+
+        return Counter(sim.execute(shots))
+
+    return _sample_with_noise
+
+
 def _create_qulacs_concurrent_sampler_with_noise_model(
     sampler_creator: Callable[[NoiseModel], Sampler],
     model: NoiseModel,
@@ -175,6 +191,22 @@ def create_qulacs_stochastic_state_vector_concurrent_sampler(
 
     return _create_qulacs_concurrent_sampler_with_noise_model(
         create_qulacs_stochastic_state_vector_sampler,
+        model,
+        executor,
+        concurrency,
+    )
+
+
+def create_qulacs_noisesimulator_concurrent_sampler(
+    model: NoiseModel,
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+) -> ConcurrentSampler:
+    """Returns a :class:`~ConcurrentSampler` that uses Qulacs
+    NoiseSimulator."""
+
+    return _create_qulacs_concurrent_sampler_with_noise_model(
+        create_qulacs_noisesimulator_sampler,
         model,
         executor,
         concurrency,

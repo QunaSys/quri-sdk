@@ -1,6 +1,6 @@
 ---
 name: symengine
-version: 0.9.2
+version: 0.10.0
 type: pip
 summary: Python library providing wrappers to SymEngine
 homepage: https://github.com/symengine/symengine.py
@@ -273,6 +273,7 @@ notices:
     (Note that this repository was a subfolder of symengine repo and early contributors
     to the python bindings maybe listed in AUTHORS of symengine repo).
     You can generate this file by: bin/update_authors.sh.
+
     Ondřej Čertík <ondrej@certik.us>
     Thilina Bandara Rathanyake <thilinarmtb@gmail.com>
     Isuru Fernando <isuruf@gmail.com>
@@ -304,3 +305,4 @@ notices:
     Garming Sam <garming@catalyst.net.nz>
     Pieter Eendebak <pieter.eendebak@gmail.com>
     Ayush Kumar <ayushk7102@gmail.com>
+    Christian Clauss <cclauss@me.com>

@@ -14,7 +14,7 @@ pkgs="
     openfermion
     stim
     openqasm
-    honeywell
+    quantinuum
     ionq
     itensor
     pyscf

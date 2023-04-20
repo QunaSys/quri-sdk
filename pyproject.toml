@@ -38,7 +38,7 @@ quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
 quri-parts-openqasm = { version = "*", optional = true }
-quri-parts-honeywell = { version = "*", optional = true }
+quri-parts-quantinuum = { version = "*", optional = true }
 quri-parts-ionq = { version = "*", optional = true }
 quri-parts-itensor = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
@@ -51,7 +51,7 @@ cirq = ["quri-parts-cirq"]
 openfermion = ["quri-parts-openfermion"]
 stim = ["quri-parts-stim"]
 openqasm = ["quri-parts-openqasm"]
-honeywell = ["quri-parts-honeywell"]
+quantinuum = ["quri-parts-quantinuum"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
@@ -68,7 +68,7 @@ quri-parts-cirq = {path = "packages/cirq", develop = true}
 quri-parts-openfermion = {path = "packages/openfermion", develop = true}
 quri-parts-stim = {path = "packages/stim", develop = true}
 quri-parts-openqasm = {path = "packages/openqasm", develop = true}
-quri-parts-honeywell = {path = "packages/honeywell", develop = true}
+quri-parts-quantinuum = {path = "packages/quantinuum", develop = true}
 quri-parts-ionq = {path = "packages/ionq", develop = true}
 quri-parts-itensor = {path = "packages/itensor", develop = true}
 quri-parts-pyscf = {path = "packages/pyscf", develop = true}

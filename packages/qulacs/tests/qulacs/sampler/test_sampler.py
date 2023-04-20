@@ -20,6 +20,8 @@ from quri_parts.core.sampling import ConcurrentSampler, Sampler
 from quri_parts.qulacs.sampler import (
     create_qulacs_density_matrix_concurrent_sampler,
     create_qulacs_density_matrix_sampler,
+    create_qulacs_noisesimulator_concurrent_sampler,
+    create_qulacs_noisesimulator_sampler,
     create_qulacs_stochastic_state_vector_concurrent_sampler,
     create_qulacs_stochastic_state_vector_sampler,
     create_qulacs_vector_concurrent_sampler,
@@ -83,6 +85,7 @@ class TestSamplerWithNoiseModel:
         [
             create_qulacs_density_matrix_sampler,
             create_qulacs_stochastic_state_vector_sampler,
+            create_qulacs_noisesimulator_sampler,
         ],
     )
     def test_sampler_with_empty_noise(
@@ -110,6 +113,7 @@ class TestSamplerWithNoiseModel:
         [
             create_qulacs_density_matrix_sampler,
             create_qulacs_stochastic_state_vector_sampler,
+            create_qulacs_noisesimulator_sampler,
         ],
     )
     def test_sampler_with_bitflip_noise(
@@ -141,6 +145,7 @@ class TestConcurrentSamplerWithNoiseModel:
         [
             create_qulacs_density_matrix_concurrent_sampler,
             create_qulacs_stochastic_state_vector_concurrent_sampler,
+            create_qulacs_noisesimulator_concurrent_sampler,
         ],
     )
     def test_sampler_with_empty_noise(
@@ -172,6 +177,7 @@ class TestConcurrentSamplerWithNoiseModel:
         [
             create_qulacs_density_matrix_concurrent_sampler,
             create_qulacs_stochastic_state_vector_concurrent_sampler,
+            create_qulacs_noisesimulator_concurrent_sampler,
         ],
     )
     def test_sampler_with_bitflip_noise(

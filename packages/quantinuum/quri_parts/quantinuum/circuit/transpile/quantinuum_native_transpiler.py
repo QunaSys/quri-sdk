@@ -14,7 +14,7 @@ import numpy as np
 
 from quri_parts.circuit import RZ, QuantumGate, gate_names
 from quri_parts.circuit.transpile import GateKindDecomposer
-from quri_parts.honeywell.circuit import ZZ, U1q
+from quri_parts.quantinuum.circuit import ZZ, U1q
 
 
 class RX2U1qTranspiler(GateKindDecomposer):
