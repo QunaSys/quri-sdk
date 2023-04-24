@@ -48,8 +48,8 @@ class TestMultiPauliDecompose:
         gates = [
             RX(0, np.pi / 2.0),
             H(1),
-            CNOT(2, 0),
             CNOT(1, 0),
+            CNOT(2, 0),
             RZ(0, np.pi / 4.0),
             CNOT(2, 0),
             CNOT(1, 0),

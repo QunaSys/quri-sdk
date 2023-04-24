@@ -23,7 +23,13 @@ from cirq.ops.three_qubit_gates import TOFFOLI
 from cirq.protocols.unitary_protocol import unitary
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
-from quri_parts.cirq.circuit import U1, U2, U3, convert_circuit, convert_gate
+from quri_parts.cirq.circuit.circuit_converter import (
+    U1,
+    U2,
+    U3,
+    convert_circuit,
+    convert_gate,
+)
 
 
 def gates_equal(g1: Operation, g2: Operation) -> bool:

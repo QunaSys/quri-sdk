@@ -71,7 +71,7 @@ class PauliRotationDecomposeTranspiler(GateKindDecomposer):
             return rc
 
         ret.extend(rot_gates(1))
-        for i in range(1, len(indices)):
+        for i in reversed(range(1, len(indices))):
             ret.append(gates.CNOT(indices[i], indices[0]))
         ret.append(gates.RZ(indices[0], angle))
         for i in range(1, len(indices)):

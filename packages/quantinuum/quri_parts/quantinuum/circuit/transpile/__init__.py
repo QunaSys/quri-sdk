@@ -19,9 +19,12 @@ from quri_parts.circuit.transpile import (
 
 from .quantinuum_native_transpiler import (
     CNOT2U1qZZRZTranspiler,
+    CNOTRZ2RZZTranspiler,
+    CZ2RZZZTranspiler,
     H2U1qRZTranspiler,
     RX2U1qTranspiler,
     RY2U1qTranspiler,
+    U1qNormalizeWithRZTranspiler,
 )
 
 #: CircuitTranspiler to transpile a QuantumCircuit into another
@@ -29,7 +32,9 @@ from .quantinuum_native_transpiler import (
 #: Note that the converted circuit contains Quantinuum native gates.
 QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        CZ2RZZZTranspiler(),
         RotationSetTranspiler(),
+        CNOTRZ2RZZTranspiler(),
         ParallelDecomposer(
             [
                 RX2U1qTranspiler(),
@@ -37,6 +42,7 @@ QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTra
                 CNOT2U1qZZRZTranspiler(),
             ]
         ),
+        U1qNormalizeWithRZTranspiler(),
     ]
 )
 
@@ -44,7 +50,10 @@ QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTra
 __all__ = [
     "QuantinuumSetTranspiler",
     "CNOT2U1qZZRZTranspiler",
+    "CNOTRZ2RZZTranspiler",
+    "CZ2RZZZTranspiler",
     "H2U1qRZTranspiler",
     "RX2U1qTranspiler",
     "RY2U1qTranspiler",
+    "U1qNormalizeWithRZTranspiler",
 ]

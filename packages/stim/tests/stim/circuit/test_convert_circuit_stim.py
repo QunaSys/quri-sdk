@@ -98,8 +98,8 @@ def test_convert_gate() -> None:
     assert convert_gate(PauliRotation([0, 2, 4], [1, 2, 3], np.pi / 2)) == [
         ("H", [0]),
         ("SQRT_X", [2]),
-        ("CNOT", [2, 0]),
         ("CNOT", [4, 0]),
+        ("CNOT", [2, 0]),
         ("S", [0]),
         ("CNOT", [2, 0]),
         ("CNOT", [4, 0]),
@@ -127,7 +127,7 @@ def test_convert_circuit() -> None:
         SQRT_X 2
         H 1
         SQRT_X 3
-        CNOT 3 1 4 1
+        CNOT 4 1 3 1
         S_DAG 1
         CNOT 3 1 4 1
         H 1

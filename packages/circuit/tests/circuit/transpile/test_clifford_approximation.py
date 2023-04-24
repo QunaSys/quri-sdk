@@ -64,8 +64,8 @@ class TestCliffordApproximationTranspile:
                 CZ(2, 3),  # CZ
                 SqrtX(1),  # PauliRotation
                 H(2),
-                CNOT(1, 0),
                 CNOT(2, 0),
+                CNOT(1, 0),
                 S(0),
                 CNOT(1, 0),
                 CNOT(2, 0),
