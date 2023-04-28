@@ -5,7 +5,7 @@ build-backend = "poetry_dynamic_versioning.backend"
 [tool.poetry]
 name = "quri-parts-quantinuum"
 version = "0.0.0"
-description = "A plugin to use Honeywell with QIRI Parts"
+description = "A plugin to use Quantinuum with QIRI Parts"
 license = "Apache-2.0"
 authors = ["QURI Parts Authors <support@qunasys.com>"]
 readme = "README.md"
