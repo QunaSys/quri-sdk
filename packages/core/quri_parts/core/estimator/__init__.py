@@ -185,6 +185,23 @@ def create_parametric_estimator(
     return parametric_estimator
 
 
+def create_concurrent_parametric_estimator(
+    parametric_estimator: ParametricQuantumEstimator[_ParametricStateT],
+) -> ConcurrentParametricQuantumEstimator[_ParametricStateT]:
+    """Creates concurrent parametric estimator from parametric estimator."""
+
+    def concurrent_parametric_estimator(
+        operator: Estimatable,
+        state: _ParametricStateT,
+        seq_of_params: Sequence[Sequence[float]],
+    ) -> list[Estimate[complex]]:
+        return [
+            parametric_estimator(operator, state, params) for params in seq_of_params
+        ]
+
+    return concurrent_parametric_estimator
+
+
 #: GradientEstimator represents a function that estimates gradient values
 #: of an expectation value of a given :class:`~Operator` for a given parametric state
 #: with given parameter values (the third argument).
