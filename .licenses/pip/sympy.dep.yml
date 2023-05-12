@@ -1,13 +1,13 @@
 ---
 name: sympy
-version: 1.11.1
+version: '1.12'
 type: pip
 summary: Computer algebra system (CAS) in Python
 homepage: https://sympy.org
 license: bsd-3-clause
 licenses:
 - sources: LICENSE
-  text: "Copyright (c) 2006-2022 SymPy Development Team\n\nAll rights reserved.\n\nRedistribution
+  text: "Copyright (c) 2006-2023 SymPy Development Team\n\nAll rights reserved.\n\nRedistribution
     and use in source and binary forms, with or without\nmodification, are permitted
     provided that the following conditions are met:\n\n  a. Redistributions of source
     code must retain the above copyright notice,\n     this list of conditions and
@@ -27,7 +27,7 @@ licenses:
     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY\nOUT OF THE USE OF THIS SOFTWARE,
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH\nDAMAGE.\n\n--------------------------------------------------------------------------------\n\nPatches
     that were taken from the Diofant project (https://github.com/diofant/diofant)\nare
-    licensed as:\n\nCopyright (c) 2006-2018 SymPy Development Team,\n              2013-2022
+    licensed as:\n\nCopyright (c) 2006-2018 SymPy Development Team,\n              2013-2023
     Sergey B Kirpichev\n\nAll rights reserved.\n\nRedistribution and use in source
     and binary forms, with or without\nmodification, are permitted provided that the
     following conditions are met:\n\n  a. Redistributions of source code must retain
@@ -68,7 +68,7 @@ licenses:
     NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY\nOUT OF THE USE OF THIS SOFTWARE,
     EVEN IF ADVISED OF THE POSSIBILITY OF SUCH\nDAMAGE.\n\n--------------------------------------------------------------------------------\n\nThe
     files under the directory sympy/parsing/autolev/tests/pydy-example-repo\nare directly
-    copied from PyDy project and are licensed as:\n\nCopyright (c) 2009-2022, PyDy
+    copied from PyDy project and are licensed as:\n\nCopyright (c) 2009-2023, PyDy
     Authors\nAll rights reserved.\n\nRedistribution and use in source and binary forms,
     with or without\nmodification, are permitted provided that the following conditions
     are met:\n\n* Redistributions of source code must retain the above copyright\n
@@ -111,7 +111,7 @@ notices:
     to their names are not found in the metadata of the git history. This
     file is generated automatically by running `./bin/authors_update.py`.
 
-    There are a total of 1160 authors.
+    There are a total of 1202 authors.
 
     Ondřej Čertík <ondrej@certik.cz>
     Fabian Pedregosa <fabian@fseoane.net>
@@ -661,7 +661,7 @@ notices:
     Alexey Pakhocmhik <cool.Bakov@yandex.ru>
     Tommy Olofsson <tommy.olofsson.90@gmail.com>
     Zulfikar <zulfikar97@gmail.com>
-    Blair Azzopardi <bsdz@users.noreply.github.com>
+    Blair Azzopardi <blairuk@gmail.com>
     Danny Hermes <daniel.j.hermes@gmail.com>
     Sergey Pestov <pestov-sa@yandex.ru>
     Mohit Chandra <mohit.chandra@research.iiit.ac.in>
@@ -939,7 +939,7 @@ notices:
     Christoph Gohle <ctg@mpq.mpg.de>
     Charalampos Tsiagkalis <ctsiagkalis@uth.gr>
     Daniel Sears <highpost@users.noreply.github.com>
-    Megan Ly <megan@artcompiler.com>
+    Megan Ly <megan.ly@learnosity.com>
     Sean P. Cornelius <spcornelius@gmail.com>
     Erik R. Gomez <gomez@kth.se>
     Riccardo Magliocchetti <riccardo.magliocchetti@gmail.com>
@@ -1273,3 +1273,45 @@ notices:
     Seth Poulsen <poulsenseth@yahoo.com>
     cocolato <haiizhu@outlook.com>
     Anton Golovanov <agolovanov256@gmail.com>
+    Gareth Ma <grhkm21@gmail.com>
+    Clément M.T. Robert <cr52@protonmail.com>
+    Glenn Horton-Smith <glenn.hortonsmith@gmail.com>
+    Karan <grgkaran03@gmail.com>
+    Stefan Behnle <84378403+behnle@users.noreply.github.com>
+    Shreyash Mishra <72146041+Shreyash-cyber@users.noreply.github.com>
+    Arthur Milchior <arthur@milchior.fr>
+    NotWearingPants <26556598+NotWearingPants@users.noreply.github.com>
+    Ishan Pandhare <ishan9096137017@gmail.com>
+    Carlos García Montoro <TrilceAC@gmail.com>
+    Parcly Taxel <reddeloostw@gmail.com>
+    Saicharan <saicharanhahaha@gmail.com>
+    Kunal Sheth <kunal@kunalsheth.info>
+    Biswadeep Purkayastha <98874428+metabiswadeep@users.noreply.github.com>
+    Jyn Spring 琴春 <me@vx.st>
+    Phil LeMaitre <phil_lemaitre@live.ca>
+    Chris Kerr <chris.kerr@mykolab.ch>
+    José Senart <jose.senart@gmail.com>
+    Uwe L. Korn <uwelk@xhochy.com>
+    ForeverHaibara <69423537+ForeverHaibara@users.noreply.github.com>
+    Yves Tumushimire <yvestumushimire@gmail.com>
+    wookie184 <wookie1840@gmail.com>
+    Costor <pcs2009@web.de>
+    Klaus Rettinghaus <klaus.rettinghaus@enote.com>
+    Sam Brockie <sambrockie@icloud.com>
+    Abhishek Patidar <1e9abhi1e10@gmail.com>
+    Eric Demer <demer@mailbox.org>
+    Pontus von Brömssen <pontus.vonbromssen+github@gmail.com>
+    Victor Immanuel <chrollolucilfer1402@gmail.com>
+    Evandro Bernardes <evbernardes@gmail.com>
+    Michele Ceccacci <michelececcacci1@gmail.com>
+    Ayush Aryan <ayush.aryan71@gmail.com>
+    Kishore Gopalakrishnan <kishore96@gmail.com>
+    Jan-Philipp Hoffmann <sonntagsgesicht@icloud.com>
+    haru-44 <36563693+haru-44@users.noreply.github.com>
+    Sayan Mitra <ee18b156@smail.iitm.ac.in>
+    Aman Kumar Shukla <theprofessionalaman@gmail.com>
+    Zoufiné Lauer-Baré <raszoufine@gmail.com>
+    Charles Harris <erdos4d@gmail.com>
+    Tejaswini Sanapathi <sastejaswini2002@gmail.com>
+    Devansh <be19b002@smail.iitm.ac.in>
+    Aaron Gokaslan <aaronGokaslan@gmail.com>
