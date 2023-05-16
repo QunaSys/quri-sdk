@@ -8,10 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .connectivity import device_connectivity_graph
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 
 __all__ = [
     "QiskitSamplingBackend",
     "QiskitSamplingJob",
     "QiskitSamplingResult",
+    "device_connectivity_graph",
 ]
