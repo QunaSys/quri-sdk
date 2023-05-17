@@ -28,7 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-stim = "^1.9.0"
+stim = "^1.11.0"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
