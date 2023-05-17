@@ -32,7 +32,7 @@ from quri_parts.core.estimator import (
     Estimate,
     QuantumEstimator,
 )
-from quri_parts.core.operator import Operator
+from quri_parts.core.operator import Operator, is_hermitian
 from quri_parts.core.state import GeneralCircuitQuantumState
 
 
@@ -225,7 +225,7 @@ def cdr(
     """
 
     if isinstance(obs, Operator):
-        if obs != obs.hermitian_conjugated():
+        if not is_hermitian(obs):
             raise NotImplementedError(
                 "Only the case that obs is a Hermitian has been implemented."
             )
