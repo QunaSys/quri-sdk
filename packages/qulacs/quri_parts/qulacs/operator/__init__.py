@@ -33,7 +33,7 @@ def convert_operator(
     :class:`qulacs.GeneralQuantumOperator`."""
     op_key: _OperatorKey
     if isinstance(operator, PauliLabel):
-        op_key = operator
+        op_key = frozenset({(operator, 1.0)})
     else:
         op_key = frozenset(operator.items())
     if (op_key, n_qubits) in _operator_cache:

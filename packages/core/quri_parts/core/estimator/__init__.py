@@ -75,6 +75,30 @@ class Estimates(Protocol[EstimateValue]):
         ...
 
 
+class MatrixEstimates(Protocol[EstimateValue]):
+    """MatrixEstimates is an interface for classes representing an N x N matrix
+    estimate for a certain quantity.
+
+    This interface only contains read-only properties, so an
+    implementation can be a (frozen) dataclass or a namedtuple.
+    """
+
+    @abstractproperty
+    def values(self) -> Sequence[Sequence[EstimateValue]]:
+        """The estimates (estimated values) themselves."""
+        ...
+
+    @abstractproperty
+    def error_tensor(self) -> Optional[Sequence[Sequence[Sequence[Sequence[float]]]]]:
+        """Represents the \"error\" of estimate values.
+
+        The precise meaning of the \"error\" depends on what type the
+        estimate is. Basically, if we can get N x N estimate values,
+        this will return N x N x N x N error tensor.
+        """
+        ...
+
+
 #: (Concurrent)QuantumEstimator accepts a single :class:`~PauliLabel` as well as an
 #: :class:`~Operator`. Here we call them an "Estimatable".
 Estimatable: TypeAlias = Union[Operator, PauliLabel]
@@ -210,6 +234,16 @@ def create_concurrent_parametric_estimator(
 GradientEstimator: TypeAlias = Callable[
     [Estimatable, _ParametricStateT, Sequence[float]],
     Estimates[complex],
+]
+
+
+#: HessianEstimator represents a function that estimates hessian values
+#: of an expectation value of a given :class:`~Operator` for a given parametric state
+#: with given parameter values (the third argument).
+#: This is a generic type and you need to specify what kind of state classes
+#: it is applicable to.
+HessianEstimator: TypeAlias = Callable[
+    [Estimatable, _ParametricStateT, Sequence[float]], MatrixEstimates[complex]
 ]
 
 #: OverlapEstimator represents a function that estimates the magnitude squared overlap

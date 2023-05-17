@@ -29,6 +29,7 @@ from quri_parts.core.utils.differentiation import (
     gradient,
     hessian,
     numerical_operator_gradient,
+    numerical_operator_hessian,
 )
 
 
@@ -151,5 +152,90 @@ def test_numerical_operator_gradient() -> None:
             for res, exp in zip(
                 numerical_operator_gradient(params, _h_generator, atol=1.01), expected
             )
+        ]
+    )
+
+
+def test_numerical_operator_hessian() -> None:
+    params = [1, 2, 3, 4, 5, 6]
+    expected = [
+        [
+            zero(),
+            Operator({pauli_label("Z0"): 2.0}),
+            zero(),
+            zero(),
+            zero(),
+            zero(),
+        ],
+        [
+            Operator({pauli_label("Z0"): 2.0}),
+            zero(),
+            zero(),
+            zero(),
+            zero(),
+            zero(),
+        ],
+        [
+            zero(),
+            zero(),
+            Operator({pauli_label("Z1"): 6.0}),
+            zero(),
+            zero(),
+            zero(),
+        ],
+        [zero(), zero(), zero(), Operator({pauli_label("Z2"): 96.0}), zero(), zero()],
+        [zero(), zero(), zero(), zero(), zero(), zero()],
+        [zero(), zero(), zero(), zero(), zero(), zero()],
+    ]
+    res = numerical_operator_hessian(params, _h_generator, step=1e-3)
+    assert np.all(
+        [
+            [
+                is_ops_close(res[i][j], expected[i][j], atol=1e-5)
+                for j in range(len(params))
+            ]
+            for i in range(len(params))
+        ]
+    )
+
+    params = [0, 0, 0, 0, 0, 0]
+    expected = [
+        [
+            zero(),
+            Operator({pauli_label("Z0"): 2.0}),
+            zero(),
+            zero(),
+            zero(),
+            zero(),
+        ],
+        [
+            Operator({pauli_label("Z0"): 2.0}),
+            zero(),
+            zero(),
+            zero(),
+            zero(),
+            zero(),
+        ],
+        [
+            zero(),
+            zero(),
+            Operator({pauli_label("Z1"): 6.0}),
+            zero(),
+            zero(),
+            zero(),
+        ],
+        [zero(), zero(), zero(), zero(), zero(), zero()],
+        [zero(), zero(), zero(), zero(), zero(), zero()],
+        [zero(), zero(), zero(), zero(), zero(), zero()],
+    ]
+    res = numerical_operator_hessian(params, _h_generator, step=1e-3)
+    print(res)
+    assert np.all(
+        [
+            [
+                is_ops_close(res[i][j], expected[i][j], atol=1e-5)
+                for j in range(len(params))
+            ]
+            for i in range(len(params))
         ]
     )

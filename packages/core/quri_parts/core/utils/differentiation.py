@@ -26,6 +26,12 @@ OperatorGradientCalculator: TypeAlias = Callable[
     [Sequence[float], OperatorGenerator], Sequence[Operator]
 ]
 
+#: Represents a function that calculates the hessian of an operator
+#: at given parameters.
+OperatorHessianCalculator: TypeAlias = Callable[
+    [Sequence[float], OperatorGenerator], Sequence[Sequence[Operator]]
+]
+
 _T = TypeVar("_T")
 
 
@@ -257,4 +263,34 @@ def numerical_operator_gradient(
         truncate(op, atol)
         for op in difference_formula(operator_generator, params, step)
     ]
+    return ops
+
+
+def numerical_operator_hessian(
+    params: Sequence[float],
+    operator_generator: OperatorGenerator,
+    difference_formula: Callable[
+        [Callable[[Sequence[float]], Operator], Sequence[float], float],
+        Sequence[Sequence[Operator]],
+    ] = hessian,
+    step: float = 1e-5,
+    atol: float = 1e-8,
+) -> Sequence[Sequence[Operator]]:
+    """Function that returns the numerical hessian of an :class:`Operator` with
+    respect to the operator parameters.
+
+    Args:
+        params: Parameters at which the hessian is calculated.
+        operator_generator: :class:`OperatorGenerator`.
+        difference_formula: Method to calculate hessian.
+        step: Step size for ``difference_formula``.
+        atol: Absolute tolerance. Terms whose coefficients are smaller than ``atol``
+            will be ignored.
+    """
+
+    ops = [
+        [truncate(op, atol) for op in ops]
+        for ops in difference_formula(operator_generator, params, step)
+    ]
+
     return ops
