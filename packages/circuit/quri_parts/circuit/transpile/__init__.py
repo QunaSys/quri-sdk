@@ -11,6 +11,12 @@
 from typing import Callable
 
 from .clifford_approximation import CliffordApproximationTranspiler
+from .fuse import (
+    FuseRotationTranspiler,
+    RX2NamedTranspiler,
+    RY2NamedTranspiler,
+    RZ2NamedTranspiler,
+)
 from .gate_kind_decomposer import (
     CNOT2CZHTranspiler,
     CZ2CNOTHTranspiler,
@@ -143,6 +149,53 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
 )
 
 
+class CliffordRZSetTranspiler(SequentialTranspiler):
+    """CircuitTranspiler to transpile a QuntumCircuit into another
+    QuantumCircuit containing only H, X, Y, Z, S, Sdg, RZ, and CNOT.
+
+    Since this transpiler involves fusing rotation gates, converting
+    rotation gates to named gates with a certain precision, and removing
+    Identity gates, the action of the circuit before and after the
+    conversion may not be completely equivalent.
+    """
+
+    def __init__(self, epsilon: float = 1.0e-9):
+        super().__init__(
+            [
+                ParallelDecomposer(
+                    [
+                        CZ2CNOTHTranspiler(),
+                        PauliDecomposeTranspiler(),
+                        PauliRotationDecomposeTranspiler(),
+                        TOFFOLI2HTTdagCNOTTranspiler(),
+                    ]
+                ),
+                ParallelDecomposer(
+                    [
+                        SqrtXdag2RZSqrtXTranspiler(),
+                        SqrtY2RZSqrtXTranspiler(),
+                        SqrtYdag2RZSqrtXTranspiler(),
+                        Sdag2RZTranspiler(),
+                        T2RZTranspiler(),
+                        Tdag2RZTranspiler(),
+                        RX2RZSqrtXTranspiler(),
+                        RY2RZSqrtXTranspiler(),
+                        U1ToRZTranspiler(),
+                        U2ToRZSqrtXTranspiler(),
+                        U3ToRZSqrtXTranspiler(),
+                        SWAP2CNOTTranspiler(),
+                    ]
+                ),
+                SqrtX2RZHTranspiler(),
+                FuseRotationTranspiler(),
+                RX2NamedTranspiler(epsilon),
+                RY2NamedTranspiler(epsilon),
+                RZ2NamedTranspiler(epsilon),
+                IdentityEliminationTranspiler(),
+            ]
+        )
+
+
 __all__ = [
     "CircuitTranspiler",
     "CircuitTranspilerProtocol",
@@ -152,6 +205,7 @@ __all__ = [
     "SequentialTranspiler",
     "RZSetTranspiler",
     "RotationSetTranspiler",
+    "CliffordRZSetTranspiler",
     "CliffordApproximationTranspiler",
     "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",
@@ -161,11 +215,15 @@ __all__ = [
     "CNOT2CZHTranspiler",
     "CZ2CNOTHTranspiler",
     "CZ2RXRYCNOTTranspiler",
+    "FuseRotationTranspiler",
     "H2RXRYTranspiler",
     "H2RZSqrtXTranspiler",
     "QubitRemappingTranspiler",
     "RX2RZSqrtXTranspiler",
     "RY2RZSqrtXTranspiler",
+    "RX2NamedTranspiler",
+    "RY2NamedTranspiler",
+    "RZ2NamedTranspiler",
     "S2RZTranspiler",
     "Sdag2RZTranspiler",
     "SingleQubitUnitaryMatrix2RYRZTranspiler",

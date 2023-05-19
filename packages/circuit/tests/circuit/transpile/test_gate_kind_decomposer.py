@@ -26,6 +26,7 @@ from quri_parts.circuit import (
     Pauli,
     PauliRotation,
     QuantumCircuit,
+    QuantumGate,
     S,
     Sdag,
     SqrtX,
@@ -39,6 +40,7 @@ from quri_parts.circuit import (
     Z,
 )
 from quri_parts.circuit.transpile import (
+    CliffordRZSetTranspiler,
     CZ2CNOTHTranspiler,
     CZ2RXRYCNOTTranspiler,
     H2RXRYTranspiler,
@@ -74,6 +76,17 @@ from quri_parts.circuit.transpile import (
     Z2HXTranspiler,
     Z2RZTranspiler,
 )
+
+
+def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
+    return (
+        x.name == y.name
+        and x.target_indices == y.target_indices
+        and x.control_indices == y.control_indices
+        and np.allclose(x.params, y.params)
+        and x.pauli_ids == y.pauli_ids
+        and np.allclose(x.unitary_matrix, y.unitary_matrix)
+    )
 
 
 class TestFTQCSetTranspile:
@@ -618,3 +631,59 @@ class TestRotationSetTranspile:
         )
 
         assert transpiled.gates == expect.gates
+
+
+class TestCliffordRZSetTranspile:
+    def test_cliffordrzset_transpile(self) -> None:
+        theta, phi, lam = np.pi / 3.0, np.pi / 5.0, np.pi / 7.0
+
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                SqrtX(0),
+                SqrtXdag(0),
+                SqrtY(0),
+                SqrtYdag(0),
+                Sdag(0),
+                T(0),
+                Tdag(0),
+                RX(0, theta),
+                RY(0, theta),
+                U1(0, lam),
+                U2(0, phi, lam),
+                U3(0, theta, phi, lam),
+            ]
+        )
+        transpiled = CliffordRZSetTranspiler()(circuit)
+
+        expect = QuantumCircuit(3)
+        expect.extend(
+            [
+                Sdag(0),  # SqrtX
+                H(0),
+                # RZ(0, 0.0),  # SqrtX, SqrtXdag
+                H(0),
+                Sdag(0),  # SqrtXdag, SqrtY
+                H(0),
+                # RZ(0, 0.0),  # SqrtY, SqrtYdag
+                H(0),
+                S(0),  # SqrtYdag, T, Tdag
+                H(0),  # RX
+                RZ(0, theta),
+                H(0),
+                Sdag(0),  # RY
+                H(0),
+                RZ(0, theta),
+                H(0),
+                RZ(0, (-np.pi / 2.0 + 2.0 * lam) % (2.0 * np.pi)),  # RY, U1, U2
+                H(0),
+                RZ(0, (phi + lam - np.pi / 2.0) % (2.0 * np.pi)),  # U2, U3
+                H(0),
+                RZ(0, theta),
+                H(0),
+                RZ(0, (phi + np.pi / 2.0) % (2.0 * np.pi)),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
