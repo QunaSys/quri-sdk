@@ -268,3 +268,33 @@ def test_kraus_operators() -> None:
     for noise, kraus in _noise_kraus_pair:
         print(noise.kraus_operators)
         assert np.allclose(noise.kraus_operators, kraus)
+
+
+def test_custom_gate_filter() -> None:
+    noises = [
+        BitFlipNoise(0.004, [], [names.H, names.X]),
+        PhaseFlipNoise(0.003, [], []),
+        DepolarizingNoise(0.002, [3], []),
+    ]
+
+    model = NoiseModel()
+    model.add_noise(noises[0])
+    model.add_noise(
+        noises[1],
+        lambda gate: len(gate.target_indices) + len(gate.control_indices) == 2,
+    )
+    model.add_noise(
+        noises[2],
+        lambda gate: len(gate.target_indices) == 1 and len(gate.control_indices) == 1,
+    )
+
+    assert list(model.noises_for_gate(gates.H(1))) == [((1,), noises[0])]
+    assert list(model.noises_for_gate(gates.SWAP(3, 1))) == [
+        ((3,), noises[1]),
+        ((1,), noises[1]),
+    ]
+    assert list(model.noises_for_gate(gates.CNOT(0, 3))) == [
+        ((0,), noises[1]),
+        ((3,), noises[1]),
+        ((3,), noises[2]),
+    ]

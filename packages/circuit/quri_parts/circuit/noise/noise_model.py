@@ -11,6 +11,7 @@
 import itertools as it
 from collections import defaultdict
 from collections.abc import Iterable, MutableMapping, MutableSequence, Sequence
+from typing import Callable, Optional
 
 from quri_parts.circuit import QuantumGate
 
@@ -101,6 +102,10 @@ class NoiseModel:
     def __init__(self, noises: Sequence[NoiseInstruction] = []):
         self._id_to_index: MutableMapping[int, int] = {}
         self._index = 0
+
+        self._custom_gate_filters: MutableMapping[
+            int, Callable[[QuantumGate], bool]
+        ] = {}
 
         self._gate_noises_for_specified: MutableMapping[
             tuple[str, QubitIndices], MutableSequence[GateNoiseInstruction]
@@ -215,15 +220,25 @@ class NoiseModel:
         Args:
            gate: :class:`QuantumGate` to which noises are applied.
         """
-        return sorted(
-            it.chain(
-                self._get_gate_noises_for_all(gate, self._gate_noises_for_all),
-                self._get_gate_noises_for_all_qubits_specified_gates(gate),
-                self._get_gate_noises_for_all_gates_specified_qubits(gate),
-                self._get_gate_noises_for_specified(gate),
-            ),
-            key=lambda x: self._id_to_index[id(x[1])],
+        cpairs = it.chain(
+            self._get_gate_noises_for_all(gate, self._gate_noises_for_all),
+            self._get_gate_noises_for_all_qubits_specified_gates(gate),
+            self._get_gate_noises_for_all_gates_specified_qubits(gate),
+            self._get_gate_noises_for_specified(gate),
         )
+
+        if self._custom_gate_filters:
+            pairs = tuple(
+                filter(
+                    lambda pair: id(pair[1]) not in self._custom_gate_filters
+                    or self._custom_gate_filters[id(pair[1])](gate),
+                    cpairs,
+                )
+            )
+        else:
+            pairs = tuple(cpairs)
+
+        return sorted(pairs, key=lambda x: self._id_to_index[id(x[1])])
 
     def noises_for_circuit(self) -> Sequence[CircuitNoiseInstruction]:
         """Returns sequence of :class:`CircuitNoiseInstruction` in the
@@ -285,11 +300,24 @@ class NoiseModel:
         structure."""
         self._circuit_noises.append(noise)
 
-    def add_noise(self, noise: NoiseInstruction) -> None:
+    def add_noise(
+        self,
+        noise: NoiseInstruction,
+        custom_gate_filter: Optional[Callable[[QuantumGate], bool]] = None,
+    ) -> None:
         """Add single :class:`NoiseInstruction` to the model and update the
-        state of the model."""
+        state of the model.
+
+        Args:
+            noise: :class:`NoiseInstruction` to be added to the model.
+            custom_gate_filter: (If specified) Additional condition to determine
+                if the noise is applied to the target gate.
+        """
 
         self._id_to_index[id(noise)] = self._issue_index()
+
+        if custom_gate_filter is not None:
+            self._custom_gate_filters[id(noise)] = custom_gate_filter
 
         if isinstance(noise, GateNoiseInstruction):
             if (not noise.qubit_indices) and (not noise.target_gates):
@@ -330,6 +358,7 @@ class NoiseModel:
             self._circuit_noises,
             self._index,
             self._id_to_index,
+            self._custom_gate_filters,
         ) == (
             other._gate_noises_for_specified,
             other._gate_noises_for_all_gates_specified_qubits,
@@ -338,4 +367,5 @@ class NoiseModel:
             other._circuit_noises,
             other._index,
             other._id_to_index,
+            other._custom_gate_filters,
         )
