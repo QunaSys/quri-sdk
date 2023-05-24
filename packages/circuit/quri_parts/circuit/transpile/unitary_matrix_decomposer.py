@@ -11,6 +11,7 @@
 import cmath
 import math
 from collections.abc import Sequence
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -82,6 +83,161 @@ def su2_decompose(
         return theta
 
 
+def _decompose_product_state(
+    product_state: npt.NDArray[np.complex128], eps: float = 1e-10
+) -> tuple[npt.NDArray[np.complex128], npt.NDArray[np.complex128]]:
+    argmax = np.argmax(np.abs(product_state))
+    a, b = np.zeros(2, dtype=np.complex128), np.zeros(2, dtype=np.complex128)
+
+    if abs(product_state[0]) < eps and abs(product_state[1]) < eps:
+        a[:] = 0, 1
+    else:
+        if argmax == 0 or argmax == 2:
+            c = product_state[2] / product_state[0]
+        else:
+            c = product_state[3] / product_state[1]
+        a[0] = np.sqrt(1 / (1 + abs(c) ** 2))
+
+    if abs(product_state[2]) < eps and abs(product_state[3]) < eps:
+        a[:] = 1, 0
+    else:
+        if argmax == 0 or argmax == 2:
+            c = product_state[0] / product_state[2]
+        else:
+            c = product_state[1] / product_state[3]
+        ca = -cmath.phase(c)
+        a[1] = np.sqrt(1 / (1 + abs(c) ** 2)) * (math.cos(ca) + 1j * math.sin(ca))
+
+    if abs(product_state[0]) < eps and abs(product_state[2]) < eps:
+        b[:] = 0, 1
+    else:
+        if argmax == 0 or argmax == 1:
+            c = product_state[1] / product_state[0]
+        else:
+            c = product_state[3] / product_state[2]
+        b[0] = np.sqrt(1 / (1 + abs(c) ** 2))
+
+    if abs(product_state[1]) < eps and abs(product_state[3]) < eps:
+        b[:] = 1, 0
+    else:
+        if argmax == 0 or argmax == 1:
+            c = product_state[0] / product_state[1]
+        else:
+            c = product_state[2] / product_state[3]
+        ca = -cmath.phase(c)
+        b[1] = np.sqrt(1 / (1 + abs(c) ** 2)) * (math.cos(ca) + 1j * math.sin(ca))
+
+    ab = np.kron(a, b)
+    nonzero_idx = np.argmax(np.abs(ab))
+    a *= product_state[nonzero_idx] / ab[nonzero_idx]
+    a /= np.linalg.norm(a)
+    b /= np.linalg.norm(b)
+
+    return a, b
+
+
+def _psi_ext(
+    psi: npt.NDArray[np.complex128], prime_flag: bool
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    mu = (psi.T[0] + 1j * psi.T[1]) / np.sqrt(2)
+    nu = (psi.T[0] - 1j * psi.T[1]) / np.sqrt(2)
+    a, b = _decompose_product_state(mu)
+    a_bar, b_bar = _decompose_product_state(nu)
+
+    nonzero_idx = np.argmax(np.abs(np.kron(a, b_bar)))
+    nonzero_idx2 = np.argmax(np.abs(np.kron(a_bar, b)))
+    exp_delta = (psi.T[2][nonzero_idx] + 1j * psi.T[3][nonzero_idx]) / (
+        np.sqrt(2) * np.kron(a, b_bar)[nonzero_idx]
+    )
+    exp_delta2 = (psi.T[2][nonzero_idx2] + 1j * psi.T[3][nonzero_idx2]) / (
+        np.sqrt(2) * np.kron(a_bar, b)[nonzero_idx2]
+    )
+    if abs(1 - abs(exp_delta)) > abs(1 - abs(exp_delta2)):
+        a, a_bar = a_bar, a
+        b, b_bar = b_bar, b
+        exp_delta = exp_delta2
+    exp_delta /= abs(exp_delta)
+
+    zero_ket, one_ket = np.array([[1], [0]]), np.array([[0], [1]])
+    r_i = np.kron(zero_ket, np.conj(a)) + exp_delta * np.kron(one_ket, np.conj(a_bar))
+    r_j = np.kron(zero_ket, np.conj(b)) + np.conj(exp_delta) * np.kron(
+        one_ket, np.conj(b_bar)
+    )
+
+    xi = np.zeros(4)
+    r_ij = np.kron(r_i, r_j)
+    xi[0] = -cmath.phase(np.inner(r_ij[0], psi.T[0]))
+    xi[1] = -cmath.phase(np.inner(r_ij[0], psi.T[1]) / -1j)
+    xi[2] = -cmath.phase(np.inner(r_ij[1], psi.T[2]) / -1)
+    xi[3] = -cmath.phase(np.inner(r_ij[1], psi.T[3]) / -1j)
+
+    if prime_flag:
+        r_i, r_j = np.conj(r_i.T), np.conj(r_j.T)
+
+    theta_i, theta_j = su2_decompose(r_i), su2_decompose(r_j)
+
+    return theta_i, theta_j, xi
+
+
+def _all_different(xs: npt.NDArray[np.complex128], error: float = 1.0e-9) -> bool:
+    for i in range(len(xs)):
+        for j in range(i + 1, len(xs)):
+            if abs(xs[i] - xs[j]) < error:
+                return False
+    return True
+
+
+def su4_decompose(
+    ut: Sequence[Sequence[complex]],
+    eiglim: float = 1e-10,
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    m = np.array(
+        [[1, -1j, 0, 0], [0, 0, -1, -1j], [0, 0, 1, -1j], [1, 1j, 0, 0]]
+    ) / np.sqrt(2)
+    m_inv = np.conj(m.T)
+    u_prime = m_inv @ ut @ m
+    w = u_prime.T @ u_prime
+    if abs(np.sum(np.abs(np.diag(w))) - 4) < eiglim:
+        eigvalue, eigvec = np.diag(w), np.identity(4, dtype=np.complex128)
+    else:
+        eigvalue, eigvec = np.linalg.eig(w)
+
+        if not _all_different(eigvalue):
+            raise ValueError("Dupliation of eigenvalues for SU4_decompose()")
+
+        eigvec_t = np.zeros((4, 4), dtype=np.complex128)
+        for i in range(4):
+            u = eigvec.T[i]
+            for j in range(i):
+                u -= np.vdot(eigvec_t[j], u) * eigvec_t[j]
+            nonzero_idx = cast(int, np.argmax(np.abs(u)))
+            eigvec_t[i] = (
+                u / (u[nonzero_idx] / np.abs(u[nonzero_idx])) / np.linalg.norm(u)
+            )
+        eigvec = eigvec_t.T
+
+    eps = [cmath.phase(eigvalue[i]) / 2 for i in range(4)]
+    psi = m @ eigvec
+    theta_i, theta_j, xi = _psi_ext(psi, False)
+    psi_prime = (
+        ut @ psi @ np.diag([math.cos(eps[i]) - 1j * math.sin(eps[i]) for i in range(4)])
+    )
+    theta_prime_i, theta_prime_j, xi_prime = _psi_ext(psi_prime, True)
+
+    b = xi_prime - xi - eps
+    alpha = np.zeros(4)
+    alpha[0] = -(b[0] + b[1] + b[2] + b[3]) / 4
+    alpha[1] = -(b[0] - b[1] - b[2] + b[3]) / 4
+    alpha[2] = -(-b[0] + b[1] - b[2] + b[3]) / 4
+    alpha[3] = -(b[0] + b[1] - b[2] - b[3]) / 4
+
+    return (
+        alpha[1:],
+        np.append(theta_i[1:], theta_j[1:]).reshape(2, 3),
+        np.append(theta_prime_i[1:], theta_prime_j[1:]).reshape(2, 3),
+    )
+
+
 class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
     """CircuitTranspiler, which decomposes single qubit UnitaryMatrix gates
     into gate sequences containing RY and RZ gates.
@@ -90,6 +246,8 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
         [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
             Automatic quantum circuit encoding of a given arbitrary quantum state,
             arXiv:2112.14524v1, p.22, (2021).
+        [2]: Main functions are ported from the source code wrtitten by Sota Morisaki
+            in QunaSys intern project.
     """
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
@@ -103,4 +261,53 @@ class SingleQubitUnitaryMatrix2RYRZTranspiler(GateDecomposer):
             gates.RZ(target, theta[1]),
             gates.RY(target, theta[2]),
             gates.RZ(target, theta[3]),
+        ]
+
+
+class TwoQubitUnitaryMatrixKAKTranspiler(GateDecomposer):
+    """CircuitTranspiler, which decomposes two qubit UnitaryMatrix gates into
+    gate sequences containing H, S, RX, RY, RZ, and CNOT gates.
+
+    Raises:
+        ValueError: Depending on the nature of the unitary matrix of the input
+            UnitaryMatrix gate, the decomposition may fail and throw an error.
+
+    Ref:
+        [1]: Tomonori Shirakawa, Hiroshi Ueda, and Seiji Yunoki,
+            Automatic quantum circuit encoding of a given arbitrary quantum state,
+            arXiv:2112.14524v1, pp.4-5, (2021).
+        [2]: Main functions are ported from the source code wrtitten by Sota Morisaki
+            in QunaSys intern project.
+    """
+
+    def is_target_gate(self, gate: QuantumGate) -> bool:
+        return gate.name == gate_names.UnitaryMatrix and len(gate.target_indices) == 2
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        alpha, xi, xi_prime = su4_decompose(gate.unitary_matrix)
+
+        return [
+            gates.RZ(0, xi[0][0]),
+            gates.RY(0, xi[0][1]),
+            gates.RZ(0, xi[0][2]),
+            gates.RZ(1, xi[1][0]),
+            gates.RY(1, xi[1][1]),
+            gates.RZ(1, xi[1][2]),
+            gates.CNOT(0, 1),
+            gates.RX(0, -2 * alpha[0]),
+            gates.H(0),
+            gates.RZ(1, -2 * alpha[2]),
+            gates.CNOT(0, 1),
+            gates.S(0),
+            gates.H(0),
+            gates.RZ(1, 2 * alpha[1]),
+            gates.CNOT(0, 1),
+            gates.RX(0, -np.pi / 2),
+            gates.RZ(0, xi_prime[0][0]),
+            gates.RY(0, xi_prime[0][1]),
+            gates.RZ(0, xi_prime[0][2]),
+            gates.RX(1, np.pi / 2),
+            gates.RZ(1, xi_prime[1][0]),
+            gates.RY(1, xi_prime[1][1]),
+            gates.RZ(1, xi_prime[1][2]),
         ]

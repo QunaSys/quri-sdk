@@ -10,8 +10,11 @@
 
 import numpy as np
 
-from quri_parts.circuit import RY, RZ, QuantumCircuit, QuantumGate
-from quri_parts.circuit.transpile import SingleQubitUnitaryMatrix2RYRZTranspiler
+from quri_parts.circuit import CNOT, RX, RY, RZ, H, QuantumCircuit, QuantumGate, S
+from quri_parts.circuit.transpile import (
+    SingleQubitUnitaryMatrix2RYRZTranspiler,
+    TwoQubitUnitaryMatrixKAKTranspiler,
+)
 
 
 def _assert_params_close(x: QuantumGate, y: QuantumGate) -> None:
@@ -131,6 +134,166 @@ class TestSingleQubitDecompose:
                 RZ(0, 5.525447921071612),
                 RY(0, 0.6685959371692511),
                 RZ(0, 0.43399113617430446),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            _assert_params_close(t, e)
+
+
+class TestTwoQubitDecompose:
+    def test_swap_decompose(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.add_TwoQubitUnitaryMatrix_gate(
+            0,
+            1,
+            [
+                [1, 0, 0, 0],
+                [0, 0, 1, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, 1],
+            ],
+        )
+        transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+        expect.extend(
+            [
+                RZ(0, -np.pi),
+                RY(0, np.pi),
+                RZ(0, 0),
+                RZ(1, -np.pi),
+                RY(1, np.pi),
+                RZ(1, 0),
+                CNOT(0, 1),
+                RX(0, np.pi / 2),
+                H(0),
+                RZ(1, -np.pi / 2),
+                CNOT(0, 1),
+                S(0),
+                H(0),
+                RZ(1, np.pi / 2),
+                CNOT(0, 1),
+                RX(0, -np.pi / 2),
+                RZ(0, 0),
+                RY(0, 0),
+                RZ(0, 0),
+                RX(1, np.pi / 2),
+                RZ(1, 0),
+                RY(1, 0),
+                RZ(1, 0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            _assert_params_close(t, e)
+
+    def test_cz_decompose(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.add_TwoQubitUnitaryMatrix_gate(
+            0,
+            1,
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 1, 0],
+                [0, 0, 0, -1],
+            ],
+        )
+        transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+        expect.extend(
+            [
+                RZ(0, -np.pi),
+                RY(0, np.pi),
+                RZ(0, 0),
+                RZ(1, -np.pi),
+                RY(1, np.pi),
+                RZ(1, 0),
+                CNOT(0, 1),
+                RX(0, 0),
+                H(0),
+                RZ(1, -np.pi / 2),
+                CNOT(0, 1),
+                S(0),
+                H(0),
+                RZ(1, 0),
+                CNOT(0, 1),
+                RX(0, -np.pi / 2),
+                RZ(0, -np.pi * 3 / 2),
+                RY(0, np.pi),
+                RZ(0, 0),
+                RX(1, np.pi / 2),
+                RZ(1, np.pi / 2),
+                RY(1, np.pi),
+                RZ(1, 0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            _assert_params_close(t, e)
+
+    def test_fixed_decompose(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.add_TwoQubitUnitaryMatrix_gate(
+            0,
+            1,
+            [
+                [
+                    -0.52037119 - 0.23369154j,
+                    0.00336457 - 0.67280194j,
+                    0.21766929 - 0.19839962j,
+                    0.06844591 - 0.36124943j,
+                ],
+                [
+                    -0.1202352 - 0.34198246j,
+                    -0.51915342 + 0.13693515j,
+                    0.17517988 - 0.24753382j,
+                    0.5140112 + 0.4734464j,
+                ],
+                [
+                    -0.14712195 - 0.51048619j,
+                    -0.36435886 + 0.28986008j,
+                    0.07735599 + 0.56042397j,
+                    -0.28453794 - 0.31616754j,
+                ],
+                [
+                    -0.34491589 - 0.37680976j,
+                    0.20500064 + 0.01591263j,
+                    -0.68754106 - 0.16889347j,
+                    -0.28612016 + 0.33714463j,
+                ],
+            ],
+        )
+        transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+        expect = QuantumCircuit(2)
+        expect.extend(
+            [
+                RZ(0, 1.964151658149481),
+                RY(0, 2.445734665400974),
+                RZ(0, -1.2228580059647152),
+                RZ(1, -2.0261768746801208),
+                RY(1, 2.23384008194361),
+                RZ(1, 0.542716624931449),
+                CNOT(0, 1),
+                RX(0, -1.3433479167618008),
+                H(0),
+                RZ(1, -0.1535936645886139),
+                CNOT(0, 1),
+                S(0),
+                H(0),
+                RZ(1, -0.7600483917018804),
+                CNOT(0, 1),
+                RX(0, -np.pi / 2),
+                RZ(0, 4.543181270456171),
+                RY(0, 2.4523790983331857),
+                RZ(0, 0.18060536576440683),
+                RX(1, np.pi / 2),
+                RZ(1, 1.6106757636768554),
+                RY(1, 0.8382960839329676),
+                RZ(1, -1.0044839579124587),
             ]
         )
 
