@@ -23,4 +23,5 @@ API Reference
     quri_parts/ionq/quri_parts.ionq
     quri_parts/itensor/quri_parts.itensor
     quri_parts/pyscf/quri_parts.pyscf
+    quri_parts/tket/quri_parts.tket
 

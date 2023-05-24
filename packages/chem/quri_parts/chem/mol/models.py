@@ -11,14 +11,12 @@
 from abc import abstractmethod, abstractproperty
 from dataclasses import dataclass
 from enum import Enum, auto
-from typing import TYPE_CHECKING, NamedTuple, Optional, Protocol, Sequence
+from typing import NamedTuple, Optional, Protocol, Sequence
 
 import numpy as np
+import numpy.typing as npt  # noqa: F401
 
 from quri_parts.chem.mol import get_core_and_active_orbital_indices
-
-if TYPE_CHECKING:
-    import numpy.typing as npt  # noqa: F401
 
 
 class OrbitalType(Enum):
@@ -44,12 +42,40 @@ class ActiveSpace:
     active_orbs_indices: Optional[Sequence[int]] = None
 
 
+def cas(
+    n_active_ele: int,
+    n_active_orb: int,
+    active_orbs_indices: Optional[Sequence[int]] = None,
+) -> ActiveSpace:
+    """Convenient function for constructing the active space."""
+    return ActiveSpace(n_active_ele, n_active_orb, active_orbs_indices)
+
+
 class MolecularOrbitals(Protocol):
     """Interface protocol for a data of the molecule."""
 
     @abstractproperty
     def n_electron(self) -> int:
-        """Returns a number of electrons."""
+        """Returns the number of electrons."""
+        ...
+
+    @abstractproperty
+    def spin(self) -> int:
+        """Returns the total spin of the electrons.
+
+        Note:
+            We follow the quantum chemistry convention where:
+
+            .. math::
+                N_{\\alpha} - N_{\\beta} = 2S
+
+            and spin = 2S.
+        """
+        ...
+
+    @abstractproperty
+    def n_spatial_orb(self) -> int:
+        """Returns the number of spatial orbitals."""
         ...
 
     @abstractproperty
@@ -73,11 +99,58 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
     ):
         self._mo = mo
         self._active_space = active_space
+        self._check_active_space_consistency()
 
     @property
     def n_electron(self) -> int:
         """Returns a number of electrons."""
         return self._mo.n_electron
+
+    @property
+    def spin(self) -> int:
+        """Returns the total spin of the electrons."""
+        return self._mo.spin
+
+    @property
+    def n_active_ele(self) -> int:
+        """Returns the number of active electrons."""
+        return self._active_space.n_active_ele
+
+    @property
+    def n_core_ele(self) -> int:
+        """Returns the number of core electrons."""
+        n_core_electron = self.n_electron - self.n_active_ele
+        return n_core_electron
+
+    @property
+    def n_ele_alpha(self) -> int:
+        """Return the number of spin up electrons."""
+        return self.n_active_ele - self.n_ele_beta
+
+    @property
+    def n_ele_beta(self) -> int:
+        """Return the number of spin down electrons."""
+        return (self.n_active_ele - self.spin) // 2
+
+    @property
+    def n_spatial_orb(self) -> int:
+        """Returns the number of spatial orbitals."""
+        return self._mo.n_spatial_orb
+
+    @property
+    def n_active_orb(self) -> int:
+        """Returns the number of active orbitals."""
+        return self._active_space.n_active_orb
+
+    @property
+    def n_core_orb(self) -> int:
+        """Returns the number of core orbitals."""
+        return self.n_core_ele // 2
+
+    @property
+    def n_vir_orb(self) -> int:
+        """Returns the number of virtual orbitals."""
+        return self._mo.n_spatial_orb - self.n_active_orb - self.n_core_orb
 
     @property
     def mo_coeff(self) -> "npt.NDArray[np.complex128]":
@@ -114,6 +187,70 @@ class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
         else:
             return OrbitalType.VIRTUAL
 
+    def _check_active_space_consistency(self) -> None:
+        """Consistency check of the active space configuration."""
+        assert self.n_core_ele % 2 == 0, ValueError(
+            "The number of electrons in core must be even."
+            " Please set the active electron to an {} number".format(
+                {0: "even", 1: "odd"}[self.n_electron % 2]
+            )
+        )
+        assert self.n_core_ele >= 0, ValueError(
+            f"Number of core electrons should be a positive integer or zero.\n"
+            f" n_core_ele = {self.n_core_ele}.\n"
+            f" Possible fix: n_active_ele should be less than"
+            f" total number of electrons: {self.n_electron}."
+        )
+        assert self.n_vir_orb >= 0, ValueError(
+            f"Number of virtual orbitals should be a positive integer or zero.\n"
+            f" n_vir = {self.n_vir_orb}.\n"
+            f" Possible fix: (n_active_orb - n_active_ele//2) should not"
+            f" exceed {self.n_spatial_orb - self.n_electron//2}."
+        )
+        assert self.n_ele_alpha >= 0, ValueError(
+            f"Number of spin up electrons should be a positive integer or zero.\n"
+            f" n_ele_alpha = {self.n_ele_alpha}"
+            f" Possible_fix: - n_active_ele should not"
+            f" be less then the value of spin: {self.spin}."
+        )
+        assert self.n_ele_beta >= 0, ValueError(
+            f"Number of spin down electrons should be a positive integer or zero.\n"
+            f" n_ele_beta = {self.n_ele_beta}.\n"
+            f" Possible_fix: n_active_ele should not"
+            f" exceed the value of spin: {self.spin}."
+        )
+        assert self.n_ele_alpha <= self.n_active_orb, ValueError(
+            f"Number of spin up electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+            f" n_ele_alpha = {self.n_ele_alpha},\n"
+            f" n_active_orb = {self.n_active_orb}.\n"
+            f" Possible fix: [(n_active_ele + spin)//2] should be"
+            f" less than n_active_orb: {self.n_active_orb}"
+        )
+        assert self.n_ele_beta <= self.n_active_orb, ValueError(
+            f"Number of spin down electrons should not exceed the number of active orbitals.\n"  # noqa: E501
+            f" n_ele_beta = {self.n_ele_beta},\n"
+            f" n_active_orb = {self.n_active_orb}\n"
+            f" Possible fix: [(n_active_ele - spin)//2] should be"
+            f" less than n_active_orb: {self.n_active_orb}"
+        )
+
+    def __str__(self) -> str:
+        info_dict = {
+            "n_electron": self.n_electron,
+            "n_active_ele": self.n_active_ele,
+            "n_core_ele": self.n_core_ele,
+            "n_ele_alpha": self.n_ele_alpha,
+            "n_ele_beta": self.n_ele_beta,
+            "n_spatial_orb": self.n_spatial_orb,
+            "n_active_orb": self.n_active_orb,
+            "n_core_orb": self.n_core_orb,
+            "n_vir_orb": self.n_vir_orb,
+        }
+
+        info_str = "\n".join(f"{key}: {str(value)}" for key, value in info_dict.items())
+
+        return info_str
+
 
 class AO1eInt(Protocol):
     """Interface protocol for an atomic orbital one-electron integral."""
@@ -124,7 +261,7 @@ class AO1eInt(Protocol):
         ...
 
     @abstractmethod
-    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "MO1eInt":
+    def to_mo1int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpinMO1eInt":
         """This method converts an atomic orbital one-electron integral into
         the molecular orbital one-electron integral.
 
@@ -143,7 +280,7 @@ class AO2eInt(Protocol):
         ...
 
     @abstractmethod
-    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "MO2eInt":
+    def to_mo2int(self, mo_coeff: "npt.NDArray[np.complex128]") -> "SpinMO2eInt":
         """This method converts an atomic orbital two-electron integral into
         the molecular orbital two-electron integral.
 
@@ -153,7 +290,32 @@ class AO2eInt(Protocol):
         ...
 
 
-class MO1eInt(Protocol):
+class AOeIntSet(Protocol):
+    """AOeIntSet holds a constant and the atomic orbital electron integrals."""
+
+    #: constant.
+    constant: float
+    #: atomic orbital one-electron integral :class:`AO1eInt`.
+    ao_1e_int: AO1eInt
+    #: atomic orbital two-electron integral :class:`AO2eInt`.
+    ao_2e_int: AO2eInt
+
+    def to_full_space_mo_int(
+        self,
+        mo: MolecularOrbitals,
+    ) -> "SpinMOeIntSet":
+        """Compute the full space spin mo integral."""
+        ...
+
+    def to_active_space_mo_int(
+        self,
+        active_space_mo: ActiveSpaceMolecularOrbitals,
+    ) -> "SpinMOeIntSet":
+        """Compute the active space spin mo integral."""
+        ...
+
+
+class SpatialMO1eInt(Protocol):
     """Interface protocol for a molecular orbital one-electron integral."""
 
     @abstractproperty
@@ -162,7 +324,7 @@ class MO1eInt(Protocol):
         ...
 
 
-class MO2eInt(Protocol):
+class SpatialMO2eInt(Protocol):
     """Interface protocol for a molecular orbital two-electron integral."""
 
     @abstractproperty
@@ -171,7 +333,7 @@ class MO2eInt(Protocol):
         ...
 
 
-class MO1eIntArray(MO1eInt):
+class SpatialMO1eIntArray(SpatialMO1eInt):
     """A class of a molecular orbital one-electron integral.
 
     This interface has an integral as numpy ndarray.
@@ -186,7 +348,7 @@ class MO1eIntArray(MO1eInt):
         return self._array
 
 
-class MO2eIntArray(MO2eInt):
+class SpatialMO2eIntArray(SpatialMO2eInt):
     """A class of a molecular orbital two-electron integral.
 
     This interface has an integral as numpy ndarray.
@@ -201,13 +363,69 @@ class MO2eIntArray(MO2eInt):
         return self._array
 
 
-class MOeIntSet(NamedTuple):
-    """MOeIntSet holds a constant and a set of molecular orbital electron
+class SpatialMOeIntSet(NamedTuple):
+    """SpatialMOeIntSet holds a constant and a set of molecular orbital
+    electron integral."""
+
+    #: constant.
+    const: float
+    #: molecular orbital one-electron integral.
+    mo_1e_int: SpatialMO1eInt
+    #: molecular orbital two-electron integral.
+    mo_2e_int: SpatialMO2eInt
+
+
+class SpinMO1eInt(Protocol):
+    """Interface protocol for a molecular spin orbital one-electron
+    integral."""
+
+    @abstractproperty
+    def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
+        ...
+
+
+class SpinMO2eInt(Protocol):
+    """Interface protocol for a molecular spin orbital two-electron
+    integral."""
+
+    @abstractproperty
+    def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
+        ...
+
+
+class SpinMO1eIntArray(SpinMO1eInt):
+    """Stores the array of the 1-electron integrals."""
+
+    def __init__(self, array: npt.NDArray[np.complex128]) -> None:
+        self._array = array
+
+    @property
+    def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
+        return self._array
+
+
+class SpinMO2eIntArray(SpinMO2eInt):
+    """Stores the array of the 2-electron integrals."""
+
+    def __init__(self, array: npt.NDArray[np.complex128]) -> None:
+        self._array = array
+
+    @property
+    def array(self) -> npt.NDArray[np.complex128]:
+        """Returns integral as numpy ndarray."""
+        return self._array
+
+
+class SpinMOeIntSet(NamedTuple):
+    """SpinMOeIntSet holds a constant and a set of molecular orbital electron
     integral."""
 
     #: constant.
     const: float
-    #: molecular orbital one-electron integral :class:`MO1eInt`.
-    mo_1e_int: MO1eInt
-    #: molecular orbital two-electron integral :class:`MO2eInt`.
-    mo_2e_int: MO2eInt
+    #: spin molecular orbital one-electron integral.
+    mo_1e_int: SpinMO1eInt
+    #: spin molecular orbital two-electron integral.
+    mo_2e_int: SpinMO2eInt

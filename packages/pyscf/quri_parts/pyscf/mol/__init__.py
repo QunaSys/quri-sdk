@@ -8,9 +8,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
+from .model import PySCFMolecularOrbitals, get_nuc_energy
+from .non_relativistic import (
+    PySCFAO1eInt,
+    PySCFAO2eInt,
+    PySCFAOeIntSet,
+    PySCFSpatialMO1eInt,
+    PySCFSpatialMO2eInt,
+    PySCFSpinMO1eInt,
+    PySCFSpinMO2eInt,
+    get_active_space_spatial_integrals,
+    get_active_space_spin_integrals,
+    get_ao_1eint,
+    get_ao_2eint,
+    get_ao_eint_set,
+)
 
 __all__ = [
     "PySCFMolecularOrbitals",
     "get_nuc_energy",
+    "MolecularHamiltonianProtocol",
+    "MolecularHamiltonian",
+    "PySCFAOeIntSet",
+    "PySCFMolecularHamiltonian",
+    "PySCFAO1eInt",
+    "PySCFAO2eInt",
+    "PySCFSpatialMO1eInt",
+    "PySCFSpatialMO2eInt",
+    "PySCFSpinMO1eInt",
+    "PySCFSpinMO2eInt",
+    "get_ao_1eint",
+    "get_ao_2eint",
+    "get_ao_eint_set",
+    "get_active_space_spatial_integrals",
+    "get_active_space_spin_integrals",
 ]

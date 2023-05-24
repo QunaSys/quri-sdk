@@ -11,7 +11,7 @@
 from pyscf import gto, scf
 from pyscf.gto import Mole
 
-from quri_parts.pyscf.mol.pyscf_interface import PySCFMolecularOrbitals, get_nuc_energy
+from quri_parts.pyscf.mol.model import PySCFMolecularOrbitals, get_nuc_energy
 
 mol = gto.M(atom="H 0 0 0; H 0 0 1", basis="sto-3g", verbose=0)
 mf = scf.HF(mol)
@@ -28,6 +28,12 @@ class TestPySCFMolecularOrbitals:
 
     def test_n_electron(self) -> None:
         assert test_mol_set.n_electron == 2
+
+    def test_spin(self) -> None:
+        assert test_mol_set.spin == 0
+
+    def test_n_spatial_orb(self) -> None:
+        assert test_mol_set.n_spatial_orb == 2
 
     def test_mo_coeff(self) -> None:
         test_mo_coeff = test_mol_set.mo_coeff

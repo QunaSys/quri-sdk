@@ -16,3 +16,4 @@
 # -e ./packages/ionq
 # -e ./packages/pyscf
 # -e ./packages/itensor
+# -e ./packages/tket

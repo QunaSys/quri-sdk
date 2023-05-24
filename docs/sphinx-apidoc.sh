@@ -18,6 +18,7 @@ pkgs="
     ionq
     itensor
     pyscf
+    tket
 "
 
 for pkg in $pkgs
