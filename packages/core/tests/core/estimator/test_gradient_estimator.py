@@ -75,7 +75,7 @@ class _Estimate:
 
     @property
     def error(self) -> float:
-        return 0.0
+        return 2.0
 
 
 def estimator(
@@ -99,7 +99,9 @@ class TestGradientEstimator:
         estimates = numerical_estimator(zero(), a_state(), init_params)
         estimator.assert_called_once()
         assert estimates.values == [0.0]
-        assert estimates.error_matrix is None
+        error_expected = np.sqrt((2.0**2 + 2.0**2) / delta**2)
+        assert estimates.error_matrix is not None
+        assert estimates.error_matrix[0][0] == pytest.approx(error_expected)
 
     def test_create_parameter_shift_gradient_estimator(self) -> None:
         init_params = [0.0]
@@ -108,7 +110,9 @@ class TestGradientEstimator:
         estimates = parameter_shift_estimator(zero(), c_state(), init_params)
         estimator.assert_called_once()
         assert estimates.values == [0.0]
-        assert estimates.error_matrix is None
+        error_expected = np.sqrt(2.0**2 * 0.25**2 + 2.0**2 * 0.25**2)
+        assert estimates.error_matrix is not None
+        assert estimates.error_matrix[0][0] == pytest.approx(error_expected)
 
 
 class TestNumericalGradientEstimate:
@@ -120,7 +124,8 @@ class TestNumericalGradientEstimate:
             zero(), a_state(), init_params, estimator, delta
         )
         assert estimates.values == [0.0]
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0]])
 
     def test_const_op(self) -> None:
         op = Operator({PAULI_IDENTITY: 3.0})
@@ -131,7 +136,8 @@ class TestNumericalGradientEstimate:
             op, a_state(), init_params, estimator, delta
         )
         assert estimates.values == [0.0]
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0]])
 
     def test_gradient_estimator(self) -> None:
         op = Operator({pauli_label("Z0"): 2.0})
@@ -142,7 +148,8 @@ class TestNumericalGradientEstimate:
             op, a_state(), init_params, estimator, delta
         )
         assert estimates.values[0] == pytest.approx(-1.41421356)
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0]])
 
     def test_multi_params_gradient_estimator(self) -> None:
         op = Operator({pauli_label("Z0 X1"): 2.0})
@@ -153,7 +160,8 @@ class TestNumericalGradientEstimate:
             op, b_state(), init_params, estimator, delta
         )
         assert estimates.values == [0.0, pytest.approx(1.41421356)]
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0, 0.0], [0.0, 0.0]])
 
     def test_delta(self) -> None:
         op = Operator({pauli_label("Z0"): 2.0})
@@ -185,7 +193,8 @@ class TestParameterShiftGradientEstimate:
             zero(), c_state(), init_params, estimator
         )
         assert estimates.values == [0.0]
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0]])
 
     def test_const_op(self) -> None:
         op = Operator({PAULI_IDENTITY: 3.0})
@@ -195,7 +204,8 @@ class TestParameterShiftGradientEstimate:
             op, c_state(), init_params, estimator
         )
         assert estimates.values == [0.0]
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0]])
 
     def test_pauli_Z_op(self) -> None:
         op = Operator({pauli_label("Z0"): 2.0})
@@ -205,7 +215,8 @@ class TestParameterShiftGradientEstimate:
             op, c_state(), init_params, estimator
         )
         assert estimates.values[0] == pytest.approx(-0.70710678)
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0]])
 
     def test_multi_params_gradient_estimator(self) -> None:
         op = Operator({pauli_label("Z0 X1"): 2.0})
@@ -216,7 +227,8 @@ class TestParameterShiftGradientEstimate:
         )
         assert estimates.values[0] == pytest.approx(0.0)
         assert estimates.values[1] == pytest.approx(1.41421356)
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0, 0.0], [0.0, 0.0]])
 
     def test_primitive_unbound_parametric_circuit(self) -> None:
         op = Operator({pauli_label("Z0 X1"): 2.0})
@@ -226,4 +238,5 @@ class TestParameterShiftGradientEstimate:
             op, b_state(), init_params, estimator
         )
         assert estimates.values == [0.0, pytest.approx(1.41421356)]
-        assert estimates.error_matrix is None
+        assert estimates.error_matrix is not None
+        np.testing.assert_allclose(estimates.error_matrix, [[0.0, 0.0], [0.0, 0.0]])

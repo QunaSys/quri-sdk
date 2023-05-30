@@ -79,8 +79,11 @@ from .unitary_matrix_decomposer import (
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only X, SqrtX, CNOT, and RZ.
+#: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        SingleQubitUnitaryMatrix2RYRZTranspiler(),
+        TwoQubitUnitaryMatrixKAKTranspiler(),
         ParallelDecomposer(
             [
                 CZ2CNOTHTranspiler(),
@@ -116,8 +119,11 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
 
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only RX, RY, RZ, and CNOT.
+#: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
 RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
+        SingleQubitUnitaryMatrix2RYRZTranspiler(),
+        TwoQubitUnitaryMatrixKAKTranspiler(),
         ParallelDecomposer(
             [
                 PauliDecomposeTranspiler(),
@@ -164,6 +170,8 @@ class CliffordRZSetTranspiler(SequentialTranspiler):
     def __init__(self, epsilon: float = 1.0e-9):
         super().__init__(
             [
+                SingleQubitUnitaryMatrix2RYRZTranspiler(),
+                TwoQubitUnitaryMatrixKAKTranspiler(),
                 ParallelDecomposer(
                     [
                         CZ2CNOTHTranspiler(),

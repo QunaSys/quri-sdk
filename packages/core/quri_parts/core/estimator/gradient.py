@@ -12,6 +12,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Optional, TypeVar, Union, cast
 
+import numpy as np
+
 from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core.estimator import (
@@ -61,8 +63,7 @@ def numerical_gradient_estimates(
 
     Returns:
         The estimated values (can be accessed with :attr:`.values`) with errors
-        of estimation (can be accessed with :attr:`.error_matrix`). Currently,
-        :attr:`.error_matrix` returns `None`.
+        of estimation (can be accessed with :attr:`.error_matrix`).
     """
 
     v = []
@@ -77,11 +78,13 @@ def numerical_gradient_estimates(
     estimates = list(estimator(op, state, v))
 
     grad = []
+    err_diag = []
     for i in range(len(params)):
         d = estimates[2 * i].value - estimates[2 * i + 1].value
         grad.append(d / delta)
-
-    return _Estimates(grad, None)
+        var = (estimates[2 * i].error ** 2) + (estimates[2 * i + 1].error ** 2)
+        err_diag.append(np.sqrt(var) / delta)
+    return _Estimates(grad, np.diag(err_diag).tolist())
 
 
 def create_numerical_gradient_estimator(
@@ -134,8 +137,7 @@ def parameter_shift_gradient_estimates(
 
     Returns:
         The estimated values (can be accessed with :attr:`.values`) with errors
-        of estimation (can be accessed with :attr:`.error_matrix`). Currently,
-        :attr:`.error_matrix` returns `None`.
+        of estimation (can be accessed with :attr:`.error_matrix`).
     """
     param_mapping = cast(LinearParameterMapping, state.parametric_circuit.param_mapping)
     parameter_shift = ShiftedParameters(param_mapping)
@@ -171,13 +173,17 @@ def parameter_shift_gradient_estimates(
     estimates_dict = dict(zip(gate_params_list, estimates))
 
     grad = []
+    err_diag = []
     for params_and_coefs in shifted_params_and_coefs:
         g = 0.0 + 0.0j
+        var = 0.0
         for p, c in params_and_coefs:
             g += estimates_dict[p].value * c
+            var += (estimates_dict[p].error ** 2) * abs(c) ** 2
         grad.append(g)
+        err_diag.append(np.sqrt(var))
 
-    return _Estimates(grad, None)
+    return _Estimates(grad, np.diag(err_diag).tolist())
 
 
 def create_parameter_shift_gradient_estimator(
