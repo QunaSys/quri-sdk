@@ -30,6 +30,9 @@ jobs:
     - run: |
         poetry install --only main,dev
 
-    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+    - run: poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
+      id: julia_project
+
+    - run: poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - run: poetry run pytest
