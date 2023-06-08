@@ -133,8 +133,11 @@ class QiskitSamplingBackend(SamplingBackend):
         if self._max_shots is not None and n_shots > self._max_shots:
             shot_dist = [self._max_shots] * (n_shots // self._max_shots)
             remaining = n_shots % self._max_shots
-            if remaining >= self._min_shots or self._enable_shots_roundup:
-                shot_dist.append(max(remaining, self._min_shots))
+            if remaining > 0:
+                if remaining >= self._min_shots:
+                    shot_dist.append(remaining)
+                elif self._enable_shots_roundup:
+                    shot_dist.append(self._min_shots)
         else:
             if n_shots >= self._min_shots or self._enable_shots_roundup:
                 shot_dist = [max(n_shots, self._min_shots)]

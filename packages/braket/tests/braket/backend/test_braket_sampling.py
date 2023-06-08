@@ -142,6 +142,20 @@ class TestBraketSamplingBackend:
         with pytest.raises(ValueError):
             job = backend.sample(QuantumCircuit(4), 50)
 
+    def test_shots_split_evenly(self) -> None:
+        device = LocalSimulator()
+
+        backend = BraketSamplingBackend(device, circuit_converter)
+        backend._max_shots = 100
+        job = backend.sample(QuantumCircuit(4), 200)
+        counts = job.result().counts
+
+        assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 200
+        assert isinstance(job, CompositeSamplingJob)
+        assert sorted(sum(j.result().counts.values()) for j in job.jobs) == [100, 100]
+
     def test_max_shots(self) -> None:
         device = LocalSimulator()
 
