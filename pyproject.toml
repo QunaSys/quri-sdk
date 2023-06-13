@@ -83,7 +83,7 @@ mypy = ">=0.950"
 docformatter = "^1.4,!=1.6.0"
 isort = "^5.10.1"
 
-Sphinx = ">=4.4,<6.0"
+Sphinx = ">=4.4,<7.0"
 furo = ">=2022.2.23,<2024.0.0"
 sphinx-autobuild = "^2021.3.14"
 nbsphinx = ">=0.8.9,<0.10.0"
