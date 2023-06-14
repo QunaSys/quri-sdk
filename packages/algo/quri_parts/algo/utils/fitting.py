@@ -95,9 +95,9 @@ def exp_fitting_with_const(
     constant: float,
     point: float,
 ) -> FittedResult:
-    """Curve fitting with an exponential ansatz f(x) = constant + b exp(p(x)), where p(x)
-    is a polynomial of a given order and constant is a known parameter (obtained as the
-    infinite limit f(x->inf) when f(x) converges to a finite asymptotic value).
+    """Curve fitting with an exponential ansatz f(x) = constant + b exp(p(x)), where
+    p(x) is a polynomial of a given order and constant is a known parameter (obtained
+    as the infinite limit f(x->inf) when f(x) converges to a finite asymptotic value).
 
     Args:
         x_data : x-coordinates for fitting.
