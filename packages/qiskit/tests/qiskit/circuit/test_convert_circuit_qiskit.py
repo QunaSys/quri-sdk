@@ -12,14 +12,17 @@ from collections.abc import Mapping
 from typing import Callable, Type, cast
 
 import numpy as np
+import numpy.typing as npt
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
+from qiskit import Aer
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate as QiskitGate
 from qiskit.extensions import UnitaryGate
 from qiskit.opflow import X, Y, Z
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate
 
 
@@ -191,3 +194,50 @@ def test_convert_pauli() -> None:
     expected.append(evo, [0, 1, 2, 3])
 
     assert circuit_equal(converted, expected)
+
+
+def test_convert_kak_unitary_matrix() -> None:
+    umat = [
+        [
+            -0.03177261 - 0.66874547j,
+            -0.43306237 + 0.22683141j,
+            -0.18247272 + 0.44450621j,
+            0.21421016 - 0.18975362j,
+        ],
+        [
+            -0.15150329 - 0.22323481j,
+            0.21890311 - 0.42044443j,
+            0.44248733 - 0.04540907j,
+            0.70637772 + 0.07546113j,
+        ],
+        [
+            -0.39591118 + 0.25563229j,
+            -0.34085051 - 0.57044165j,
+            -0.05519664 + 0.4884975j,
+            -0.19727387 + 0.23607258j,
+        ],
+        [
+            -0.37197857 - 0.34426935j,
+            -0.30010596 + 0.06830857j,
+            -0.01083026 - 0.57399229j,
+            -0.14337561 + 0.54611345j,
+        ],
+    ]
+
+    circuit = QuantumCircuit(4)
+    circuit.add_TwoQubitUnitaryMatrix_gate(3, 1, umat)
+    transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+    def get_unitary(circuit: QuantumCircuit) -> npt.NDArray[np.complex128]:
+        sim = Aer.get_backend("unitary_simulator")
+        return cast(
+            npt.NDArray[np.complex128],
+            sim.run(circuit).result().get_unitary(circuit).data,
+        )
+
+    target = get_unitary(convert_circuit(circuit))
+    expect = get_unitary(convert_circuit(transpiled))
+    assert np.allclose(
+        target / (target[0, 0] / abs(target[0, 0])),
+        expect / (expect[0, 0] / abs(expect[0, 0])),
+    )

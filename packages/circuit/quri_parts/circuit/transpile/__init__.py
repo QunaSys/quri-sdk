@@ -113,6 +113,7 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
                 SWAP2CNOTTranspiler(),
             ]
         ),
+        FuseRotationTranspiler(),
     ]
 )
 
@@ -153,6 +154,7 @@ RotationSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTrans
                 SWAP2CNOTTranspiler(),
             ]
         ),
+        FuseRotationTranspiler(),
     ]
 )
 

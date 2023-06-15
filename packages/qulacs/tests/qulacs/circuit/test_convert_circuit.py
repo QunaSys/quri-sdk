@@ -21,12 +21,18 @@ from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
     gates,
 )
+from quri_parts.circuit.transpile import (
+    SingleQubitUnitaryMatrix2RYRZTranspiler,
+    TwoQubitUnitaryMatrixKAKTranspiler,
+)
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.qulacs.circuit import (
     _dense_matrix_gate_qulacs,
     convert_circuit,
     convert_gate,
     convert_parametric_circuit,
 )
+from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
 
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
@@ -267,3 +273,59 @@ def test_convert_linear_mapped_parametric_circuit() -> None:
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):
         assert gates_equal(converted.get_gate(i), expected)
+
+
+def test_evaluate_2qubit_unitary_matrix_gate() -> None:
+    umat = [
+        [
+            -0.03177261 - 0.66874547j,
+            -0.43306237 + 0.22683141j,
+            -0.18247272 + 0.44450621j,
+            0.21421016 - 0.18975362j,
+        ],
+        [
+            -0.15150329 - 0.22323481j,
+            0.21890311 - 0.42044443j,
+            0.44248733 - 0.04540907j,
+            0.70637772 + 0.07546113j,
+        ],
+        [
+            -0.39591118 + 0.25563229j,
+            -0.34085051 - 0.57044165j,
+            -0.05519664 + 0.4884975j,
+            -0.19727387 + 0.23607258j,
+        ],
+        [
+            -0.37197857 - 0.34426935j,
+            -0.30010596 + 0.06830857j,
+            -0.01083026 - 0.57399229j,
+            -0.14337561 + 0.54611345j,
+        ],
+    ]
+
+    circuit = QuantumCircuit(4)
+    circuit.add_TwoQubitUnitaryMatrix_gate(3, 1, umat)
+    transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+    target = evaluate_state_to_vector(GeneralCircuitQuantumState(4, circuit)).vector
+    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(4, transpiled)).vector
+    assert np.allclose(
+        target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
+    )
+
+
+def test_evaluate_1qubit_unitary_matrix_gate() -> None:
+    umat = [
+        [0.5644123 + 0.56382264j, 0.24297345 + 0.55182125j],
+        [0.27844775 + 0.53479869j, -0.08669519 - 0.7930581j],
+    ]
+
+    circuit = QuantumCircuit(4)
+    circuit.add_SingleQubitUnitaryMatrix_gate(2, umat)
+    transpiled = SingleQubitUnitaryMatrix2RYRZTranspiler()(circuit)
+
+    target = evaluate_state_to_vector(GeneralCircuitQuantumState(4, circuit)).vector
+    expect = evaluate_state_to_vector(GeneralCircuitQuantumState(4, transpiled)).vector
+    assert np.allclose(
+        target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
+    )

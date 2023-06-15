@@ -155,7 +155,7 @@ def convert_gate(gate: QuantumGate) -> Instruction:
 
     elif is_unitary_matrix_gate_name(gate.name):
         b_gate = Gate.Unitary(np.array(gate.unitary_matrix))
-        return Instruction(b_gate, gate.target_indices)
+        return Instruction(b_gate, reversed(gate.target_indices))
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")

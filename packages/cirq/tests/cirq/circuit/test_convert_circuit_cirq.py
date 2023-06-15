@@ -23,6 +23,7 @@ from cirq.ops.three_qubit_gates import TOFFOLI
 from cirq.protocols.unitary_protocol import unitary
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
 from quri_parts.cirq.circuit.circuit_converter import (
     U1,
     U2,
@@ -198,3 +199,43 @@ def test_convert_circuit() -> None:
     assert len([i for i in converted.all_operations()]) == len(expected_gates)
     for i, expected in enumerate(converted.all_operations()):
         assert gates_equal(expected_gates[i], expected)
+
+
+def test_convert_kak_unitary_matrix() -> None:
+    umat = [
+        [
+            -0.03177261 - 0.66874547j,
+            -0.43306237 + 0.22683141j,
+            -0.18247272 + 0.44450621j,
+            0.21421016 - 0.18975362j,
+        ],
+        [
+            -0.15150329 - 0.22323481j,
+            0.21890311 - 0.42044443j,
+            0.44248733 - 0.04540907j,
+            0.70637772 + 0.07546113j,
+        ],
+        [
+            -0.39591118 + 0.25563229j,
+            -0.34085051 - 0.57044165j,
+            -0.05519664 + 0.4884975j,
+            -0.19727387 + 0.23607258j,
+        ],
+        [
+            -0.37197857 - 0.34426935j,
+            -0.30010596 + 0.06830857j,
+            -0.01083026 - 0.57399229j,
+            -0.14337561 + 0.54611345j,
+        ],
+    ]
+
+    circuit = QuantumCircuit(4)
+    circuit.add_TwoQubitUnitaryMatrix_gate(3, 1, umat)
+    transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
+
+    target = convert_circuit(circuit).unitary()
+    expect = convert_circuit(transpiled).unitary()
+    assert np.allclose(
+        target / (target[0, 0] / abs(target[0, 0])),
+        expect / (expect[0, 0] / abs(expect[0, 0])),
+    )

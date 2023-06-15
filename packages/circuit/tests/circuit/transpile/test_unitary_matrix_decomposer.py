@@ -145,8 +145,8 @@ class TestTwoQubitDecompose:
     def test_swap_decompose(self) -> None:
         circuit = QuantumCircuit(2)
         circuit.add_TwoQubitUnitaryMatrix_gate(
-            0,
             1,
+            0,
             [
                 [1, 0, 0, 0],
                 [0, 0, 1, 0],
@@ -191,8 +191,8 @@ class TestTwoQubitDecompose:
     def test_cz_decompose(self) -> None:
         circuit = QuantumCircuit(2)
         circuit.add_TwoQubitUnitaryMatrix_gate(
-            0,
             1,
+            0,
             [
                 [1, 0, 0, 0],
                 [0, 1, 0, 0],
@@ -237,8 +237,8 @@ class TestTwoQubitDecompose:
     def test_fixed_decompose(self) -> None:
         circuit = QuantumCircuit(2)
         circuit.add_TwoQubitUnitaryMatrix_gate(
-            0,
             1,
+            0,
             [
                 [
                     -0.52037119 - 0.23369154j,
