@@ -4803,4 +4803,4 @@ tket = ["quri-parts-tket"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.8,<3.12"
-content-hash = "12b98a0a50f7997a3f0ce8efa55af093abdab8510885f7440c4b479cefc7868f"
+content-hash = "b57dd089b6fd57cc212efd6bf28d363439e0b5b3b3707040bea63e09581f6331"

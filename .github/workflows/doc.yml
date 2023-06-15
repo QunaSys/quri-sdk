@@ -2,6 +2,11 @@ name: Document
 
 on:
   pull_request:
+    paths:
+      - packages/**/*.py
+      - docs
+      - poetry.lock
+      - .github/workflows/doc.yml
   push:
     branches: [main]
 
@@ -22,7 +27,6 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
-        cache: 'poetry'
 
     - name: Download pandoc
       if: steps.cache-pandoc.outputs.cache-hit != 'true'
@@ -34,7 +38,7 @@ jobs:
         yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
 
     - run: |
-        poetry install -vvv
+        poetry install --only main,doc
 
     - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
   

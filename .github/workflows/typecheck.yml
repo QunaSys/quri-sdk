@@ -1,18 +1,17 @@
-name: Lint
+name: Type check
 
 on:
   pull_request:
     paths:
       - packages/**/*.py
-      - pyproject.toml
       - poetry.lock
-      - .flake8
-      - .github/workflows/lint.yml
+      - mypy.ini
+      - .github/workflows/typecheck.yml
   push:
     branches: [main]
 
 jobs:
-  lint:
+  typecheck:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,16 +29,10 @@ jobs:
         python-version: '3.9'
 
     - run: |
-        poetry install --only lint
+        poetry install --only main,dev,typecheck
 
-    - run: poetry run isort packages --check --diff
-      if: success() || failure()
+    - name: Cache mypy cache
+      uses: AustinScola/mypy-cache-github-action@v1.0.0
 
-    - run: poetry run black packages --check
-      if: success() || failure()
-
-    - run: poetry run flake8 packages
-      if: success() || failure()
-
-    - run: poetry run docformatter -c -r packages
+    - run: poetry run mypy .
       if: success() || failure()
