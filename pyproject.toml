@@ -93,7 +93,7 @@ isort = "^5.10.1"
 mypy = ">=0.950"
 
 [tool.poetry.group.doc.dependencies]
-Sphinx = ">=4.4,<7.0"
+Sphinx = ">=4.4,<8.0"
 furo = ">=2022.2.23,<2024.0.0"
 sphinx-autobuild = "^2021.3.14"
 nbsphinx = ">=0.8.9,<0.10.0"
