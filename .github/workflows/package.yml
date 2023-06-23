@@ -30,6 +30,7 @@ jobs:
         fetch-depth: 0
 
     - run: |
+        poetry env use 3.9
         mkdir -p dist
         cp -f NOTICE quri_parts/
         poetry build

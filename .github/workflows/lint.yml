@@ -30,6 +30,7 @@ jobs:
         python-version: '3.9'
 
     - run: |
+        poetry env use 3.9
         poetry install --only lint
 
     - run: poetry run isort packages --check --diff

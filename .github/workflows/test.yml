@@ -11,6 +11,12 @@ on:
 
 jobs:
   test:
+
+    strategy:
+      matrix:
+        python_version:
+          - 3.9
+
     runs-on: ubuntu-latest
 
     steps:
@@ -25,9 +31,10 @@ jobs:
 
     - uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: ${{ matrix.python_version }}
 
     - run: |
+        poetry env use ${{ matrix.python_version }}
         poetry install --only main,dev
 
     - run: poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"

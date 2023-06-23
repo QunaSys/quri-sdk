@@ -38,6 +38,7 @@ jobs:
         yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
 
     - run: |
+        poetry env use 3.9
         poetry install --only main,dev,doc
 
     - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
