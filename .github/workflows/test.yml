@@ -33,6 +33,13 @@ jobs:
       with:
         python-version: ${{ matrix.python_version }}
 
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.julia/
+        key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+        restore-keys: ci-${{ runner.os }}-julia-
+
     - run: |
         poetry env use ${{ matrix.python_version }}
         poetry install --only main,dev
