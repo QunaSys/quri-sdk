@@ -12,22 +12,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Install Poetry
-      env:
-        POETRY_VERSION: 1.4.0
-      run: |
-        curl -sSL https://install.python-poetry.org | python -
-        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-        poetry self add "poetry-dynamic-versioning[plugin]"
-
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
     - uses: actions/checkout@v3
       with:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
+
+    - uses: ./.github/actions/python-poetry-install
+      with:
+        poetry-version: '1.4.0'
+        python-version: '3.9'
 
     - run: |
         poetry env use 3.9

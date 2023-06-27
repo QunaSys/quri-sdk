@@ -5,14 +5,14 @@ from numpy import cfloat, zeros
 from numpy.typing import NDArray
 
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
+from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.circuit import convert_circuit
 
 from . import cast_to_list
 
 
 def evaluate_state_to_vector(
-    state: Union[GeneralCircuitQuantumState, QuantumStateVector]
+    state: Union[CircuitQuantumState, QuantumStateVector]
 ) -> QuantumStateVector:
     """Convert GeneralCircuitQuantumState or QuantumStateVector to
     QuantumStateVector that only contains the state vector."""
@@ -20,7 +20,7 @@ def evaluate_state_to_vector(
 
     if isinstance(state, QuantumStateVector):
         init_state_vector = state.vector
-    elif isinstance(state, GeneralCircuitQuantumState):
+    elif isinstance(state, CircuitQuantumState):
         init_state_vector = zeros(2**n_qubits, dtype=complex)
         init_state_vector[0] = 1.0
     else:

@@ -223,6 +223,30 @@ def test_convert_measurement_noise() -> None:
     assert density_matrix_equal(converted, expected)
 
 
+def test_convert_measurement_noise2() -> None:
+    # 2-qubit circuit
+    N = 2
+    qc = QuantumCircuit(N)
+
+    # 100% bitflip noise
+    nm = NoiseModel(
+        [MeasurementNoise([BitFlipNoise(1.0)], qubit_indices=list(range(N)))]
+    )
+
+    # 4 X-gate on qubit-0
+    qc.add_X_gate(0)
+    qc.add_X_gate(0)
+    qc.add_X_gate(0)
+    qc.add_X_gate(0)
+    # 2 X-gate on qubit-1
+    qc.add_X_gate(1)
+    qc.add_X_gate(1)
+
+    noise_qc = convert_circuit_with_noise_model(qc, nm)
+
+    assert noise_qc.get_gate_count() == len(qc.gates) + N
+
+
 def test_convert_kraus_cptp() -> None:
     p0, p1 = 0.005, 0.002
     kraus_ops = [

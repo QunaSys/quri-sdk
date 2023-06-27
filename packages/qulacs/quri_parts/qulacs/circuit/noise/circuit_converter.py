@@ -146,10 +146,11 @@ def convert_circuit_with_noise_model(
 
     # Circuit noises for depth at the end of the circuit.
     depth_noises = []
+    max_depth = max(depths.values())
     for q in range(circuit.qubit_count):
         for ci in resolvers:
             depth_noises.extend(
-                ci.noises_for_depth(q, range(depths[q], depth + 1), circuit)
+                ci.noises_for_depth(q, range(depths[q], max_depth + 1), circuit)
             )
     for qubits, gate_noise in depth_noises:
         qulacs_circuit.add_gate(convert_noise_to_gate(qubits, gate_noise))
