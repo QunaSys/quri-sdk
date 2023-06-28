@@ -215,7 +215,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
                 raise KeyError("This experiment is not in the saved data.")
 
         jobs = [self._job_mapper(job) for job in jobs]
-        return jobs[0] if len(jobs) == 0 else CompositeSamplingJob(jobs)
+        return jobs[0] if len(jobs) == 1 else CompositeSamplingJob(jobs)
 
     def _load_data(self, json_str: str) -> SavedDataType:
         saved_data = defaultdict(list)

@@ -167,7 +167,7 @@ class QiskitSamplingBackend(SamplingBackend):
         qubit_mapped_jobs = [self._job_mapper(job) for job in jobs]
         return (
             qubit_mapped_jobs[0]
-            if len(qubit_mapped_jobs) == 0
+            if len(qubit_mapped_jobs) == 1
             else CompositeSamplingJob(qubit_mapped_jobs)
         )
 

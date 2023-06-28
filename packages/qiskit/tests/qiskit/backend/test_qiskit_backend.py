@@ -22,6 +22,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.backend import (
     QiskitSamplingBackend,
+    QiskitSamplingJob,
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
 )
@@ -55,6 +56,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -70,6 +72,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b001, 0b011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -83,6 +86,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b1001, 0b1011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
@@ -95,6 +99,7 @@ class TestQiskitSamplingBackend:
         job = backend.sample(QuantumCircuit(4), 50)
         counts = job.result().counts
 
+        assert isinstance(job, QiskitSamplingJob)
         assert set(counts.keys()) == {0b0000, 0b0001, 0b0100, 0b0101}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
