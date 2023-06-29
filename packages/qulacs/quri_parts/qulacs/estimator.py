@@ -27,6 +27,11 @@ from quri_parts.core.operator import zero
 from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
+from quri_parts.qulacs.circuit.compiled_circuit import (
+    _QulacsCircuit,
+    _QulacsLinearMappedUnboundParametricCircuit,
+    _QulacsUnboundParametricCircuit,
+)
 
 from . import cast_to_list
 from .circuit import convert_circuit, convert_parametric_circuit
@@ -54,7 +59,10 @@ def _create_qulacs_initial_state(
 def _estimate(operator: Estimatable, state: QulacsStateT) -> Estimate[complex]:
     if operator == zero():
         return _Estimate(value=0.0)
-    circuit = convert_circuit(state.circuit)
+    if isinstance(state.circuit, _QulacsCircuit):
+        circuit = state.circuit._qulacs_circuit
+    else:
+        circuit = convert_circuit(state.circuit)
     qs_state = _create_qulacs_initial_state(state)
     op = convert_operator(operator, state.qubit_count)
     circuit.update_quantum_state(qs_state)
@@ -78,7 +86,10 @@ def _sequential_estimate(
 def _sequential_estimate_single_state(
     state: QulacsStateT, operators: Sequence[Estimatable]
 ) -> Sequence[Estimate[complex]]:
-    circuit = convert_circuit(state.circuit)
+    if isinstance(state.circuit, _QulacsCircuit):
+        circuit = state.circuit._qulacs_circuit
+    else:
+        circuit = convert_circuit(state.circuit)
     n_qubits = state.qubit_count
     qs_state = _create_qulacs_initial_state(state)
     circuit.update_quantum_state(qs_state)
@@ -162,7 +173,16 @@ def _sequential_parametric_estimate(
     n_qubits = state.qubit_count
     op = convert_operator(operator, n_qubits)
     parametric_circuit = state.parametric_circuit
-    qulacs_circuit, param_mapper = convert_parametric_circuit(parametric_circuit)
+    if isinstance(
+        parametric_circuit,
+        (_QulacsLinearMappedUnboundParametricCircuit, _QulacsUnboundParametricCircuit),
+    ):
+        qulacs_circuit, param_mapper = (
+            parametric_circuit.qulacs_circuit,
+            parametric_circuit.param_mapper,
+        )
+    else:
+        qulacs_circuit, param_mapper = convert_parametric_circuit(parametric_circuit)
 
     estimates = []
     for param in params:

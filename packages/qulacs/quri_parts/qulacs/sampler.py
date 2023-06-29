@@ -20,6 +20,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
 from .circuit import convert_circuit
 from .circuit.noise import convert_circuit_with_noise_model
@@ -29,7 +30,10 @@ if TYPE_CHECKING:
 
 
 def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
-    qs_circuit = convert_circuit(circuit)
+    if isinstance(circuit, _QulacsCircuit):
+        qs_circuit = circuit._qulacs_circuit
+    else:
+        qs_circuit = convert_circuit(circuit)
     qs_state = qulacs.QuantumState(circuit.qubit_count)
     qs_circuit.update_quantum_state(qs_state)
 

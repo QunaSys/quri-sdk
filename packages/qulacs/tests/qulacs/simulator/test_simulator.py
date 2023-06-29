@@ -6,6 +6,7 @@ from quri_parts.core.state import (
     GeneralCircuitQuantumState,
     QuantumStateVector,
 )
+from quri_parts.qulacs.circuit import compile_circuit
 from quri_parts.qulacs.simulator import evaluate_state_to_vector, run_circuit
 
 
@@ -84,6 +85,35 @@ def test_run_circuit_simple() -> None:
     update_circuit.add_H_gate(1)
 
     updated_quantum_state_vector = run_circuit(update_circuit, array([1, 0, 0, 0]))
+
+    # expectation
+    expect_output_vector = array(
+        [
+            -0.134491 - 0.154323j,
+            0.676132 - 0.0306967j,
+            -0.134491 - 0.154323j,
+            0.676132 - 0.0306967j,
+        ]
+    )
+
+    assert allclose(updated_quantum_state_vector, expect_output_vector)
+
+
+def test_run_circuit_simple_with_compiled_circuit() -> None:
+    n = 2
+    theta_x = pi / 7
+    theta_y = pi / 8
+
+    update_circuit = QuantumCircuit(n)
+    update_circuit.add_CNOT_gate(0, 1)
+    update_circuit.add_X_gate(0)
+    update_circuit.add_RX_gate(0, theta_x)
+    update_circuit.add_RY_gate(0, theta_y)
+    update_circuit.add_H_gate(1)
+
+    compiled_circuit = compile_circuit(update_circuit)
+
+    updated_quantum_state_vector = run_circuit(compiled_circuit, array([1, 0, 0, 0]))
 
     # expectation
     expect_output_vector = array(

@@ -341,7 +341,7 @@ class ImmutableUnboundParametricQuantumCircuit(UnboundParametricQuantumCircuitBa
     :class:`~ImmutableLinearMappedUnboundParametricQuantumCircuit`.
     """
 
-    def __init__(self, circuit: UnboundParametricQuantumCircuit):
+    def __init__(self, circuit: UnboundParametricQuantumCircuitBase):
         self._qubit_count = circuit.qubit_count
         self._gates = tuple(circuit._gates)
 

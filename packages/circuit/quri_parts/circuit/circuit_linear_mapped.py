@@ -222,7 +222,7 @@ class ImmutableLinearMappedUnboundParametricQuantumCircuit(
     """An immutable parametric quantum circuit where parameters of parametric
     gates are given by linear functions of circuit parameters."""
 
-    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuit):
+    def __init__(self, circuit: LinearMappedUnboundParametricQuantumCircuitBase):
         self._param_mapping = circuit._param_mapping
         self._circuit = circuit._circuit.freeze()
 

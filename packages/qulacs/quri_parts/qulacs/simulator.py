@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.qulacs.circuit import convert_circuit
+from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
 from . import cast_to_list
 
@@ -47,8 +48,11 @@ def run_circuit(
 
     qulacs_state = ql.QuantumState(circuit.qubit_count)
     qulacs_state.load(cast_to_list(init_state))
+    if isinstance(circuit, _QulacsCircuit):
+        qulacs_cicuit = circuit._qulacs_circuit
+    else:
+        qulacs_cicuit = convert_circuit(circuit)
 
-    qulacs_cicuit = convert_circuit(circuit)
     qulacs_cicuit.update_quantum_state(qulacs_state)
 
     # We need to disable type check due to an error in qulacs type annotation

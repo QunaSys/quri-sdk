@@ -335,7 +335,7 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
 class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
     """An immutable quantum circuit having only non-parametric gates."""
 
-    def __init__(self, circuit: QuantumCircuit):
+    def __init__(self, circuit: NonParametricQuantumCircuit):
         self._qubit_count = circuit.qubit_count
         self._gates = circuit.gates
 
