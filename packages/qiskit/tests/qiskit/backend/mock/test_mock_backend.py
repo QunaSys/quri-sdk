@@ -1,0 +1,34 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "sAS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from qiskit.test.reference_circuits import ReferenceCircuits
+from qiskit_ibm_runtime import Sampler, Session
+
+from .ibm_runtime_service_mock import mock_get_backend
+
+
+class TestMockRuntimeService:
+    def test_fake_service_call(self) -> None:
+        # Checking if fake backend works
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        with Session(service=service, backend="FakeVigo") as session:
+            sampler = Sampler(session=session)
+            bell = ReferenceCircuits.bell()
+
+            bell = ReferenceCircuits.bell()
+            _ = sampler.run(bell, shots=1000)
+
+        service.run.assert_called_once()
+        args_list = service.run.call_args_list
+        assert len(args_list) == 1
+        _, kwargs = args_list[0]
+        shots = kwargs["inputs"]["run_options"]["shots"]
+        assert shots == 1000

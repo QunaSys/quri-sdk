@@ -1,6 +1,6 @@
 ---
 name: requests-ntlm
-version: 1.2.0
+version: 1.1.0
 type: pip
 summary: This package allows for HTTP NTLM authentication using the requests library.
 homepage: https://github.com/requests/requests-ntlm

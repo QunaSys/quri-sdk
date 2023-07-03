@@ -28,7 +28,8 @@ style = "pep440"
 python = "^3.9.8"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
-qiskit = "^0.39.4"
+qiskit = "^0.43.0"
+qiskit-ibm-runtime = "^0.9.4"
 pydantic = ">=1.9,<2.0"
 
 [tool.poetry.group.dev.dependencies]

@@ -12,7 +12,7 @@ from abc import abstractmethod, abstractproperty
 from collections import Counter
 from collections.abc import Collection, Mapping
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, Union
 
 from typing_extensions import TypeAlias
 
@@ -21,7 +21,7 @@ from quri_parts.circuit import NonParametricQuantumCircuit
 #: SamplingCounts represents count statistics of repeated sampling of a quantum
 #: circuit. Keys are observed bit patterns encoded in integers and values are counts
 #: of observation of the corresponding bit patterns.
-SamplingCounts: TypeAlias = Mapping[int, int]
+SamplingCounts: TypeAlias = Mapping[int, Union[float, int]]
 
 
 class SamplingResult(Protocol):

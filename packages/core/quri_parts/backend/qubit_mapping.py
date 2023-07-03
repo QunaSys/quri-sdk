@@ -11,6 +11,7 @@
 from collections.abc import Mapping
 from dataclasses import dataclass
 from functools import cached_property
+from typing import Union
 
 from quri_parts.circuit.transpile import QubitRemappingTranspiler
 
@@ -32,7 +33,7 @@ def _reverse_map_bits(x: int, reverse_bit_map: Mapping[int, int]) -> int:
 def _reverse_map_counts(
     m: SamplingCounts, reverse_bit_map: Mapping[int, int]
 ) -> SamplingCounts:
-    d: dict[int, int] = {}
+    d: dict[int, Union[float, int]] = {}
     for b, count in m.items():
         reversed_bits = _reverse_map_bits(b, reverse_bit_map)
         d[reversed_bits] = d.get(reversed_bits, 0) + count
