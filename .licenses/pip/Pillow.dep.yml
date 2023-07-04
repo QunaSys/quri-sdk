@@ -1,6 +1,6 @@
 ---
 name: Pillow
-version: 9.5.0
+version: 10.0.0
 type: pip
 summary: Python Imaging Library (Fork)
 homepage: https://python-pillow.org
@@ -61,40 +61,46 @@ licenses:
     OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\nSOFTWARE, EVEN IF ADVISED
     OF THE POSSIBILITY OF SUCH DAMAGE.\n\nJulian Seward, jseward@acm.org\nbzip2/libbzip2
     version 1.0.8 of 13 July 2019\n\n--------------------------------------------------------------------------\n\n\n----\n\nFREETYPE2\n\nThe
-    \ FreeType 2  font  engine is  copyrighted  work and  cannot be  used\nlegally
-    \ without a  software license.   In  order to  make this  project\nusable  to
-    a vast  majority of  developers, we  distribute it  under two\nmutually exclusive
-    open-source licenses.\n\nThis means  that *you* must choose  *one* of the  two
-    licenses described\nbelow, then obey  all its terms and conditions when  using
-    FreeType 2 in\nany of your projects or products.\n\n  - The FreeType License,
-    found in  the file `FTL.TXT', which is similar\n    to the original BSD license
-    *with* an advertising clause that forces\n    you  to  explicitly cite  the  FreeType
-    \ project  in your  product's\n    documentation.  All  details are in the license
-    \ file.  This license\n    is  suited  to products  which  don't  use  the GNU
-    \ General  Public\n    License.\n\n    Note that  this license  is  compatible
-    \ to the  GNU General  Public\n    License version 3, but not version 2.\n\n  -
-    The GNU General Public License version 2, found in  `GPLv2.TXT' (any\n    later
-    version can be used  also), for programs which already use the\n    GPL.  Note
-    \ that the  FTL is  incompatible  with  GPLv2 due  to  its\n    advertisement
-    clause.\n\nThe contributed BDF and PCF drivers  come with a license similar to
-    that\nof the X Window System.  It is compatible to the above two licenses (see\nfile
-    src/bdf/README and  src/pcf/README).  The same holds  for the files\n`fthash.c'
-    and  `fthash.h'; their  code was  part of  the BDF  driver in\nearlier FreeType
-    versions.\n\nThe gzip module uses the zlib license (see src/gzip/zlib.h) which
-    too is\ncompatible to the above two licenses.\n\nThe MD5 checksum support (only
-    used for debugging in development builds)\nis in the public domain.\n\n\n----\n\nHARFBUZZ\n\nHarfBuzz
-    is licensed under the so-called \"Old MIT\" license.  Details follow.\nFor parts
-    of HarfBuzz that are licensed under different licenses see individual\nfiles names
-    COPYING in subdirectories where applicable.\n\nCopyright © 2010,2011,2012,2013,2014,2015,2016,2017,2018,2019,2020
-    \ Google, Inc.\nCopyright © 2018,2019,2020  Ebrahim Byagowi\nCopyright © 2019,2020
-    \ Facebook, Inc. \nCopyright © 2012  Mozilla Foundation\nCopyright © 2011  Codethink
-    Limited\nCopyright © 2008,2010  Nokia Corporation and/or its subsidiary(-ies)\nCopyright
-    © 2009  Keith Stribley\nCopyright © 2009  Martin Hosken and SIL International\nCopyright
-    © 2007  Chris Wilson\nCopyright © 2006  Behdad Esfahbod\nCopyright © 2005  David
-    Turner\nCopyright © 2004,2007,2008,2009,2010  Red Hat, Inc.\nCopyright © 1998-2004
-    \ David Turner and Werner Lemberg\n\nFor full copyright notices consult the individual
-    files in the package.\n\n\nPermission is hereby granted, without written agreement
-    and without\nlicense or royalty fees, to use, copy, modify, and distribute this\nsoftware
+    FreeType  2 font  engine is  copyrighted work  and cannot  be used\nlegally without
+    \ a software  license.  In order  to make  this project\nusable to  a vast majority
+    of  developers, we distribute it  under two\nmutually exclusive open-source licenses.\n\nThis
+    means that *you* must choose  *one* of the two licenses described\nbelow, then
+    obey all its terms and conditions when using FreeType 2 in\nany of your projects
+    or products.\n\n  - The FreeType License,  found in the file  `docs/FTL.TXT`,
+    which is\n    similar to the  original BSD license *with*  an advertising clause\n
+    \   that forces  you to explicitly  cite the FreeType project  in your\n    product's
+    \ documentation.  All  details are  in the  license file.\n    This license is
+    suited to products which don't use the GNU General\n    Public License.\n\n    Note
+    that  this license  is compatible to  the GNU  General Public\n    License version
+    3, but not version 2.\n\n  - The   GNU   General   Public   License   version
+    \  2,   found   in\n    `docs/GPLv2.TXT`  (any  later  version  can  be  used
+    \ also),  for\n    programs  which  already  use  the  GPL.  Note  that  the  FTL
+    \ is\n    incompatible with GPLv2 due to its advertisement clause.\n\nThe contributed
+    \ BDF and PCF  drivers come  with a license  similar to\nthat  of the  X Window
+    \ System.   It is  compatible to  the above  two\nlicenses (see files `src/bdf/README`
+    \ and `src/pcf/README`).  The same\nholds   for   the   source    code   files
+    \  `src/base/fthash.c`   and\n`include/freetype/internal/fthash.h`; they were
+    part of the BDF driver\nin earlier FreeType versions.\n\nThe gzip  module uses
+    the  zlib license (see  `src/gzip/zlib.h`) which\ntoo is compatible to the above
+    two licenses.\n\nThe files `src/autofit/ft-hb.c` and `src/autofit/ft-hb.h` contain
+    code\ntaken almost  verbatim from the  HarfBuzz file `hb-ft.cc`,  which uses\nthe
+    'Old MIT' license, compatible to the above two licenses.\n\nThe  MD5 checksum
+    \ support  (only used  for  debugging in  development\nbuilds) is in the public
+    domain.\n\n\n----\n\nHARFBUZZ\n\nHarfBuzz is licensed under the so-called \"Old
+    MIT\" license.  Details follow.\nFor parts of HarfBuzz that are licensed under
+    different licenses see individual\nfiles names COPYING in subdirectories where
+    applicable.\n\nCopyright © 2010-2022  Google, Inc.\nCopyright © 2015-2020  Ebrahim
+    Byagowi\nCopyright © 2019,2020  Facebook, Inc.\nCopyright © 2012,2015  Mozilla
+    Foundation\nCopyright © 2011  Codethink Limited\nCopyright © 2008,2010  Nokia
+    Corporation and/or its subsidiary(-ies)\nCopyright © 2009  Keith Stribley\nCopyright
+    © 2011  Martin Hosken and SIL International\nCopyright © 2007  Chris Wilson\nCopyright
+    © 2005,2006,2020,2021,2022,2023  Behdad Esfahbod\nCopyright © 2004,2007,2008,2009,2010,2013,2021,2022,2023
+    \ Red Hat, Inc.\nCopyright © 1998-2005  David Turner and Werner Lemberg\nCopyright
+    © 2016  Igalia S.L.\nCopyright © 2022  Matthias Clasen\nCopyright © 2018,2021
+    \ Khaled Hosny\nCopyright © 2018,2019,2020  Adobe, Inc\nCopyright © 2013-2015
+    \ Alexei Podtelezhnikov\n\nFor full copyright notices consult the individual files
+    in the package.\n\n\nPermission is hereby granted, without written agreement and
+    without\nlicense or royalty fees, to use, copy, modify, and distribute this\nsoftware
     and its documentation for any purpose, provided that the\nabove copyright notice
     and the following two paragraphs appear in\nall copies of this software.\n\nIN
     NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR\nDIRECT, INDIRECT,
@@ -183,8 +189,8 @@ licenses:
     ask the author(s) for more\n    information.\n\n\n----\n\nLIBPNG\n\nCOPYRIGHT
     NOTICE, DISCLAIMER, and LICENSE\n=========================================\n\nPNG
     Reference Library License version 2\n---------------------------------------\n\n
-    * Copyright (c) 1995-2019 The PNG Reference Library Authors.\n * Copyright (c)
-    2018-2019 Cosmin Truta.\n * Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.\n
+    * Copyright (c) 1995-2022 The PNG Reference Library Authors.\n * Copyright (c)
+    2018-2022 Cosmin Truta.\n * Copyright (c) 2000-2002, 2004, 2006-2018 Glenn Randers-Pehrson.\n
     * Copyright (c) 1996-1997 Andreas Dilger.\n * Copyright (c) 1995-1996 Guy Eric
     Schalnat, Group 42, Inc.\n\nThe software is supplied \"as is\", without warranty
     of any kind,\nexpress or implied, including, without limitation, the warranties\nof
