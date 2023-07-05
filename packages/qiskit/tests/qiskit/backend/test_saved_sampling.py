@@ -9,18 +9,50 @@
 # limitations under the License.
 
 import json
+from unittest.mock import MagicMock
 
 from qiskit import transpile
+from qiskit.primitives import SamplerResult
+from qiskit.result import QuasiDistribution
 from qiskit_aer import AerSimulator
+from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
+from quri_parts.backend import CompositeSamplingResult
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.sampling import create_sampler_from_sampling_backend
 from quri_parts.qiskit.backend import (
+    QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingBackend,
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
 )
 from quri_parts.qiskit.circuit import convert_circuit
+
+from .mock.ibm_runtime_service_mock import mock_get_backend
+
+
+def fake_run(**kwargs) -> RuntimeJob:  # type: ignore
+    jjob = MagicMock(spec=RuntimeJob)
+
+    def _always_false() -> bool:
+        return False
+
+    def _status() -> JobStatus:
+        return JobStatus.DONE
+
+    def _job_id() -> str:
+        return "aaa"
+
+    def result() -> SamplerResult:
+        return SamplerResult(
+            quasi_dists=[QuasiDistribution({1: 1.0})], metadata=[{"shots": 10}]
+        )
+
+    jjob.status = _status
+    jjob.running = _always_false
+    jjob.job_id = _job_id
+    jjob.result = result
+
+    return jjob
 
 
 def test_qiskit_saved_data_result() -> None:
@@ -63,6 +95,14 @@ def test_qiskit_saved_data_result() -> None:
 
     saved_data_sampling_result = QiskitSavedDataSamplingResult(raw_data=raw_data)
     assert saved_data_sampling_result.counts == expected_counter
+
+
+def test_qiskit_runtime_saved_data_result() -> None:
+    qiskit_runtime_save_data_result = QiskitRuntimeSavedDataSamplingResult(
+        quasi_dist={0: 0.529, 1: 0.471}, n_shots=1000
+    )
+    expected_counter = {0: 529.0, 1: 471.0}
+    assert qiskit_runtime_save_data_result.counts == expected_counter
 
 
 def test_qiskit_saved_data_job() -> None:
@@ -476,11 +516,13 @@ def test_replay_sampling_output_and_memory() -> None:
     n_shots_5 = int(8000)
     n_shots_6 = int(1.5e6)
 
-    sampler = create_sampler_from_sampling_backend(saved_data_backend)
-
     # sampling experiment 1
-    result_1 = sampler(qp_circuit1, n_shots_1)
-    assert result_1 == {
+    job_1 = saved_data_backend.sample(qp_circuit1, n_shots_1)
+    result_1 = job_1.result()
+    assert isinstance(result_1, CompositeSamplingResult)
+    for component_result in result_1.results:
+        assert isinstance(component_result, QiskitSavedDataSamplingResult)
+    assert result_1.counts == {
         2: 20628,
         14: 20602,
         10: 20377,
@@ -500,8 +542,12 @@ def test_replay_sampling_output_and_memory() -> None:
     }
 
     # sampling experiment 2
-    result_2 = sampler(qp_circuit2, n_shots_2)
-    assert result_2 == {
+    job_2 = saved_data_backend.sample(qp_circuit2, n_shots_2)
+    result_2 = job_2.result()
+    assert isinstance(result_2, CompositeSamplingResult)
+    for component_result in result_2.results:
+        assert isinstance(component_result, QiskitSavedDataSamplingResult)
+    assert result_2.counts == {
         11: 137170,
         14: 136785,
         6: 137671,
@@ -521,8 +567,10 @@ def test_replay_sampling_output_and_memory() -> None:
     }
 
     # sampling experiment 3
-    result_3 = sampler(qp_circuit3, n_shots_3)
-    assert result_3 == {
+    job_3 = saved_data_backend.sample(qp_circuit3, n_shots_3)
+    result_3 = job_3.result()
+    assert isinstance(result_3, QiskitSavedDataSamplingResult)
+    assert result_3.counts == {
         5: 15,
         0: 16,
         9: 10,
@@ -542,8 +590,12 @@ def test_replay_sampling_output_and_memory() -> None:
     }
 
     # sampling experiment 4
-    result_4 = sampler(qp_circuit1, n_shots_4)
-    assert result_4 == {
+    job_4 = saved_data_backend.sample(qp_circuit1, n_shots_4)
+    result_4 = job_4.result()
+    assert isinstance(result_4, CompositeSamplingResult)
+    for component_result in result_4.results:
+        assert isinstance(component_result, QiskitSavedDataSamplingResult)
+    assert result_4.counts == {
         2: 12482,
         6: 12202,
         10: 12317,
@@ -563,8 +615,10 @@ def test_replay_sampling_output_and_memory() -> None:
     }
 
     # sampling experiment 5
-    result_5 = sampler(qp_circuit2, n_shots_5)
-    assert result_5 == {
+    job_5 = saved_data_backend.sample(qp_circuit2, n_shots_5)
+    result_5 = job_5.result()
+    assert isinstance(result_5, QiskitSavedDataSamplingResult)
+    assert result_5.counts == {
         11: 259,
         10: 263,
         14: 271,
@@ -584,8 +638,12 @@ def test_replay_sampling_output_and_memory() -> None:
     }
 
     # sampling experiment 6
-    result_6 = sampler(qp_circuit3, n_shots_6)
-    assert result_6 == {
+    job_6 = saved_data_backend.sample(qp_circuit3, n_shots_6)
+    result_6 = job_6.result()
+    assert isinstance(result_6, CompositeSamplingResult)
+    for component_result in result_6.results:
+        assert isinstance(component_result, QiskitSavedDataSamplingResult)
+    assert result_6.counts == {
         8: 5844,
         5: 6009,
         0: 5877,
@@ -603,3 +661,173 @@ def test_replay_sampling_output_and_memory() -> None:
         11: 181011,
         7: 181564,
     }
+
+
+def test_runtime_replay_sampling_output_and_memory() -> None:
+    # Build json string
+    runtime_service = mock_get_backend("FakeVigo")
+    service = runtime_service()
+    service.run = fake_run
+    backend = service.backend()
+
+    qp_circuit1 = QuantumCircuit(4)
+    qp_circuit1.add_H_gate(0)
+    qp_circuit1.add_H_gate(1)
+    qp_circuit1.add_H_gate(2)
+    qp_circuit1.add_H_gate(3)
+    qp_circuit1.add_RX_gate(0, 0.23)
+    qp_circuit1.add_RY_gate(1, -0.99)
+    qp_circuit1.add_RX_gate(2, 0.87)
+    qp_circuit1.add_RZ_gate(3, -0.16)
+
+    qp_circuit2 = QuantumCircuit(4)
+    qp_circuit2.add_H_gate(0)
+    qp_circuit2.add_H_gate(1)
+    qp_circuit2.add_H_gate(2)
+    qp_circuit2.add_H_gate(3)
+    qp_circuit2.add_RX_gate(0, 123)
+    qp_circuit2.add_RY_gate(1, 456)
+    qp_circuit2.add_RX_gate(2, 789)
+    qp_circuit2.add_RZ_gate(3, -1283)
+
+    qp_circuit3 = QuantumCircuit(4)
+    qp_circuit3.add_H_gate(0)
+    qp_circuit3.add_H_gate(1)
+    qp_circuit3.add_H_gate(2)
+    qp_circuit3.add_H_gate(3)
+    qp_circuit3.add_RX_gate(0, 0.998)
+    qp_circuit3.add_RY_gate(1, 1.928)
+    qp_circuit3.add_RX_gate(2, -10.39)
+    qp_circuit3.add_RZ_gate(3, -0.1023)
+
+    circuit1_qasm_str = transpile(
+        convert_circuit(qp_circuit1).measure_all(inplace=False), backend
+    ).qasm()
+
+    circuit2_qasm_str = transpile(
+        convert_circuit(qp_circuit2).measure_all(inplace=False), backend
+    ).qasm()
+
+    circuit3_qasm_str = transpile(
+        convert_circuit(qp_circuit3).measure_all(inplace=False), backend
+    ).qasm()
+
+    saved_data_list = [
+        {
+            "circuit_qasm": circuit1_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit1_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit1_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit2_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit2_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit2_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit2_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit3_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit1_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit2_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit3_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+        {
+            "circuit_qasm": circuit3_qasm_str,
+            "n_shots": 10,
+            "saved_result": {"quasi_dist": {1: 1.0}, "n_shots": 10},
+        },
+    ]
+
+    saved_data_str = json.dumps(saved_data_list)
+
+    # Set up sampling backend
+    saved_data_backend = QiskitSavedDataSamplingBackend(
+        backend=backend, saved_data=saved_data_str
+    )
+    saved_data_backend._max_shots = 10
+
+    n_shots_1 = int(30)
+    n_shots_2 = int(40)
+    n_shots_3 = int(10)
+    n_shots_4 = int(10)
+    n_shots_5 = int(10)
+    n_shots_6 = int(20)
+
+    # sampling experiment 1
+    job_1 = saved_data_backend.sample(qp_circuit1, n_shots_1)
+    result_1 = job_1.result()
+    assert isinstance(result_1, CompositeSamplingResult)
+    for component_result in result_1.results:
+        assert isinstance(component_result, QiskitRuntimeSavedDataSamplingResult)
+    assert result_1.counts == {1: 30.0}
+
+    # sampling experiment 2
+    job_2 = saved_data_backend.sample(qp_circuit2, n_shots_2)
+    result_2 = job_2.result()
+    assert isinstance(result_2, CompositeSamplingResult)
+    for component_result in result_2.results:
+        assert isinstance(component_result, QiskitRuntimeSavedDataSamplingResult)
+    assert result_2.counts == {1: 40.0}
+
+    # sampling experiment 3
+    job_3 = saved_data_backend.sample(qp_circuit3, n_shots_3)
+    result_3 = job_3.result()
+    assert isinstance(result_3, QiskitRuntimeSavedDataSamplingResult)
+    assert result_3.counts == {1: 10.0}
+
+    # sampling experiment 4
+    job_4 = saved_data_backend.sample(qp_circuit1, n_shots_4)
+    result_4 = job_4.result()
+    assert isinstance(result_4, QiskitRuntimeSavedDataSamplingResult)
+    assert result_4.counts == {1: 10.0}
+
+    # sampling experiment 5
+    job_5 = saved_data_backend.sample(qp_circuit2, n_shots_5)
+    result_5 = job_5.result()
+    assert isinstance(result_5, QiskitRuntimeSavedDataSamplingResult)
+    assert result_5.counts == {1: 10.0}
+
+    # sampling experiment 6
+    job_6 = saved_data_backend.sample(qp_circuit3, n_shots_6)
+    result_6 = job_6.result()
+    assert isinstance(result_6, CompositeSamplingResult)
+    for component_result in result_6.results:
+        assert isinstance(component_result, QiskitRuntimeSavedDataSamplingResult)
+    assert result_6.counts == {1: 20.0}

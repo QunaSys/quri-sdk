@@ -78,7 +78,7 @@ class SPSA(Optimizer):
 
     def __init__(
         self,
-        a: float = 2 * np.pi / 10,
+        a: float = 2.0 * np.pi / 10.0,
         c: float = 0.1,
         alpha: float = 0.602,
         gamma: float = 0.101,
@@ -108,7 +108,7 @@ class SPSA(Optimizer):
             self._ftol = create_ftol(ftol)
 
     def get_init_state(self, init_params: Params) -> OptimizerStateSPSA:
-        params = readonly_array(np.array(init_params))
+        params = readonly_array(np.array(init_params, dtype=float))
         rng = np.random.default_rng(seed=self._rng_seed)
         return OptimizerStateSPSA(
             params=params,

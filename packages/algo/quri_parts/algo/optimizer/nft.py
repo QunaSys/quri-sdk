@@ -50,7 +50,7 @@ class NFTBase(Optimizer):
             self._ftol = create_ftol(ftol)
 
     def get_init_state(self, init_params: Params) -> OptimizerStateNFT:
-        params = readonly_array(np.array(init_params))
+        params = readonly_array(np.array(init_params, dtype=float))
         return OptimizerStateNFT(
             params=params,
         )
@@ -174,18 +174,18 @@ class NFT(NFTBase):
                 z0 = cost
 
             p = params.copy()
-            p[idx] = params[idx] + np.pi / 2
+            p[idx] = params[idx] + np.pi / 2.0
             z1 = cost_function(p)
             funcalls += 1
 
             p = params.copy()
-            p[idx] = params[idx] - np.pi / 2
+            p[idx] = params[idx] - np.pi / 2.0
             z3 = cost_function(p)
             funcalls += 1
 
             z2 = z1 + z3 - z0
-            c = (z1 + z3) / 2
-            a = np.sqrt((z0 - z2) ** 2 + (z1 - z3) ** 2) / 2
+            c = (z1 + z3) / 2.0
+            a = np.sqrt((z0 - z2) ** 2 + (z1 - z3) ** 2) / 2.0
             b = (
                 np.arctan((z1 - z3) / ((z0 - z2) + self._eps * (z0 == z2)))
                 + params[idx]
@@ -251,7 +251,7 @@ class NFTfit(NFTBase):
             # while if `A < 0` minimum at `x=b`
             fit_result, _ = curve_fit(_fit_func, x_data, y_data)
             a, b, _ = fit_result
-            params[idx] = b + np.pi if a > 0 else b
+            params[idx] = b + np.pi if a > 0.0 else b
 
         cost = cost_function(params)
         funcalls += 1

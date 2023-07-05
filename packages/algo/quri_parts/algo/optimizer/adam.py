@@ -96,7 +96,7 @@ class Adam(Optimizer):
 
     def get_init_state(self, init_params: Params) -> OptimizerStateAdam:
         # Defensively copy init_params by np.array
-        params = readonly_array(np.array(init_params))
+        params = readonly_array(np.array(init_params, dtype=float))
         zeros = readonly_array(np.zeros(len(params), dtype=float))
         return OptimizerStateAdam(
             params=params,

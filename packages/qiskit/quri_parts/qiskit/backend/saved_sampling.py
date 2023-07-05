@@ -10,7 +10,7 @@
 
 import json
 from collections import defaultdict
-from typing import Any, Mapping, Optional, Sequence
+from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 
 import qiskit
 from pydantic.dataclasses import dataclass
@@ -41,7 +41,7 @@ SavedDataType: TypeAlias = dict[tuple[str, int], list["QiskitSavedDataSamplingJo
 
 @dataclass
 class QiskitSavedDataSamplingResult(SamplingResult):
-    """An objects that holds a sampling count from qiskit backend output and
+    """An object that holds a sampling count from qiskit backend output and
     converts it into quri-parts sampling count.
 
     The `raw_data` should take in the output of
@@ -62,6 +62,29 @@ class QiskitSavedDataSamplingResult(SamplingResult):
 
 
 @dataclass
+class QiskitRuntimeSavedDataSamplingResult(SamplingResult):
+    """An object that holds quasi disttribution and total shot count from
+    qiskit runtime output and converts it into quri-parts sampling count.
+
+    Args:
+        quasi_dist: The first element of the quasi_dists attribute of a
+            :class:`qiskit.primitives.SamplerResult` object.
+        n_shots: The metadata[0]["shots"] output of a
+            :class:`qiskit.primitives.SamplerResult` object.
+    """
+
+    quasi_dist: dict[int, float]
+    n_shots: int
+
+    @property
+    def counts(self) -> SamplingCounts:
+        measurements: MutableMapping[int, float] = {}
+        for result, quasi_prob in self.quasi_dist.items():
+            measurements[result] = quasi_prob * self.n_shots
+        return measurements
+
+
+@dataclass
 class QiskitSavedDataSamplingJob(SamplingJob):
     """An object that represents a saved sampling job.
 
@@ -76,9 +99,13 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
     circuit_qasm: str
     n_shots: int
-    saved_result: QiskitSavedDataSamplingResult
+    saved_result: Union[
+        QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult
+    ]
 
-    def result(self) -> QiskitSavedDataSamplingResult:
+    def result(
+        self,
+    ) -> Union[QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult]:
         return self.saved_result
 
 

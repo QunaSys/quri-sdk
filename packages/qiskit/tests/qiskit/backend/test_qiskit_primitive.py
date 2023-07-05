@@ -8,9 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+from collections import Counter
 from unittest.mock import MagicMock
 
 import pytest
+import qiskit
+from pydantic.json import pydantic_encoder
 from qiskit.primitives import SamplerResult
 from qiskit.result import QuasiDistribution
 from qiskit_ibm_runtime import Options, QiskitRuntimeService
@@ -18,11 +22,16 @@ from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.qiskit.backend import QiskitRuntimeSamplingBackend
+from quri_parts.qiskit.backend import (
+    QiskitRuntimeSamplingBackend,
+    QiskitRuntimeSavedDataSamplingResult,
+    QiskitSavedDataSamplingJob,
+)
 from quri_parts.qiskit.backend.primitive import (
     QiskitRuntimeSamplingJob,
     QiskitRuntimeSamplingResult,
 )
+from quri_parts.qiskit.circuit import convert_circuit
 
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
@@ -245,3 +254,261 @@ class TestQiskitPrimitive:
         )
 
         assert sampler._qiskit_sampler_options is None
+
+    def test_saving_mode(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_run
+        backend = service.backend()
+
+        sampler = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, save_data_while_sampling=True
+        )
+        sampler._max_shots = 10
+
+        qp_circuit = QuantumCircuit(4)
+        qp_circuit.add_H_gate(0)
+        qp_circuit.add_H_gate(1)
+        qp_circuit.add_H_gate(2)
+        qp_circuit.add_H_gate(3)
+        qp_circuit.add_RX_gate(0, 0.23)
+        qp_circuit.add_RY_gate(1, -0.99)
+        qp_circuit.add_RX_gate(2, 0.87)
+        qp_circuit.add_RZ_gate(3, -0.16)
+
+        qiskit_transpiled_circuit = qiskit.transpile(
+            convert_circuit(qp_circuit).measure_all(False), backend
+        )
+        circuit_qasm = qiskit_transpiled_circuit.qasm()
+
+        sampling_job = sampler.sample(qp_circuit, 20)
+        measurement_counter = sampling_job.result().counts
+
+        # Check if the circuit string and n_shots are distribited correctly
+        measurement_counter_from_memory: Counter[int] = Counter()
+        for qasm_str, n_shots, saved_job in sampler._saved_data:
+            measurement_counter_from_memory += Counter(saved_job.result().counts)
+
+            assert qasm_str == circuit_qasm
+            assert n_shots == 10
+
+        # Check if the saved data counter sums up to the correct counter.
+        assert measurement_counter_from_memory == measurement_counter
+
+        # Construct the saved data objects
+        quasi_dist_0 = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
+        quasi_dist_1 = sampler._saved_data[1][2]._qiskit_job.result().quasi_dists[0]
+
+        expected_saved_data_0 = QiskitSavedDataSamplingJob(
+            circuit_qasm=circuit_qasm,
+            n_shots=10,
+            saved_result=QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist_0, n_shots=10
+            ),
+        )
+
+        expected_saved_data_1 = QiskitSavedDataSamplingJob(
+            circuit_qasm=circuit_qasm,
+            n_shots=10,
+            saved_result=QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist_1, n_shots=10
+            ),
+        )
+
+        # Check the jobs and jobs_json properties.
+        expected_saved_data_seq = [
+            expected_saved_data_0,
+            expected_saved_data_1,
+        ]
+        assert sampler.jobs == expected_saved_data_seq
+        expected_json_str = json.dumps(
+            expected_saved_data_seq, default=pydantic_encoder
+        )
+        assert sampler.jobs_json == expected_json_str
+
+    def test_saving_mode_session(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_run
+        backend = service.backend()
+
+        qp_circuit = QuantumCircuit(4)
+        qp_circuit.add_H_gate(0)
+        qp_circuit.add_H_gate(1)
+        qp_circuit.add_H_gate(2)
+        qp_circuit.add_H_gate(3)
+        qp_circuit.add_RX_gate(0, 0.23)
+        qp_circuit.add_RY_gate(1, -0.99)
+        qp_circuit.add_RX_gate(2, 0.87)
+        qp_circuit.add_RZ_gate(3, -0.16)
+
+        qiskit_transpiled_circuit = qiskit.transpile(
+            convert_circuit(qp_circuit).measure_all(False), backend
+        )
+        circuit_qasm = qiskit_transpiled_circuit.qasm()
+
+        with QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, save_data_while_sampling=True
+        ) as sampler:
+            sampling_job = sampler.sample(qp_circuit, 10)
+            sampler.close()
+
+        measurement_counter = sampling_job.result().counts
+
+        # Check if the circuit string and n_shots are distribited correctly
+        measurement_counter_from_memory: Counter[int] = Counter()
+        for qasm_str, n_shots, saved_job in sampler._saved_data:
+            measurement_counter_from_memory += Counter(saved_job.result().counts)
+
+            assert qasm_str == circuit_qasm
+            assert n_shots == 10
+
+        # Check if the saved data counter sums up to the correct counter.
+        assert measurement_counter_from_memory == measurement_counter
+
+        # Construct the saved data objects
+        quasi_dist = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
+
+        expected_saved_data = QiskitSavedDataSamplingJob(
+            circuit_qasm=circuit_qasm,
+            n_shots=10,
+            saved_result=QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist, n_shots=10
+            ),
+        )
+
+        # Check the jobs and jobs_json properties.
+        expected_saved_data_seq = [expected_saved_data]
+        assert sampler.jobs == expected_saved_data_seq
+        expected_json_str = json.dumps(
+            expected_saved_data_seq, default=pydantic_encoder
+        )
+        assert sampler.jobs_json == expected_json_str
+
+    @pytest.mark.api
+    def test_live_saving_mode(self) -> None:
+        service = QiskitRuntimeService()
+        backend = service.backend("ibmq_qasm_simulator")
+
+        sampler = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, save_data_while_sampling=True
+        )
+        sampler._max_shots = 10
+
+        qp_circuit = QuantumCircuit(4)
+        qp_circuit.add_H_gate(0)
+        qp_circuit.add_H_gate(1)
+        qp_circuit.add_H_gate(2)
+        qp_circuit.add_H_gate(3)
+        qp_circuit.add_RX_gate(0, 0.23)
+        qp_circuit.add_RY_gate(1, -0.99)
+        qp_circuit.add_RX_gate(2, 0.87)
+        qp_circuit.add_RZ_gate(3, -0.16)
+
+        qiskit_transpiled_circuit = qiskit.transpile(
+            convert_circuit(qp_circuit).measure_all(False), backend
+        )
+        circuit_qasm = qiskit_transpiled_circuit.qasm()
+
+        sampling_job = sampler.sample(qp_circuit, 20)
+        measurement_counter = sampling_job.result().counts
+
+        # Check if the circuit string and n_shots are distribited correctly
+        measurement_counter_from_memory: Counter[int] = Counter()
+        for qasm_str, n_shots, saved_job in sampler._saved_data:
+            measurement_counter_from_memory += Counter(saved_job.result().counts)
+
+            assert qasm_str == circuit_qasm
+            assert n_shots == 10
+
+        # Check if the saved data counter sums up to the correct counter.
+        assert measurement_counter_from_memory == measurement_counter
+
+        # Construct the saved data objects
+        quasi_dist_0 = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
+        quasi_dist_1 = sampler._saved_data[1][2]._qiskit_job.result().quasi_dists[0]
+
+        expected_saved_data_0 = QiskitSavedDataSamplingJob(
+            circuit_qasm=circuit_qasm,
+            n_shots=10,
+            saved_result=QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist_0, n_shots=10
+            ),
+        )
+
+        expected_saved_data_1 = QiskitSavedDataSamplingJob(
+            circuit_qasm=circuit_qasm,
+            n_shots=10,
+            saved_result=QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist_1, n_shots=10
+            ),
+        )
+
+        # Check the jobs and jobs_json properties.
+        expected_saved_data_seq = [
+            expected_saved_data_0,
+            expected_saved_data_1,
+        ]
+        assert sampler.jobs == expected_saved_data_seq
+        expected_json_str = json.dumps(
+            expected_saved_data_seq, default=pydantic_encoder
+        )
+        assert sampler.jobs_json == expected_json_str
+
+    @pytest.mark.api
+    def test_live_saving_mode_session(self) -> None:
+        service = QiskitRuntimeService()
+        backend = service.backend("ibmq_qasm_simulator")
+
+        qp_circuit = QuantumCircuit(4)
+        qp_circuit.add_H_gate(0)
+        qp_circuit.add_H_gate(1)
+        qp_circuit.add_H_gate(2)
+        qp_circuit.add_H_gate(3)
+        qp_circuit.add_RX_gate(0, 0.23)
+        qp_circuit.add_RY_gate(1, -0.99)
+        qp_circuit.add_RX_gate(2, 0.87)
+        qp_circuit.add_RZ_gate(3, -0.16)
+
+        qiskit_transpiled_circuit = qiskit.transpile(
+            convert_circuit(qp_circuit).measure_all(False), backend
+        )
+        circuit_qasm = qiskit_transpiled_circuit.qasm()
+
+        with QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, save_data_while_sampling=True
+        ) as sampler:
+            sampling_job = sampler.sample(qp_circuit, 10)
+            sampler.close()
+
+        measurement_counter = sampling_job.result().counts
+
+        # Check if the circuit string and n_shots are distribited correctly
+        measurement_counter_from_memory: Counter[int] = Counter()
+        for qasm_str, n_shots, saved_job in sampler._saved_data:
+            measurement_counter_from_memory += Counter(saved_job.result().counts)
+
+            assert qasm_str == circuit_qasm
+            assert n_shots == 10
+
+        # Check if the saved data counter sums up to the correct counter.
+        assert measurement_counter_from_memory == measurement_counter
+
+        # Construct the saved data objects
+        quasi_dist = sampler._saved_data[0][2]._qiskit_job.result().quasi_dists[0]
+
+        expected_saved_data = QiskitSavedDataSamplingJob(
+            circuit_qasm=circuit_qasm,
+            n_shots=10,
+            saved_result=QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist, n_shots=10
+            ),
+        )
+
+        # Check the jobs and jobs_json properties.
+        expected_saved_data_seq = [expected_saved_data]
+        assert sampler.jobs == expected_saved_data_seq
+        expected_json_str = json.dumps(
+            expected_saved_data_seq, default=pydantic_encoder
+        )
+        assert sampler.jobs_json == expected_json_str

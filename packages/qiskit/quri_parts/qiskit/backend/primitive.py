@@ -10,9 +10,10 @@
 
 from collections.abc import Mapping, MutableMapping
 from types import TracebackType
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Sequence, Type, Union
 
 import qiskit
+from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.primitives import SamplerResult
 from qiskit_ibm_runtime import (
     IBMBackend,
@@ -31,13 +32,19 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit
-from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-from quri_parts.qiskit.circuit import (
-    QiskitCircuitConverter,
-    QiskitTranspiler,
-    convert_circuit,
+from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
+
+from .saved_sampling import (
+    QiskitRuntimeSavedDataSamplingResult,
+    QiskitSavedDataSamplingJob,
+    encode_saved_data_job_sequence_to_json,
+)
+from .utils import (
+    distribute_backend_shots,
+    get_backend_min_max_shot,
+    get_job_mapper_and_circuit_transpiler,
 )
 
 
@@ -109,6 +116,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             or a :class:`qiskit_ibm_runtime.Options`.
         run_kwargs: Additional keyword arguments for
             :meth:`qiskit.providers.backend.Backend.run` method.
+        save_data_while_sampling: If True, the circuit, n_shots and the
+            sampling counts will be saved. Please use the `.jobs` or `.jobs_json`
+            to access the saved data.
     """
 
     def __init__(
@@ -121,31 +131,32 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         qubit_mapping: Optional[Mapping[int, int]] = None,
         sampler_options: Union[None, Options, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
+        save_data_while_sampling: bool = False,
     ):
         self._backend = backend
         self._service = service
-        self._circuit_converter = circuit_converter
-
-        self._qubit_mapping = None
-        if qubit_mapping is not None:
-            self._qubit_mapping = BackendQubitMapping(qubit_mapping)
-
-        if circuit_transpiler is None:
-            circuit_transpiler = QiskitTranspiler()
-        if self._qubit_mapping:
-            circuit_transpiler = SequentialTranspiler(
-                [circuit_transpiler, self._qubit_mapping.circuit_transpiler]
-            )
-        self._circuit_transpiler = circuit_transpiler
-
-        self._enable_shots_roundup = enable_shots_roundup
-        self._run_kwargs = run_kwargs
-
-        self._min_shots = 1
-        self._max_shots: Optional[int] = getattr(backend, "max_shots", None)
-
         self._session = None
 
+        # circuit related
+        self._circuit_converter = circuit_converter
+
+        (
+            self._job_mapper,
+            self._circuit_transpiler,
+        ) = get_job_mapper_and_circuit_transpiler(qubit_mapping, circuit_transpiler)
+
+        # shots related
+        self._enable_shots_roundup = enable_shots_roundup
+        self._min_shots, self._max_shots = get_backend_min_max_shot(backend)
+
+        # other kwargs
+        self._run_kwargs = run_kwargs
+
+        # saving mode
+        self._save_data_while_sampling = save_data_while_sampling
+        self._saved_data: list[tuple[str, int, QiskitRuntimeSamplingJob]] = []
+
+        # Sampler options
         if isinstance(sampler_options, dict):
             options = Options(**sampler_options)
             self._qiskit_sampler_options = options
@@ -185,34 +196,39 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             self._session.__exit__(exc_type, exc_val, exc_tb)
             self._session = None
 
+    def _execute_shots(
+        self,
+        runtime_sampler: Sampler,
+        qiskit_circuit: QiskitQuantumCircuit,
+        shot_dist: Sequence[int],
+        jobs_list: list[QiskitRuntimeSamplingJob],
+    ) -> None:
+        circuit_qasm_str = qiskit_circuit.qasm()
+        for s in shot_dist:
+            qiskit_runtime_job = runtime_sampler.run(
+                qiskit_circuit, shots=s, **self._run_kwargs
+            )
+            qiskit_runtime_sampling_job = QiskitRuntimeSamplingJob(qiskit_runtime_job)
+            # Saving mode
+            if self._save_data_while_sampling:
+                self._saved_data.append(
+                    (circuit_qasm_str, s, qiskit_runtime_sampling_job)
+                )
+            jobs_list.append(qiskit_runtime_sampling_job)
+
     def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
-        if self._max_shots is not None and n_shots > self._max_shots:
-            # Splitting the number of shots into pieces.
-            shot_dist = [self._max_shots] * (n_shots // self._max_shots)
-            remaining = n_shots % self._max_shots
-            if remaining > 0:
-                if remaining >= self._min_shots:
-                    shot_dist.append(remaining)
-                elif self._enable_shots_roundup:
-                    shot_dist.append(self._min_shots)
-        else:
-            if n_shots >= self._min_shots or self._enable_shots_roundup:
-                shot_dist = [max(n_shots, self._min_shots)]
-            else:
-                raise ValueError(
-                    f"n_shots is smaller than minimum shot count ({self._min_shots}) "
-                    "supported by the device. Try larger n_shots or use "
-                    "enable_shots_roundup=True when creating the backend."
-                )
+        shot_dist = distribute_backend_shots(
+            n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
+        )
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
-        qiskit_circuit = qiskit.transpile(qiskit_circuit, self._backend)
+        transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
 
-        qiskit_jobs = []
+        jobs: list[QiskitRuntimeSamplingJob] = []
         try:
             if self._session is None:
                 # Create a session if there is no session
@@ -220,34 +236,61 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                     runtime_sampler = Sampler(
                         session=session, options=self._qiskit_sampler_options
                     )
-                    for s in shot_dist:
-                        job = runtime_sampler.run(
-                            qiskit_circuit, shots=s, **self._run_kwargs
-                        )
-                        qiskit_jobs.append(job)
+                    self._execute_shots(
+                        runtime_sampler, transpiled_circuit, shot_dist, jobs
+                    )
+
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(
                     session=self._session, options=self._qiskit_sampler_options
                 )
-                for s in shot_dist:
-                    job = runtime_sampler.run(
-                        qiskit_circuit, shots=s, **self._run_kwargs
-                    )
-                    qiskit_jobs.append(job)
+                self._execute_shots(
+                    runtime_sampler, transpiled_circuit, shot_dist, jobs
+                )
+
         except Exception as e:
-            for j in qiskit_jobs:
+            for qiskit_runtime_sampling_job in jobs:
                 try:
-                    j.cancel()
+                    qiskit_runtime_sampling_job._qiskit_job.cancel()
                 except Exception:
                     # Ignore cancel errors
                     pass
             raise BackendError("Qiskit Device run failed.") from e
 
-        jobs: list[SamplingJob] = [QiskitRuntimeSamplingJob(j) for j in qiskit_jobs]
-        if self._qubit_mapping is not None:
-            jobs = [QubitMappedSamplingJob(job, self._qubit_mapping) for job in jobs]
-        if len(jobs) == 1:
-            return jobs[0]
-        else:
-            return CompositeSamplingJob(jobs)
+        qubit_mapped_jobs = [self._job_mapper(job) for job in jobs]
+        return (
+            qubit_mapped_jobs[0]
+            if len(qubit_mapped_jobs) == 1
+            else CompositeSamplingJob(qubit_mapped_jobs)
+        )
+
+    @property
+    def jobs(self) -> Sequence[QiskitSavedDataSamplingJob]:
+        """Convert saved data to a list of QiskitSavedDataSamplingJob
+        objects."""
+        job_list = []
+        for circuit_qasm_str, n_shots, qiskit_runtime_sampling_job in self._saved_data:
+            result = qiskit_runtime_sampling_job._qiskit_job.result()
+            quasi_dists = result.quasi_dists
+            assert len(quasi_dists) == 1, ValueError(
+                "The Result must contain distribution for one circuit but"
+                f"found {len(quasi_dists)}"
+            )
+            quasi_dist = quasi_dists[0]
+            saved_sampling_result = QiskitRuntimeSavedDataSamplingResult(
+                quasi_dist=quasi_dist, n_shots=n_shots
+            )
+            saved_sampling_job = QiskitSavedDataSamplingJob(
+                circuit_qasm=circuit_qasm_str,
+                n_shots=n_shots,
+                saved_result=saved_sampling_result,
+            )
+            job_list.append(saved_sampling_job)
+        return job_list
+
+    @property
+    def jobs_json(self) -> str:
+        """Encodes the list of QiskitSavedDataSamplingJob objects to a json
+        string."""
+        return encode_saved_data_job_sequence_to_json(self.jobs)
