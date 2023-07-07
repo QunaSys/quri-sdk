@@ -13,6 +13,7 @@ import numpy as np
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import (
     FuseRotationTranspiler,
+    NormalizeRotationTranspiler,
     RX2NamedTranspiler,
     RY2NamedTranspiler,
     RZ2NamedTranspiler,
@@ -67,13 +68,129 @@ class TestFuseRotation:
             assert _gates_close(t, e)
 
 
+class TestNormalizeRotation:
+    def test_normalize_2pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 5.0 * np.pi),
+                gates.RY(0, -3.0 * np.pi),
+                gates.RZ(0, 7.0 / 2.0 * np.pi),
+                gates.RX(0, 3.0 / np.pi),
+                gates.RY(0, 2.0 * np.pi),
+                gates.RZ(0, 0.0),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler()(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, np.pi),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 3.0 / 2.0 * np.pi),
+                gates.RX(0, 3.0 / np.pi),
+                gates.RY(0, 0.0),
+                gates.RZ(0, 0.0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_normalize_pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 3.0 / 2.0 * np.pi),
+                gates.RY(0, -3.0 / 4.0 * np.pi),
+                gates.RZ(0, 7.0 / 2.0 * np.pi),
+                gates.RX(0, np.pi),
+                gates.RY(0, -np.pi),
+                gates.RZ(0, 0.0),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler((-np.pi, np.pi))(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RX(0, -np.pi / 2.0),
+                gates.RY(0, -3.0 / 4.0 * np.pi),
+                gates.RZ(0, -np.pi / 2.0),
+                gates.RX(0, -np.pi),
+                gates.RY(0, -np.pi),
+                gates.RZ(0, 0.0),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_normalize_5pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RZ(0, -2.0 * np.pi),
+                gates.RY(0, -np.pi),
+                gates.RX(0, 0.0),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 2.0 * np.pi),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler((3.0 * np.pi, 5.0 * np.pi))(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RZ(0, 4.0 * np.pi),
+                gates.RY(0, 3.0 * np.pi),
+                gates.RX(0, 4.0 * np.pi),
+                gates.RY(0, 3.0 * np.pi),
+                gates.RZ(0, 4.0 * np.pi),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+    def test_normalize_minus3pi(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RZ(0, -2.0 * np.pi),
+                gates.RY(0, -np.pi),
+                gates.RX(0, 0.0),
+                gates.RY(0, np.pi),
+                gates.RZ(0, 2.0 * np.pi),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler((-5.0 * np.pi, -3.0 * np.pi))(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RZ(0, -4.0 * np.pi),
+                gates.RY(0, -5.0 * np.pi),
+                gates.RX(0, -4.0 * np.pi),
+                gates.RY(0, -5.0 * np.pi),
+                gates.RZ(0, -4.0 * np.pi),
+            ]
+        )
+
+        for t, e in zip(transpiled.gates, expect.gates):
+            assert _gates_close(t, e)
+
+
 class TestRotation2Named:
     def test_rx2named(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.extend(
             [
                 gates.RX(0, 0.0),
+                gates.RX(0, np.pi / 2.0),
                 gates.RX(0, np.pi),
+                gates.RX(0, np.pi * 3.0 / 2.0),
             ]
         )
         transpiled = RX2NamedTranspiler()(circuit)
@@ -82,7 +199,9 @@ class TestRotation2Named:
         expect.extend(
             [
                 gates.Identity(0),
+                gates.SqrtX(0),
                 gates.X(0),
+                gates.SqrtXdag(0),
             ]
         )
 
@@ -94,7 +213,9 @@ class TestRotation2Named:
         circuit.extend(
             [
                 gates.RY(0, 0.0),
+                gates.RY(0, np.pi / 2.0),
                 gates.RY(0, np.pi),
+                gates.RY(0, np.pi * 3.0 / 2.0),
             ]
         )
         transpiled = RY2NamedTranspiler()(circuit)
@@ -103,7 +224,9 @@ class TestRotation2Named:
         expect.extend(
             [
                 gates.Identity(0),
+                gates.SqrtY(0),
                 gates.Y(0),
+                gates.SqrtYdag(0),
             ]
         )
 
@@ -115,11 +238,16 @@ class TestRotation2Named:
         circuit.extend(
             [
                 gates.RZ(0, 0.0),
-                gates.RZ(0, np.pi),
-                gates.RZ(0, -np.pi),
-                gates.RZ(0, np.pi / 2.0),
-                gates.RZ(0, -np.pi / 2.0),
                 gates.RZ(0, np.pi / 4.0),
+                gates.RZ(0, np.pi / 2.0),
+                gates.RZ(0, np.pi * 3.0 / 4.0),
+                gates.RZ(0, np.pi),
+                gates.RZ(0, np.pi * 5.0 / 4.0),
+                gates.RZ(0, np.pi * 3.0 / 2.0),
+                gates.RZ(0, np.pi * 7.0 / 4.0),
+                gates.RZ(0, np.pi * 2.0),
+                gates.RZ(0, -np.pi),
+                gates.RZ(0, -np.pi / 2.0),
                 gates.RZ(0, -np.pi / 4.0),
             ]
         )
@@ -129,11 +257,18 @@ class TestRotation2Named:
         expect.extend(
             [
                 gates.Identity(0),
-                gates.Z(0),
-                gates.Z(0),
-                gates.S(0),
-                gates.Sdag(0),
                 gates.T(0),
+                gates.S(0),
+                gates.S(0),
+                gates.T(0),
+                gates.Z(0),
+                gates.Z(0),
+                gates.T(0),
+                gates.Sdag(0),
+                gates.Tdag(0),
+                gates.Identity(0),
+                gates.Z(0),
+                gates.Sdag(0),
                 gates.Tdag(0),
             ]
         )

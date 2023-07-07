@@ -78,9 +78,41 @@ class FuseRotationTranspiler(TwoGateFuser):
         ]
 
 
+class NormalizeRotationTranspiler(GateKindDecomposer):
+    """Normalize the parameters of the rotation gates (RX, RY, and RZ) so that
+    they are in the specified range (0 to 2PI by default).
+
+    Args:
+        cycle_range: Specify a range of width 2PI in the form of (lower limit,
+        upper limit). Lower limit is inclusive and upper limit is exclusive.
+    """
+
+    def __init__(
+        self,
+        cycle_range: tuple[float, float] = (0.0, np.pi * 2.0),
+        epsilon: float = 1.0e-9,
+    ):
+        if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
+            raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
+        if abs(cycle_range[1] - cycle_range[0] - np.pi * 2.0) > epsilon:
+            raise ValueError("The width of the cycle range must be 2PI.")
+        self._lower, self._upper = cycle_range
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.RX, gate_names.RY, gate_names.RZ]
+
+    def _normalize(self, theta: float) -> float:
+        return ((theta - self._lower) % (np.pi * 2.0)) + self._lower
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        theta = self._normalize(gate.params[0])
+        return [gate._replace(params=(theta,))]
+
+
 class RX2NamedTranspiler(GateKindDecomposer):
-    """Convert RX gate to Identity or X gate if it is equivalent to Identity or
-    X gate."""
+    """Convert RX gate to Identity or X gate if it is equivalent to Identity,
+    X, SqrtX, or SqrtXdag gate."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -98,15 +130,19 @@ class RX2NamedTranspiler(GateKindDecomposer):
 
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.SqrtX(target)]
         elif self._is_close(theta, np.pi):
             return [gates.X(target)]
+        elif self._is_close(theta, np.pi * 3.0 / 2.0):
+            return [gates.SqrtXdag(target)]
         else:
             return [gate]
 
 
 class RY2NamedTranspiler(GateKindDecomposer):
-    """Convert RY gate to Identity or Y gate if it is equivalent to Identity or
-    Y gate."""
+    """Convert RY gate to Identity or Y gate if it is equivalent to Identity,
+    Y, SqrtY, or SqrtYdag gate."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -124,15 +160,19 @@ class RY2NamedTranspiler(GateKindDecomposer):
 
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.SqrtY(target)]
         elif self._is_close(theta, np.pi):
             return [gates.Y(target)]
+        elif self._is_close(theta, np.pi * 3.0 / 2.0):
+            return [gates.SqrtYdag(target)]
         else:
             return [gate]
 
 
 class RZ2NamedTranspiler(GateKindDecomposer):
     """Convert RZ gate to Identity, Z, S, Sdag, T, or Tdag gate if it is
-    equivalent to one of these gates."""
+    equivalent to a sequence of these gates."""
 
     def __init__(self, epsilon: float = 1.0e-9):
         self._epsilon = epsilon
@@ -150,14 +190,18 @@ class RZ2NamedTranspiler(GateKindDecomposer):
 
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
-        elif self._is_close(theta, np.pi):
-            return [gates.Z(target)]
-        elif self._is_close(theta, np.pi / 2.0):
-            return [gates.S(target)]
-        elif self._is_close(theta, 3.0 * np.pi / 2.0):
-            return [gates.Sdag(target)]
         elif self._is_close(theta, np.pi / 4.0):
             return [gates.T(target)]
+        elif self._is_close(theta, np.pi / 2.0):
+            return [gates.S(target)]
+        elif self._is_close(theta, 3.0 * np.pi / 4.0):
+            return [gates.S(target), gates.T(target)]
+        elif self._is_close(theta, np.pi):
+            return [gates.Z(target)]
+        elif self._is_close(theta, 5.0 * np.pi / 4.0):
+            return [gates.Z(target), gates.T(target)]
+        elif self._is_close(theta, 3.0 * np.pi / 2.0):
+            return [gates.Sdag(target)]
         elif self._is_close(theta, 7.0 * np.pi / 4.0):
             return [gates.Tdag(target)]
         else:

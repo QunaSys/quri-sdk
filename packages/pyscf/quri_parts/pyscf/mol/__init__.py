@@ -22,6 +22,7 @@ from .non_relativistic import (
     get_ao_1eint,
     get_ao_2eint,
     get_ao_eint_set,
+    get_spin_mo_integrals_from_mole,
 )
 
 __all__ = [
@@ -42,4 +43,5 @@ __all__ = [
     "get_ao_eint_set",
     "get_active_space_spatial_integrals",
     "get_active_space_spin_integrals",
+    "get_spin_mo_integrals_from_mole",
 ]
