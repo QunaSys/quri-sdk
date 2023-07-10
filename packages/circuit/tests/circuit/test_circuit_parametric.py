@@ -13,6 +13,7 @@ from quri_parts.circuit import (
     RX,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
+    QuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuit,
     X,
@@ -85,6 +86,36 @@ class TestUnboundParametricQuantumCircuit:
         assert circuit_2.depth == 2
         immutable_circuit_2 = circuit_2.freeze()
         assert immutable_circuit_2.depth == 2
+
+    def test_add(self) -> None:
+        circuit = mutable_circuit()
+        qc_circuit = QuantumCircuit(2)
+        qc_circuit.add_H_gate(0)
+        got_circuit = circuit + qc_circuit
+        exp_circuit = circuit.get_mutable_copy()
+        exp_circuit.add_H_gate(0)
+        assert got_circuit.gates == exp_circuit.gates
+
+        circuit = mutable_circuit()
+        up_circuit = UnboundParametricQuantumCircuit(2)
+        up_circuit.add_ParametricRX_gate(0)
+        got_circuit = circuit + up_circuit
+        exp_circuit = circuit.get_mutable_copy()
+        exp_circuit.add_ParametricRX_gate(0)
+        assert got_circuit.gates == exp_circuit.gates
+
+    def test_radd(self) -> None:
+        circuit = mutable_circuit()
+        qc_circuit = QuantumCircuit(2)
+        qc_circuit.add_H_gate(0)
+        got_circuit = qc_circuit + circuit
+        exp_circuit = UnboundParametricQuantumCircuit(2)
+        exp_circuit.add_H_gate(0)
+        for gate in _GATES:
+            exp_circuit.add_gate(gate)
+        exp_circuit.add_ParametricRX_gate(0)
+        exp_circuit.add_ParametricPauliRotation_gate([1], [1])
+        assert got_circuit.gates == exp_circuit.gates
 
 
 class TestImmutableUnboundParametricQuantumCircuit:

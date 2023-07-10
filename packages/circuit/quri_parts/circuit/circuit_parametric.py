@@ -11,7 +11,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Mapping, Sequence
 from functools import cached_property
-from typing import Optional, Protocol, Union
+from typing import Optional, Protocol, Union, runtime_checkable
 
 from quri_parts.circuit import gate_names
 
@@ -22,6 +22,7 @@ from .circuit import (
     NonParametricQuantumCircuit,
     QuantumCircuit,
     QuantumCircuitProtocol,
+    is_gate_sequence,
 )
 from .gate import ParametricQuantumGate, QuantumGate
 from .gates import (
@@ -38,6 +39,7 @@ from .parameter import Parameter
 from .parameter_mapping import LinearParameterMapping, ParameterMapping
 
 
+@runtime_checkable
 class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     """Interface protocol for a quantum circuit containing unbound (i.e. not
     assigned values) parameters.
@@ -76,7 +78,7 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         ...
 
     @abstractmethod
-    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+    def primitive_circuit(self) -> "ImmutableUnboundParametricQuantumCircuit":
         r"""Returns the parametric circuit where each gate has an independent
         parameter.
 
@@ -126,6 +128,18 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
     @abstractproperty
     def param_mapping(self) -> ParameterMapping:
         """Returns the parameter mapping of the circuit."""
+        ...
+
+    def __add__(
+        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+    ) -> "UnboundParametricQuantumCircuitProtocol":
+        """Returns a new combined circuit with the given gates added."""
+        ...
+
+    def __radd__(
+        self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
+    ) -> "UnboundParametricQuantumCircuitProtocol":
+        """Returns a new combined circuit with the given gates added."""
         ...
 
 
@@ -182,7 +196,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
             self._params, self._params, dict(zip(self._params, self._params))
         )
 
-    def primitive_circuit(self) -> "UnboundParametricQuantumCircuitProtocol":
+    def primitive_circuit(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return self.freeze()
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":
@@ -229,6 +243,31 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
     @property
     def parameter_count(self) -> int:
         return len(self._params)
+
+    def __add__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "UnboundParametricQuantumCircuit":
+        if isinstance(gates, UnboundParametricQuantumCircuitBase):
+            return self.combine(gates)
+        elif is_gate_sequence(gates):
+            return self.combine(gates)
+        else:
+            return NotImplemented
+
+    def __radd__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "UnboundParametricQuantumCircuit":
+        if isinstance(gates, UnboundParametricQuantumCircuitBase) or is_gate_sequence(
+            gates
+        ):
+            combined_circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+            combined_circuit.extend(gates)
+            combined_circuit.extend(self)
+            return combined_circuit
+        else:
+            return NotImplemented
 
 
 class UnboundParametricQuantumCircuit(
@@ -327,6 +366,19 @@ class UnboundParametricQuantumCircuit(
                 gates = gates.gates
             for g in gates:
                 self.add_gate(g)
+
+    def __iadd__(
+        self,
+        gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
+    ) -> "UnboundParametricQuantumCircuit":
+        if isinstance(gates, UnboundParametricQuantumCircuitBase):
+            self.extend(gates)
+            return self
+        elif is_gate_sequence(gates):
+            self.extend(gates)
+            return self
+        else:
+            return NotImplemented
 
     def freeze(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return ImmutableUnboundParametricQuantumCircuit(self)
