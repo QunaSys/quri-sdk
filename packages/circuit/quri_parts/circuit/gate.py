@@ -17,12 +17,14 @@ class QuantumGate(NamedTuple):
 
     Not intended for direct use. Every gate is created by factory
     methods. A QuantumGate object contains information of gate name,
-    control qubit, target qubit, parameters, and pauli ids.
+    control qubit, target qubit, classical bits, parameters, and pauli
+    ids.
     """
 
     name: str
     target_indices: Sequence[int]
     control_indices: Sequence[int] = ()
+    classical_indices: Sequence[int] = ()
     params: Sequence[float] = ()
     pauli_ids: Sequence[int] = ()
     unitary_matrix: Sequence[Sequence[complex]] = ()

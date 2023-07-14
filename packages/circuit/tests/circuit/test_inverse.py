@@ -36,7 +36,7 @@ _single_param_rotations: list[Callable[[int, float], QuantumGate]] = [RX, RY, RZ
 
 
 _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
-    (QuantumCircuit(8, gatelist), QuantumCircuit(8, inv_gatelist))
+    (QuantumCircuit(8, gates=gatelist), QuantumCircuit(8, gates=inv_gatelist))
     for gatelist, inv_gatelist in zip(
         [[S(0), T(0)], [SqrtX(0), SqrtY(0)], [H(0), CNOT(0, 1)]],
         [[Tdag(0), Sdag(0)], [SqrtYdag(0), SqrtXdag(0)], [CNOT(0, 1), H(0)]],
@@ -45,7 +45,7 @@ _inverse_circuit_pairs: list[tuple[QuantumCircuit, QuantumCircuit]] = [
 _single_param_rotation_circuit: Callable[
     [Sequence[GateFactory], Sequence[float]], QuantumCircuit
 ] = lambda gates, theta: QuantumCircuit(
-    8, [gate(0, param) for gate, param in zip(gates, theta)]
+    8, gates=[gate(0, param) for gate, param in zip(gates, theta)]
 )
 
 

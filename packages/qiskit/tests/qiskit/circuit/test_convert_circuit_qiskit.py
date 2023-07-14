@@ -241,3 +241,31 @@ def test_convert_kak_unitary_matrix() -> None:
         target / (target[0, 0] / abs(target[0, 0])),
         expect / (expect[0, 0] / abs(expect[0, 0])),
     )
+
+
+def test_convert_circuit_with_measurement() -> None:
+    circuit = QuantumCircuit(3, cbit_count=2)
+    original_gates = [
+        gates.X(1),
+        gates.H(2),
+        gates.CNOT(0, 2),
+        gates.RX(0, 0.125),
+        gates.Measurement([0], [1]),
+        gates.X(1),
+    ]
+    for gate in original_gates:
+        circuit.add_gate(gate)
+
+    converted = convert_circuit(circuit)
+    assert converted.num_qubits == 3
+
+    expected = QiskitQuantumCircuit(3, 2)
+    expected.x(1)
+    expected.h(2)
+    expected.cnot(0, 2)
+    expected.rx(0.125, 0)
+    expected.measure(0, 1)
+    expected.x(1)
+
+    # Gate order and number of registers remain same.
+    assert converted.qasm() == expected.qasm()

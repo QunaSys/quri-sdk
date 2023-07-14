@@ -505,3 +505,25 @@ Note that the instance of this class doesn't contain parameter values.
 Every parametric gate is carried with it's parameter
 (:class:`~Parameter`) such as (ParametricPauliRotation, Parameter).
 """
+
+
+class MeasurementFactory:
+    name: Literal["Measurement"] = gate_names.Measurement
+
+    def __call__(
+        self, target_indices: Sequence[int], classical_indices: Sequence[int]
+    ) -> QuantumGate:
+        if len(target_indices) != len(classical_indices):
+            raise ValueError(
+                "Number of qubits and classical bits must be same for measurement."
+            )
+        return QuantumGate(
+            name=self.name,
+            target_indices=tuple(target_indices),
+            classical_indices=tuple(classical_indices),
+        )
+
+
+Measurement = MeasurementFactory()
+r"""Measurement gate that transfers the measurement result to a classical
+bit."""

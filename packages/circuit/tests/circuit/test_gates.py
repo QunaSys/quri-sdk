@@ -17,6 +17,7 @@ from quri_parts.circuit import (
     U3,
     H,
     Identity,
+    Measurement,
     ParametricPauliRotation,
     ParametricQuantumGate,
     ParametricRX,
@@ -154,6 +155,11 @@ def test_gate_creation() -> None:
         pauli_ids=pauli_ids,
     )
 
+    # Measurement gate
+    assert Measurement([5], [7]) == QuantumGate(
+        gate_names.Measurement, target_indices=(5,), classical_indices=(7,)
+    )
+
 
 def test_gate_addition() -> None:
     theta, phi, lmd = np.random.rand(3)
@@ -162,7 +168,7 @@ def test_gate_addition() -> None:
     single_umat = ((1, 0), (0, 1))
     two_umat = ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1))
 
-    lc = QuantumCircuit(3)
+    lc = QuantumCircuit(3, cbit_count=1)
     gates = [
         Identity(0),
         X(0),
@@ -192,10 +198,11 @@ def test_gate_addition() -> None:
         UnitaryMatrix((0, 1), two_umat),
         Pauli(target_indices, pauli_ids),
         PauliRotation(target_indices, pauli_ids, theta),
+        Measurement([0], [0]),
     ]
     lc.extend(gates)
 
-    mc = QuantumCircuit(3)
+    mc = QuantumCircuit(3, cbit_count=1)
     mc.add_Identity_gate(0)
     mc.add_X_gate(0)
     mc.add_Y_gate(0)
@@ -224,5 +231,6 @@ def test_gate_addition() -> None:
     mc.add_UnitaryMatrix_gate((0, 1), two_umat)
     mc.add_Pauli_gate(target_indices, pauli_ids)
     mc.add_PauliRotation_gate(target_indices, pauli_ids, theta)
+    mc.measure(0, 0)
 
     assert lc == mc

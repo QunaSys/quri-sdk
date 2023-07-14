@@ -200,7 +200,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         return self.freeze()
 
     def get_mutable_copy(self) -> "UnboundParametricQuantumCircuit":
-        circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = UnboundParametricQuantumCircuit(self.qubit_count, self.cbit_count)
         circuit._gates = list(self._gates)
         return circuit
 
@@ -214,7 +214,7 @@ class UnboundParametricQuantumCircuitBase(UnboundParametricQuantumCircuitProtoco
         ones. I.e. even if those two share the same instance of a
         parameter, it is copied into two independent parameters.
         """
-        circuit = UnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = UnboundParametricQuantumCircuit(self.qubit_count, self.cbit_count)
         circuit.extend(self)
         circuit.extend(gates)
         return circuit
@@ -282,11 +282,12 @@ class UnboundParametricQuantumCircuit(
     :class:`~LinearMappedUnboundParametricQuantumCircuit`.
     """
 
-    def __init__(self, qubit_count: int):
+    def __init__(self, qubit_count: int, cbit_count: int = 0):
         self._qubit_count = qubit_count
         self._gates: list[
             Union[tuple[QuantumGate, None], tuple[ParametricQuantumGate, Parameter]]
         ] = []
+        self._cbit_count = cbit_count
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, UnboundParametricQuantumCircuitBase):
@@ -296,6 +297,10 @@ class UnboundParametricQuantumCircuit(
     @property
     def qubit_count(self) -> int:
         return self._qubit_count
+
+    @property
+    def cbit_count(self) -> int:
+        return self._cbit_count
 
     def add_gate(self, gate: QuantumGate, gate_index: Optional[int] = None) -> None:
         if max([*gate.control_indices, *gate.target_indices]) >= self.qubit_count:
@@ -396,16 +401,25 @@ class ImmutableUnboundParametricQuantumCircuit(UnboundParametricQuantumCircuitBa
     def __init__(self, circuit: UnboundParametricQuantumCircuitBase):
         self._qubit_count = circuit.qubit_count
         self._gates = tuple(circuit._gates)
+        self._cbit_count = circuit.cbit_count
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, UnboundParametricQuantumCircuitBase):
             return False
         f = other.freeze()
-        return (self.qubit_count, self._gates) == (f.qubit_count, f._gates)
+        return (self.qubit_count, self.cbit_count, self._gates) == (
+            f.qubit_count,
+            f.cbit_count,
+            f._gates,
+        )
 
     @property
     def qubit_count(self) -> int:
         return self._qubit_count
+
+    @property
+    def cbit_count(self) -> int:
+        return self._cbit_count
 
     def freeze(self) -> "ImmutableUnboundParametricQuantumCircuit":
         return self
@@ -420,7 +434,7 @@ class ImmutableBoundParametricQuantumCircuit(ImmutableQuantumCircuit):
         circuit: UnboundParametricQuantumCircuitBase,
         parameter_map: Mapping[Parameter, float],
     ):
-        super().__init__(QuantumCircuit(circuit.qubit_count))
+        super().__init__(QuantumCircuit(circuit.qubit_count, circuit.cbit_count))
         self.unbound_param_circuit = circuit.freeze()
         self.parameter_map = dict(parameter_map)
 

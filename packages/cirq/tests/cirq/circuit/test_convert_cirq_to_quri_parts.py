@@ -58,6 +58,6 @@ def test_circuit_from_cirq() -> None:
         gates.RZ(0, 1.25),
         gates.UnitaryMatrix([0, 1], mat.tolist()),
     ]
-    expected = QuantumCircuit(3, gate_list)
+    expected = QuantumCircuit(3, gates=gate_list)
 
     assert expected.gates == circuit_from_cirq(circuit).gates

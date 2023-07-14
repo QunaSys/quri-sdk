@@ -53,6 +53,7 @@ RZ: Literal["RZ"] = "RZ"
 U1: Literal["U1"] = "U1"
 U2: Literal["U2"] = "U2"
 U3: Literal["U3"] = "U3"
+Measurement: Literal["Measurement"] = "Measurement"
 
 SINGLE_QUBIT_GATE_NAMES: set[SingleQubitGateNameType] = {
     Identity,

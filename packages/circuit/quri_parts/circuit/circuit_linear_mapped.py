@@ -40,6 +40,10 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         return self._circuit.qubit_count
 
     @property
+    def cbit_count(self) -> int:
+        return self._circuit.cbit_count
+
+    @property
     def parameter_count(self) -> int:
         return len(self._param_mapping.in_params)
 
@@ -63,7 +67,9 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         return self._circuit.freeze()
 
     def get_mutable_copy(self) -> "LinearMappedUnboundParametricQuantumCircuit":
-        circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = LinearMappedUnboundParametricQuantumCircuit(
+            self.qubit_count, self.cbit_count
+        )
         circuit._param_mapping = self._param_mapping
         circuit._circuit = self._circuit.get_mutable_copy()
         return circuit
@@ -72,7 +78,9 @@ class LinearMappedUnboundParametricQuantumCircuitBase(
         self,
         gates: Union[GateSequence, UnboundParametricQuantumCircuitProtocol],
     ) -> "LinearMappedUnboundParametricQuantumCircuit":
-        circuit = LinearMappedUnboundParametricQuantumCircuit(self.qubit_count)
+        circuit = LinearMappedUnboundParametricQuantumCircuit(
+            self.qubit_count, self.cbit_count
+        )
         try:
             circuit.extend(self)
             circuit.extend(gates)
@@ -116,10 +124,10 @@ class LinearMappedUnboundParametricQuantumCircuit(
     """A mutable parametric quantum circuit where parameters of parametric
     gates are given by linear functions of circuit parameters."""
 
-    def __init__(self, qubit_count: int):
+    def __init__(self, qubit_count: int, cbit_count: int = 0):
         self._param_mapping = LinearParameterMapping()
         self._circuit: UnboundParametricQuantumCircuit = (
-            UnboundParametricQuantumCircuit(qubit_count)
+            UnboundParametricQuantumCircuit(qubit_count, cbit_count)
         )
 
     def add_parameters(self, *names: str) -> Sequence[Parameter]:

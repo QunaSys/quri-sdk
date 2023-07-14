@@ -43,6 +43,6 @@ def test_circuit_from_qiskit() -> None:
         gates.TOFFOLI(0, 1, 2),
         gates.UnitaryMatrix([0, 1], matrix),
     ]
-    expected = QuantumCircuit(3, gate_list)
+    expected = QuantumCircuit(3, gates=gate_list)
 
     assert circuit_from_qiskit(qis_circ).gates == expected.gates

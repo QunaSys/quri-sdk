@@ -77,4 +77,4 @@ def inverse_circuit(
         gates_inv.append(inverse_gate(gate))
     gates_inv.reverse()
 
-    return QuantumCircuit(qubit_count, gates_inv)
+    return QuantumCircuit(qubit_count, gates=gates_inv)

@@ -43,7 +43,7 @@ class TestCliffordApproximationTranspile:
             CZ(2, 3),
             PauliRotation((0, 1, 2), (3, 2, 1), 0.51 * np.pi / 2),
         ]
-        circuit = QuantumCircuit(4, gate_list)
+        circuit = QuantumCircuit(4, gates=gate_list)
         transpiled = CliffordApproximationTranspiler()(circuit)
 
         expect = QuantumCircuit(4)

@@ -70,7 +70,7 @@ def test_convert_simple_gate_mapping() -> None:
     ]
     model = NoiseModel(noises)
     qp_gates = [gates.X(0), gates.H(1), gates.CNOT(1, 2)]
-    circuit = QuantumCircuit(3, qp_gates)
+    circuit = QuantumCircuit(3, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -112,7 +112,7 @@ def test_convert_gate_interval_noise() -> None:
         gates.H(1),
         gates.X(1),
     ]
-    circuit = QuantumCircuit(2, qp_gates)
+    circuit = QuantumCircuit(2, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -158,7 +158,7 @@ def test_convert_depth_interval_noise() -> None:
         gates.H(1),
         gates.X(1),
     ]
-    circuit = QuantumCircuit(2, qp_gates)
+    circuit = QuantumCircuit(2, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -200,7 +200,7 @@ def test_convert_measurement_noise() -> None:
         gates.H(1),
         gates.X(1),
     ]
-    circuit = QuantumCircuit(2, qp_gates)
+    circuit = QuantumCircuit(2, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, model)
     expected_gates = [
         qulacs.gate.X(0),
@@ -260,7 +260,7 @@ def test_convert_kraus_cptp() -> None:
 
     noise_model = NoiseModel([noise])
     qp_gates = [gates.H(0)]
-    circuit = QuantumCircuit(1, qp_gates)
+    circuit = QuantumCircuit(1, gates=qp_gates)
     converted = convert_circuit_with_noise_model(circuit, noise_model)
     matrix = qulacs.DensityMatrix(1)
     matrix.set_zero_state()

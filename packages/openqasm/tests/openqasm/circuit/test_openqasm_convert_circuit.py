@@ -115,7 +115,7 @@ class TestConvertToQasm:
     def test_convert_to_qasm(self) -> None:
         qubit_count = 7
         gate_list = [gates.X(0), gates.Z(6)]
-        circuit = QuantumCircuit(qubit_count, gate_list)
+        circuit = QuantumCircuit(qubit_count, gates=gate_list)
         str_io = io.StringIO()
 
         convert_to_qasm(circuit, str_io)

@@ -96,7 +96,7 @@ def make_training_circuits(
                 new_gates += transpiled_gates
             else:
                 new_gates.append(gate)
-        training_circuits.append(QuantumCircuit(circuit.qubit_count, new_gates))
+        training_circuits.append(QuantumCircuit(circuit.qubit_count, gates=new_gates))
 
     return training_circuits
 

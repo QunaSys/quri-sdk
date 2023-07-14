@@ -21,6 +21,7 @@ from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
+    Measurement,
     MultiQubitGateNameType,
     ParametricGateNameType,
     SingleQubitGateNameType,
@@ -168,8 +169,12 @@ def convert_circuit(
     if transpiler is not None:
         circuit = transpiler(circuit)
 
-    qiskit_circuit = QuantumCircuit(circuit.qubit_count)
+    qiskit_circuit = QuantumCircuit(circuit.qubit_count, circuit.cbit_count)
     for gate in circuit.gates:
+        if gate.name == Measurement:
+            qiskit_circuit.measure(gate.target_indices, gate.classical_indices)
+            continue
+
         indices = (*gate.control_indices, *gate.target_indices)
         qiskit_circuit.append(convert_gate(gate), qargs=indices)
     return qiskit_circuit

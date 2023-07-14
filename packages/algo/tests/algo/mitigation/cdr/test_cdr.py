@@ -80,7 +80,7 @@ def test_make_training_circuis() -> None:
         CZ(2, 3),
         PauliRotation((0, 2, 3), (2, 3, 1), 0.5 * np.pi),
     ]
-    clifford_cdr_circuit = QuantumCircuit(qubit_count, clifford_gate_list)
+    clifford_cdr_circuit = QuantumCircuit(qubit_count, gates=clifford_gate_list)
     with pytest.raises(ValueError):
         make_training_circuits(
             circuit=clifford_cdr_circuit,
