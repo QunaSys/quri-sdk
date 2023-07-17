@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 import numpy as np
@@ -26,15 +26,17 @@ from .interface import (
 )
 from .tolerance import ftol as create_ftol
 
-_const_zero_array: Params = readonly_array(np.zeros(0, dtype=float))
+
+def _const_zero_array_factory() -> Params:
+    return readonly_array(np.zeros(0, dtype=float))
 
 
 @dataclass(frozen=True)
 class OptimizerStateAdam(OptimizerState):
     """Optimizer state for Adam."""
 
-    m: Params = _const_zero_array
-    v: Params = _const_zero_array
+    m: Params = field(default_factory=_const_zero_array_factory)
+    v: Params = field(default_factory=_const_zero_array_factory)
 
 
 def _adam_grad_square_moving_average(

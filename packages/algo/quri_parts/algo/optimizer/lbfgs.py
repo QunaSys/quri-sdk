@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import warnings
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Callable, Optional, cast
 
 import numpy as np
@@ -35,23 +35,25 @@ from .interface import (
 )
 from .tolerance import gtol as create_gtol
 
-_const_zero_array: Params = readonly_array(np.zeros(0, dtype=float))
+
+def _const_zero_array_factory() -> Params:
+    return readonly_array(np.zeros(0, dtype=float))
 
 
 @dataclass(frozen=True)
 class OptimizerStateLBFGS(OptimizerState):
     """Optimizer state for LBFGS."""
 
-    grad: Params = _const_zero_array
+    grad: Params = field(default_factory=_const_zero_array_factory)
 
-    p: Params = _const_zero_array
-    s: Params = _const_zero_array
-    y: Params = _const_zero_array
-    rho: Params = _const_zero_array
+    p: Params = field(default_factory=_const_zero_array_factory)
+    s: Params = field(default_factory=_const_zero_array_factory)
+    y: Params = field(default_factory=_const_zero_array_factory)
+    rho: Params = field(default_factory=_const_zero_array_factory)
 
     cost_prev: float = 0.0
     ind: int = 0
-    a: Params = _const_zero_array
+    a: Params = field(default_factory=_const_zero_array_factory)
 
 
 class LBFGS(Optimizer):

@@ -2378,6 +2378,7 @@ mypy-extensions = ">=0.2.0"
 numpy = [
     {version = ">=1.19.3", markers = "python_version >= \"3.9\" and python_version < \"3.10\""},
     {version = ">=1.21.6", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
+    {version = ">=1.22.0", markers = "python_version >= \"3.11\""},
 ]
 openpulse = ">=0.4.1,<0.5.0"
 
@@ -2430,6 +2431,7 @@ files = [
 numpy = [
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
     {version = ">=1.21.0", markers = "python_version >= \"3.10\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -3753,8 +3755,9 @@ develop = true
 
 [package.dependencies]
 numpy = ">=1.22.0"
+pydantic = ">=1.9,<2.0"
 qiskit = "^0.43.0"
-qiskit-ibm-runtime = "0.9.4"
+qiskit-ibm-runtime = "^0.9.4"
 quri-parts-circuit = "*"
 
 [package.source]
@@ -4781,5 +4784,5 @@ tket = ["quri-parts-tket"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.9.8,<3.11"
-content-hash = "72d73697fdd8fdbdbd8e478d453615df0c95804ba31af342d3aaa6907e2c2e32"
+python-versions = "^3.9.8,<3.12"
+content-hash = "1b7bdd20fd0f70c539490bf4a0536123e0b404dbf998aefae500cb228d89331a"

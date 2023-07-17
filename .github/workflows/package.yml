@@ -23,6 +23,9 @@ jobs:
         python-version: '3.9'
 
     - run: |
+        poetry self add "poetry-dynamic-versioning[plugin]"
+
+    - run: |
         poetry env use 3.9
         mkdir -p dist
         cp -f NOTICE quri_parts/
