@@ -1,6 +1,6 @@
 ---
 name: dill
-version: 0.3.6
+version: 0.3.7
 type: pip
 summary: serialize all of python
 homepage: https://github.com/uqfoundation/dill
@@ -9,7 +9,7 @@ licenses:
 - sources: LICENSE
   text: |+
     Copyright (c) 2004-2016 California Institute of Technology.
-    Copyright (c) 2016-2022 The Uncertainty Quantification Foundation.
+    Copyright (c) 2016-2023 The Uncertainty Quantification Foundation.
     All rights reserved.
     This software is available subject to the conditions and terms laid
     out below. By downloading and using this software you are agreeing
@@ -17,9 +17,9 @@ licenses:
     Redistribution and use in source and binary forms, with or without
     modification, are permitted provided that the following conditions
     are met::
-        - Redistribution of source code must retain the above copyright
+        - Redistributions of source code must retain the above copyright
           notice, this list of conditions and the following disclaimer.
-        - Redistribution in binary form must reproduce the above copyright
+        - Redistributions in binary form must reproduce the above copyright
           notice, this list of conditions and the following disclaimer in the
           documentations and/or other materials provided with the distribution.
         - Neither the names of the copyright holders nor the names of any of

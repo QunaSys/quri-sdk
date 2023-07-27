@@ -3,13 +3,17 @@
 # You may obtain a copy of the License at
 #      http://www.apache.org/licenses/LICENSE-2.0
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "sAS IS" BASIS,
+# distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
 import json
+import random
+import re
+import string
 from collections import Counter
+from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
@@ -20,12 +24,13 @@ from qiskit.result import QuasiDistribution
 from qiskit_ibm_runtime import Options, QiskitRuntimeService
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
-from quri_parts.backend import CompositeSamplingJob
+from quri_parts.backend import BackendError, CompositeSamplingJob
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import (
     QiskitRuntimeSamplingBackend,
     QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingJob,
+    Tracker,
 )
 from quri_parts.qiskit.backend.primitive import (
     QiskitRuntimeSamplingJob,
@@ -57,6 +62,38 @@ def fake_run(**kwargs) -> RuntimeJob:  # type: ignore
     jjob.running = _always_false
     jjob.job_id = _job_id
     jjob.result = result
+
+    return jjob
+
+
+def fake_dynamic_run(**kwargs) -> RuntimeJob:  # type: ignore
+    jjob = MagicMock(spec=RuntimeJob)
+
+    jjob._status = JobStatus.RUNNING
+    jjob._job_id = "".join([random.choice(string.ascii_lowercase) for _ in range(10)])
+
+    def _status() -> JobStatus:
+        return jjob._status
+
+    def _job_id() -> str:
+        return str(jjob._job_id)
+
+    def _metrics() -> dict[str, Any]:
+        if jjob._status != JobStatus.DONE:
+            return {}
+        return {"usage": {"seconds": 10}}
+
+    def _set_status(job_response: dict[Any, JobStatus]) -> None:
+        jjob._status = list(job_response.values())[0]
+
+    def _cancel() -> None:
+        jjob._status = JobStatus.CANCELLED
+
+    jjob.status = _status
+    jjob.job_id = _job_id
+    jjob.metrics = _metrics
+    jjob._set_status = _set_status
+    jjob.cancel = _cancel
 
     return jjob
 
@@ -512,3 +549,48 @@ class TestQiskitPrimitive:
             expected_saved_data_seq, default=pydantic_encoder
         )
         assert sampler.jobs_json == expected_json_str
+
+    def test_reject_job(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_dynamic_run
+        backend = service.backend()
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=5
+        )
+        job1 = sampling_backend.sample(QuantumCircuit(2), 100)
+        assert isinstance(job1, QiskitRuntimeSamplingJob)
+
+        job2 = sampling_backend.sample(QuantumCircuit(2), 100)
+        assert isinstance(job2, QiskitRuntimeSamplingJob)
+
+        job1._qiskit_job._set_status({"new_job_status": JobStatus.DONE})
+
+        with pytest.raises(
+            BackendError,
+            match=re.escape(
+                "Qiskit Device run failed. Failed reason:\n"
+                "The submission of this job is aborted due to "
+                "run time limit of 5 seconds is exceeded. "
+                "Other unfinished jobs are also aborted."
+            ),
+        ):
+            sampling_backend.sample(QuantumCircuit(2), 100)
+
+        assert job2._qiskit_job.status() == JobStatus.CANCELLED
+
+    def test_job_registered_to_tracker(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        service.run = fake_dynamic_run
+        backend = service.backend()
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=5000
+        )
+        assert isinstance(sampling_backend.tracker, Tracker)
+
+        job1 = sampling_backend.sample(QuantumCircuit(2), 100)
+        assert sampling_backend.tracker.running_jobs == [job1]
+
+        job2 = sampling_backend.sample(QuantumCircuit(2), 100)
+        assert sampling_backend.tracker.running_jobs == [job1, job2]

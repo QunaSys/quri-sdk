@@ -24,6 +24,7 @@ from qiskit_ibm_runtime import (
     Session,
 )
 
+import quri_parts.qiskit.backend.tracker as tracker
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -119,7 +120,13 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         save_data_while_sampling: If True, the circuit, n_shots and the
             sampling counts will be saved. Please use the `.jobs` or `.jobs_json`
             to access the saved data.
-    """
+        total_time_limit: The total time limit the jobs submitted by this backend
+            can use.
+
+            - A :class:`~Tracker` is created when the time limit is set. The tracker can be accessed by the .tracker attribute.
+
+            - If the job execution time exceeds the time limit, new call to the :meth:`~sample` will be rejected and all current running jobs will be cancelled.
+    """  # noqa:
 
     def __init__(
         self,
@@ -132,6 +139,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         sampler_options: Union[None, Options, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
+        total_time_limit: Optional[float] = None,
     ):
         self._backend = backend
         self._service = service
@@ -167,6 +175,14 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         else:
             raise ValueError("Invalid type for sampler_options")
 
+        # Tracker related
+        self.tracker: Optional[tracker.Tracker] = None
+        self._time_limit = 0.0
+
+        if total_time_limit is not None:
+            self.tracker = tracker.Tracker()
+            self._time_limit = total_time_limit
+
     def close(self) -> None:
         """Close the IBM session.
 
@@ -196,6 +212,17 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             self._session.__exit__(exc_type, exc_val, exc_tb)
             self._session = None
 
+    def _run_tracker(self) -> None:
+        assert self.tracker is not None
+        if self.tracker.total_run_time >= self._time_limit:
+            for job in self.tracker.running_jobs:
+                job._qiskit_job.cancel()
+            raise RuntimeError(
+                "The submission of this job is aborted due to run time limit of "
+                f"{self._time_limit} seconds is exceeded. Other unfinished jobs "
+                "are also aborted."
+            )
+
     def _execute_shots(
         self,
         runtime_sampler: Sampler,
@@ -205,10 +232,17 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     ) -> None:
         circuit_qasm_str = qiskit_circuit.qasm()
         for s in shot_dist:
+            if self.tracker is not None:
+                self._run_tracker()
+
             qiskit_runtime_job = runtime_sampler.run(
                 qiskit_circuit, shots=s, **self._run_kwargs
             )
             qiskit_runtime_sampling_job = QiskitRuntimeSamplingJob(qiskit_runtime_job)
+
+            if self.tracker is not None:
+                self.tracker.add_job_for_tracking(qiskit_runtime_sampling_job)
+
             # Saving mode
             if self._save_data_while_sampling:
                 self._saved_data.append(
@@ -256,7 +290,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 except Exception:
                     # Ignore cancel errors
                     pass
-            raise BackendError("Qiskit Device run failed.") from e
+            raise BackendError(f"Qiskit Device run failed. Failed reason:\n{e}") from e
 
         qubit_mapped_jobs = [self._job_mapper(job) for job in jobs]
         return (
