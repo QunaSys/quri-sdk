@@ -8,19 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union, cast
+from typing import Sequence, TypeVar, Union, cast
 
 from openfermion.ops import FermionOperator
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit, Parameter
+from quri_parts.core.operator import Operator
 
 from ..transforms import OpenFermionQubitOperatorMapper
+
+Excitation = TypeVar("Excitation", SingleExcitation, DoubleExcitation)
 
 
 def add_exp_excitation_gates_trotter_decomposition(
     circuit: LinearMappedUnboundParametricQuantumCircuit,
-    excitation_indices: Sequence[Union[SingleExcitation, DoubleExcitation]],
+    excitation_indices: Sequence[Excitation],
     params: Sequence[Parameter],
     operator_mapper: OpenFermionQubitOperatorMapper,
     coef: float,
@@ -28,7 +31,7 @@ def add_exp_excitation_gates_trotter_decomposition(
     """Add parametric Pauli rotation gates as a product of the exponentials of
     the excitations to the given :attr:`circuit`."""
     for i, sorb_indices in enumerate(excitation_indices):
-        op = _create_operator(sorb_indices, operator_mapper)
+        op = create_anti_hermitian_sd_excitation_operator(sorb_indices, operator_mapper)
         for pauli, op_coef in op.items():
             pauli_index_list, pauli_id_list = zip(*pauli)
             op_coef = op_coef.imag
@@ -40,10 +43,21 @@ def add_exp_excitation_gates_trotter_decomposition(
     return circuit
 
 
-def _create_operator(
+def create_anti_hermitian_sd_excitation_operator(
     excitation_indices: Union[SingleExcitation, DoubleExcitation],
     operator_mapper: OpenFermionQubitOperatorMapper,
-) -> FermionOperator:
+) -> Operator:
+    r"""Create an anti-hermitian :class:`~quri_parts.core.operator.Operator`
+    according to the assigned index.
+
+    - If there are 2 excitation indices (i, a), it creates the
+      :class:`~quri_parts.core.operator.Operator` for
+      :math:`c_a^{\dagger} c_i - c_i^{\dagger} c_a`.
+
+    - If there are 4 excitation indices (i, j, b, a), it creates the
+      :class:`~quri_parts.core.operator.Operator` for
+      :math:`c_a^{\dagger} c_b^{\dagger} c_j c_i - c_i^{\dagger}c_j^{\dagger} c_b c_a`.
+    """
     op = FermionOperator()
     if len(excitation_indices) == 2:
         op += FermionOperator(

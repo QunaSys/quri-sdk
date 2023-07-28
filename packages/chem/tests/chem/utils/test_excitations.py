@@ -12,6 +12,7 @@ from quri_parts.chem.utils.excitations import (
     add_double_excitation_circuit,
     add_single_excitation_circuit,
     excitations,
+    to_spin_symmetric_order,
 )
 from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
 from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
@@ -31,6 +32,13 @@ def test_excitations() -> None:
         [(0, 4), (1, 5), (2, 4), (3, 5)],
         [(0, 1, 4, 5), (0, 3, 4, 5), (1, 2, 4, 5), (2, 3, 4, 5)],
     )
+
+
+def test_to_spin_symmetric_order() -> None:
+    assert to_spin_symmetric_order((0, 1, 4, 5)) == (0, 1, 5, 4)
+    assert to_spin_symmetric_order((2, 1, 3, 6)) == (2, 1, 3, 6)
+    assert to_spin_symmetric_order((0, 2, 4, 6)) == (0, 2, 6, 4)
+    assert to_spin_symmetric_order((1, 3, 5, 7)) == (1, 3, 7, 5)
 
 
 def test_add_single_excitation_circuit() -> None:

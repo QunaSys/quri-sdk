@@ -9,6 +9,6 @@
 # limitations under the License.
 
 from .kupccgsd import KUpCCGSD
-from .uccsd import TrotterSingletUCCSD
+from .uccsd import TrotterUCCSD
 
-__all__ = ["KUpCCGSD", "TrotterSingletUCCSD"]
+__all__ = ["KUpCCGSD", "TrotterUCCSD"]

@@ -8,12 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .add_exp_excitation_gates_trotter_decomposition import (
-    add_exp_excitation_gates_trotter_decomposition,
-    create_anti_hermitian_sd_excitation_operator,
-)
+from .exp_commuting_paulis_gate import add_parametric_commuting_paulis_exp_gate
+from .exp_single_pauli_gate import convert_exp_single_pauli_gate
 
 __all__ = [
-    "add_exp_excitation_gates_trotter_decomposition",
-    "create_anti_hermitian_sd_excitation_operator",
+    "convert_exp_single_pauli_gate",
+    "add_parametric_commuting_paulis_exp_gate",
 ]
