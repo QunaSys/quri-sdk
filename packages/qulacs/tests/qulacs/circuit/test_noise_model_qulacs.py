@@ -276,3 +276,15 @@ def test_convert_kraus_cptp() -> None:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     assert np.allclose(cptp, matrix.get_matrix())  # type: ignore
+
+
+def test_convert_empty_circuit() -> None:
+    circuit = QuantumCircuit(1)
+
+    noise_model_empty = NoiseModel([])
+    converted_empty = convert_circuit_with_noise_model(circuit, noise_model_empty)
+    assert converted_empty.get_gate_count() == 0
+
+    noise_model_readout = NoiseModel([MeasurementNoise([BitFlipNoise(1.0)])])
+    converted_readout = convert_circuit_with_noise_model(circuit, noise_model_readout)
+    assert converted_readout.get_gate_count() == 1

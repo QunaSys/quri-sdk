@@ -146,7 +146,7 @@ def convert_circuit_with_noise_model(
 
     # Circuit noises for depth at the end of the circuit.
     depth_noises = []
-    max_depth = max(depths.values())
+    max_depth = max(depths.values()) if depths else 0
     for q in range(circuit.qubit_count):
         for ci in resolvers:
             depth_noises.extend(

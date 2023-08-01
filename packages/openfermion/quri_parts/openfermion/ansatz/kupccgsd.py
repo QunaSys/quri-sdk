@@ -14,8 +14,13 @@ from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
+    Parameter,
 )
-from quri_parts.openfermion.transforms import OpenFermionQubitMapping, jordan_wigner
+from quri_parts.openfermion.transforms import (
+    OpenFermionQubitMapping,
+    OpenFermionQubitOperatorMapper,
+    jordan_wigner,
+)
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 
 
@@ -45,6 +50,11 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
           :class:`Operator`
         trotter_number: Number for first-order Trotter product formula.
         delta_sz: Changes of spin in the excitation.
+        singlet_excitation: If ``True``, single excitations that start
+            from and end at the same spatial orbitals will share the same
+            circuit parameter. For the double excitations, the excitations
+            are paired, so the singlet excitation condition is satisfied
+            automatically.
     """
 
     def __init__(
@@ -55,53 +65,142 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
         trotter_number: int = 1,
         delta_sz: int = 0,
+        singlet_excitation: bool = False,
     ):
-        s_excs = _generalized_single_excitations(n_spin_orbitals, delta_sz)
-        d_excs = _generalized_pair_double_excitations(n_spin_orbitals)
-
         n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
-
         op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
             n_spin_orbitals, n_fermions
         )
+        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
-        for _ in range(k):
-            s_exc_params = [
-                circuit.add_parameter(f"theta_s_{i}") for i in range(len(s_excs))
-            ]
-            d_exc_params = [
-                circuit.add_parameter(f"theta_d_{i}") for i in range(len(d_excs))
-            ]
-            for _ in range(trotter_number):
-                add_exp_excitation_gates_trotter_decomposition(
-                    circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
-                )
-                add_exp_excitation_gates_trotter_decomposition(
-                    circuit, s_excs, s_exc_params, op_mapper, 1 / trotter_number
-                )
+        _construct_circuit(
+            circuit=circuit,
+            n_spin_orb=n_spin_orbitals,
+            delta_sz=delta_sz,
+            k=k,
+            singlet_excitation=singlet_excitation,
+            trotter_number=trotter_number,
+            op_mapper=op_mapper,
+        )
+
         super().__init__(circuit)
 
 
+def _construct_circuit(
+    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    n_spin_orb: int,
+    delta_sz: int,
+    k: int,
+    singlet_excitation: bool,
+    trotter_number: int,
+    op_mapper: OpenFermionQubitOperatorMapper,
+) -> None:
+    (
+        independent_s_exc,
+        independent_s_exc_name,
+    ) = _generalized_single_excitations(n_spin_orb, delta_sz, singlet_excitation, k)
+
+    (
+        independent_d_exc,
+        independent_d_exc_name,
+    ) = _generalized_pair_double_excitations(n_spin_orb, k)
+
+    for x in range(k):
+        if singlet_excitation:
+            spin_symmetric_names_recorder: dict[str, Parameter] = {}
+            independent_s_exc_params = []
+
+            for s_exc_name in independent_s_exc_name[x]:
+                if s_exc_name in spin_symmetric_names_recorder:
+                    param = spin_symmetric_names_recorder[s_exc_name]
+                else:
+                    param = circuit.add_parameter(s_exc_name)
+                    spin_symmetric_names_recorder[s_exc_name] = param
+                independent_s_exc_params.append(param)
+
+        else:
+            independent_s_exc_params = [
+                circuit.add_parameter(name) for name in independent_s_exc_name[x]
+            ]
+        independent_d_exc_params = [
+            circuit.add_parameter(name) for name in independent_d_exc_name[x]
+        ]
+
+        for _ in range(trotter_number):
+            add_exp_excitation_gates_trotter_decomposition(
+                circuit,
+                independent_s_exc,
+                independent_s_exc_params,
+                op_mapper,
+                1 / trotter_number,
+            )
+            add_exp_excitation_gates_trotter_decomposition(
+                circuit,
+                independent_d_exc,
+                independent_d_exc_params,
+                op_mapper,
+                1 / trotter_number,
+            )
+
+
 def _generalized_single_excitations(
-    n_spin_orbitals: int, delta_sz: int
-) -> Sequence[SingleExcitation]:
+    n_spin_orbitals: int,
+    delta_sz: int,
+    singlet_excitation: bool,
+    k: int,
+) -> tuple[Sequence[SingleExcitation], list[list[str]]]:
+    """Identify the independent single excitation amplitudes in the KUpGCCSD
+    ansatz and their corresponding circuit parameter names."""
+    if singlet_excitation:
+        assert delta_sz == 0, "delta_sz can only be 0 when singlet_excitation is True."
+
     sz = [0.5 - (i % 2) for i in range(n_spin_orbitals)]
     s_excitations = []
     for r in range(n_spin_orbitals):
         for p in range(n_spin_orbitals):
             if sz[p] - sz[r] == delta_sz and p != r:
                 s_excitations.append((r, p))
-    return s_excitations
+
+    independent_s_exc = []
+    independent_s_exc_name: list[list[str]] = [[] for _ in range(k)]
+
+    for s_exc in s_excitations:
+        p, q = s_exc
+        if (q, p) in independent_s_exc:
+            # if p^ q is in s_excs, q^ p is also in s_exc.
+            continue
+        independent_s_exc.append(s_exc)
+        for x in range(k):
+            if singlet_excitation:
+                independent_s_exc_name[x].append(f"spatialt1_{x}_{p//2}_{q//2}")
+            else:
+                independent_s_exc_name[x].append(f"t1_{x}_{p}_{q}")
+
+    return independent_s_exc, independent_s_exc_name
 
 
 def _generalized_pair_double_excitations(
-    n_spin_orbitals: int,
-) -> Sequence[DoubleExcitation]:
+    n_spin_orbitals: int, k: int
+) -> tuple[Sequence[DoubleExcitation], list[list[str]]]:
+    """Identify the independent paired excitation amplitudes in the KUpGCCSD
+    ansatz and their corresponding circuit parameter names."""
     double_excitations = [
         (r, r + 1, p, p + 1)
         for r in range(0, n_spin_orbitals - 1, 2)
         for p in range(0, n_spin_orbitals - 1, 2)
         if p != r
     ]
-    return double_excitations
+
+    independent_d_exc = []
+    independent_d_exc_name: list[list[str]] = [[] for _ in range(k)]
+
+    for d_exc in double_excitations:
+        p, q, r, s = d_exc
+        if (r, s, p, q) in independent_d_exc:
+            # if q^ p^ s r is in d_excs, s^ r^ q p is also in d_excs.
+            continue
+        independent_d_exc.append(d_exc)
+        for x in range(k):
+            independent_d_exc_name[x].append(f"t2_{x}_{p}_{q}_{r}_{s}")
+
+    return independent_d_exc, independent_d_exc_name
