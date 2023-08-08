@@ -8,6 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
+
+import numpy as np
+
+
+def bit_length(bits: Union[int, np.int8, np.int16, np.int32, np.int64]) -> int:
+    """Computes the bit length of an integer."""
+    return int(bits).bit_length()
+
 
 def get_bit(x: int, index: int) -> bool:
     """Returns if the bit at 'index' is set or not."""
@@ -34,7 +43,7 @@ def lowest_bit_index(x: int) -> int:
 def parity_sign_of_bits(bits: int) -> int:
     """Returns a sign corresponding to parity of bits (even=1, odd=-1)."""
     sign = 1
-    for _ in range(bits.bit_length()):
+    for _ in range(bit_length(bits)):
         if bits & 1 == 1:
             sign *= -1
         bits = bits >> 1

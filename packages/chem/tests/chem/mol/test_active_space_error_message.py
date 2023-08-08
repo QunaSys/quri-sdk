@@ -26,7 +26,6 @@ class MolecularOrbitalsInfo(MolecularOrbitals):
     _n_electron: int
     _n_spatial_orb: int
     _spin: int = 0
-    _mo_coeff: npt.NDArray[np.complex128] = np.zeros((1,), dtype=np.complex128)
     charge: int = 0
 
     @property
@@ -42,8 +41,8 @@ class MolecularOrbitalsInfo(MolecularOrbitals):
         return self._n_spatial_orb
 
     @property
-    def mo_coeff(self) -> "npt.NDArray[np.complex128]":
-        return self._mo_coeff
+    def mo_coeff(self) -> npt.NDArray[np.complex128]:
+        return np.zeros((1,), dtype=np.complex128)
 
 
 h2o = MolecularOrbitalsInfo(_n_electron=10, _n_spatial_orb=7)

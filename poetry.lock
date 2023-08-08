@@ -2236,13 +2236,13 @@ test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
 name = "notebook"
-version = "7.0.1"
+version = "7.0.2"
 description = "Jupyter Notebook - A web-based notebook environment for interactive computing"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "notebook-7.0.1-py3-none-any.whl", hash = "sha256:35327476042140e8739ff8fcfecdc915658ae72b4db72d6e3b537badcdbf9e35"},
-    {file = "notebook-7.0.1.tar.gz", hash = "sha256:2e16ad4e63ea89f7efbe212ee7c1693fcfa5ab55ffef75047530f74af4bd926c"},
+    {file = "notebook-7.0.2-py3-none-any.whl", hash = "sha256:c77b1499dc9b07ce4f4f26990dcb25b2107b434f2536766b51a72a4228d9a4b6"},
+    {file = "notebook-7.0.2.tar.gz", hash = "sha256:d70d6a07418c829bd5f54337ce993b7105261d9026f9d3fe68e9b8aa1a20da9a"},
 ]
 
 [package.dependencies]
