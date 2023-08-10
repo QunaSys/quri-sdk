@@ -65,13 +65,20 @@ class TestStateMapper:
     def test_jw_state_mapper(self) -> None:
         n_spin_orbitals = 4
         state_mapper = jordan_wigner.get_state_mapper(n_spin_orbitals)
+        inv_state_mapper = jordan_wigner.get_inv_state_mapper(n_spin_orbitals)
 
         mapped = state_mapper([0, 1])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b0011)
 
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals, bits=0b0011)
+        )
+        assert inv_mapped == [0, 1]
+
     def test_bk_state_mapper(self) -> None:
         n_spin_orbitals = 4
         state_mapper = bravyi_kitaev.get_state_mapper(n_spin_orbitals)
+        inv_state_mapper = bravyi_kitaev.get_inv_state_mapper(n_spin_orbitals)
 
         # State transformation matrix for BK(n_spin_orbitals=4, n_fermions=2):
         # [[1, 0, 0, 0]
@@ -82,12 +89,25 @@ class TestStateMapper:
         mapped = state_mapper([0, 1])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b0001)
 
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals, bits=0b0001)
+        )
+        assert inv_mapped == [0, 1]
+
         mapped = state_mapper([0, 2])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b0111)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals, bits=0b0111)
+        )
+        assert inv_mapped == [0, 2]
 
         n_spin_orbitals = 8
         n_fermions = 4
         state_mapper = bravyi_kitaev.get_state_mapper(n_spin_orbitals, n_fermions)
+        inv_state_mapper = bravyi_kitaev.get_inv_state_mapper(
+            n_spin_orbitals, n_fermions
+        )
 
         # State transformation matrix for BK(n_spin_orbitals=8, n_fermions=4):
         # [[1, 0, 0, 0, 0, 0, 0, 0]
@@ -102,8 +122,18 @@ class TestStateMapper:
         mapped = state_mapper([0, 1, 2, 3])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b00000101)
 
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals, bits=0b00000101)
+        )
+        assert inv_mapped == [0, 1, 2, 3]
+
         mapped = state_mapper([0, 1, 4, 5])
         assert mapped == ComputationalBasisState(n_spin_orbitals, bits=0b00010001)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals, bits=0b00010001)
+        )
+        assert inv_mapped == [0, 1, 4, 5]
 
     def test_scbk_state_mapper(self) -> None:
         n_spin_orbitals = 4
@@ -114,6 +144,9 @@ class TestStateMapper:
         n_fermions = 2
         state_mapper = symmetry_conserving_bravyi_kitaev.get_state_mapper(
             n_spin_orbitals, n_fermions
+        )
+        inv_state_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
+            n_spin_orbitals, n_fermions, 1
         )
 
         # State transformation:
@@ -127,14 +160,39 @@ class TestStateMapper:
 
         mapped = state_mapper([0, 1])
         assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b11)
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b11)
+        )
+        assert inv_mapped == [0, 1]
 
-        mapped = state_mapper([0, 2])
+        mapped = state_mapper([0, 3])
         assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b01)
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b01)
+        )
+        assert inv_mapped == [0, 3]
+
+        mapped = state_mapper([1, 2])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b10)
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b10)
+        )
+        assert inv_mapped == [1, 2]
+
+        mapped = state_mapper([2, 3])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b00)
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b00)
+        )
+        assert inv_mapped == [2, 3]
 
         n_spin_orbitals = 8
         n_fermions = 4
         state_mapper = symmetry_conserving_bravyi_kitaev.get_state_mapper(
             n_spin_orbitals, n_fermions
+        )
+        inv_state_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
+            n_spin_orbitals, n_fermions, 2
         )
 
         # State transformation:
@@ -153,10 +211,17 @@ class TestStateMapper:
         mapped = state_mapper([0, 1, 2, 3])
         assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b001001)
 
-        mapped = state_mapper([0, 2, 4, 6])
-        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b000101)
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b001001)
+        )
+        assert inv_mapped == [0, 1, 2, 3]
 
         # In this case, since qubit binary before dropping 2 qubits is larger than
         # 2**n_qubits-1, it is required to take bitwise-AND when creating the state
         mapped = state_mapper([0, 1, 4, 5])
         assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b111111)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b111111)
+        )
+        assert inv_mapped == [0, 1, 4, 5]
