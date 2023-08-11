@@ -9,6 +9,7 @@ Tutorials
     tutorials/parametric
     tutorials/variational
     tutorials/sampling_simulation
-    tutorials/sampling_real
+    tutorials/sampling_backends/index.rst
     tutorials/noise_error
     tutorials/error_mitigation
+    tutorials/quantum_chemistry/index.rst    
