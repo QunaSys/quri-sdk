@@ -1,6 +1,6 @@
 ---
 name: grpcio-status
-version: 1.56.2
+version: 1.57.0
 type: pip
 summary: Status proto mapping for gRPC
 homepage: https://grpc.io
