@@ -18,9 +18,10 @@ from typing_extensions import TypeAlias
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 
-#: SamplingCounts represents count statistics of repeated sampling of a quantum
-#: circuit. Keys are observed bit patterns encoded in integers and values are counts
-#: of observation of the corresponding bit patterns.
+#: SamplingCounts represents count statistics of repeated sampling or the
+#: measurement probabilities of a quantum circuit. Keys are observed bit
+#: patterns encoded in integers and values are counts of observation or the
+#: probabilities of the corresponding bit patterns.
 SamplingCounts: TypeAlias = Mapping[int, Union[float, int]]
 
 

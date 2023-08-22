@@ -47,6 +47,27 @@ def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCoun
         return Counter(qs_state.sampling(shots))
 
 
+def _ideal_sample(
+    circuit: NonParametricQuantumCircuit, shots: int
+) -> MeasurementCounts:
+    if isinstance(circuit, _QulacsCircuit):
+        qs_circuit = circuit._qulacs_circuit
+    else:
+        qs_circuit = convert_circuit(circuit)
+    qs_state = qulacs.QuantumState(circuit.qubit_count)
+    qs_circuit.update_quantum_state(qs_state)
+
+    probs = np.abs(qs_state.get_vector()) ** 2
+
+    return {i: prob * shots for i, prob in enumerate(probs)}
+
+
+def create_qulacs_vector_ideal_sampler() -> Sampler:
+    """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
+    returning the probabilities multiplied by the specific shot count."""
+    return _ideal_sample
+
+
 def create_qulacs_vector_sampler() -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     sampling."""
@@ -124,6 +145,25 @@ def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
             return dict((i, count) for i, count in enumerate(counts) if count > 0)
         else:
             return Counter(state.sampling(shots))
+
+    return _sample_with_noise
+
+
+def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
+    """Returns a :class:`~Sampler` that uses Qulacs simulator using density
+    matrix with noise model and provides the exact probabilities multiplied
+    with the shot count."""
+
+    def _sample_with_noise(
+        circuit: NonParametricQuantumCircuit, shots: int
+    ) -> MeasurementCounts:
+        qubit_count = circuit.qubit_count
+        qs_circuit = convert_circuit_with_noise_model(circuit, model)
+        state = qulacs.DensityMatrix(qubit_count)
+        qs_circuit.update_quantum_state(state)
+
+        probs = list(np.abs(np.diag(state.get_matrix())))  # type: ignore
+        return {i: prob * shots for i, prob in enumerate(probs)}
 
     return _sample_with_noise
 
