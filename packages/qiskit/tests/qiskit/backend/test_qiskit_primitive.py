@@ -12,6 +12,7 @@ import json
 import random
 import re
 import string
+import warnings
 from collections import Counter
 from typing import Any
 from unittest.mock import MagicMock
@@ -594,3 +595,273 @@ class TestQiskitPrimitive:
 
         job2 = sampling_backend.sample(QuantumCircuit(2), 100)
         assert sampling_backend.tracker.running_jobs == [job1, job2]
+
+    def test_get_batch_execution_time(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+            single_job_max_execution_time=500,
+            total_time_limit=1000,
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (500 / 4, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 1]
+        ) == (500 / 4, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            500,
+            1000,
+        )
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=1000
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (None, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 1]
+        ) == (None, 1000 / 4)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            None,
+            1000,
+        )
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, single_job_max_execution_time=500
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (500 / 4, None)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 1]
+        ) == (500 / 4, None)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            500,
+            None,
+        )
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (None, None)
+
+    def test_get_sampler_option_with_max_execution_time_limit(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, single_job_max_execution_time=500
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=30, batch_time_left=None
+            ).max_execution_time
+            == 300
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=400, batch_time_left=None
+            ).max_execution_time
+            == 400
+        )
+
+    def test_get_sampler_option_with_tracker_time_limit(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+        )
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=None, batch_time_left=3000
+            ).max_execution_time
+            == 3000
+        )
+
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=None, batch_time_left=30
+            ).max_execution_time
+            == 300
+        )
+
+    def test_get_sampler_option_with_both_time_limit(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        # Test sampling backend with both total_time_limit and
+        # single_job_max_execution_time settings.
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+        )
+
+        # tl > tb > 300
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=700, batch_time_left=800
+            ).max_execution_time
+            == 700
+        )
+
+        # tb > tl > 300
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=700, batch_time_left=600
+            ).max_execution_time
+            == 600
+        )
+
+        # tl  > 300 > tb
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=70, batch_time_left=600
+            ).max_execution_time
+            == 300
+        )
+
+        # tb > 300 > tl
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=350, batch_time_left=100
+            ).max_execution_time
+            == 300
+        )
+
+        # 300 > tb > tl
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=140, batch_time_left=100
+            ).max_execution_time
+            == 300
+        )
+
+        # 300 > tl > tb
+        assert (
+            sampling_backend._get_sampler_option_with_time_limit(
+                batch_exe_time=10, batch_time_left=100
+            ).max_execution_time
+            == 300
+        )
+
+    def test_check_execution_time_limitability_strict(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, strict_time_limit=True
+        )
+
+        with pytest.raises(
+            BackendError,
+            match="Max execution time limit of 30 seconds cannot be followed strictly.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=30, batch_time_left=None
+            )
+
+        with pytest.raises(
+            BackendError,
+            match="Max execution time limit of 30 seconds cannot be followed strictly.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=None, batch_time_left=30
+            )
+
+        with pytest.raises(
+            BackendError,
+            match="Max execution time limit of 50 seconds cannot be followed strictly.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=30, batch_time_left=50
+            )
+
+        with pytest.raises(
+            BackendError,
+            match="Max execution time limit of 50 seconds cannot be followed strictly.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=80, batch_time_left=50
+            )
+
+        # test no excpetion raised
+        try:
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=300, batch_time_left=300
+            )
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=800, batch_time_left=500
+            )
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=800, batch_time_left=None
+            )
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=None, batch_time_left=500
+            )
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=None, batch_time_left=None
+            )
+        except:  # noqa: E722
+            assert False
+
+    def test_check_execution_time_limitability_non_strict(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, strict_time_limit=False
+        )
+
+        with pytest.warns(
+            UserWarning,
+            match="The time limit of 30 seconds is likely going to be exceeded.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=30, batch_time_left=None
+            )
+
+        with pytest.warns(
+            UserWarning,
+            match="The time limit of 30 seconds is likely going to be exceeded.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=None, batch_time_left=30
+            )
+
+        with pytest.warns(
+            UserWarning,
+            match="The time limit of 50 seconds is likely going to be exceeded.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=30, batch_time_left=50
+            )
+
+        with pytest.warns(
+            UserWarning,
+            match="The time limit of 80 seconds is likely going to be exceeded.",
+        ):
+            sampling_backend._check_execution_time_limitability(
+                batch_exe_time=80, batch_time_left=50
+            )
+
+        # test no warnings raised
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            sampling_backend._check_execution_time_limitability(300, 300)
+            sampling_backend._check_execution_time_limitability(800, 500)
+            sampling_backend._check_execution_time_limitability(800, None)
+            sampling_backend._check_execution_time_limitability(None, 500)
+            sampling_backend._check_execution_time_limitability(None, None)
