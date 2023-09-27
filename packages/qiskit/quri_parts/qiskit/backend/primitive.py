@@ -148,8 +148,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         sampler_options: Union[None, Options, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
-        total_time_limit: Optional[float] = None,
-        single_job_max_execution_time: Optional[float] = None,
+        total_time_limit: Optional[int] = None,
+        single_job_max_execution_time: Optional[int] = None,
         strict_time_limit: bool = False,
     ):
         self._backend = backend
@@ -267,7 +267,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 )
 
     def _get_sampler_option_with_time_limit(
-        self, batch_exe_time: Optional[float], batch_time_left: Optional[float]
+        self, batch_exe_time: Optional[int], batch_time_left: Optional[int]
     ) -> Options:
         options = (
             deepcopy(self._qiskit_sampler_options)
@@ -294,16 +294,16 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
     def _get_batch_execution_time_and_time_left(
         self, shot_dist: Sequence[int]
-    ) -> tuple[Optional[float], Optional[float]]:
+    ) -> tuple[Optional[int], Optional[int]]:
         n_batch = len(shot_dist)
         batch_execution_time, batch_time_left = None, None
 
         if self._single_job_max_execution_time is not None:
-            batch_execution_time = self._single_job_max_execution_time / n_batch
+            batch_execution_time = int(self._single_job_max_execution_time // n_batch)
 
         if self.tracker is not None:
             time_left = self._time_limit - self.tracker.total_run_time
-            batch_time_left = time_left / n_batch
+            batch_time_left = int(time_left // n_batch)
 
         return batch_execution_time, batch_time_left
 

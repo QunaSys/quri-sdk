@@ -596,6 +596,63 @@ class TestQiskitPrimitive:
         job2 = sampling_backend.sample(QuantumCircuit(2), 100)
         assert sampling_backend.tracker.running_jobs == [job1, job2]
 
+    def test_get_batch_execution_time_not_divisible(self) -> None:
+        runtime_service = mock_get_backend("FakeVigo")
+        service = runtime_service()
+        backend = service.backend()
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend,
+            service=service,
+            single_job_max_execution_time=500,
+            total_time_limit=1000,
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50]
+        ) == (500 // 3, 1000 // 3)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 1]
+        ) == (500 // 3, 1000 // 3)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            500,
+            1000,
+        )
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, total_time_limit=1000
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50]
+        ) == (None, 1000 // 3)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 1]
+        ) == (None, 1000 // 3)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            None,
+            1000,
+        )
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service, single_job_max_execution_time=500
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50]
+        ) == (500 // 3, None)
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 1]
+        ) == (500 // 3, None)
+        assert sampling_backend._get_batch_execution_time_and_time_left([50]) == (
+            500,
+            None,
+        )
+
+        sampling_backend = QiskitRuntimeSamplingBackend(
+            backend=backend, service=service
+        )
+        assert sampling_backend._get_batch_execution_time_and_time_left(
+            [50, 50, 50, 50]
+        ) == (None, None)
+
     def test_get_batch_execution_time(self) -> None:
         runtime_service = mock_get_backend("FakeVigo")
         service = runtime_service()
