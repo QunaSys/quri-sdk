@@ -15,51 +15,100 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 
-def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+def _sample(
+    circuit: NonParametricQuantumCircuit, shots: int, **kwargs: Any
+) -> MeasurementCounts:
     ensure_itensor_loaded()
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit_ops = convert_circuit(circuit, s)
-    psi = jl.apply(circuit_ops, psi)
+    psi = jl.apply(circuit_ops, psi, **kwargs)
     result: list[int] = jl.sampling(psi, shots)
     return Counter(result)
 
 
-def create_itensor_mps_sampler() -> Sampler:
+def create_itensor_mps_sampler(
+    *,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses ITensor mps simulator for
-    sampling."""
-    return _sample
+    sampling.
 
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
-def _sample_sequentially(
-    _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
-) -> Iterable[MeasurementCounts]:
-    return [_sample(circuit, shots) for circuit, shots in circuit_shots_tuples]
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
+    """
+
+    def sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+        if maxdim is not None:
+            kwargs["maxdim"] = maxdim
+        if cutoff is not None:
+            kwargs["cutoff"] = cutoff
+        return _sample(circuit, shots, **kwargs)
+
+    return sample
 
 
 def _sample_concurrently(
     circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
     executor: Optional["Executor"],
     concurrency: int = 1,
+    **kwargs: Any,
 ) -> Iterable[MeasurementCounts]:
+    def _sample_sequentially(
+        _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    ) -> Iterable[MeasurementCounts]:
+        return [
+            _sample(circuit, shots, **kwargs) for circuit, shots in circuit_shots_tuples
+        ]
+
     return execute_concurrently(
         _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
     )
 
 
 def create_itensor_mps_concurrent_sampler(
-    executor: Optional["Executor"] = None, concurrency: int = 1
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+    *,
+    maxdim: Optional[int] = None,
+    cutoff: Optional[float] = None,
+    **kwargs: Any,
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses ITensor mps simulator
     for sampling.
 
-    For now, this function works when the executor is defined like below::
+    The following parameters including
+    keyword arguments `**kwargs` are passed to `ITensors.apply
+    <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
-    >>> with ProcessPoolExecutor(
-    ...     max_workers=2, mp_context=get_context("spawn")
-    ... ) as executor:
+    Args:
+        maxdim: The maximum numer of singular values.
+        cutoff: Singular value truncation cutoff.
+
+    For now, this function works when the executor is defined like below
+
+    Examples:
+        >>> with ProcessPoolExecutor(
+                max_workers=2, mp_context=get_context("spawn")
+            ) as executor:
+                sampler = create_itensor_mps_concurrent_sampler(
+                    executor, 2, **kwargs
+                )
+                results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
     """
+
+    if maxdim is not None:
+        kwargs["maxdim"] = maxdim
+    if cutoff is not None:
+        kwargs["cutoff"] = cutoff
 
     def sampler(
         circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
