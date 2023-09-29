@@ -13,11 +13,11 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-from quri_parts.cirq.circuit import CirqTranspiler
+from quri_parts.cirq.circuit import CirqSetTranspiler
 
 
 def test_cirq_transpiler() -> None:
-    transpiler = CirqTranspiler()
+    transpiler = CirqSetTranspiler()
     assert isinstance(transpiler, SequentialTranspiler)
     assert [type(x) for x in transpiler._transpilers] == [
         PauliDecomposeTranspiler,

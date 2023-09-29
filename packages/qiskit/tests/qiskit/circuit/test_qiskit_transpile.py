@@ -13,11 +13,11 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
-from quri_parts.qiskit.circuit import QiskitTranspiler
+from quri_parts.qiskit.circuit import QiskitSetTranspiler
 
 
 def test_qiskit_transpiler() -> None:
-    transpiler = QiskitTranspiler()
+    transpiler = QiskitSetTranspiler()
     assert isinstance(transpiler, SequentialTranspiler)
     assert [type(x) for x in transpiler._transpilers] == [
         PauliDecomposeTranspiler,

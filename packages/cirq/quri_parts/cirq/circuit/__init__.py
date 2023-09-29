@@ -8,12 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .circuit_converter import CirqTranspiler, convert_circuit, convert_gate
+from .circuit_converter import CirqSetTranspiler, convert_circuit, convert_gate
 from .cirq_circuit_converter import circuit_from_cirq
 
 __all__ = [
     "convert_gate",
     "convert_circuit",
-    "CirqTranspiler",
+    "CirqSetTranspiler",
     "circuit_from_cirq",
 ]

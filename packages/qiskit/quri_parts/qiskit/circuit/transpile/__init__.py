@@ -8,14 +8,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Mapping, Sequence
 from typing import Optional
 
 from qiskit import transpile
 from qiskit.providers import Backend
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
+
+_qp_qiskit_gate_name_map: Mapping[GateNameType, str] = {
+    gate_names.Identity: "id",
+    gate_names.X: "x",
+    gate_names.Y: "y",
+    gate_names.Z: "z",
+    gate_names.H: "h",
+    gate_names.S: "s",
+    gate_names.Sdag: "sdg",
+    gate_names.SqrtX: "sx",
+    gate_names.SqrtXdag: "sxdg",
+    gate_names.T: "t",
+    gate_names.Tdag: "tdg",
+    gate_names.RX: "rx",
+    gate_names.RY: "ry",
+    gate_names.RZ: "rz",
+    gate_names.U3: "u",
+    gate_names.CNOT: "cx",
+    gate_names.CZ: "cz",
+    gate_names.SWAP: "swap",
+    gate_names.TOFFOLI: "ccx",
+}
 
 
 class QiskitTranspiler(CircuitTranspilerProtocol):
@@ -28,26 +52,32 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     Qiskit and vice versa is performed internally.
 
     Args:
-        backend: Qiskit's Backend instance.
+        backend: Qiskit's Backend instance. If specified, the gate set for the device
+            is used for the output and the basis_gates option is ignored.
         basis_gates: Specify the gate set after decomposition as a list of gate name
-            strings. The gate name notation follows Qiskit.
+            strings. If omitted, all gates compatible with Qiskit may exist in the
+            output.
         optimization_level: Specifies the optimization level of the circuit.
     """
 
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[list[str]] = None,
+        basis_gates: Optional[Sequence[GateNameType]] = None,
         optimization_level: Optional[int] = None,
     ):
+        self._basis_gates: Optional[list[str]] = None
+        if basis_gates is not None:
+            self._basis_gates = [_qp_qiskit_gate_name_map[name] for name in basis_gates]
+
         self._backend = backend
-        self._basis_gates = basis_gates
         self._optimization_level = optimization_level
 
     def __call__(
         self, circuit: NonParametricQuantumCircuit
     ) -> NonParametricQuantumCircuit:
         qiskit_circ = convert_circuit(circuit)
+
         optimized_qiskit_circ = transpile(
             qiskit_circ,
             backend=self._backend,

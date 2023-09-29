@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.braket.circuit import BraketTranspiler
+from quri_parts.braket.circuit import BraketSetTranspiler
 from quri_parts.circuit.transpile import (
     IdentityInsertionTranspiler,
     PauliDecomposeTranspiler,
@@ -18,7 +18,7 @@ from quri_parts.circuit.transpile import (
 
 
 def test_bracket_transpiler() -> None:
-    transpiler = BraketTranspiler()
+    transpiler = BraketSetTranspiler()
     assert isinstance(transpiler, SequentialTranspiler)
     assert [type(x) for x in transpiler._transpilers] == [
         PauliDecomposeTranspiler,

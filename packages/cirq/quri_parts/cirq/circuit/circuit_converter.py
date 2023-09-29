@@ -41,7 +41,7 @@ from quri_parts.circuit.transpile import (
 )
 
 #: CircuitTranspiler to convert a circit configuration suitable for Cirq.
-CirqTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+CirqSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
 )
 

@@ -10,7 +10,7 @@
 
 from .circuit_converter import (
     QiskitCircuitConverter,
-    QiskitTranspiler,
+    QiskitSetTranspiler,
     convert_circuit,
     convert_gate,
 )
@@ -18,7 +18,7 @@ from .qiskit_circuit_converter import circuit_from_qiskit
 
 __all__ = [
     "QiskitCircuitConverter",
-    "QiskitTranspiler",
+    "QiskitSetTranspiler",
     "convert_gate",
     "convert_circuit",
     "circuit_from_qiskit",

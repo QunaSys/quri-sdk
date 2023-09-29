@@ -47,7 +47,7 @@ QiskitCircuitConverter: TypeAlias = Callable[
 ]
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
-QiskitTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+QiskitSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [PauliDecomposeTranspiler(), PauliRotationDecomposeTranspiler()]
 )
 
@@ -162,7 +162,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 def convert_circuit(
     circuit: NonParametricQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = QiskitTranspiler(),
+    transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
 ) -> QuantumCircuit:
     """Converts a :class:`NonParametricQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""

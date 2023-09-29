@@ -24,7 +24,9 @@ def test_basis_gates() -> None:
             gates.S(2),
         ]
     )
-    target = QiskitTranspiler(basis_gates=["x", "sx", "rz", "cx"])(circuit)
+    target = QiskitTranspiler(
+        basis_gates=[gate_names.X, gate_names.SqrtX, gate_names.RZ, gate_names.CNOT]
+    )(circuit)
 
     expect = QuantumCircuit(3)
     expect.extend(
@@ -50,9 +52,9 @@ def test_optimization() -> None:
             gates.X(0),
         ]
     )
-    target = QiskitTranspiler(basis_gates=["h", "x", "t"], optimization_level=2)(
-        circuit
-    )
+    target = QiskitTranspiler(
+        basis_gates=[gate_names.H, gate_names.X, gate_names.T], optimization_level=2
+    )(circuit)
 
     expect = QuantumCircuit(1)
     expect.add_T_gate(0)

@@ -28,7 +28,7 @@ from quri_parts.backend import (
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.braket.circuit import (
     BraketCircuitConverter,
-    BraketTranspiler,
+    BraketSetTranspiler,
     convert_circuit,
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
@@ -76,7 +76,7 @@ class BraketSamplingBackend(SamplingBackend):
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to \
             a Braket :class:`braket.circuits.Circuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
-            :class:`~BraketTranspiler` is used when not specified.
+            :class:`~BraketSetTranspiler` is used when not specified.
         enable_shots_roundup: If True, when a number of shots specified to \
             :meth:`~sample` is smaller than the minimum number of shots supported by \
             the device, it is rounded up to the minimum. In this case, it is possible \
@@ -98,7 +98,7 @@ class BraketSamplingBackend(SamplingBackend):
         self,
         device: Device,
         circuit_converter: BraketCircuitConverter = convert_circuit,
-        circuit_transpiler: Optional[CircuitTranspiler] = None,
+        circuit_transpiler: Optional[CircuitTranspiler] = BraketSetTranspiler(),
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
         run_kwargs: Mapping[str, Any] = {},
@@ -111,7 +111,7 @@ class BraketSamplingBackend(SamplingBackend):
             self._qubit_mapping = BackendQubitMapping(qubit_mapping)
 
         if circuit_transpiler is None:
-            circuit_transpiler = BraketTranspiler()
+            circuit_transpiler = BraketSetTranspiler()
         if isinstance(device, AwsDevice):
             circuit_transpiler = SequentialTranspiler(
                 [circuit_transpiler, AwsDeviceTranspiler(device)]

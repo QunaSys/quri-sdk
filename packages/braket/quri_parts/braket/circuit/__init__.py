@@ -42,7 +42,7 @@ BraketCircuitConverter: TypeAlias = Callable[
 ]
 
 
-class BraketTranspiler(SequentialTranspiler):
+class BraketSetTranspiler(SequentialTranspiler):
     """CircuitTranspiler to convert a circuit configuration suitable for
     Braket."""
 
@@ -171,7 +171,7 @@ def convert_gate(gate: QuantumGate) -> Instruction:
 
 def convert_circuit(
     circuit: NonParametricQuantumCircuit,
-    transpiler: Optional[CircuitTranspiler] = BraketTranspiler(),
+    transpiler: Optional[CircuitTranspiler] = BraketSetTranspiler(),
 ) -> Circuit:
     if transpiler is not None:
         circuit = transpiler(circuit)
@@ -184,7 +184,7 @@ def convert_circuit(
 
 __all__ = [
     "BraketCircuitConverter",
-    "BraketTranspiler",
+    "BraketSetTranspiler",
     "convert_gate",
     "convert_circuit",
 ]
