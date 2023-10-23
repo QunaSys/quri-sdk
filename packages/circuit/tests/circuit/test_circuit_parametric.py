@@ -13,6 +13,8 @@ from quri_parts.circuit import (
     RX,
     ImmutableBoundParametricQuantumCircuit,
     ImmutableUnboundParametricQuantumCircuit,
+    ParametricPauliRotation,
+    ParametricRX,
     QuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuit,
@@ -116,6 +118,18 @@ class TestUnboundParametricQuantumCircuit:
         exp_circuit.add_ParametricRX_gate(0)
         exp_circuit.add_ParametricPauliRotation_gate([1], [1])
         assert got_circuit.gates == exp_circuit.gates
+
+    def test_add_gate(self) -> None:
+        circuit = mutable_circuit()
+        assert circuit.gates == _GATES + [
+            ParametricRX(0),
+            ParametricPauliRotation([1], [1]),
+        ]
+        circuit.add_gate(X(0), 0)
+        assert circuit.gates == [X(0)] + _GATES + [
+            ParametricRX(0),
+            ParametricPauliRotation([1], [1]),
+        ]
 
 
 class TestImmutableUnboundParametricQuantumCircuit:

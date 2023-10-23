@@ -48,6 +48,10 @@ class TestQuantumCircuit:
         with pytest.raises(ValueError):
             circuit.add_gate(X(3))
 
+        circuit.add_gate(X(0), 0)
+        assert circuit.gates == (X(0),) + tuple(_GATES)
+        assert len(circuit.gates) == len(_GATES) + 1
+
     def test_get_mutable_copy(self) -> None:
         circuit = mutable_circuit()
         circuit_copied = circuit.get_mutable_copy()

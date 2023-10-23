@@ -307,7 +307,7 @@ class UnboundParametricQuantumCircuit(
             raise ValueError(
                 "The indices of the gate applied must be smaller than qubit_count"
             )
-        if gate_index:
+        if gate_index is not None:
             self._gates.insert(gate_index, (gate, None))
         else:
             self._gates.append((gate, None))

@@ -1,5 +1,16 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from typing import Union
 
+import numpy as np
 import qulacs as ql
 from numpy import cfloat, zeros
 from numpy.typing import NDArray
@@ -60,3 +71,28 @@ def run_circuit(
     new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()  # type: ignore
 
     return new_state_vector
+
+
+def get_marginal_probability(
+    state_vector: NDArray[cfloat], measured_values: dict[int, int]
+) -> float:
+    """Compute the probability of obtaining a result when measuring on a subset
+    of the qubits.
+
+    state_vector:
+        A 1-dimensional array representing the state vector.
+    measured_values:
+        A dictionary representing the desired measurement outcome on the specified
+        qubtis. Suppose {0: 1, 2: 0} is passed in, it computes the probability of
+        obtaining 1 on the 0th qubit and 0 on the 2nd qubit.
+    """
+    n_qubits: float = np.log2(state_vector.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+    assert (
+        max(measured_values.keys()) < n_qubits
+    ), f"The specified qubit index {max(measured_values.keys())} is out of range."
+
+    qulacs_state = ql.QuantumState(int(n_qubits))
+    qulacs_state.load(cast_to_list(state_vector))
+    measured = [measured_values.get(i, 2) for i in range(int(n_qubits))]
+    return qulacs_state.get_marginal_probability(measured)

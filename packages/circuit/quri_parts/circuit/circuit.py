@@ -362,7 +362,7 @@ class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol)
                 "than cbit_count",
             )
 
-        if gate_index:
+        if gate_index is not None:
             self._gates.insert(gate_index, gate)
         else:
             self._gates.append(gate)
