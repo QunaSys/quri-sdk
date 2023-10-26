@@ -13,3 +13,4 @@ Tutorials
     tutorials/noise_error
     tutorials/error_mitigation
     tutorials/quantum_chemistry/index.rst    
+    tutorials/transpiler

@@ -117,7 +117,7 @@ class GateKindDecomposer(GateDecomposer, ABC):
     @property
     @abstractmethod
     def target_gate_names(self) -> Sequence[str]:
-        """Returns the set of gate names to be decomposed."."""
+        """Returns the set of gate names to be decomposed."""
         ...
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
