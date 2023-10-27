@@ -19,6 +19,7 @@ from .pauli import (
     pauli_product,
 )
 from .representation import transition_amp_comp_basis, transition_amp_representation
+from .sparse import get_sparse_matrix
 from .trotter_suzuki import trotter_suzuki_decomposition
 
 PAULI_IDENTITY = PAULI_IDENTITY
@@ -44,4 +45,5 @@ __all__ = [
     "transition_amp_representation",
     "zero",
     "trotter_suzuki_decomposition",
+    "get_sparse_matrix",
 ]
