@@ -1,3 +1,13 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional
 
@@ -44,7 +54,6 @@ ITensorParametricStateT: TypeAlias = ParametricCircuitQuantumState
 def _estimate(
     operator: Estimatable, state: ITensorStateT, **kwargs: Any
 ) -> Estimate[complex]:
-    ensure_itensor_loaded()
     if operator == zero():
         return _Estimate(value=0.0, error=0.0)
     qubits = state.qubit_count
@@ -57,14 +66,16 @@ def _estimate(
     # create ITensor operator
     op = convert_operator(operator, s)
 
-    # calculate expectation value
+    # apply circuit
     psi = jl.apply(circuit, psi, **kwargs)
-    exp: float = jl.expectation(psi, op)
 
-    # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
+    # calculate expectation value
     error = 0.0
-    if "maxdim" in kwargs or "cutoff" in kwargs:
+    if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
+        # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
         error = np.nan
+        psi = jl.normalize(psi)
+    exp: float = jl.expectation(psi, op)
 
     return _Estimate(value=exp, error=error)
 
@@ -83,9 +94,10 @@ def create_itensor_mps_estimator(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_.
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     def estimator(operator: Estimatable, state: ITensorStateT) -> Estimate[complex]:
         if maxdim is not None:
@@ -102,12 +114,14 @@ def _sequential_estimate_single_state(
     operators: Sequence[Estimatable],
     **kwargs: Any,
 ) -> Sequence[Estimate[complex]]:
-    ensure_itensor_loaded()
     qubits = state.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit = convert_circuit(state.circuit, s)
     psi = jl.apply(circuit, psi, **kwargs)
+    if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
+        psi = jl.normalize(psi)
+
     results = []
     for op in operators:
         if op == zero():
@@ -117,7 +131,7 @@ def _sequential_estimate_single_state(
 
         # See https://github.com/QunaSys/quri-parts/pull/203#discussion_r1329458816
         error = 0.0
-        if "maxdim" in kwargs or "cutoff" in kwargs:
+        if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
             error = np.nan
 
         results.append(_Estimate(value=jl.expectation(psi, itensor_op), error=error))
@@ -190,9 +204,10 @@ def create_itensor_mps_concurrent_estimator(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_.
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     if maxdim is not None:
         kwargs["maxdim"] = maxdim
@@ -254,9 +269,11 @@ def create_itensor_mps_parametric_estimator(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_.
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
+
     if maxdim is not None:
         kwargs["maxdim"] = maxdim
     if cutoff is not None:
@@ -280,9 +297,10 @@ def create_itensor_mps_concurrent_parametric_estimator(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_.
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     if maxdim is not None:
         kwargs["maxdim"] = maxdim

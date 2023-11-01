@@ -1,3 +1,13 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from collections import Counter
 from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any, Optional
@@ -18,12 +28,14 @@ if TYPE_CHECKING:
 def _sample(
     circuit: NonParametricQuantumCircuit, shots: int, **kwargs: Any
 ) -> MeasurementCounts:
-    ensure_itensor_loaded()
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
     circuit_ops = convert_circuit(circuit, s)
     psi = jl.apply(circuit_ops, psi, **kwargs)
+    if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
+        psi = jl.normalize(psi)
+
     result: list[int] = jl.sampling(psi, shots)
     return Counter(result)
 
@@ -42,9 +54,10 @@ def create_itensor_mps_sampler(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
     """
+    ensure_itensor_loaded()
 
     def sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
         if maxdim is not None:
@@ -90,7 +103,7 @@ def create_itensor_mps_concurrent_sampler(
     <https://itensor.github.io/ITensors.jl/dev/MPSandMPO.html#ITensors.product-Tuple{ITensor,%20ITensors.AbstractMPS}>`_
 
     Args:
-        maxdim: The maximum numer of singular values.
+        maxdim: The maximum number of singular values.
         cutoff: Singular value truncation cutoff.
 
     For now, this function works when the executor is defined like below
@@ -104,6 +117,7 @@ def create_itensor_mps_concurrent_sampler(
                 )
                 results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
     """
+    ensure_itensor_loaded()
 
     if maxdim is not None:
         kwargs["maxdim"] = maxdim

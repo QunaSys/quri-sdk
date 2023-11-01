@@ -62,7 +62,6 @@ def counts() -> Iterable[MeasurementCounts]:
             0b111: 1,
         },
         {
-            0b000: 0,
             0b001: 1,
             0b100: 2,
             0b111: 1,
