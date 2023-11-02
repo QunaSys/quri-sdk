@@ -1,6 +1,6 @@
 ---
 name: matplotlib
-version: 3.8.0
+version: 3.8.1
 type: pip
 summary: Python plotting package
 homepage: https://matplotlib.org

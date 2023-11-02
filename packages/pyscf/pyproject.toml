@@ -28,7 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
-pyscf = "^2.1.1"
+pyscf = "^2.3.0"
 quri-parts-core = "*"
 quri-parts-chem = "*"
 
