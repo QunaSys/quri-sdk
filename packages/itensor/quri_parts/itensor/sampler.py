@@ -127,6 +127,8 @@ def create_itensor_mps_concurrent_sampler(
     def sampler(
         circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
-        return _sample_concurrently(circuit_shots_tuples, executor, concurrency)
+        return _sample_concurrently(
+            circuit_shots_tuples, executor, concurrency, **kwargs
+        )
 
     return sampler
