@@ -1,6 +1,6 @@
 ---
 name: numpy
-version: 1.26.1
+version: 1.26.2
 type: pip
 summary: NumPy is the fundamental package for array computing with Python.
 homepage: https://www.numpy.org
