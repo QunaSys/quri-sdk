@@ -1,6 +1,6 @@
 ---
 name: scipy
-version: 1.11.3
+version: 1.11.4
 type: pip
 summary: Fundamental algorithms for scientific computing in Python
 homepage: https://scipy.org/
