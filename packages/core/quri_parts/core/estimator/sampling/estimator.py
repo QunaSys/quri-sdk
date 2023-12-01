@@ -23,6 +23,7 @@ from quri_parts.core.estimator.sampling.pauli import (
     general_pauli_sum_expectation_estimator,
     general_pauli_sum_sample_variance,
 )
+from quri_parts.core.estimator.utils import is_estimatable
 from quri_parts.core.measurement import (
     CommutablePauliSetMeasurementFactory,
     PauliReconstructorFactory,
@@ -109,6 +110,10 @@ def sampling_estimate(
         The estimated value (can be accessed with :attr:`.value`) with standard error
             of estimation (can be accessed with :attr:`.error`).
     """
+    assert is_estimatable(
+        op, state
+    ), "Number of qubits of the operator is too large to estimate."
+
     if not isinstance(op, Operator):
         op = Operator({op: 1.0})
 

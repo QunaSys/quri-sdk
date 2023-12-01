@@ -24,17 +24,21 @@ You are also encouraged to propose or author new components as necessary.
       - `quri-parts-qulacs`: [Qulacs](https://github.com/qulacs/qulacs)
       - `quri-parts-stim`: [Stim](https://github.com/quantumlib/Stim)
       - `quri-parts-itensor`: [ITensor](https://github.com/ITensor/ITensors.jl)
+      - `quri-parts-tket`: [TKet](https://www.quantinuum.com/developers/tket)
   - Quantum platforms/SDKs
       - `quri-parts-braket`: [Amazon Braket SDK](https://github.com/aws/amazon-braket-sdk-python)
-      - `quri-parts-cirq`: [Cirq](https://quantumai.google/cirq) (Only circuit conversion is supported yet)
-      - `quri-parts-qiskit`: [Qiskit](https://qiskit.org/) (Circuit conversion and execution are not supported yet)
+      - `quri-parts-cirq`: [Cirq](https://quantumai.google/cirq) (Only circuit and operator conversion is supported yet)
+      - `quri-parts-qiskit`: [Qiskit](https://qiskit.org/)
+      - `quri-parts-quantinuum`: [Quantinuum](https://www.quantinuum.com/hardware/)
+      - `quri-parts-ionq`: [IONQ](https://ionq.com/docs/)
 - Intermediate representation support
   - `quri-parts-openqasm`: [OpenQASM 3.0](https://openqasm.com/)
 - `quri-parts-algo`: Algorithms
   - Ansatz, optimizer, error mitigation etc.
 - Chemistry
   - `quri-parts-chem`: General concepts
-      - Fermion-qubit mapping etc.
+      - Fermion-qubit mapping, electron integrals, ansatz etc.
+  - `quri-parts-pyscf`: [PySCF](https://pyscf.org/)
   - Library support
       - `quri-parts-openfermion`: [OpenFermion](https://quantumai.google/openfermion)
 
