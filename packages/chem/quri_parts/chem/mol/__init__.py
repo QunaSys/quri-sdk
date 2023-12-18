@@ -15,6 +15,7 @@ from .active_space import (
 from .models import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,
+    ActiveSpaceMolecularOrbitalsBase,
     AO1eInt,
     AO2eInt,
     AOeIntSet,
@@ -52,6 +53,7 @@ __all__ = [
     "ActiveSpace",
     "cas",
     "ActiveSpaceMolecularOrbitals",
+    "ActiveSpaceMolecularOrbitalsBase",
     "AO1eInt",
     "AO2eInt",
     "AOeIntSet",

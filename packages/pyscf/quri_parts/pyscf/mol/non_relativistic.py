@@ -18,6 +18,7 @@ from pyscf import ao2mo, gto, mcscf, scf
 from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,
+    ActiveSpaceMolecularOrbitalsBase,
     AO1eInt,
     AO1eIntArray,
     AO2eInt,
@@ -118,17 +119,19 @@ class PySCFAOeIntSet(AOeIntSet):
 
     def to_active_space_mo_int(
         self,
-        active_space_mo: ActiveSpaceMolecularOrbitals,
+        active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     ) -> SpinMOeIntSet:
         """Returns the full space spin electon integrals."""
+        assert isinstance(active_space_mo, ActiveSpaceMolecularOrbitals)
         spin_mo_eint_set = get_active_space_spin_integrals(active_space_mo, self)
         return spin_mo_eint_set
 
     def to_active_space_spatial_mo_int(
         self,
-        active_space_mo: ActiveSpaceMolecularOrbitals,
+        active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     ) -> SpatialMOeIntSet:
         """Returns the full space spatial electon integrals."""
+        assert isinstance(active_space_mo, ActiveSpaceMolecularOrbitals)
         spatial_mo_eint_set = get_active_space_spatial_integrals(active_space_mo, self)
         return spatial_mo_eint_set
 

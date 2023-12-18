@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import abstractmethod, abstractproperty
+from abc import ABC, abstractmethod, abstractproperty
 from dataclasses import dataclass
 from enum import Enum, auto
 from typing import NamedTuple, Optional, Protocol, Sequence
@@ -84,7 +84,40 @@ class MolecularOrbitals(Protocol):
         ...
 
 
-class ActiveSpaceMolecularOrbitals(MolecularOrbitals):
+class ActiveSpaceMolecularOrbitalsBase(MolecularOrbitals, ABC):
+    @abstractproperty
+    def n_active_ele(self) -> int:
+        ...
+
+    @abstractproperty
+    def n_core_ele(self) -> int:
+        ...
+
+    @abstractproperty
+    def n_active_orb(self) -> int:
+        """Returns the number of active orbitals."""
+        ...
+
+    @abstractproperty
+    def n_core_orb(self) -> int:
+        """Returns the number of core orbitals."""
+        ...
+
+    @abstractproperty
+    def n_vir_orb(self) -> int:
+        """Returns the number of virtual orbitals."""
+        ...
+
+    @abstractmethod
+    def get_core_and_active_orb(self) -> tuple[Sequence[int], Sequence[int]]:
+        ...
+
+    @abstractmethod
+    def orb_type(self, mo_index: int) -> OrbitalType:
+        ...
+
+
+class ActiveSpaceMolecularOrbitals(ActiveSpaceMolecularOrbitalsBase):
     """Represents a data of the active space for the molecule.
 
     Args:
@@ -309,7 +342,7 @@ class AOeIntSet(Protocol):
 
     def to_active_space_mo_int(
         self,
-        active_space_mo: ActiveSpaceMolecularOrbitals,
+        active_space_mo: ActiveSpaceMolecularOrbitalsBase,
     ) -> "SpinMOeIntSet":
         """Compute the active space spin mo integral."""
         ...
