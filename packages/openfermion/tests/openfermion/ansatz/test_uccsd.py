@@ -38,20 +38,17 @@ class TestConstructCircuit:
     def test_construct_circuit_w_singles_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = jordan_wigner
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         use_singles = True
-
         circuit = _construct_circuit(
-            n_spin_orbitals,
-            n_electrons,
             fermion_qubit_mapping,
             trotter_number,
             use_singles,
         )
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.of_operator_mapper
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
         add_exp_excitation_gates_trotter_decomposition(
             expected_circuit, d_excs, [params[-1]], op_mapper, 1 / trotter_number
@@ -69,20 +66,18 @@ class TestConstructCircuit:
     def test_construct_circuit_wo_singles_trotter1(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = jordan_wigner
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         use_singles = False
 
         circuit = _construct_circuit(
-            n_spin_orbitals,
-            n_electrons,
             fermion_qubit_mapping,
             trotter_number,
             use_singles,
         )
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.of_operator_mapper
         _, d_excs = excitations(n_spin_orbitals, n_electrons)
         add_exp_excitation_gates_trotter_decomposition(
             expected_circuit, d_excs, [param], op_mapper, 1 / trotter_number
@@ -97,21 +92,20 @@ class TestConstructCircuit:
     def test_construct_circuit_w_singles_trotter2_scbk(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
-        fermion_qubit_mapping = symmetry_conserving_bravyi_kitaev
+        fermion_qubit_mapping = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_electrons, 0.0
+        )
         use_singles = True
         trotter_number = 2
 
         circuit = _construct_circuit(
-            n_spin_orbitals,
-            n_electrons,
             fermion_qubit_mapping,
             trotter_number,
             use_singles,
         )
-        n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-            n_spin_orbitals, n_electrons
-        )
+        n_qubits = fermion_qubit_mapping.n_qubits
+        assert isinstance(n_qubits, int)
+        op_mapper = fermion_qubit_mapping.of_operator_mapper
         expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
@@ -139,13 +133,11 @@ class TestConstructSpinSymmetricCircuit:
     def test_construct_circuit_w_singles_trotter1(self) -> None:
         n_spin_orbitals = 8
         n_electrons = 4
-        fermion_qubit_mapping = jordan_wigner
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         use_singles = True
 
         circuit = _construct_singlet_excitation_circuit(
-            n_spin_orbitals,
-            n_electrons,
             fermion_qubit_mapping,
             trotter_number,
             use_singles,
@@ -166,7 +158,7 @@ class TestConstructSpinSymmetricCircuit:
         d_1_1_2_3 = expected_circuit.add_parameter("d_1_1_2_3")
         d_1_1_3_3 = expected_circuit.add_parameter("d_1_1_3_3")
 
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper()
+        op_mapper = fermion_qubit_mapping.of_operator_mapper
 
         operator_0_4 = (
             create_anti_hermitian_sd_excitation_operator((0, 4), op_mapper) * -1j
@@ -338,14 +330,16 @@ class TestUCCSD:
     def test_trotter_singlet_uccsd_w_singles_jw(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         ansatz = TrotterUCCSD(
-            n_spin_orbitals, n_electrons, trotter_number=trotter_number
-        )
-        expected_ansatz = _construct_circuit(
             n_spin_orbitals,
             n_electrons,
-            jordan_wigner,
+            fermion_qubit_mapping=fermion_qubit_mapping,
+            trotter_number=trotter_number,
+        )
+        expected_ansatz = _construct_circuit(
+            jordan_wigner(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -363,14 +357,12 @@ class TestUCCSD:
         ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
-            bravyi_kitaev,
+            fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=False,
         )
         expected_ansatz = _construct_circuit(
-            n_spin_orbitals,
-            n_electrons,
-            bravyi_kitaev,
+            bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=False,
         )
@@ -388,13 +380,13 @@ class TestUCCSD:
         ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
-            symmetry_conserving_bravyi_kitaev,
+            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev(
+                n_spin_orbitals, n_electrons, 0.0
+            ),
             trotter_number=trotter_number,
         )
         expected_ansatz = _construct_circuit(
-            n_spin_orbitals,
-            n_electrons,
-            symmetry_conserving_bravyi_kitaev,
+            symmetry_conserving_bravyi_kitaev(n_spin_orbitals, n_electrons, 0.0),
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -410,14 +402,16 @@ class TestUCCSD:
             TrotterUCCSD(4, 3)
         with pytest.raises(ValueError):
             TrotterUCCSD(4, 4)
+        with pytest.raises(AssertionError):
+            TrotterUCCSD(4, 4, fermion_qubit_mapping=jordan_wigner(8))
+        with pytest.raises(AssertionError):
+            TrotterUCCSD(4, 4, fermion_qubit_mapping=jordan_wigner(4, 2))
 
 
 class TestSingletUCCSD:
     @staticmethod
     def check_is_singlet(
         uccsd_ansatz: TrotterUCCSD,
-        n_spin_orbs: int,
-        n_fermions: int,
         parameters: Sequence[float],
         operator_mapping: OpenFermionQubitMapping,
     ) -> bool:
@@ -438,9 +432,7 @@ class TestSingletUCCSD:
                 (-1) ** (i % 2) * FermionOperator([(i, 1)]) * FermionOperator([(i, 0)])
             )
 
-        operator_mapper = operator_mapping.get_of_operator_mapper(
-            n_spin_orbs, n_fermions
-        )
+        operator_mapper = operator_mapping.of_operator_mapper
         s2_operator = operator_mapper(Sx * Sx + Sy * Sy + Sz * Sz)
 
         # Sum all exponents together
@@ -464,17 +456,17 @@ class TestSingletUCCSD:
     def test_sinlget_excited_uccsd_trotter_1(self) -> None:
         n_spin_orbitals = 8
         n_electrons = 4
+        fermion_qubit_mapping = jordan_wigner(n_spin_orbitals, n_electrons)
         trotter_number = 1
         ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
+            fermion_qubit_mapping=fermion_qubit_mapping,
             trotter_number=trotter_number,
             singlet_excitation=True,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
-            n_spin_orbitals,
-            n_electrons,
-            jordan_wigner,
+            fermion_qubit_mapping,
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -487,10 +479,8 @@ class TestSingletUCCSD:
 
         assert self.check_is_singlet(
             ansatz,
-            n_spin_orbitals,
-            n_electrons,
             param_vals,
-            operator_mapping=jordan_wigner,
+            operator_mapping=jordan_wigner(n_spin_orbitals, n_electrons),
         )
 
     def test_sinlget_excited_uccsd_trotter_2(self) -> None:
@@ -500,14 +490,12 @@ class TestSingletUCCSD:
         ansatz = TrotterUCCSD(
             n_spin_orbitals,
             n_electrons,
+            fermion_qubit_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             singlet_excitation=True,
-            fermion_qubit_mapping=bravyi_kitaev,
         )
         expected_ansatz = _construct_singlet_excitation_circuit(
-            n_spin_orbitals,
-            n_electrons,
-            bravyi_kitaev,
+            bravyi_kitaev(n_spin_orbitals, n_electrons),
             trotter_number=trotter_number,
             use_singles=True,
         )
@@ -520,8 +508,6 @@ class TestSingletUCCSD:
 
         assert self.check_is_singlet(
             ansatz,
-            n_spin_orbitals,
-            n_electrons,
             param_vals,
-            operator_mapping=bravyi_kitaev,
+            operator_mapping=bravyi_kitaev(n_spin_orbitals, n_electrons),
         )

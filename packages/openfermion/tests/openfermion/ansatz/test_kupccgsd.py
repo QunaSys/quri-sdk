@@ -16,7 +16,10 @@ from quri_parts.openfermion.ansatz.kupccgsd import (
     _generalized_pair_double_excitations,
     _generalized_single_excitations,
 )
-from quri_parts.openfermion.transforms import symmetry_conserving_bravyi_kitaev
+from quri_parts.openfermion.transforms import (
+    jordan_wigner,
+    symmetry_conserving_bravyi_kitaev,
+)
 
 
 def test_generalized_single_excitations() -> None:
@@ -188,10 +191,13 @@ def test_generalized_pair_double_excitations() -> None:
 
 
 class TestKUpCCGSD:
+    def test_invalid_kupccgsd(self) -> None:
+        with pytest.raises(AssertionError):
+            KUpCCGSD(4, fermion_qubit_mapping=jordan_wigner(8))
+
     def test_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
-        n_electrons = 2
-        ansatz = KUpCCGSD(n_spin_orbitals, n_electrons)
+        ansatz = KUpCCGSD(n_spin_orbitals)
         expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(3)])
         expected_ansatz.add_ParametricPauliRotation_gate(
@@ -241,12 +247,14 @@ class TestKUpCCGSD:
     def test_kupccgsd_k2_trotter2_scbk(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
+        operator_mapping = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_electrons, 0.0
+        )
         k = 2
         ansatz = KUpCCGSD(
             n_spin_orbitals,
-            n_electrons,
             k,
-            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev,
+            operator_mapping,
             trotter_number=2,
         )
         expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
@@ -305,8 +313,7 @@ class TestKUpCCGSD:
 class TestSingletExcitedKUpCCGSD:
     def test_singlet_excited_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
-        n_electrons = 2
-        ansatz = KUpCCGSD(n_spin_orbitals, n_electrons, singlet_excitation=True)
+        ansatz = KUpCCGSD(n_spin_orbitals, singlet_excitation=True)
         expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(2)])
         expected_ansatz.add_ParametricPauliRotation_gate(
@@ -361,12 +368,14 @@ class TestSingletExcitedKUpCCGSD:
     def test_singlet_excited_kupccgsd_k2_trotter2_scbk(self) -> None:
         n_spin_orbitals = 4
         n_electrons = 2
+        fermion_qubit_mapping = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_electrons, 0.0
+        )
         k = 2
         ansatz = KUpCCGSD(
             n_spin_orbitals,
-            n_electrons,
             k,
-            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev,
+            fermion_qubit_mapping,
             trotter_number=2,
             singlet_excitation=True,
         )

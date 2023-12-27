@@ -79,7 +79,7 @@ def test_quantum_state(
     assert _quantum_state_vector_mock.call_count == 1
 
     with pytest.raises(ValueError):
-        quantum_state(n_qubits, vector=[1.0, 0, 0, 0], bits=0b01)
+        quantum_state(n_qubits, vector=[1.0, 0, 0, 0], bits=0b01)  # type: ignore
 
 
 @patch("quri_parts.core.state.state_helper.quantum_state")

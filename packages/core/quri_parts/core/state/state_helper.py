@@ -18,7 +18,7 @@ from quri_parts.circuit import (
     UnboundParametricQuantumCircuitProtocol,
 )
 
-from . import ComputationalBasisState
+from . import ComputationalBasisState, GeneralCircuitQuantumState
 from .state import CircuitQuantumState, QuantumState
 from .state_parametric import ParametricCircuitQuantumState
 from .state_vector import QuantumStateVector, StateVectorType
@@ -119,8 +119,74 @@ def apply_circuit(
         raise ValueError(f"Unsupported state type: {state}")
 
 
+@overload
+def quantum_state(n_qubits: int) -> ComputationalBasisState:
+    ...
+
+
+@overload
+def quantum_state(n_qubits: int, *, bits: int) -> ComputationalBasisState:
+    ...
+
+
+@overload
+def quantum_state(
+    n_qubits: int, *, bits: int, circuit: NonParametricQuantumCircuit
+) -> GeneralCircuitQuantumState:
+    ...
+
+
+@overload
+def quantum_state(
+    n_qubits: int, *, circuit: NonParametricQuantumCircuit
+) -> GeneralCircuitQuantumState:
+    ...
+
+
+@overload
+def quantum_state(
+    n_qubits: int, *, bits: int, circuit: UnboundParametricQuantumCircuitProtocol
+) -> ParametricCircuitQuantumState:
+    ...
+
+
+@overload
+def quantum_state(
+    n_qubits: int, *, circuit: UnboundParametricQuantumCircuitProtocol
+) -> ParametricCircuitQuantumState:
+    ...
+
+
+@overload
+def quantum_state(
+    n_qubits: int, *, vector: Union[StateVectorType, "npt.ArrayLike"]
+) -> QuantumStateVector:
+    ...
+
+
+@overload
 def quantum_state(
     n_qubits: int,
+    *,
+    vector: Union[StateVectorType, "npt.ArrayLike"],
+    circuit: NonParametricQuantumCircuit,
+) -> QuantumStateVector:
+    ...
+
+
+@overload
+def quantum_state(
+    n_qubits: int,
+    *,
+    vector: Union[StateVectorType, "npt.ArrayLike"],
+    circuit: UnboundParametricQuantumCircuitProtocol,
+) -> ParametricQuantumStateVector:
+    ...
+
+
+def quantum_state(
+    n_qubits: int,
+    *,
     vector: Optional[Union[StateVectorType, "npt.ArrayLike"]] = None,
     bits: int = 0,
     circuit: Optional[

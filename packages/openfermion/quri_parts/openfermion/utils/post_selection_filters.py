@@ -8,9 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection, Optional
+from typing import Optional
 
 from quri_parts.algo.mitigation.post_selection import PostSelectionFilterFunction
+from quri_parts.chem.utils.spin import occupation_state_sz
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.transforms import (
     bravyi_kitaev,
@@ -57,7 +58,7 @@ def create_bk_electron_number_post_selection_filter_fn(
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)
         occ_indices = inv_st_mapper(state)
-        if sz and _sz(occ_indices) != sz:
+        if sz and occupation_state_sz(occ_indices) != sz:
             return False
         return len(occ_indices) == n_electrons
 
@@ -73,30 +74,18 @@ def create_scbk_electron_number_post_selection_filter_fn(
     Here ``bits`` is a bitstring obtained by measuring the states mapped
     by symmetry-conserving Bravyi-Kitaev transformation.
     """
-    n_up_spins = int(sz + n_electrons / 2)
     inv_st_mapper = symmetry_conserving_bravyi_kitaev.get_inv_state_mapper(
         symmetry_conserving_bravyi_kitaev.n_spin_orbitals(qubit_count),
         n_electrons,
-        n_up_spins,
+        sz,
     )
 
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)
         occ_indices = inv_st_mapper(state)
 
-        if _sz(occ_indices) != sz:
+        if occupation_state_sz(occ_indices) != sz:
             return False
         return len(occ_indices) == n_electrons
 
     return filter_fn
-
-
-def _sz(occ_indices: Collection[int]) -> float:
-    n_up = 0
-    n_down = 0
-    for i in occ_indices:
-        if i % 2:
-            n_down += 1
-        else:
-            n_up += 1
-    return (n_up - n_down) / 2

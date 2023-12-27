@@ -17,7 +17,8 @@ from quri_parts.circuit import (
     Parameter,
 )
 from quri_parts.openfermion.transforms import (
-    OpenFermionQubitMapping,
+    OpenFermionMappingMethods,
+    OpenFermionQubitMapperFactory,
     OpenFermionQubitOperatorMapper,
     jordan_wigner,
 )
@@ -44,7 +45,6 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
-        n_fermions: Number of fermions.
         k: Number of repetitions.
         fermion_qubit_mapping: Mapping from :class:`FermionOperator` to
           :class:`Operator`
@@ -60,17 +60,24 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     def __init__(
         self,
         n_spin_orbitals: int,
-        n_fermions: int,
         k: int = 1,
-        fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
+        fermion_qubit_mapping: OpenFermionMappingMethods = jordan_wigner,
         trotter_number: int = 1,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
-        n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
-        op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-            n_spin_orbitals, n_fermions
+        mapping = (
+            fermion_qubit_mapping(n_spin_orbitals)
+            if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
+            else fermion_qubit_mapping
         )
+
+        assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
+        "in the mapping is not consistent with that specified to the first arguement."
+
+        op_mapper = mapping.of_operator_mapper
+        n_qubits = mapping.n_qubits
+
         circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(

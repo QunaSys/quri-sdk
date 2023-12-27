@@ -8,16 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Optional, Union
 
 from openfermion import FermionOperator, InteractionOperator, MajoranaOperator
 
 from quri_parts.chem.mol import ActiveSpace, SpinMOeIntSet
-from quri_parts.chem.transforms import FermionQubitStateMapper
 from quri_parts.core.operator import Operator
 from quri_parts.openfermion.transforms import (
+    OpenFermionQubitMapperFactory,
     OpenFermionQubitMapping,
-    OpenFermionQubitOperatorMapper,
     jordan_wigner,
 )
 
@@ -38,29 +37,29 @@ def operator_from_of_fermionic_op(
         FermionOperator, InteractionOperator, MajoranaOperator
     ],
     active_space: ActiveSpace,
-    fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
-) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
+    sz: Optional[float] = None,
+    fermion_qubit_mapping: OpenFermionQubitMapperFactory = jordan_wigner,
+) -> tuple[Operator, OpenFermionQubitMapping]:
     """Converts the fermionic hamiltonian into qubit hamiltonian with a given
     mapping method, and returns the operator mapper along with the state
     mapper."""
 
     n_spin_orbitals = 2 * active_space.n_active_orb
     n_electrons = active_space.n_active_ele
-    operator_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-        n_spin_orbitals, n_electrons
-    )
-    state_mapper = fermion_qubit_mapping.get_state_mapper(n_spin_orbitals, n_electrons)
-    return operator_mapper(fermionic_hamiltonian), operator_mapper, state_mapper
+    mapping = fermion_qubit_mapping(n_spin_orbitals, n_electrons, sz)
+    operator_mapper = mapping.of_operator_mapper
+    return operator_mapper(fermionic_hamiltonian), mapping
 
 
 def get_qubit_mapped_hamiltonian(
     active_space: ActiveSpace,
     spin_mo_eint_set: SpinMOeIntSet,
-    fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
-) -> tuple[Operator, OpenFermionQubitOperatorMapper, FermionQubitStateMapper]:
+    sz: Optional[float] = None,
+    fermion_qubit_mapping: OpenFermionQubitMapperFactory = jordan_wigner,
+) -> tuple[Operator, OpenFermionQubitMapping]:
     """Computes the qubit hamiltonian and returns the operator mapper along
     with the state mapper."""
     fermionic_hamiltonian = get_fermionic_hamiltonian(spin_mo_eint_set)
     return operator_from_of_fermionic_op(
-        fermionic_hamiltonian, active_space, fermion_qubit_mapping
+        fermionic_hamiltonian, active_space, sz, fermion_qubit_mapping
     )

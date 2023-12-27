@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
     SingleExcitation,
@@ -20,7 +21,12 @@ from quri_parts.circuit import (
 )
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 
-from ..transforms import OpenFermionQubitMapping, jordan_wigner
+from ..transforms import (
+    OpenFermionMappingMethods,
+    OpenFermionQubitMapperFactory,
+    OpenFermionQubitMapping,
+    jordan_wigner,
+)
 from ..utils import add_exp_excitation_gates_trotter_decomposition
 from ..utils.add_exp_excitation_gates_trotter_decomposition import (
     create_anti_hermitian_sd_excitation_operator,
@@ -92,12 +98,25 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         self,
         n_spin_orbitals: int,
         n_fermions: int,
-        fermion_qubit_mapping: OpenFermionQubitMapping = jordan_wigner,
+        fermion_qubit_mapping: OpenFermionMappingMethods = jordan_wigner,
         trotter_number: int = 1,
         use_singles: bool = True,
         delta_sz: int = 0,
         singlet_excitation: bool = False,
     ):
+        mapping = (
+            fermion_qubit_mapping(n_spin_orbitals, n_fermions)
+            if isinstance(fermion_qubit_mapping, OpenFermionQubitMapperFactory)
+            else fermion_qubit_mapping
+        )
+        assert mapping.n_spin_orbitals == n_spin_orbitals, "n_spin_orbital specified "
+        "in the mapping is not consistent with that specified to the first arguement."
+        assert mapping.n_fermions == n_fermions, "n_fermions specified "
+        "in the mapping is not consistent with that specified to the second arguement."
+
+        assert (
+            n_spin_orbitals is not None and n_fermions is not None
+        ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
         if n_fermions % 2:
@@ -111,17 +130,13 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
         circuit = (
             _construct_singlet_excitation_circuit(
-                n_spin_orbitals,
-                n_fermions,
-                fermion_qubit_mapping,
+                mapping,
                 trotter_number,
                 use_singles,
             )
             if singlet_excitation
             else _construct_circuit(
-                n_spin_orbitals,
-                n_fermions,
-                fermion_qubit_mapping,
+                mapping,
                 trotter_number,
                 use_singles,
                 delta_sz,
@@ -132,14 +147,17 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
 
 def _construct_circuit(
-    n_spin_orbitals: int,
-    n_fermions: int,
     fermion_qubit_mapping: OpenFermionQubitMapping,
     trotter_number: int,
     use_singles: bool,
     delta_sz: int = 0,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
-    n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
+    n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
+    n_fermions = fermion_qubit_mapping.n_fermions
+    n_qubits = fermion_qubit_mapping.n_qubits
+    assert (
+        n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
+    ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
 
     s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=delta_sz)
 
@@ -149,9 +167,7 @@ def _construct_circuit(
             circuit.add_parameter(f"theta_s_{i}") for i in range(len(s_excs))
         ]
     d_exc_params = [circuit.add_parameter(f"theta_d_{i}") for i in range(len(d_excs))]
-    op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-        n_spin_orbitals, n_fermions
-    )
+    op_mapper = fermion_qubit_mapping.of_operator_mapper
     for _ in range(trotter_number):
         add_exp_excitation_gates_trotter_decomposition(
             circuit, d_excs, d_exc_params, op_mapper, 1 / trotter_number
@@ -165,18 +181,20 @@ def _construct_circuit(
 
 
 def _construct_singlet_excitation_circuit(
-    n_spin_orbitals: int,
-    n_fermions: int,
     fermion_qubit_mapping: OpenFermionQubitMapping,
     trotter_number: int,
     use_singles: bool,
 ) -> LinearMappedUnboundParametricQuantumCircuit:
-    n_qubits = fermion_qubit_mapping.n_qubits_required(n_spin_orbitals)
+    n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
+    n_fermions = fermion_qubit_mapping.n_fermions
+    n_qubits = fermion_qubit_mapping.n_qubits
+    assert (
+        n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
+    ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
+
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
 
-    op_mapper = fermion_qubit_mapping.get_of_operator_mapper(
-        n_spin_orbitals, n_fermions
-    )
+    op_mapper = fermion_qubit_mapping.of_operator_mapper
 
     (
         s_params,

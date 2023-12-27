@@ -175,7 +175,7 @@ class TestOperatorFromOfFermionicOp:
         )
         fermionic_operator += 0.52917721092
 
-        jw_qubit_operator, _, _ = operator_from_of_fermionic_op(
+        jw_qubit_operator, _ = operator_from_of_fermionic_op(
             fermionic_operator, cas(2, 2)
         )
 
@@ -201,10 +201,10 @@ class TestOperatorFromOfFermionicOp:
 
         assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = operator_from_of_fermionic_op(
+        bk_qubit_operator, _ = operator_from_of_fermionic_op(
             fermionic_operator,
             cas(2, 2),
-            bravyi_kitaev,
+            fermion_qubit_mapping=bravyi_kitaev,
         )
         expected_bk_qubit_operator = Operator(
             {
@@ -227,10 +227,11 @@ class TestOperatorFromOfFermionicOp:
         )
         assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
 
-        scbk_qubit_operator, _, _ = operator_from_of_fermionic_op(
+        scbk_qubit_operator, _ = operator_from_of_fermionic_op(
             fermionic_operator,
             cas(2, 2),
-            symmetry_conserving_bravyi_kitaev,
+            sz=0,
+            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev,
         )
         expected_scbk_qubit_operator = Operator(
             {
@@ -261,7 +262,7 @@ class TestOperatorFromOfFermionicOp:
         )
         fermionic_operator += -1.18702694476004
 
-        jw_qubit_operator, _, _ = operator_from_of_fermionic_op(
+        jw_qubit_operator, _ = operator_from_of_fermionic_op(
             fermionic_operator, cas(1, 1)
         )
         jw_expected_qubit_operator = Operator(
@@ -274,8 +275,8 @@ class TestOperatorFromOfFermionicOp:
         )
         assert truncate(jw_qubit_operator - jw_expected_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = operator_from_of_fermionic_op(
-            fermionic_operator, cas(1, 1), bravyi_kitaev
+        bk_qubit_operator, _ = operator_from_of_fermionic_op(
+            fermionic_operator, cas(1, 1), fermion_qubit_mapping=bravyi_kitaev
         )
         expected_bk_qubit_operator = Operator(
             {
@@ -415,7 +416,7 @@ class TestGetQubitMappedHamiltonianOperator:
             const=nuc_energy, mo_1e_int=spin_mo_1e_int, mo_2e_int=spin_mo_2e_int
         )
 
-        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(cas(2, 2), mo_eint_set)
+        jw_qubit_operator, _ = get_qubit_mapped_hamiltonian(cas(2, 2), mo_eint_set)
 
         expected_jw_qubit_operator = Operator(
             {
@@ -439,8 +440,8 @@ class TestGetQubitMappedHamiltonianOperator:
 
         assert truncate(expected_jw_qubit_operator - jw_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            cas(2, 2), mo_eint_set, bravyi_kitaev
+        bk_qubit_operator, _ = get_qubit_mapped_hamiltonian(
+            cas(2, 2), mo_eint_set, fermion_qubit_mapping=bravyi_kitaev
         )
 
         expected_bk_qubit_operator = Operator(
@@ -464,8 +465,11 @@ class TestGetQubitMappedHamiltonianOperator:
         )
         assert truncate(expected_bk_qubit_operator - bk_qubit_operator) == zero()
 
-        scbk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            cas(2, 2), mo_eint_set, symmetry_conserving_bravyi_kitaev
+        scbk_qubit_operator, _ = get_qubit_mapped_hamiltonian(
+            cas(2, 2),
+            mo_eint_set,
+            sz=0,
+            fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev,
         )
         expected_scbk_qubit_operator = Operator(
             {
@@ -495,7 +499,7 @@ class TestGetQubitMappedHamiltonianOperator:
             const=nuc_energy, mo_1e_int=spin_mo_1e_int, mo_2e_int=spin_mo_2e_int
         )
 
-        jw_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(cas(1, 1), mo_eint_set)
+        jw_qubit_operator, _ = get_qubit_mapped_hamiltonian(cas(1, 1), mo_eint_set)
         expected_jw_qubit_operator = Operator(
             {
                 PAULI_IDENTITY: -1.3903301703637687,
@@ -506,8 +510,8 @@ class TestGetQubitMappedHamiltonianOperator:
         )
         assert truncate(jw_qubit_operator - expected_jw_qubit_operator) == zero()
 
-        bk_qubit_operator, _, _ = get_qubit_mapped_hamiltonian(
-            cas(1, 1), mo_eint_set, bravyi_kitaev
+        bk_qubit_operator, _ = get_qubit_mapped_hamiltonian(
+            cas(1, 1), mo_eint_set, fermion_qubit_mapping=bravyi_kitaev
         )
         expected_bk_qubit_operator = Operator(
             {

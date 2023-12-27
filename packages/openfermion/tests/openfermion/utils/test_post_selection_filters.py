@@ -11,7 +11,6 @@
 import pytest
 
 from quri_parts.openfermion.utils.post_selection_filters import (
-    _sz,
     create_bk_electron_number_post_selection_filter_fn,
     create_jw_electron_number_post_selection_filter_fn,
     create_scbk_electron_number_post_selection_filter_fn,
@@ -91,12 +90,3 @@ def test_create_scbk_electron_number_post_selection_filter_fn() -> None:
         filter_fn = create_scbk_electron_number_post_selection_filter_fn(
             qubit_count, 3, sz=-0.5
         )
-
-
-def test_sz() -> None:
-    assert _sz([0]) == 0.5
-    assert _sz([0, 1]) == 0
-    assert _sz([0, 2]) == 1.0
-    assert _sz([3, 6]) == 0.0
-    assert _sz([2, 1]) == 0.0
-    assert _sz([1, 3]) == -1.0
