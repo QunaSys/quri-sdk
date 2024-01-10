@@ -14,11 +14,12 @@ from typing import Callable, Optional, Union
 
 from openfermion.ops import FermionOperator, InteractionOperator, MajoranaOperator
 from openfermion.transforms import bravyi_kitaev as of_bravyi_kitaev
-from openfermion.transforms import get_fermion_operator
+from openfermion.transforms import bravyi_kitaev_tree, get_fermion_operator
 from openfermion.transforms import jordan_wigner as of_jordan_wigner
-from openfermion.transforms import (
-    symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
-)
+from openfermion.transforms import reorder
+from openfermion.transforms.opconversions import edit_hamiltonian_for_spin
+from openfermion.transforms.opconversions.remove_symmetry_qubits import remove_indices
+from openfermion.utils import up_then_down
 from typing_extensions import TypeAlias
 
 from quri_parts.chem.transforms import (
@@ -372,7 +373,7 @@ r"""An object that performs Jordan-Wigner mapping in various ways.
 Example:
     You may create mappers out of `jordan_wigner`
 
-    >>> operator_mapper = jordan_wigner.get_of_operator_mapper()
+    >>> operator_mapper = jordan_wigner.get_of_operator_mapper(8)
     >>> operator_mapper(FermionOperator("1^ 1"))
     (0.5+0j)*I + (-0.5+0j)*Z1
 
@@ -448,7 +449,7 @@ r"""An object that performs Bravyi-Kitaev mapping in various ways.
 Example:
     You may create mappers out of `bravyi_kitaev`
 
-    >>> operator_mapper = bravyi_kitaev.get_of_operator_mapper()
+    >>> operator_mapper = bravyi_kitaev.get_of_operator_mapper(8)
     >>> print(operator_mapper(FermionOperator("1^ 1")))
     (0.5+0j)*I + (-0.5+0j)*Z0 Z1
 
@@ -476,6 +477,11 @@ Example:
     >>> inv_state_mapper(ComputationalBasisState(8, bits=0b10111))
     [0, 2, 4, 5]
 """
+
+
+def _get_scbk_parity_factor(n_fermions: int, sz: float) -> tuple[int, int]:
+    n_spin_ups = int(0.5 * (n_fermions + 2 * sz))
+    return (-1) ** n_spin_ups, (-1) ** n_fermions
 
 
 class OpenFermionSymmetryConservingBravyiKitaev(
@@ -518,8 +524,12 @@ class OpenFermionSymmetryConservingBravyiKitaev(
 
         if self.n_fermions is None:
             raise ValueError("n_fermions is required.")
-        if self.sz not in [0.0, 0.5]:
-            raise ValueError("Current implementation only supports sz = 0.0 or 0.5.")
+        if self.sz is None:
+            raise ValueError("sz is required.")
+
+        n_spin_orbitals = self.n_spin_orbitals
+        n_fermions = self.n_fermions
+        sz = self.sz
 
         def mapper(
             op: Union["FermionOperator", "InteractionOperator", "MajoranaOperator"]
@@ -527,19 +537,36 @@ class OpenFermionSymmetryConservingBravyiKitaev(
             if not isinstance(op, FermionOperator):
                 op = get_fermion_operator(op)
 
-            openfermion_op = FermionOperator()
-            for pauli_product, coef in op.terms.items():
-                openfermion_op += FermionOperator(pauli_product, coef)
+            symmetry_op = FermionOperator()
+            for op_tuple, coeff in op.terms.items():
+                single_op = FermionOperator(op_tuple, coeff)
+                if has_particle_number_symmetry(single_op, check_spin_symmetry=True):
+                    symmetry_op += single_op
 
-            operator = Operator()
-            for single_term in openfermion_op.get_operators():
-                if has_particle_number_symmetry(single_term, check_spin_symmetry=True):
-                    operator += operator_from_openfermion_op(
-                        of_symmetry_conserving_bravyi_kitaev(
-                            single_term, self.n_spin_orbitals, self.n_fermions
-                        )
-                    )
-            return operator
+            (
+                mid_parity_factor,
+                last_parity_factor,
+            ) = _get_scbk_parity_factor(n_fermions, sz)
+
+            transformed_op = bravyi_kitaev_tree(
+                reorder(symmetry_op, up_then_down, num_modes=n_spin_orbitals),
+                n_qubits=n_spin_orbitals,
+            )
+            operator_tappered = edit_hamiltonian_for_spin(
+                transformed_op,
+                spin_orbital=n_spin_orbitals,
+                orbital_parity=last_parity_factor,
+            )
+            operator_tappered = edit_hamiltonian_for_spin(
+                operator_tappered,
+                spin_orbital=n_spin_orbitals // 2,
+                orbital_parity=mid_parity_factor,
+            )
+            operator_tappered = remove_indices(
+                operator_tappered, [n_spin_orbitals // 2, n_spin_orbitals]
+            )
+
+            return operator_from_openfermion_op(operator_tappered)
 
         return mapper
 

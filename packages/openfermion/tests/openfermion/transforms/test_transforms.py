@@ -14,6 +14,7 @@ from openfermion import (
     symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
 )
 
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.operator import (
     FermionOperator,
@@ -67,6 +68,73 @@ class TestOperatorMapper:
         of_total_transformed = op_mapper(of_op_total)
         assert total_transformed == expected
         assert of_total_transformed == expected
+
+        # n_spin_up = 2, n_fermions = 2
+        n_spin_orbitals = 4
+        n_fermions = 2
+        sz = 1.0
+
+        expected = Operator({PAULI_IDENTITY: 1})
+        expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
+        expected.add_term(pauli_label("X0"), (+1) * -0.25)  # (-0.25+0j) [X0 Z1]
+        expected.add_term(pauli_label("Y0"), 0.25j)  # 0.25j [Y0]
+        expected.add_term(pauli_label("Y0"), (+1) * -0.25j)  # -0.25j [Y0 Z1]
+        expected.add_term(pauli_label("X1"), (+1) * -0.25)  # (-0.25+0j) [Z1 X2 Z3]
+        expected.add_term(pauli_label("Y1"), (+1) * -0.25j)  # -0.25j [Z1 Y2 Z3]
+        expected.add_term(pauli_label("X1"), 0.25)  # (0.25+0j) [X2]
+        expected.add_term(pauli_label("Y1"), 0.25j)  # 0.25j [Y2]
+
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).of_operator_mapper
+        assert op_mapper(op_total) == expected
+
+        # n_spin_up = 1, n_fermions = 3
+        n_spin_orbitals = 4
+        n_fermions = 3
+        sz = -0.5
+
+        expected = Operator({PAULI_IDENTITY: 1})
+        expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
+        expected.add_term(pauli_label("X0"), (-1) * -0.25)  # (-0.25+0j) [X0 Z1]
+        expected.add_term(pauli_label("Y0"), 0.25j)  # 0.25j [Y0]
+        expected.add_term(pauli_label("Y0"), (-1) * -0.25j)  # -0.25j [Y0 Z1]
+        expected.add_term(pauli_label("X1"), (+1) * -0.25)  # (-0.25+0j) [Z1 X2 Z3]
+        expected.add_term(pauli_label("Y1"), (+1) * -0.25j)  # -0.25j [Z1 Y2 Z3]
+        expected.add_term(pauli_label("X1"), 0.25)  # (0.25+0j) [X2]
+        expected.add_term(pauli_label("Y1"), 0.25j)  # 0.25j [Y2]
+
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).of_operator_mapper
+        assert op_mapper(op_total) == expected
+
+        # n_spin_up = 2, n_fermions = 3
+        n_spin_orbitals = 4
+        n_fermions = 3
+        sz = 0.5
+
+        expected = Operator({PAULI_IDENTITY: 1})
+        expected.add_term(pauli_label("X0"), 0.25)  # (0.25+0j) [X0]
+        expected.add_term(pauli_label("X0"), (+1) * -0.25)  # (-0.25+0j) [X0 Z1]
+        expected.add_term(pauli_label("Y0"), 0.25j)  # 0.25j [Y0]
+        expected.add_term(pauli_label("Y0"), (+1) * -0.25j)  # -0.25j [Y0 Z1]
+        expected.add_term(pauli_label("X1"), (-1) * -0.25)  # (-0.25+0j) [Z1 X2 Z3]
+        expected.add_term(pauli_label("Y1"), (-1) * -0.25j)  # -0.25j [Z1 Y2 Z3]
+        expected.add_term(pauli_label("X1"), 0.25)  # (0.25+0j) [X2]
+        expected.add_term(pauli_label("Y1"), 0.25j)  # 0.25j [Y2]
+
+        op_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, sz
+        ).of_operator_mapper
+        assert op_mapper(op_total) == expected
+
+        expected = operator_from_openfermion_op(
+            of_symmetry_conserving_bravyi_kitaev(
+                of_op_symmetry_conserve, n_spin_orbitals, n_fermions
+            )
+        )
+        assert op_mapper(op_total) == expected
 
 
 class TestStateMapper:
@@ -394,3 +462,71 @@ class TestStateMapper:
             ComputationalBasisState(n_spin_orbitals - 2, bits=0b111111)
         )
         assert inv_mapped == [0, 1, 4, 5]
+
+        # Test for generic spin SCBK: integer spin
+        n_spin_orbitals = 8
+        n_fermions = 4
+        state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 1.0
+        ).state_mapper
+        inv_state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, 1.0
+        ).inv_state_mapper
+
+        mapped = state_mapper([0, 1, 2, 4])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b11101)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b11101)
+        )
+        assert inv_mapped == [0, 1, 2, 4]
+
+        mapped = state_mapper([0, 2, 3, 4])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b10101)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b10101)
+        )
+        assert inv_mapped == [0, 2, 3, 4]
+
+        mapped = state_mapper([0, 1, 2, 6])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b11001)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b11001)
+        )
+        assert inv_mapped == [0, 1, 2, 6]
+
+        # Test for generic spin SCBK: half integer spin
+        n_spin_orbitals = 8
+        n_fermions = 3
+        state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, -1.5
+        ).state_mapper
+        inv_state_mapper = symmetry_conserving_bravyi_kitaev(
+            n_spin_orbitals, n_fermions, -1.5
+        ).inv_state_mapper
+
+        mapped = state_mapper([1, 3, 5])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b101000)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b101000)
+        )
+        assert inv_mapped == [1, 3, 5]
+
+        mapped = state_mapper([1, 3, 7])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b1000)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b1000)
+        )
+        assert inv_mapped == [1, 3, 7]
+
+        mapped = state_mapper([3, 5, 7])
+        assert mapped == ComputationalBasisState(n_spin_orbitals - 2, bits=0b110000)
+
+        inv_mapped = inv_state_mapper(
+            ComputationalBasisState(n_spin_orbitals - 2, bits=0b110000)
+        )
+        assert inv_mapped == [3, 5, 7]

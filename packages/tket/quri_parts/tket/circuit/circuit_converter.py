@@ -41,10 +41,7 @@ _single_qubit_gate_tket: Mapping[SingleQubitGateNameType, OpType] = {
     gate_names.Tdag: OpType.Tdg,
 }
 
-_single_qubit_rotation_gate_tket: Mapping[
-    SingleQubitGateNameType,
-    OpType,
-] = {
+_single_qubit_rotation_gate_tket: Mapping[SingleQubitGateNameType, OpType] = {
     gate_names.U1: OpType.U1,
     gate_names.U2: OpType.U2,
     gate_names.U3: OpType.U3,
