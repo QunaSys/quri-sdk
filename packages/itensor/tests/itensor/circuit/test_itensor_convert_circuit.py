@@ -18,6 +18,10 @@ import pytest
 from juliacall import Main as jl
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from quri_parts.circuit.transpile import (
+    IdentityInsertionTranspiler,
+    SequentialTranspiler,
+)
 from quri_parts.itensor.circuit import convert_circuit
 
 abs_dir = os.path.dirname(os.path.abspath(__file__))
@@ -175,3 +179,51 @@ def test_convert_u_gate() -> None:
     assert actual == pytest.approx(
         [0.96891242 + 0.0j, 0.2171174 + 0.11861178j, 0.0, 0.0], abs=1e-6
     )
+
+
+def test_convert_pauli_gate() -> None:
+    qubits = 2
+    s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
+    circuit = QuantumCircuit(qubits)
+    circuit.add_gate(gates.Pauli((0, 1), (1, 2)))
+    psiApplied = jl.apply(convert_circuit(circuit, s), psi)
+    stateVector = jl.stateVector(psiApplied, s)
+    actual = numpy.array(stateVector)
+    assert actual == pytest.approx(
+        [0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 0.0j, 0.0 + 1.0j], abs=1e-6
+    )
+
+    circuit = QuantumCircuit(qubits)
+    circuit.add_gate(gates.Pauli((0, 1), (2, 2)))
+    with pytest.raises(ValueError):
+        convert_circuit(
+            circuit, s, SequentialTranspiler([IdentityInsertionTranspiler()])
+        )
+
+
+def test_convert_pauli_rotation_gate() -> None:
+    qubits = 2
+    s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
+    psi: juliacall.AnyValue = jl.init_state(s, qubits)
+    circuit = QuantumCircuit(qubits)
+    circuit.add_gate(gates.PauliRotation((0, 1), (1, 3), math.pi / 2))
+    psiApplied = jl.apply(convert_circuit(circuit, s), psi)
+    stateVector = jl.stateVector(psiApplied, s)
+    actual = numpy.array(stateVector)
+    assert actual == pytest.approx(
+        [
+            0.70710678 + 0.0j,
+            0.0 - 0.70710678j,
+            0.0 + 0.0j,
+            0.0 + 0.0j,
+        ],
+        abs=1e-6,
+    )
+
+    circuit = QuantumCircuit(qubits)
+    circuit.add_gate(gates.PauliRotation((0, 1), (2, 2), math.pi / 2))
+    with pytest.raises(ValueError):
+        convert_circuit(
+            circuit, s, SequentialTranspiler([IdentityInsertionTranspiler()])
+        )

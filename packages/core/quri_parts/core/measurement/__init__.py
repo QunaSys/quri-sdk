@@ -8,6 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Iterable, Union
+
+from quri_parts.core.operator import Operator, PauliLabel
+
 from .bitwise_commuting_pauli import (
     bitwise_commuting_pauli_measurement,
     bitwise_commuting_pauli_measurement_circuit,
@@ -39,6 +43,58 @@ PauliReconstructorFactory = PauliReconstructorFactory
 #: commutable Pauli operators and returns measurement schemes for them.
 CommutablePauliSetMeasurementFactory = CommutablePauliSetMeasurementFactory
 
+
+class CachedMeasurementFactory:
+    """A class decorator that converts a
+    :class:`CommutablePauliSetMeasurementFactory` to a new
+    :class:`CommutablePauliSetMeasurementFactory` runs the same grouping
+    algorithm but caches grouping result for later usage.
+
+    Example:
+    >>> cached_measurement_factory = CachedMeasuremetFactory(
+    ...    bitwise_commuting_pauli_measurement
+    ... )
+    >>> operator = Operator({
+    ...    pauli_label("X0 Y1"): 1,
+    ...    pauli_label("X0 Z2"): 2,
+    ...    pauli_label("Y0 Z2"): 3,
+    ...    PAULI_IDENTITY: 4
+    ... })
+    >>> cached_measurement_factory(operator)
+    """
+
+    def __init__(
+        self, measurement_factory: CommutablePauliSetMeasurementFactory
+    ) -> None:
+        self._measurement_factory = measurement_factory
+        self._cache: dict[
+            frozenset[tuple[PauliLabel, complex]],
+            Iterable[CommutablePauliSetMeasurement],
+        ] = {}
+
+    def __call__(
+        self, paulis: Union[Operator, Iterable[PauliLabel]]
+    ) -> Iterable[CommutablePauliSetMeasurement]:
+        if not isinstance(paulis, Operator):
+            paulis = Operator({p: 1 + 0j for p in paulis})
+
+        op_key = frozenset(paulis.items())
+        if op_key in self._cache:
+            return self._cache[op_key]
+        groups = self._measurement_factory(paulis)
+        self._cache[op_key] = groups
+        return groups
+
+    @property
+    def cached_groups(
+        self,
+    ) -> dict[
+        frozenset[tuple[PauliLabel, complex]],
+        Iterable[CommutablePauliSetMeasurement],
+    ]:
+        return self._cache.copy()
+
+
 __all__ = [
     "PauliMeasurementCircuitGeneration",
     "PauliReconstructor",
@@ -50,4 +106,5 @@ __all__ = [
     "bitwise_pauli_reconstructor_factory",
     "bitwise_commuting_pauli_measurement",
     "individual_pauli_measurement",
+    "CachedMeasuremetFactory",
 ]

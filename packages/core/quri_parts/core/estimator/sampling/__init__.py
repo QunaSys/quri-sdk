@@ -19,7 +19,13 @@ from .estimator import (
     concurrent_sampling_estimate,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
+    get_estimate_from_sampling_result,
     sampling_estimate,
+)
+from .estimator_helpers import (
+    CircuitShotPairPreparationFunction,
+    distribute_shots_among_pauli_sets,
+    get_sampling_circuits_and_shots,
 )
 from .overlap_estimator import (
     create_sampling_overlap_estimator,
@@ -59,14 +65,20 @@ __all__ = [
     "general_pauli_sum_expectation_estimator",
     "general_pauli_covariance_estimator",
     "general_pauli_sum_sample_variance",
+    "get_estimate_from_sampling_result",
     "trivial_pauli_expectation_estimator",
     "trivial_pauli_covariance_estimator",
     "sampling_estimate",
     "create_sampling_estimator",
+    "create_fixed_operator_sampling_esimator",
+    "create_fixed_operator_sampling_concurrent_esimator",
     "concurrent_sampling_estimate",
     "create_sampling_concurrent_estimator",
     "sampling_overlap_estimate",
     "create_sampling_overlap_estimator",
     "sampling_overlap_weighted_sum_estimate",
     "create_sampling_overlap_weighted_sum_estimator",
+    "CircuitShotPairPreparationFunction",
+    "get_sampling_circuits_and_shots",
+    "distribute_shots_among_pauli_sets",
 ]
