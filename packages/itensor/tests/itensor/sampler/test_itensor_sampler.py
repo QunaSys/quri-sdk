@@ -53,6 +53,14 @@ class TestITensorMPSSampler:
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == shots
 
+        # sample on empty circuit
+        circuit = QuantumCircuit(qubits)
+        counts = sampler(circuit, shots)
+
+        assert len(counts) == 1
+        assert next(iter(counts)) == 0
+        assert counts[0] == shots
+
 
 class TestITensorMPSConcurrentSampler:
     @pytest.mark.skip(reason="This test is too slow.")
@@ -68,16 +76,22 @@ class TestITensorMPSConcurrentSampler:
         circuit1 = circuit()
         circuit2 = circuit()
         circuit2.add_X_gate(3)
+        circuit3 = QuantumCircuit(4)
         with ProcessPoolExecutor(
-            max_workers=2, mp_context=get_context("spawn")
+            max_workers=3, mp_context=get_context("spawn")
         ) as executor:
             sampler = create_itensor_mps_concurrent_sampler(
-                executor, 2, **sampler_kwargs
+                executor, 3, **sampler_kwargs
             )
-            results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
+            results = list(
+                sampler([(circuit1, 1000), (circuit2, 2000), (circuit3, 4000)])
+            )
         assert set(results[0]) == {0b1001, 0b1011}
         assert all(c >= 0 for c in results[0].values())
         assert sum(results[0].values()) == 1000
         assert set(results[1]) == {0b0001, 0b0011}
         assert all(c >= 0 for c in results[1].values())
         assert sum(results[1].values()) == 2000
+        assert set(results[2]) == {0b0000}
+        assert all(c >= 0 for c in results[2].values())
+        assert sum(results[2].values()) == 4000

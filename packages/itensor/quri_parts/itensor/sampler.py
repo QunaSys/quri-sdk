@@ -31,6 +31,8 @@ def _sample(
     qubits = circuit.qubit_count
     s: juliacall.VectorValue = jl.siteinds("Qubit", qubits)
     psi: juliacall.AnyValue = jl.init_state(s, qubits)
+    if len(circuit.gates) == 0:
+        return Counter({0: shots})
     circuit_ops = convert_circuit(circuit, s)
     psi = jl.apply(circuit_ops, psi, **kwargs)
     if any(k in kwargs for k in ["mindim", "maxdim", "cutoff"]):
