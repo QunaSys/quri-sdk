@@ -37,6 +37,8 @@ from quri_parts.circuit.transpile import (
     SequentialTranspiler,
 )
 
+from .braket_circuit_converter import circuit_from_braket, gate_from_braket
+
 BraketCircuitConverter: TypeAlias = Callable[
     [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], Circuit
 ]
@@ -65,6 +67,8 @@ _single_qubit_gate_braket: Mapping[SingleQubitGateNameType, Type[Gate]] = {
     gate_names.Sdag: Gate.Si,
     gate_names.T: Gate.T,
     gate_names.Tdag: Gate.Ti,
+    gate_names.SqrtX: Gate.V,
+    gate_names.SqrtXdag: Gate.Vi,
 }
 
 _single_qubit_rotation_gate_braket: Mapping[SingleQubitGateNameType, Type[Gate]] = {
@@ -89,31 +93,16 @@ _parametric_gate_braket: Mapping[ParametricGateNameType, Type[Gate]] = {
     gate_names.ParametricRZ: Gate.Rz,
 }
 
-_U_gate_matrix: Mapping[
-    SingleQubitGateNameType, Callable[[Sequence[float]], Sequence[Sequence[complex]]]
-] = {
-    gate_names.U1: lambda angle: [[1.0, 0.0], [0.0, np.exp(angle[0] * 1.0j)]],
-    gate_names.U2: lambda angle: [
-        [1.0 / np.sqrt(2.0), -np.exp(angle[1] * 1.0j) / np.sqrt(2.0)],
-        [
-            np.exp(angle[0] * 1.0j) / np.sqrt(2.0),
-            np.exp((angle[0] + angle[1]) * 1.0j) / np.sqrt(2.0),
-        ],
-    ],
-    gate_names.U3: lambda angle: [
-        [np.cos(angle[0] / 2.0), -np.exp(angle[2] * 1.0j) * np.sin(angle[0] / 2.0)],
-        [
-            np.exp(angle[1] * 1.0j) * np.sin(angle[0] / 2.0),
-            np.exp((angle[1] + angle[2]) * 1.0j) * np.cos(angle[0] / 2.0),
-        ],
-    ],
+# U2 gate is implemeted as a special case of U3.
+_U_gate_matrix: Mapping[SingleQubitGateNameType, Callable[[Sequence[float]], Gate]] = {
+    gate_names.U1: lambda angles: Gate.PhaseShift(*angles),
+    gate_names.U2: lambda angles: Gate.U(np.pi / 2, *angles),
+    gate_names.U3: lambda angles: Gate.U(*angles),
 }
 
 _special_named_gate_matrix: Mapping[
     SingleQubitGateNameType, Sequence[Sequence[complex]]
 ] = {
-    gate_names.SqrtX: [[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]],
-    gate_names.SqrtXdag: [[0.5 - 0.5j, 0.5 + 0.5j], [0.5 + 0.5j, 0.5 - 0.5j]],
     gate_names.SqrtY: [[0.5 + 0.5j, -0.5 - 0.5j], [0.5 + 0.5j, 0.5 + 0.5j]],
     gate_names.SqrtYdag: [[0.5 - 0.5j, 0.5 - 0.5j], [-0.5 + 0.5j, 0.5 - 0.5j]],
 }
@@ -131,8 +120,7 @@ def convert_gate(gate: QuantumGate) -> Instruction:
             b_gate = _single_qubit_rotation_gate_braket[gate.name](*gate.params)
             return Instruction(b_gate, gate.target_indices)
         elif gate.name in _U_gate_matrix:
-            u_matrix = _U_gate_matrix[gate.name](gate.params)
-            b_gate = Gate.Unitary(np.array(u_matrix))
+            b_gate = _U_gate_matrix[gate.name](gate.params)
             return Instruction(b_gate, gate.target_indices)
         elif gate.name in _special_named_gate_matrix:
             s_matrix = _special_named_gate_matrix[gate.name]
@@ -187,4 +175,6 @@ __all__ = [
     "BraketSetTranspiler",
     "convert_gate",
     "convert_circuit",
+    "gate_from_braket",
+    "circuit_from_braket",
 ]

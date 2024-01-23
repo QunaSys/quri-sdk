@@ -257,7 +257,7 @@ U2 = U2Factory()
 r"""U2 gate is a single-qubit rotation about X + Z axis:
 
 :math:`U_2(\phi, \lambda) = R_Z(\phi)R_Y(\pi/2)R_Z(\lambda)`.
-Represented by matrix :math:`\frac{1}{\sqrt{2}}\begin{pmatrix} 1 & e^{-i\lambda} \\
+Represented by matrix :math:`\frac{1}{\sqrt{2}}\begin{pmatrix} 1 & -e^{i\lambda} \\
 e^{i\phi} & e^{i(\phi+\lambda)} \end{pmatrix}`
 """
 
@@ -278,7 +278,7 @@ r"""U3 gate is a generic single-qubit rotation gate with 3 Euler angles.
 
 Represented by matrix
 :math:`\begin{pmatrix}
-\cos\frac{\theta}{2} & -e^{-i\lambda}\sin\frac{\theta}{2} \\
+\cos\frac{\theta}{2} & -e^{i\lambda}\sin\frac{\theta}{2} \\
 e^{i\phi}\sin\frac{\theta}{2} & e^{i(\phi+\lambda)}\cos\frac{\theta}{2}
 \end{pmatrix}`
 """
