@@ -36,10 +36,12 @@ from ..utils.add_exp_excitation_gates_trotter_decomposition import (
 class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
     r"""Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
-    operator decomposed by first-order Trotter product formula. Note that the ansatz
-    only supports singlet state and the occupied orbitals are the lowest
-    :attr:`n_fermions` spin orbitals. The decomposition using Trotter product formula
-    is executed for each qubit operators obtained by mapping excitation operators.
+    operator decomposed by first-order Trotter product formula. Note that the
+    occupied orbitals are the lowest :attr:`n_fermions` spin orbitals. The
+    decomposition using Trotter product formula is executed for each qubit
+    operators obtained by mapping excitation operators. The excitation operator
+    involved in the UCCSD ansatz will be determined by (n_spin_orbitals,
+    n_fermions, delta_sz).
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
@@ -49,7 +51,15 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
-        singlet_excitation: If ``True``, the ansatz will be spin symmetric.
+            If delta_sz = 0, the excitation operator T present in the ansatz respects
+            the symmetry condition :math:`[T, S_z] = 0`.
+        singlet_excitation:
+            If ``True``, certain circuit parameters that corresponds to the excitation
+            amplitude will be identified according to the symmetry condition:
+            :math:`[S_x, T] = [S_y, T] = [S_z, T] = 0`. Please check out the note below
+            for information about how circuit parameters are identified by the
+            symmetry condition.
+
             Parameters for the spin symmetric ansatz are named according to the spatial
             transition amplitude.
 
@@ -60,14 +70,17 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                 from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
 
+
     Note:
-        Singlets excitation ansatz:
+
+        When singlet_excitation = True:
 
         1. Certain excitation operators will share the same circuit parameters.
             - For single excitation:
                 :math:`c_{a↑}^† c_{i↑}` and :math:`c_{a↓}^† c_{i↓}` share the same
                 transition amplitude :math:`t_i^a`,
                 thus sharing the same circuit parameter s_i_a.
+
             - For mixed spin double excitation:
                 - :math:`c_{a↑}^† c_{b↓}^† c_{j↓} c_{i↑}` and
                   :math:`c_{a↓}^† c_{b↑}^† c_{j↑} c_{i↓}` share the same excitaion
@@ -75,7 +88,7 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
                   circuit parameter d_i_j_a_b.
 
                 - All the circuit parameters for double excitation are fixed by
-                the mixed spin double excitation mode.
+                    the mixed spin double excitation mode.
 
             - For same spin double excitation:
                 :math:`c_{a↑}^† c_{b↑}^† c_{j↑} c_{i↑}` and
@@ -119,8 +132,10 @@ class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
         n_vir_sorbs = n_spin_orbitals - n_fermions
 
-        if n_fermions % 2:
-            raise ValueError("Number of electrons must be even for SingletUCCSD.")
+        if n_fermions % 2 and singlet_excitation:
+            raise ValueError(
+                "Singlet excitation is not supported when " "number of electron is odd."
+            )
 
         if n_vir_sorbs <= 0:
             raise ValueError("Number of virtual orbitals must be a non-zero integer.")

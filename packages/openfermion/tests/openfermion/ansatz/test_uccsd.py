@@ -398,8 +398,13 @@ class TestUCCSD:
         assert bound_ansatz == expected_bound_ansatz
 
     def test_singlet_uccsd_invalid_input(self) -> None:
-        with pytest.raises(ValueError):
-            TrotterUCCSD(4, 3)
+        with pytest.raises(
+            ValueError,
+            match=(
+                "Singlet excitation is not supported when " "number of electron is odd."
+            ),
+        ):
+            TrotterUCCSD(4, 3, singlet_excitation=True)
         with pytest.raises(ValueError):
             TrotterUCCSD(4, 4)
         with pytest.raises(AssertionError):
