@@ -8,20 +8,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Sequence
+from typing import Callable, Sequence, Union
 
 import numpy as np
 import pytest
+from typing_extensions import TypeAlias
 
-from quri_parts.chem.properties import (
-    _ParametricStateT,
-    create_energy_gradient_estimator,
-)
+from quri_parts.chem.properties import create_energy_gradient_estimator
 from quri_parts.circuit import UnboundParametricQuantumCircuit
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
-from quri_parts.core.state import ComputationalBasisState
-from quri_parts.core.state.state_parametric import ParametricCircuitQuantumState
+from quri_parts.core.state import (
+    ComputationalBasisState,
+    ParametricCircuitQuantumState,
+    ParametricQuantumStateVector,
+)
 from quri_parts.qulacs.estimator import create_qulacs_vector_concurrent_estimator
+
+ParamState: TypeAlias = Union[
+    ParametricCircuitQuantumState, ParametricQuantumStateVector
+]
 
 
 def _h_generator(params: Sequence[float]) -> Operator:
@@ -42,7 +47,7 @@ def test_energy_gradient_estimator() -> None:
     h_params = [1, 2, 3, 4, 5, 6]
     estimator = create_qulacs_vector_concurrent_estimator()
     energy_grad_estimator: Callable[
-        [_ParametricStateT, Sequence[float]], Sequence[float]
+        [ParamState, Sequence[float]], Sequence[float]
     ] = create_energy_gradient_estimator(estimator, h_params, _h_generator)
 
     # no circuit parameters

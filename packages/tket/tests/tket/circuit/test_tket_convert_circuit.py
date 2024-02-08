@@ -35,9 +35,15 @@ def circuit_equal(c1: Circuit, c2: Circuit) -> bool:
             return False
 
         if (
-            (type(gate1.op) == Unitary1qBox and type(gate2.op) == Unitary1qBox)
-            or (type(gate1.op) == Unitary2qBox and type(gate2.op) == Unitary2qBox)
-            or (type(gate1.op) == Unitary3qBox and type(gate2.op) == Unitary3qBox)
+            (isinstance(gate1.op, Unitary1qBox) and isinstance(gate2.op, Unitary1qBox))
+            or (
+                isinstance(gate1.op, Unitary2qBox)
+                and isinstance(gate2.op, Unitary2qBox)
+            )
+            or (
+                isinstance(gate1.op, Unitary3qBox)
+                and isinstance(gate2.op, Unitary3qBox)
+            )
         ):
             matrix_same = np.allclose(gate1.op.get_unitary(), gate2.op.get_unitary())
 
