@@ -8,13 +8,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Collection, Iterable, Mapping, NamedTuple, Sequence, Union
+from collections import Counter
+from typing import (
+    Callable,
+    Collection,
+    Iterable,
+    Mapping,
+    NamedTuple,
+    Sequence,
+    TypeVar,
+    Union,
+)
 
+import numpy as np
+import numpy.typing as npt
 from typing_extensions import TypeAlias
 
 from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.operator import CommutablePauliSet, Operator
+from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
+
+#: A type variable represents *any* non-parametric quantum state classes.
+#: This is different from :class:`quri_parts.core.state.QuantumStateT`;
+#: ``QuantumStateT`` represents *either one of* the classes, while ``_StateT`` also
+#: covers *a union of* multiple state classes.
+_StateT = TypeVar("_StateT", bound=Union[CircuitQuantumState, QuantumStateVector])
 
 #: MeasurementCounts represents count statistics of repeated measurements of a quantum
 #: circuit. Keys are observed bit patterns encoded in integers and values are counts
@@ -31,6 +50,38 @@ Sampler: TypeAlias = Callable[[NonParametricQuantumCircuit, int], MeasurementCou
 ConcurrentSampler: TypeAlias = Callable[
     [Iterable[tuple[NonParametricQuantumCircuit, int]]], Iterable[MeasurementCounts]
 ]
+
+#: StateSampler representes a function that samples a specific (non-parametric) state by
+#: specified times and returns the count statistics. In the case of an ideal
+#: StateSampler, the return value corresponds to probabilities multiplied by shot count.
+StateSampler: TypeAlias = Callable[[_StateT, int], MeasurementCounts]
+
+
+def sample_from_state_vector(
+    state_vector: npt.NDArray[np.complex128], n_shots: int
+) -> MeasurementCounts:
+    """Perform sampling from a state vector."""
+    n_qubits: float = np.log2(state_vector.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+    if not np.isclose(np.linalg.norm(state_vector), 1):
+        raise ValueError("probabilities do not sum to 1")
+    probs = np.abs(state_vector) ** 2
+    rng = np.random.default_rng()
+    counts = rng.multinomial(n_shots, probs)
+    return Counter(dict(((i, count) for i, count in enumerate(counts) if count > 0)))
+
+
+def ideal_sample_from_state_vector(
+    state_vector: npt.NDArray[np.complex128], n_shots: int
+) -> MeasurementCounts:
+    """Perform ideal sampling from a state vector."""
+    n_qubits: float = np.log2(state_vector.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+    if not np.isclose(np.linalg.norm(state_vector), 1):
+        raise ValueError("probabilities do not sum to 1")
+
+    probs = np.abs(state_vector) ** 2
+    return {i: prob * n_shots for i, prob in enumerate(probs)}
 
 
 def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
