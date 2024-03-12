@@ -12,6 +12,7 @@ import numpy as np
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import (
+    CNOTHCNOTFusingTranspiler,
     FuseRotationTranspiler,
     NormalizeRotationTranspiler,
     RX2NamedTranspiler,
@@ -275,3 +276,47 @@ class TestRotation2Named:
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+
+class TestCNOTHCNOTFuse:
+    def test_reduce_cnot(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.extend(
+            [
+                gates.X(2),
+                gates.CNOT(1, 0),
+                gates.H(0),
+                gates.CNOT(1, 0),
+                gates.H(1),
+                gates.CNOT(1, 2),
+                gates.H(1),
+                gates.CNOT(1, 2),
+                gates.H(1),
+                gates.CNOT(1, 2),
+                gates.X(0),
+            ]
+        )
+        transpiled = CNOTHCNOTFusingTranspiler()(circuit)
+
+        expect = QuantumCircuit(3)
+        expect.extend(
+            [
+                gates.X(2),
+                gates.CNOT(1, 0),
+                gates.H(0),
+                gates.CNOT(1, 0),
+                gates.H(1),
+                gates.S(1),
+                gates.H(2),
+                gates.CNOT(2, 1),
+                gates.Sdag(1),
+                gates.S(2),
+                gates.H(1),
+                gates.H(2),
+                gates.H(1),
+                gates.CNOT(1, 2),
+                gates.X(0),
+            ]
+        )
+
+        assert transpiled == expect

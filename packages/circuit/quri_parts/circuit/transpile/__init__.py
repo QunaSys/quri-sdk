@@ -12,6 +12,7 @@ from typing import Callable
 
 from .clifford_approximation import CliffordApproximationTranspiler
 from .fuse import (
+    CNOTHCNOTFusingTranspiler,
     FuseRotationTranspiler,
     NormalizeRotationTranspiler,
     RX2NamedTranspiler,
@@ -223,6 +224,7 @@ __all__ = [
     "CNOT2CZHTranspiler",
     "CZ2CNOTHTranspiler",
     "CZ2RXRYCNOTTranspiler",
+    "CNOTHCNOTFusingTranspiler",
     "FuseRotationTranspiler",
     "NormalizeRotationTranspiler",
     "H2RXRYTranspiler",
