@@ -19,6 +19,7 @@ from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
     Estimate,
+    GeneralQuantumEstimator,
     ParametricQuantumEstimator,
     QuantumEstimator,
     create_parametric_estimator,
@@ -344,3 +345,39 @@ def create_qulacs_density_matrix_concurrent_parametric_estimator(
         )
 
     return estimator
+
+
+def create_qulacs_general_vector_estimator(
+    executor: Optional["Executor"] = None, concurrency: int = 1
+) -> GeneralQuantumEstimator[QulacsStateT, QulacsParametricStateT]:
+    """Creates a Qulacs general vector estimator."""
+    concurrent_param_estimator = create_qulacs_vector_concurrent_parametric_estimator(
+        executor, concurrency
+    )
+    return GeneralQuantumEstimator(
+        estimator=create_qulacs_vector_estimator(),
+        concurrent_estimator=create_qulacs_vector_concurrent_estimator(
+            executor, concurrency
+        ),
+        parametric_estimator=create_qulacs_vector_parametric_estimator(),
+        concurrent_parametric_estimator=concurrent_param_estimator,
+    )
+
+
+def create_qulacs_general_density_matrix_estimator(
+    model: NoiseModel, executor: Optional["Executor"] = None, concurrency: int = 1
+) -> GeneralQuantumEstimator[QulacsStateT, QulacsParametricStateT]:
+    """Creates a Qulacs general density estimator."""
+    # cp_estimator: abbreviation of concurrent parametric estimator
+    cp_estimator = create_qulacs_density_matrix_concurrent_parametric_estimator(
+        model, executor, concurrency
+    )
+
+    return GeneralQuantumEstimator(
+        estimator=create_qulacs_density_matrix_estimator(model),
+        concurrent_estimator=create_qulacs_density_matrix_concurrent_estimator(
+            model, executor, concurrency
+        ),
+        parametric_estimator=create_qulacs_density_matrix_parametric_estimator(model),
+        concurrent_parametric_estimator=cp_estimator,
+    )

@@ -307,8 +307,26 @@ class TestGeneralEstimator(unittest.TestCase):
         assert general_estimator(self.op_0, param_state, [3, 4, 5]) == _Estimate(
             value=12 + 0j
         )
+        assert general_estimator(
+            self.op_0, param_state, np.array([0, 1, 2])
+        ) == _Estimate(value=3 + 0j)
+        assert general_estimator(
+            self.op_0, param_state, np.array([3, 4, 5])
+        ) == _Estimate(value=12 + 0j)
 
         assert general_estimator(self.op_0, param_state, [[0, 1, 2], [3, 4, 5]]) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+        assert general_estimator(
+            self.op_0, param_state, [np.array([0, 1, 2]), np.array([3, 4, 5])]
+        ) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+        assert general_estimator(
+            self.op_0, param_state, np.array([[0, 1, 2], [3, 4, 5]])
+        ) == [
             _Estimate(value=3 + 0j),
             _Estimate(value=12 + 0j),
         ]
@@ -362,9 +380,25 @@ class TestGeneralEstimator(unittest.TestCase):
         assert np.isclose(estimate.value, 3 * np.sqrt(2))
         estimate = general_estimator(self.op_0, param_state, [3, 4, 5])
         assert np.isclose(estimate.value, 12 * np.sqrt(2))
+        estimate = general_estimator(self.op_0, param_state, np.array([0, 1, 2]))
+        assert np.isclose(estimate.value, 3 * np.sqrt(2))
+        estimate = general_estimator(self.op_0, param_state, np.array([3, 4, 5]))
+        assert np.isclose(estimate.value, 12 * np.sqrt(2))
 
         estimates = list(
             general_estimator(self.op_0, param_state, [[0, 1, 2], [3, 4, 5]])
+        )
+        assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
+        estimates = list(
+            general_estimator(
+                self.op_0, param_state, [np.array([0, 1, 2]), np.array([3, 4, 5])]
+            )
+        )
+        assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
+        estimates = list(
+            general_estimator(self.op_0, param_state, np.array([[0, 1, 2], [3, 4, 5]]))
         )
         assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
         assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
@@ -410,8 +444,26 @@ class TestGeneralEstimator(unittest.TestCase):
         assert general_estimator(self.op_0, param_state, [3, 4, 5]) == _Estimate(
             value=12 + 0j
         )
+        assert general_estimator(
+            self.op_0, param_state, np.array([0, 1, 2])
+        ) == _Estimate(value=3 + 0j)
+        assert general_estimator(
+            self.op_0, param_state, np.array([3, 4, 5])
+        ) == _Estimate(value=12 + 0j)
 
         assert general_estimator(self.op_0, param_state, [[0, 1, 2], [3, 4, 5]]) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+        assert general_estimator(
+            self.op_0, param_state, [np.array([0, 1, 2]), np.array([3, 4, 5])]
+        ) == [
+            _Estimate(value=3 + 0j),
+            _Estimate(value=12 + 0j),
+        ]
+        assert general_estimator(
+            self.op_0, param_state, np.array([[0, 1, 2], [3, 4, 5]])
+        ) == [
             _Estimate(value=3 + 0j),
             _Estimate(value=12 + 0j),
         ]
@@ -465,9 +517,25 @@ class TestGeneralEstimator(unittest.TestCase):
         assert np.isclose(estimate.value, 3 * np.sqrt(2))
         estimate = general_estimator(self.op_0, param_state, [3, 4, 5])
         assert np.isclose(estimate.value, 12 * np.sqrt(2))
+        estimate = general_estimator(self.op_0, param_state, np.array([0, 1, 2]))
+        assert np.isclose(estimate.value, 3 * np.sqrt(2))
+        estimate = general_estimator(self.op_0, param_state, np.array([3, 4, 5]))
+        assert np.isclose(estimate.value, 12 * np.sqrt(2))
 
         estimates = list(
             general_estimator(self.op_0, param_state, [[0, 1, 2], [3, 4, 5]])
+        )
+        assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
+        estimates = list(
+            general_estimator(
+                self.op_0, param_state, [np.array([0, 1, 2]), np.array([3, 4, 5])]
+            )
+        )
+        assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
+        assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
+        estimates = list(
+            general_estimator(self.op_0, param_state, np.array([[0, 1, 2], [3, 4, 5]]))
         )
         assert np.isclose(estimates[0].value, 3 * np.sqrt(2))
         assert np.isclose(estimates[1].value, 12 * np.sqrt(2))
