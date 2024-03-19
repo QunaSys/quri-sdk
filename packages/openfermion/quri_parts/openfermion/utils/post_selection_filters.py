@@ -31,7 +31,7 @@ def create_jw_electron_number_post_selection_filter_fn(
     """
 
     def filter_fn(bits: int) -> bool:
-        if sz:
+        if sz is not None:
             n_up = bin(bits)[-1:1:-2].count("1")
             n_down = bin(bits)[-2:1:-2].count("1")
             if n_up - n_down != sz * 2:
@@ -58,7 +58,7 @@ def create_bk_electron_number_post_selection_filter_fn(
     def filter_fn(bits: int) -> bool:
         state = ComputationalBasisState(qubit_count, bits=bits)
         occ_indices = inv_st_mapper(state)
-        if sz and occupation_state_sz(occ_indices) != sz:
+        if sz is not None and occupation_state_sz(occ_indices) != sz:
             return False
         return len(occ_indices) == n_electrons
 

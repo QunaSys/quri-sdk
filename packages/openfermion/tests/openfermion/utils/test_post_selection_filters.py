@@ -34,6 +34,16 @@ def test_create_jw_electron_number_post_selection_filter_fn() -> None:
     assert not filter_fn(0b1011)
     assert not filter_fn(0b11010)
 
+    n_electrons = 2
+    filter_fn = create_jw_electron_number_post_selection_filter_fn(n_electrons, sz=0)
+    assert not filter_fn(0b00)
+    assert not filter_fn(0b10)
+    assert filter_fn(0b11)
+    assert filter_fn(0b1100)
+    assert filter_fn(0b1001)
+    assert not filter_fn(0b101)
+    assert not filter_fn(0b1111)
+
 
 def test_create_bk_electron_number_post_selection_filter_fn() -> None:
     qubit_count = 10
@@ -56,6 +66,22 @@ def test_create_bk_electron_number_post_selection_filter_fn() -> None:
     assert filter_fn(0b0111)
     assert not filter_fn(0b0010)
     assert filter_fn(59)
+
+    filter_fn = create_bk_electron_number_post_selection_filter_fn(
+        qubit_count, n_electrons, sz=0.0
+    )
+    assert filter_fn(0b1)
+    assert filter_fn(0b11)
+    assert filter_fn(0b101011)
+    assert filter_fn(0b1011)
+    assert filter_fn(0b1100)
+    assert filter_fn(0b100)
+    assert not filter_fn(0b111)
+    assert not filter_fn(0b111011)
+    assert not filter_fn(0b1001011)
+    assert not filter_fn(0b1000)
+    assert not filter_fn(0b1000010)
+    assert not filter_fn(0b1110000100)
 
 
 def test_create_scbk_electron_number_post_selection_filter_fn() -> None:

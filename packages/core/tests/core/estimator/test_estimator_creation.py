@@ -258,7 +258,7 @@ class TestCreateConcurrentParamtericEstimatorFromConcurrentEstimator(unittest.Te
         assert np.isclose(estimate_list[1].value, 12 * np.sqrt(2))
 
 
-class TestGeneralEstimator(unittest.TestCase):
+class TestGeneralQuantumEstimator(unittest.TestCase):
     def setUp(self) -> None:
         self.op_0 = PAULI_IDENTITY
         self.op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})

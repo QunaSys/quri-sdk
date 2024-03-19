@@ -480,8 +480,8 @@ class GeneralQuantumEstimator(Generic[_StateT, _ParametricStateT]):
     - Act as :class:`ConcurrentParametricQuantumEstimator`:
         - Estimatable, _ParametricStateT, [[float, ...], ...] -> [Estimate, ...]
 
-    When a :class:`GeneralEstimator` is called directly with one of the combinations
-    above, it needs to parse the input arguments to figure out which of
+    When a :class:`GeneralQuantumEstimator` is called directly with one of the
+    combinations above, it needs to parse the input arguments to figure out which of
     :class:`QuantumEstimator`, :class:`ConcurrentQuantumEstimator`,
     :class:`ParametricQuantumEstimator`, or :class:`ConcurrentParametricEstimator`
     is required to perform the estimation. To avoid such performance penalty, you may
@@ -597,12 +597,13 @@ def create_general_estimator_from_estimator(
 def create_general_estimator_from_estimator(
     estimator: QuantumEstimator[_StateT],
 ) -> GeneralQuantumEstimator[_StateT, _ParametricStateT]:
-    """Creates a :class:`GeneralEstimator` from a :class:`QuantumEstimator`.
+    """Creates a :class:`GeneralQuantumEstimator` from a
+    :class:`QuantumEstimator`.
 
     Note:
     - The concurrencies of the :class:`ConcurrentQuantumEstimaror` and
         `ConcurrentParametricQuantumEstimaror` will be set to 1 when a
-        :class:`GeneralEstimator` is created with this function.
+        :class:`GeneralQuantumEstimator` is created with this function.
     - When circuit conversion is involved in the estimator execution, the
         parametric estimator created from this function will bind the parameter
         first, and then convert the bound circuit every time the patametric estimator
@@ -645,7 +646,7 @@ def create_general_estimator_from_concurrent_estimator(
 def create_general_estimator_from_concurrent_estimator(
     concurrent_estimator: ConcurrentQuantumEstimator[_StateT],
 ) -> GeneralQuantumEstimator[_StateT, _ParametricStateT]:
-    """Creates a :class:`GeneralEstimator` from a
+    """Creates a :class:`GeneralQuantumEstimator` from a
     :class:`ConcurrentQuantumEstimator`.
 
     Note:

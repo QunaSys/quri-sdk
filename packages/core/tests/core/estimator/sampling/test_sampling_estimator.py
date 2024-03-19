@@ -8,17 +8,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
 from collections.abc import Collection, Iterable
 from math import sqrt
 from typing import Any, Union, cast
 from unittest.mock import Mock
 
+import numpy as np
 import pytest
 
-from quri_parts.circuit import H, NonParametricQuantumCircuit, QuantumCircuit, X
+from quri_parts.circuit import (
+    H,
+    NonParametricQuantumCircuit,
+    QuantumCircuit,
+    UnboundParametricQuantumCircuit,
+    X,
+)
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.estimator.sampling import (
     concurrent_sampling_estimate,
+    create_general_sampling_estimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     get_estimate_from_sampling_result,
@@ -44,7 +53,11 @@ from quri_parts.core.sampling import MeasurementCounts, PauliSamplingSetting
 from quri_parts.core.sampling.shots_allocator import (
     create_equipartition_shots_allocator,
 )
-from quri_parts.core.state import CircuitQuantumState, ComputationalBasisState
+from quri_parts.core.state import (
+    CircuitQuantumState,
+    ComputationalBasisState,
+    ParametricCircuitQuantumState,
+)
 
 n_qubits = 3
 
@@ -510,3 +523,107 @@ class TestSamplingConcurrentEstimator:
         assert len(estimate_list) == 2
         assert_sample(estimate_list[0])
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+
+class GeneralSamplingEstimator(unittest.TestCase):
+    def setUp(self) -> None:
+        s = mock_sampler()
+        self.general_estimator = create_general_sampling_estimator(
+            total_shots(),
+            s,
+            bitwise_commuting_pauli_measurement,
+            allocator,
+        )
+
+    def test_general_quantum_estimator(self) -> None:
+        estimate = self.general_estimator(operator(), initial_state())
+        assert_sample(estimate)
+
+    def test_concurrent_estimate(self) -> None:
+        estimates = self.general_estimator(
+            operator(),
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])
+
+        estimates = self.general_estimator(
+            [operator()],
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])
+
+        estimates = self.general_estimator(
+            [operator(), pauli_label("Z0")],
+            ComputationalBasisState(3, bits=0b001),
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+        estimates = self.general_estimator(
+            [operator(), pauli_label("Z0")],
+            [ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+        estimates = self.general_estimator(
+            [operator(), pauli_label("Z0")],
+            [initial_state(), ComputationalBasisState(3, bits=0b001)],
+        )
+
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
+
+    def test_parametric_estimate(self) -> None:
+        circuit = UnboundParametricQuantumCircuit(n_qubits)
+        circuit.add_X_gate(0)
+        circuit.add_ParametricRX_gate(0)
+        circuit.add_ParametricRY_gate(1)
+        circuit.add_ParametricRZ_gate(2)
+
+        state = ParametricCircuitQuantumState(n_qubits, circuit)
+
+        estimate = self.general_estimator(operator(), state, [0, 1, 2])
+        assert_sample(estimate)
+
+        estimate = self.general_estimator(operator(), state, np.array([0, 1, 2]))
+        assert_sample(estimate)
+
+    def test_concurrent_parametric_estimate(self) -> None:
+        circuit = UnboundParametricQuantumCircuit(n_qubits)
+        circuit.add_X_gate(0)
+        circuit.add_ParametricRX_gate(0)
+        circuit.add_ParametricRY_gate(1)
+        circuit.add_ParametricRZ_gate(2)
+
+        state = ParametricCircuitQuantumState(n_qubits, circuit)
+
+        estimates = self.general_estimator(operator(), state, [[0, 1, 2], [4, 5, 6]])
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])
+
+        estimates = self.general_estimator(
+            operator(), state, np.array([[0, 1, 2], [4, 5, 6]])
+        )
+        estimate_list = list(estimates)
+        assert len(estimate_list) == 2
+        assert_sample(estimate_list[0])
+        assert_sample(estimate_list[1])

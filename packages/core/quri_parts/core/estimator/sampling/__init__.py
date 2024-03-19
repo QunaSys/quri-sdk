@@ -17,6 +17,7 @@ from quri_parts.core.sampling import MeasurementCounts
 
 from .estimator import (
     concurrent_sampling_estimate,
+    create_general_sampling_estimator,
     create_sampling_concurrent_estimator,
     create_sampling_estimator,
     get_estimate_from_sampling_result,
@@ -81,4 +82,5 @@ __all__ = [
     "CircuitShotPairPreparationFunction",
     "get_sampling_circuits_and_shots",
     "distribute_shots_among_pauli_sets",
+    "create_general_sampling_estimator",
 ]

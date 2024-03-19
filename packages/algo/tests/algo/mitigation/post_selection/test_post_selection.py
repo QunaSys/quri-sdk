@@ -8,7 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Iterable
+
 from quri_parts.algo.mitigation.post_selection.post_selection import (
+    create_general_post_selection_concurrent_sampler,
     create_general_post_selection_sampler,
     post_selection,
 )
@@ -55,3 +58,35 @@ def test_create_general_post_selection_sampler() -> None:
 
     ps_sampler = create_general_post_selection_sampler(_mock_sampler, _filter_fn)
     assert ps_sampler(circuit, 100) == {0b01: 1, 0b10: 10}
+
+
+def _mock_concurrent_sampler(
+    _: Iterable[tuple[NonParametricQuantumCircuit, int]]
+) -> Iterable[MeasurementCounts]:
+    return [
+        {0b01: 1, 0b10: 10, 0b111: 20, 0b0101: 5, 0b1110: 100},
+        {0b01: 2, 0b10: 11, 0b111: 21, 0b0101: 6, 0b1110: 101},
+        {0b01: 3, 0b10: 12, 0b111: 22, 0b0101: 7, 0b1110: 102},
+        {0b01: 4, 0b10: 13, 0b111: 23, 0b0101: 8, 0b1110: 103},
+    ]
+
+
+def test_create_general_post_selection_concurrent_sampler() -> None:
+    circuit = QuantumCircuit(2)
+
+    def _filter_fn(bits: int) -> bool:
+        if bits < 3:
+            return True
+        return False
+
+    ps_concurrent_sampler = create_general_post_selection_concurrent_sampler(
+        _mock_concurrent_sampler, _filter_fn
+    )
+    assert ps_concurrent_sampler(
+        [(circuit, 100), (circuit, 100), (circuit, 100), (circuit, 100)]
+    ) == [
+        {0b01: 1, 0b10: 10},
+        {0b01: 2, 0b10: 11},
+        {0b01: 3, 0b10: 12},
+        {0b01: 4, 0b10: 13},
+    ]
