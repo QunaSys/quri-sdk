@@ -130,6 +130,19 @@ class UnboundParametricQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         """Returns the parameter mapping of the circuit."""
         ...
 
+    def bind_parameters_by_dict(
+        self, params_dict: dict[Parameter, float]
+    ) -> "ImmutableBoundParametricQuantumCircuit":
+        """Returns a new circuit with the parameters assigned concrete values.
+
+        This method does not modify self but returns a newly created
+        circuit.
+        """
+        param_list = []
+        for param in self.param_mapping.in_params:
+            param_list.append(params_dict[param])
+        return self.bind_parameters(param_list)
+
     def __add__(
         self, gates: Union[GateSequence, "UnboundParametricQuantumCircuitProtocol"]
     ) -> "UnboundParametricQuantumCircuitProtocol":

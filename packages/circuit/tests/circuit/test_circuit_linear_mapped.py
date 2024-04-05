@@ -10,6 +10,8 @@
 
 from typing import Sequence
 
+import numpy as np
+
 from quri_parts.circuit import (
     CNOT,
     RX,
@@ -83,6 +85,39 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         assert all([isinstance(gate, QuantumGate) for gate in circuit_bound.gates])
         assert circuit_bound.gates[3].params[0] == 1.0
         assert circuit_bound.gates[4].params[0] == 0.5
+
+    def test_bind_parameters_by_dict(self) -> None:
+        circuit, params = mutable_circuit()
+        rx, pr = params
+        param_vals = np.random.random(2).tolist()
+
+        expected_circuit = circuit.bind_parameters(param_vals)
+        bound_circuit = circuit.bind_parameters_by_dict(
+            {rx: param_vals[0], pr: param_vals[1]}
+        )
+        assert expected_circuit.gates == bound_circuit.gates
+
+    def test_bind_parameters_by_dict_linear_mapped(self) -> None:
+        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        for gate in _GATES:
+            circuit.add_gate(gate)
+        params = circuit.add_parameters("RX", "PauliRotation")
+        coeffs = np.random.random(4).tolist()
+        circuit.add_ParametricRX_gate(
+            0,
+            {params[0]: coeffs[0], params[1]: coeffs[1]},
+        )
+        circuit.add_ParametricPauliRotation_gate(
+            [0], [1], {params[0]: coeffs[2], params[1]: coeffs[3]}
+        )
+
+        param_vals = np.random.random(2).tolist()
+        expected_circuit = circuit.bind_parameters(param_vals)
+        circuit_bound = circuit.bind_parameters_by_dict(
+            {params[i]: param_vals[i] for i in range(2)}
+        )
+        assert expected_circuit.gates == circuit_bound.gates
+        print(circuit.param_mapping.mapping)
 
     def test_bind_parameters_linear_mapped(self) -> None:
         circuit = LinearMappedUnboundParametricQuantumCircuit(2)

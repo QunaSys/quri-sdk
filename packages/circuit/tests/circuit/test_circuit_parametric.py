@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 from quri_parts.circuit import (
     CNOT,
     RX,
@@ -72,6 +74,19 @@ class TestUnboundParametricQuantumCircuit:
         assert all([isinstance(gate, QuantumGate) for gate in circuit_bound.gates])
         assert circuit_bound.gates[3].params[0] == 1.0
         assert circuit_bound.gates[4].params[0] == 0.5
+
+    def test_bind_parameters_by_dict(self) -> None:
+        circuit = UnboundParametricQuantumCircuit(2)
+        for gate in _GATES:
+            circuit.add_gate(gate)
+        theta = circuit.add_ParametricRX_gate(0)
+        phi = circuit.add_ParametricPauliRotation_gate([1], [1])
+        param_vals = np.random.random(2).tolist()
+        param_dict = {theta: param_vals[0], phi: param_vals[1]}
+
+        expected_circuit = circuit.bind_parameters(param_vals)
+        circuit_bound = circuit.bind_parameters_by_dict(param_dict)
+        assert expected_circuit.gates == circuit_bound.gates
 
     def test_depth(self) -> None:
         circuit = mutable_circuit()
