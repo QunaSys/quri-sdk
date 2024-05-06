@@ -23,6 +23,7 @@ from quri_parts.core.state import (
 )
 from quri_parts.qulacs.circuit import compile_circuit
 from quri_parts.qulacs.simulator import (
+    create_concurrent_vector_state_sampler,
     create_qulacs_ideal_vector_state_sampler,
     create_qulacs_vector_state_sampler,
     evaluate_state_to_vector,
@@ -229,6 +230,53 @@ def test_create_qulacs_vector_state_sampler() -> None:
         )
         circuit_sampling_cnt = state_vector_sampler(circuit_state, n_shots)
         assert circuit_sampling_cnt == Counter({2 * i + j: n_shots})
+
+
+def test_create_concurrent_vector_state_sampler() -> None:
+    state_vector_concurrent_sampler = create_concurrent_vector_state_sampler()
+
+    n_shots = [1000, 2000, 3000, 4000]
+    n_qubits = 2
+
+    # vector with only circuit
+    state_shots_tuples = []
+    ans = []
+    for ind_shot, (i, j) in enumerate(itertools.product(range(2), repeat=2)):
+        vector_state = QuantumStateVector(
+            n_qubits,
+            circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
+        )
+        state_shots_tuples += [(vector_state, n_shots[ind_shot])]
+        ans += [Counter({2 * i + j: n_shots[ind_shot]})]
+    vector_sampling_cnts = state_vector_concurrent_sampler(state_shots_tuples)
+    assert vector_sampling_cnts == ans
+
+    # vector-valued state with circuit applied
+    vector_state_shots_tuples = []
+    ans = []
+    for ind_shot, (i, j) in enumerate(itertools.product(range(2), repeat=2)):
+        vector_valued_state = QuantumStateVector(
+            n_qubits,
+            vector=array([0, 1, 0, 0]),
+            circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
+        )
+        vector_state_shots_tuples += [(vector_valued_state, n_shots[ind_shot])]
+        ans += [Counter({(2 * i + j) ^ (0b01): n_shots[ind_shot]})]
+    vector_sampling_cnts = state_vector_concurrent_sampler(vector_state_shots_tuples)
+    assert vector_sampling_cnts == ans
+
+    # circuit state
+    circuit_state_shots_tuples = []
+    ans = []
+    for ind_shot, (i, j) in enumerate(itertools.product(range(2), repeat=2)):
+        circuit_state = GeneralCircuitQuantumState(
+            n_qubits,
+            circuit=QuantumCircuit(n_qubits, gates=[X(1)] * i + [X(0)] * j),
+        )
+        circuit_state_shots_tuples += [(circuit_state, n_shots[ind_shot])]
+        ans += [Counter({2 * i + j: n_shots[ind_shot]})]
+    vector_sampling_cnts = state_vector_concurrent_sampler(circuit_state_shots_tuples)
+    assert vector_sampling_cnts == ans
 
 
 def test_create_qulacs_ideal_vector_state_sampler() -> None:

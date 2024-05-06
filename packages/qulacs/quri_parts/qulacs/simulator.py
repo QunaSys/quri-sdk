@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections import Counter
-from typing import Union
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
 
 import numpy as np
 import qulacs as ql
@@ -18,16 +18,21 @@ from numpy.typing import NDArray
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import (
+    ConcurrentStateSampler,
     MeasurementCounts,
     StateSampler,
     ideal_sample_from_state_vector,
     sample_from_state_vector,
 )
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
+from quri_parts.core.utils.concurrent import execute_concurrently
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 
 from . import QulacsStateT, cast_to_list
+
+if TYPE_CHECKING:
+    from concurrent.futures import Executor
 
 
 def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState:
@@ -131,6 +136,30 @@ def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
         return Counter(qs_state.sampling(n_shots))
 
     return state_sampler
+
+
+def _sequential_vector_state_sampler(
+    _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
+) -> Iterable[MeasurementCounts]:
+    state_sampler = create_qulacs_vector_state_sampler()
+    return [state_sampler(state, shots) for state, shots in state_shots_tuples]
+
+
+def create_concurrent_vector_state_sampler(
+    executor: Optional["Executor"] = None, concurrency: int = 1
+) -> ConcurrentStateSampler[QulacsStateT]:
+    def concurrent_state_sampler(
+        state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
+    ) -> Iterable[MeasurementCounts]:
+        return execute_concurrently(
+            _sequential_vector_state_sampler,
+            None,
+            state_shots_tuples,
+            executor,
+            concurrency,
+        )
+
+    return concurrent_state_sampler
 
 
 def create_qulacs_ideal_vector_state_sampler() -> StateSampler[QulacsStateT]:

@@ -56,6 +56,12 @@ ConcurrentSampler: TypeAlias = Callable[
 #: StateSampler, the return value corresponds to probabilities multiplied by shot count.
 StateSampler: TypeAlias = Callable[[_StateT, int], MeasurementCounts]
 
+#: ConcurrentSampler represents a function that samples specified (non-parametric)
+#: state by specified times and returns the count statistics concurrently.
+ConcurrentStateSampler: TypeAlias = Callable[
+    [Iterable[tuple[_StateT, int]]], Iterable[MeasurementCounts]
+]
+
 
 def sample_from_state_vector(
     state_vector: npt.NDArray[np.complex128], n_shots: int
