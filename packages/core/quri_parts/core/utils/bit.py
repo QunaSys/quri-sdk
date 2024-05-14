@@ -42,9 +42,4 @@ def lowest_bit_index(x: int) -> int:
 
 def parity_sign_of_bits(bits: int) -> int:
     """Returns a sign corresponding to parity of bits (even=1, odd=-1)."""
-    sign = 1
-    for _ in range(bit_length(bits)):
-        if bits & 1 == 1:
-            sign *= -1
-        bits = bits >> 1
-    return sign
+    return 1 - 2 * (bin(bits).count("1") % 2)
