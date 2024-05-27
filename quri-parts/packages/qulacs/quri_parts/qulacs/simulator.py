@@ -185,15 +185,14 @@ def get_marginal_probability(
 
 def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
-
-    def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
+    def state_sampler(state: QulacsStateT, n_shots: int, random_seed:int = 0) -> MeasurementCounts:
         if n_shots > 2 ** max(state.qubit_count, 10):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state).vector
             return sample_from_state_vector(state_vector, n_shots)
 
         qs_state = _evaluate_qp_state_to_qulacs_state(state)
-        return Counter(qs_state.sampling(n_shots))
+        return Counter(qs_state.sampling(n_shots,random_seed))
 
     return state_sampler
 

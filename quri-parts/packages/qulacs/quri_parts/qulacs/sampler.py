@@ -58,9 +58,12 @@ def create_qulacs_vector_ideal_sampler() -> Sampler:
     return _ideal_sample
 
 
-def create_qulacs_vector_sampler() -> Sampler:
+def create_qulacs_vector_sampler(random_seed: int = 0) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     sampling."""
+    def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+        state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
+        return _state_vector_sampler(state, shots, random_seed)
     return _sample
 
 
