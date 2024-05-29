@@ -53,7 +53,7 @@ def create_qulacs_vector_ideal_sampler() -> Sampler:
     return _ideal_sample
 
 
-def create_qulacs_vector_sampler(random_seed: int = 0) -> Sampler:
+def create_qulacs_vector_sampler(random_seed: int) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     sampling."""
 
@@ -88,7 +88,7 @@ def _sample_concurrently(
 
 
 def create_qulacs_vector_concurrent_sampler(
-    executor: Optional["Executor"] = None, concurrency: int = 1, random_seed: int = 0
+    random_seed: int, executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs vector simulator
     for sampling."""

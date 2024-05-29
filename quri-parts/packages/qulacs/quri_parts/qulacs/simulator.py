@@ -187,7 +187,7 @@ def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
 
     def state_sampler(
-        state: QulacsStateT, n_shots: int, random_seed: int = 0
+        state: QulacsStateT, n_shots: int, random_seed: int
     ) -> MeasurementCounts:
         if n_shots > 2 ** max(state.qubit_count, 10):
             # Use multinomial distribution for faster sampling

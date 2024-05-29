@@ -126,7 +126,7 @@ class TestQulacsVectorConcurrentSampler:
         circuit2.add_X_gate(3)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            sampler = create_qulacs_vector_concurrent_sampler(executor, 2, 0)
+            sampler = create_qulacs_vector_concurrent_sampler(0, executor, 2)
             results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
 
         assert set(results[0]) == {0b1001, 0b1011}
@@ -146,7 +146,7 @@ class TestQulacsVectorConcurrentSampler:
         compiled_circuit_2 = compile_circuit(circuit2)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            sampler = create_qulacs_vector_concurrent_sampler(executor, 2, 0)
+            sampler = create_qulacs_vector_concurrent_sampler(0, executor, 2)
             results_with_compiled_circuit = list(
                 sampler([(compiled_circuit_1, 1000), (compiled_circuit_2, 2000)])
             )
