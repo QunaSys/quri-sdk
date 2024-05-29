@@ -67,12 +67,13 @@ def circuit() -> QuantumCircuit:
 class TestQulacsVectorSampler:
     @pytest.mark.parametrize("qubits", [4, 12])
     @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
-    def test_sampler(self, qubits: int, shots: int) -> None:
+    @pytest.mark.parametrize("random_seed", [1, 2])
+    def test_sampler(self, qubits: int, shots: int, random_seed: int) -> None:
         circuit = QuantumCircuit(qubits)
         for i in range(qubits):
             circuit.add_H_gate(i)
 
-        sampler = create_qulacs_vector_sampler()
+        sampler = create_qulacs_vector_sampler(random_seed)
         counts = sampler(circuit, shots)
 
         assert set(counts.keys()).issubset(range(2**qubits))
@@ -101,13 +102,16 @@ class TestQulacsVectorSampler:
 
     @pytest.mark.parametrize("qubits", [4, 12])
     @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
-    def test_sampler_with_compiled_circuit(self, qubits: int, shots: int) -> None:
+    @pytest.mark.parametrize("random_seed", [1, 2])
+    def test_sampler_with_compiled_circuit(
+        self, qubits: int, shots: int, random_seed: int
+    ) -> None:
         circuit = QuantumCircuit(qubits)
         for i in range(qubits):
             circuit.add_H_gate(i)
         compiled_circuit = compile_circuit(circuit)
 
-        sampler = create_qulacs_vector_sampler()
+        sampler = create_qulacs_vector_sampler(random_seed)
         counts_with_compiled_circuit = sampler(compiled_circuit, shots)
 
         assert set(counts_with_compiled_circuit.keys()).issubset(range(2**qubits))
@@ -122,7 +126,7 @@ class TestQulacsVectorConcurrentSampler:
         circuit2.add_X_gate(3)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            sampler = create_qulacs_vector_concurrent_sampler(executor, 2)
+            sampler = create_qulacs_vector_concurrent_sampler(executor, 2, 0)
             results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
 
         assert set(results[0]) == {0b1001, 0b1011}
@@ -142,7 +146,7 @@ class TestQulacsVectorConcurrentSampler:
         compiled_circuit_2 = compile_circuit(circuit2)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            sampler = create_qulacs_vector_concurrent_sampler(executor, 2)
+            sampler = create_qulacs_vector_concurrent_sampler(executor, 2, 0)
             results_with_compiled_circuit = list(
                 sampler([(compiled_circuit_1, 1000), (compiled_circuit_2, 2000)])
             )
@@ -532,7 +536,36 @@ class TestSamplerWithNoiseModel:
             create_qulacs_noisesimulator_general_sampler,
         ],
     )
+    @pytest.mark.parametrize("random_seed", [0, 1])
     def test_sampler_with_empty_noise(
+        self,
+        qubits: int,
+        shots: int,
+        sampler_creator: Callable[[NoiseModel, int], Sampler],
+        random_seed: int,
+    ) -> None:
+        circuit = QuantumCircuit(qubits)
+        for i in range(qubits):
+            circuit.add_H_gate(i)
+
+        model = NoiseModel()
+        sampler = sampler_creator(model, random_seed)
+        counts = sampler(circuit, shots)
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        npt.assert_almost_equal(sum(counts.values()), shots)
+
+    # (2**4)**2/10 = 25.6, (2**7)**2)/10 = 1638.4
+    @pytest.mark.parametrize("qubits", [4, 7])
+    @pytest.mark.parametrize("shots", [800, 1200, 2000])
+    @pytest.mark.parametrize(
+        "sampler_creator",
+        [
+            create_qulacs_noisesimulator_sampler,
+        ],
+    )
+    def test_sampler_with_empty_noise_with_noisesimulator(
         self,
         qubits: int,
         shots: int,
@@ -593,10 +626,39 @@ class TestSamplerWithNoiseModel:
             create_qulacs_noisesimulator_general_sampler,
         ],
     )
+    @pytest.mark.parametrize("random_seed", [0, 1]
     def test_sampler_with_bitflip_noise(
         self,
         qubits: int,
-        shots: int,
+        shots: int,        sampler_creator: Callable[[NoiseModel, int], Sampler],
+        random_seed: int,
+    ) -> None:
+        circuit = QuantumCircuit(qubits)
+        circuit.add_H_gate(3)
+        circuit.add_X_gate(2)
+        circuit.add_X_gate(1)
+        circuit.add_CNOT_gate(3, 0)
+
+        model = NoiseModel([BitFlipNoise(1.0)])
+        sampler = sampler_creator(model, random_seed)
+        counts = sampler(circuit, shots)
+
+        assert set(counts.keys()) == {0b1001, 0b0000}
+        # {0000, 0000} HXX_ -> {1110, 0110} BitFlip -> {0000, 1000} CNOT ->
+        # {0000, 1001} BitFlip -> {1001, 0000}
+        assert all(c >= 0 for c in counts.values())
+        npt.assert_almost_equal(sum(counts.values()), shots)
+
+    @pytest.mark.parametrize("qubits", [4, 7])
+    @pytest.mark.parametrize("shots", [800, 1200, 2000])
+    @pytest.mark.parametrize(
+        "sampler_creator",
+        [
+            create_qulacs_noisesimulator_sampler,
+        ],
+    )
+    def test_sampler_with_bitflip_noise_with_noisesimulator(
+        self, qubits: int, shots: int, sampler_creator: Callable[[NoiseModel], Sampler]
         sampler_creator: Callable[[NoiseModel], Sampler],
     ) -> None:
         circuit = QuantumCircuit(qubits)
