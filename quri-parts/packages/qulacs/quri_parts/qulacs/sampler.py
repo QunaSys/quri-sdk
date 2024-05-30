@@ -10,6 +10,7 @@
 
 from collections import Counter
 from collections.abc import Callable, Iterable
+from functools import partial
 from typing import TYPE_CHECKING, Any, Optional
 
 import qulacs
@@ -42,7 +43,14 @@ _state_vector_sampler = create_qulacs_vector_state_sampler()
 _ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
 
 
-def _ideal_sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
+def _sample(
+    circuit: NonParametricQuantumCircuit, shots: int, random_seed: int
+) -> MeasurementCounts:
+    state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
+    return _state_vector_sampler(state, shots, random_seed)
+
+
+def _ideal_sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
     return _ideal_vector_sampler(state, shots)
 
@@ -56,12 +64,7 @@ def create_qulacs_vector_ideal_sampler() -> Sampler:
 def create_qulacs_vector_sampler(random_seed: int = 0) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     sampling."""
-
-    def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
-        state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
-        return _state_vector_sampler(state, shots, random_seed)
-
-    return _sample
+    return partial(_sample, random_seed=random_seed)
 
 
 def _sample_concurrently(
@@ -72,7 +75,7 @@ def _sample_concurrently(
 ) -> Iterable[MeasurementCounts]:
     def _sample_sequentially(
         _: Any,
-        circuit_shots_seed_tuple: Iterable[tuple[NonParametricQuantumCircuit, int]],
+        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
     ) -> Iterable[MeasurementCounts]:
         def _sample(
             circuit: NonParametricQuantumCircuit, shots: int
