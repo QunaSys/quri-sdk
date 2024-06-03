@@ -389,6 +389,8 @@ def _connect_wire(circuit_picture: npt.NDArray[np.string_]) -> npt.NDArray[np.st
     for row in range(2, circuit_picture.shape[0], 4):
         p = 0
         while True:
+            if p + 1 == horizontal_size:
+                break
             char_now = circuit_picture[row][p]
             if char_now == "●":
                 circuit_picture[row][p + 1] = "-"
@@ -404,8 +406,6 @@ def _connect_wire(circuit_picture: npt.NDArray[np.string_]) -> npt.NDArray[np.st
                         circuit_picture[row][p + 2] = "-"
                         p += 1
             p += 1
-            if p + 1 == horizontal_size:
-                break
     return circuit_picture
 
 

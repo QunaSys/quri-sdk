@@ -8,10 +8,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
+
 import pytest
 
-from quri_parts.circuit import CNOT, RZ, SWAP, PauliRotation, UnitaryMatrix, X
-from quri_parts.circuit.utils.circuit_drawer import _generate_gate_aa
+from quri_parts.circuit import (
+    CNOT,
+    RZ,
+    SWAP,
+    PauliRotation,
+    QuantumCircuit,
+    UnitaryMatrix,
+    X,
+)
+from quri_parts.circuit.utils.circuit_drawer import _generate_gate_aa, draw_circuit
+
+
+def test_draw_empty_circuit(capsys: pytest.CaptureFixture[Any]) -> None:
+    draw_circuit(QuantumCircuit(1))
+    expected = " \n \n-\n \n"
+    assert capsys.readouterr().out == expected
+
+    draw_circuit(QuantumCircuit(2))
+    expected = " \n \n-\n \n \n \n-\n \n"
+    assert capsys.readouterr().out == expected
 
 
 def test_generate_gate_aa() -> None:
