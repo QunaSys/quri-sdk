@@ -28,6 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
 amazon-braket-sdk = "^1.25.1"
+amazon-braket-schemas = "^1.22.0"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 

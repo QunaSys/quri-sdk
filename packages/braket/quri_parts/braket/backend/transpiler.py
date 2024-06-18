@@ -27,9 +27,16 @@ class AwsDeviceTranspiler(SequentialTranspiler):
 
     def __init__(self, device: AwsDevice):
         transpilers = []
-        device_operation = device.properties.dict()["action"][
-            "braket.ir.jaqcd.program"
-        ]["supportedOperations"]
+        device_action = device.properties.dict()["action"]
+        if "braket.ir.jaqcd.program" in device_action.keys():
+            device_operation = device_action["braket.ir.jaqcd.program"][
+                "supportedOperations"
+            ]
+        else:
+            device_operation = device_action["braket.ir.openqasm.program"][
+                "supportedOperations"
+            ]
+
         if "cz" not in device_operation:
             transpilers.append(CZ2CNOTHTranspiler())
         super().__init__(transpilers)
