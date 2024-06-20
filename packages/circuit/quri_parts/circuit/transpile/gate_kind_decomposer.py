@@ -131,7 +131,7 @@ class RX2RZSqrtXTranspiler(GateKindDecomposer):
             gates.SqrtX(target),
             gates.RZ(target, theta + np.pi),
             gates.SqrtX(target),
-            gates.RZ(target, 5.0 * np.pi / 2.0),
+            gates.RZ(target, np.pi / 2.0),
         ]
 
 
@@ -150,7 +150,7 @@ class RY2RZSqrtXTranspiler(GateKindDecomposer):
             gates.SqrtX(target),
             gates.RZ(target, theta + np.pi),
             gates.SqrtX(target),
-            gates.RZ(target, 3.0 * np.pi),
+            gates.RZ(target, np.pi),
         ]
 
 
@@ -428,7 +428,7 @@ class U3ToRZSqrtXTranspiler(GateKindDecomposer):
             gates.SqrtX(target),
             gates.RZ(target, theta + np.pi),
             gates.SqrtX(target),
-            gates.RZ(target, phi + 3.0 * np.pi),
+            gates.RZ(target, phi + np.pi),
         ]
 
 
@@ -448,7 +448,7 @@ class U3ToRXRZTranspiler(GateKindDecomposer):
             gates.RX(target, np.pi / 2.0),
             gates.RZ(target, theta + np.pi),
             gates.RX(target, np.pi / 2.0),
-            gates.RZ(target, phi + 3.0 * np.pi),
+            gates.RZ(target, phi + np.pi),
         ]
 
 

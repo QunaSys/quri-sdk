@@ -21,7 +21,11 @@ from quri_parts.circuit import (
     gates,
 )
 
-from .transpiler import CircuitTranspilerProtocol, GateKindDecomposer
+from .transpiler import (
+    CircuitTranspilerProtocol,
+    GateKindDecomposer,
+    SequentialTranspiler,
+)
 
 
 class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
@@ -256,3 +260,14 @@ class RZ2NamedTranspiler(GateKindDecomposer):
             return [gates.Tdag(target)]
         else:
             return [gate]
+
+
+class Rotation2NamedTranspiler(SequentialTranspiler):
+    def __init__(self, epsilon: float = 1.0e-9):
+        super().__init__(
+            [
+                RX2NamedTranspiler(epsilon),
+                RY2NamedTranspiler(epsilon),
+                RZ2NamedTranspiler(epsilon),
+            ]
+        )

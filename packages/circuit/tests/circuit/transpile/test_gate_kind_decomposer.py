@@ -304,7 +304,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, 5.0 * np.pi / 2.0),
+                RZ(0, np.pi / 2.0),
             ]
         )
 
@@ -323,7 +323,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, 3.0 * np.pi),
+                RZ(0, np.pi),
             ]
         )
 
@@ -369,7 +369,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
             ]
         )
 
@@ -436,11 +436,11 @@ class TestRZSetTranspile:
                 SqrtX(2),
                 RZ(2, theta + np.pi),
                 SqrtX(2),
-                RZ(2, 5.0 * np.pi / 2.0),
+                RZ(2, np.pi / 2.0),
                 SqrtX(0),  # RY
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, 3.0 * np.pi),
+                RZ(0, np.pi),
                 RZ(1, lam),  # U1
                 RZ(2, lam - np.pi / 2.0),  # U2
                 SqrtX(2),
@@ -449,7 +449,7 @@ class TestRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
                 # TOFFOLI
                 RZ(2, np.pi / 2.0),  # H
                 SqrtX(2),
@@ -486,7 +486,7 @@ class TestRZSetTranspile:
                 SqrtX(1),
                 RZ(1, 3.0 * np.pi / 2.0),
                 SqrtX(1),
-                RZ(1, 5.0 * np.pi / 2.0),
+                RZ(1, np.pi / 2.0),
                 CNOT(2, 0),  # CNOT
                 CNOT(1, 0),  # CNOT
                 RZ(0, theta),  # RZ
@@ -499,7 +499,7 @@ class TestRZSetTranspile:
                 SqrtX(1),
                 RZ(1, np.pi / 2.0),
                 SqrtX(1),
-                RZ(1, 5.0 * np.pi / 2.0),
+                RZ(1, np.pi / 2.0),
             ]
         )
 
@@ -625,7 +625,7 @@ class TestRotationSetTranspile:
                 RX(0, np.pi / 2.0),
                 RZ(0, theta + np.pi),
                 RX(0, np.pi / 2.0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
             ]
         )
 
@@ -667,7 +667,7 @@ class TestCliffordRZSetTranspile:
                 SqrtX(0),
                 RZ(0, theta + np.pi),
                 SqrtX(0),
-                RZ(0, phi + 3.0 * np.pi),
+                RZ(0, phi + np.pi),
             ]
         )
 

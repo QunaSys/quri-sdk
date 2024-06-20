@@ -15,6 +15,7 @@ from .fuse import (
     CNOTHCNOTFusingTranspiler,
     FuseRotationTranspiler,
     NormalizeRotationTranspiler,
+    Rotation2NamedTranspiler,
     RX2NamedTranspiler,
     RY2NamedTranspiler,
     RZ2NamedTranspiler,
@@ -54,6 +55,16 @@ from .gate_kind_decomposer import (
     Y2RZXTranspiler,
     Z2HXTranspiler,
     Z2RZTranspiler,
+)
+from .gateset import (
+    CliffordConversionTranspiler,
+    GateSetConversionTranspiler,
+    RotationConversionTranspiler,
+    RX2RYRZTranspiler,
+    RX2RZHTranspiler,
+    RY2RXRZTranspiler,
+    RY2RZHTranspiler,
+    RZ2RXRYTranspiler,
 )
 from .identity_manipulation import (
     IdentityEliminationTranspiler,
@@ -206,6 +217,14 @@ class CliffordRZSetTranspiler(SequentialTranspiler):
 
 
 __all__ = [
+    "CliffordConversionTranspiler",
+    "GateSetConversionTranspiler",
+    "RotationConversionTranspiler",
+    "RX2RYRZTranspiler",
+    "RX2RZHTranspiler",
+    "RY2RXRZTranspiler",
+    "RY2RZHTranspiler",
+    "RZ2RXRYTranspiler",
     "CircuitTranspiler",
     "CircuitTranspilerProtocol",
     "GateDecomposer",
@@ -230,6 +249,7 @@ __all__ = [
     "H2RXRYTranspiler",
     "H2RZSqrtXTranspiler",
     "QubitRemappingTranspiler",
+    "Rotation2NamedTranspiler",
     "RX2RZSqrtXTranspiler",
     "RY2RZSqrtXTranspiler",
     "RX2NamedTranspiler",
