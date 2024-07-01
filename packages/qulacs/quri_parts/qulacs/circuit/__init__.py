@@ -39,6 +39,7 @@ from quri_parts.circuit.gate_names import (
 
 from .. import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
+from .qulacs_circuit_converter import circuit_from_qulacs
 
 _single_qubit_gate_qulacs: Mapping[
     SingleQubitGateNameType, Callable[[int], qulacs.QuantumGateBase]
@@ -254,4 +255,5 @@ __all__ = [
     "convert_parametric_circuit",
     "compile_circuit",
     "compile_parametric_circuit",
+    "circuit_from_qulacs",
 ]
