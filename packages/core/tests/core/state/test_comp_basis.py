@@ -111,7 +111,7 @@ class TestComputationalBasisState:
         assert state2.circuit == circuit
 
 
-Matrix: TypeAlias = "np.typing.NDArray[np.cfloat]"
+Matrix: TypeAlias = "np.typing.NDArray[np.complex128]"
 
 _I: Matrix = np.array([[1, 0], [0, 1]])
 _X: Matrix = np.array([[0, 1], [1, 0]])

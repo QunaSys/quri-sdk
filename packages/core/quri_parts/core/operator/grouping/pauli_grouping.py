@@ -118,7 +118,7 @@ def sorted_injection_grouping(
     operators in the group.
     """
     if isinstance(paulis, Operator):
-        coefficients: npt.NDArray[np.cfloat] = np.array(list(paulis.values()))
+        coefficients: npt.NDArray[np.complex128] = np.array(list(paulis.values()))
         paulis = np.array(list(paulis.keys()))
 
         # Sorting paulis and coefficients based on abs values of coefficients

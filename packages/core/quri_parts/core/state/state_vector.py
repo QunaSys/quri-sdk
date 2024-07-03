@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 #: A type alias representing a numerical state vector,
 #: equivalent to np.ndarray of complex floats.
-StateVectorType: TypeAlias = "npt.NDArray[np.cfloat]"
+StateVectorType: TypeAlias = "npt.NDArray[np.complex128]"
 
 
 class QuantumStateVectorMixin(ABC):
@@ -39,7 +39,7 @@ class QuantumStateVectorMixin(ABC):
             self._vector = cast(StateVectorType, np.zeros(self._dim))
             self._vector[0] = 1.0
         else:
-            vector = np.asarray(vector, dtype=np.cfloat)
+            vector = np.asarray(vector, dtype=np.complex128)
             if len(vector) != self._dim:
                 raise ValueError(f"The dimension of vector must be {self._dim}.")
             self._vector = vector
