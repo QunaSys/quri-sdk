@@ -17,11 +17,12 @@
 
 from unittest.mock import MagicMock
 
-from qiskit.test import mock as backend_mocks
-from qiskit_ibm_runtime import QiskitRuntimeService
+from qiskit.providers.models import QasmBackendConfiguration
+from qiskit_ibm_runtime import IBMBackend, QiskitRuntimeService
+from qiskit_ibm_runtime.api.clients import RuntimeClient
 
 
-def mock_get_backend(backend: str) -> QiskitRuntimeService:
+def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:
     """Mock for QiskitRuntimeService.
 
     Create a mock of qiskit_ibm_runtime.QiskitRuntimeService that returns
@@ -30,20 +31,29 @@ def mock_get_backend(backend: str) -> QiskitRuntimeService:
     to configure accounts, such as on github CI.
 
     Args:
-        backend (str): The class name as a string for the fake device to
-            return. For example, FakeVigo.
+        is_simulator: (bool) An argument that determines if the mock backend
+            mocks a simulator backend or not.
 
     Returns: Mock of qiskit_ibm_runtime.QiskitRuntimeService
 
     Raises:
         NameError: If the specified value of backend
     """
-    mock_qiskit_runtime_service = MagicMock()
-    if not hasattr(backend_mocks, backend):
-        raise NameError(
-            "The specified backend is not a valid mock from qiskit.test.mock"
-        )
-    fake_backend = getattr(backend_mocks, backend)()
+    mock_qiskit_runtime_service = MagicMock(spec=QiskitRuntimeService)
+
+    conf = MagicMock(spec=QasmBackendConfiguration)
+    conf.max_shots = int(1e6)
+    conf.simulator = is_simulator
+
+    fake_backend = MagicMock(spec=IBMBackend)
+    fake_backend._instance = None
+    fake_backend.configuration.return_value = conf
+    fake_backend.version = 0
+
     mock_qiskit_runtime_service.backend.return_value = fake_backend
     mock_qiskit_runtime_service.return_value = mock_qiskit_runtime_service
+
+    client = MagicMock(spec=RuntimeClient)
+    mock_qiskit_runtime_service._api_client = client
+
     return mock_qiskit_runtime_service

@@ -78,14 +78,14 @@ def circuit_from_qiskit(
             circuit.add_gate(
                 QuantumGate(
                     name=_single_qubit_gate_qiskit_quri_parts[gname],
-                    target_indices=(q[0].index,),
+                    target_indices=(q[0]._index,),
                 )
             )
         elif gname in _single_qubit_rotation_gate_qiskit_quri_parts:
             circuit.add_gate(
                 QuantumGate(
                     name=_single_qubit_rotation_gate_qiskit_quri_parts[gname],
-                    target_indices=(q[0].index,),
+                    target_indices=(q[0]._index,),
                     params=(instruction.params[0],),
                 )
             )
@@ -93,7 +93,7 @@ def circuit_from_qiskit(
             circuit.add_gate(
                 QuantumGate(
                     name=_U_gate_qiskit_quri_parts[gname],
-                    target_indices=(q[0].index,),
+                    target_indices=(q[0]._index,),
                     params=(*instruction.params,),
                 )
             )
@@ -101,8 +101,8 @@ def circuit_from_qiskit(
             circuit.add_gate(
                 QuantumGate(
                     name=_two_qubit_gate_qiskit_quri_parts[gname],
-                    target_indices=(q[1].index,),
-                    control_indices=(q[0].index,),
+                    target_indices=(q[1]._index,),
+                    control_indices=(q[0]._index,),
                 )
             )
         elif gname == "swap":
@@ -110,8 +110,8 @@ def circuit_from_qiskit(
                 QuantumGate(
                     name=_two_qubit_gate_qiskit_quri_parts[gname],
                     target_indices=(
-                        q[0].index,
-                        q[1].index,
+                        q[0]._index,
+                        q[1]._index,
                     ),
                 )
             )
@@ -119,10 +119,10 @@ def circuit_from_qiskit(
             circuit.add_gate(
                 QuantumGate(
                     name=_three_qubits_gate_quri_parts[gname],
-                    target_indices=(q[2].index,),
+                    target_indices=(q[2]._index,),
                     control_indices=(
-                        q[0].index,
-                        q[1].index,
+                        q[0]._index,
+                        q[1]._index,
                     ),
                 )
             )
@@ -130,7 +130,7 @@ def circuit_from_qiskit(
             mat = instruction.to_matrix()
             circuit.add_gate(
                 UnitaryMatrix(
-                    target_indices=[i.index for i in q],
+                    target_indices=[i._index for i in q],
                     unitary_matrix=mat,
                 )
             )

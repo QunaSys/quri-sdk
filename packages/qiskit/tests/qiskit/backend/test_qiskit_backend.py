@@ -15,7 +15,8 @@ from typing import Optional
 import pytest
 import qiskit
 from pydantic.json import pydantic_encoder
-from qiskit_aer import AerSimulator
+from qiskit import qasm3
+from qiskit.providers.basic_provider import BasicProvider
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
@@ -31,12 +32,12 @@ from quri_parts.qiskit.circuit import convert_circuit
 
 def circuit_converter(
     _: NonParametricQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
-) -> qiskit.circuit.QuantumCircuit:
-    circuit = qiskit.circuit.QuantumCircuit(4)
+) -> qiskit.QuantumCircuit:
+    circuit = qiskit.QuantumCircuit(4)
     circuit.h(0)
-    circuit.i(1)
+    circuit.id(1)
     circuit.h(2)
-    circuit.i(3)
+    circuit.id(3)
     return circuit
 
 
@@ -51,7 +52,7 @@ def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCi
 
 class TestQiskitSamplingBackend:
     def test_sample(self) -> None:
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
         backend = QiskitSamplingBackend(device, circuit_converter)
         job = backend.sample(QuantumCircuit(4), 1000)
         counts = job.result().counts
@@ -67,7 +68,7 @@ class TestQiskitSamplingBackend:
         circuit.add_H_gate(1)
         circuit.add_Z_gate(2)
 
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
         backend = QiskitSamplingBackend(device)
         job = backend.sample(circuit, 1000)
         counts = job.result().counts
@@ -79,7 +80,7 @@ class TestQiskitSamplingBackend:
 
     def test_circuit_transpiler(self) -> None:
         circuit = QuantumCircuit(3)
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
         backend = QiskitSamplingBackend(
             device, circuit_transpiler=circuit_transpiler
         )  # With default circuit_converter.
@@ -92,7 +93,7 @@ class TestQiskitSamplingBackend:
         assert sum(counts.values()) == 1000
 
     def test_min_shots(self) -> None:
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
 
         backend = QiskitSamplingBackend(device, circuit_converter)
         backend._min_shots = 1000
@@ -112,7 +113,7 @@ class TestQiskitSamplingBackend:
             job = backend.sample(QuantumCircuit(4), 50)
 
     def test_shots_split_evenly(self) -> None:
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
 
         backend = QiskitSamplingBackend(device, circuit_converter)
         backend._max_shots = 100
@@ -126,7 +127,7 @@ class TestQiskitSamplingBackend:
         assert sorted(sum(j.result().counts.values()) for j in job.jobs) == [100, 100]
 
     def test_max_shots(self) -> None:
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
 
         backend = QiskitSamplingBackend(device, circuit_converter)
         backend._max_shots = 1000
@@ -196,7 +197,7 @@ class TestQiskitSamplingBackend:
             2: 2,
         }
 
-        device = AerSimulator()
+        device = BasicProvider().get_backend("basic_simulator")
         backend = QiskitSamplingBackend(
             device,
             circuit_converter=circuit_converter,
@@ -211,7 +212,7 @@ class TestQiskitSamplingBackend:
 
 
 def test_saving_mode() -> None:
-    device = AerSimulator()
+    device = BasicProvider().get_backend("basic_simulator")
     backend = QiskitSamplingBackend(device, save_data_while_sampling=True)
     backend._max_shots = 1000
 
@@ -228,7 +229,7 @@ def test_saving_mode() -> None:
     qiskit_transpiled_circuit = qiskit.transpile(
         convert_circuit(qp_circuit).measure_all(False), device
     )
-    circuit_qasm = qiskit_transpiled_circuit.qasm()
+    circuit_qasm = qasm3.dumps(qiskit_transpiled_circuit)
 
     sampling_job = backend.sample(qp_circuit, 2000)
     measurement_counter = sampling_job.result().counts

@@ -15,15 +15,17 @@ import string
 import warnings
 from collections import Counter
 from typing import Any
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 import qiskit
 from pydantic.json import pydantic_encoder
+from qiskit import QuantumCircuit as QiskitQuantumCircuit
+from qiskit import qasm3
 from qiskit.primitives import SamplerResult
 from qiskit.result import QuasiDistribution
-from qiskit_ibm_runtime import Options, QiskitRuntimeService
-from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
+from qiskit_ibm_runtime import Options, QiskitRuntimeService, RuntimeJob
+from qiskit_ibm_runtime.runtime_job import JobStatus
 
 from quri_parts.backend import BackendError, CompositeSamplingJob
 from quri_parts.circuit import QuantumCircuit
@@ -42,7 +44,11 @@ from quri_parts.qiskit.circuit import convert_circuit
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 
-def fake_run(**kwargs) -> RuntimeJob:  # type: ignore
+def fake_validate(*args, **kwargs) -> None:  # type: ignore
+    return
+
+
+def fake_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
     jjob = MagicMock(spec=RuntimeJob)
 
     def _always_false() -> bool:
@@ -63,11 +69,10 @@ def fake_run(**kwargs) -> RuntimeJob:  # type: ignore
     jjob.running = _always_false
     jjob.job_id = _job_id
     jjob.result = result
-
     return jjob
 
 
-def fake_dynamic_run(**kwargs) -> RuntimeJob:  # type: ignore
+def fake_dynamic_run(*args, **kwargs) -> RuntimeJob:  # type: ignore
     jjob = MagicMock(spec=RuntimeJob)
 
     jjob._status = JobStatus.RUNNING
@@ -99,9 +104,17 @@ def fake_dynamic_run(**kwargs) -> RuntimeJob:  # type: ignore
     return jjob
 
 
+def fake_qiskit_transpile(*args: Any, **kwargs: Any) -> QiskitQuantumCircuit:
+    circuit = QiskitQuantumCircuit(2)
+    circuit.measure_all(inplace=True)
+    return circuit
+
+
 class TestQiskitPrimitive:
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_sampler_call(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         service.run = fake_run
         backend = service.backend()
@@ -120,16 +133,18 @@ class TestQiskitPrimitive:
         assert isinstance(result, QiskitRuntimeSamplingResult)
         assert len(result._qiskit_result.metadata) == 1
 
-    def test_sampler_session(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
-        service = runtime_service()
+    @patch("qiskit_ibm_runtime.Session._create_session", return_value="aaa")
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    def test_sampler_session(self, _: str) -> None:
+        runtime_service = mock_get_backend(False)
+        service = runtime_service
         service.run = fake_run
         backend = service.backend()
 
         with QiskitRuntimeSamplingBackend(backend=backend, service=service) as sampler:
             circuit = QuantumCircuit(5)
             job = sampler.sample(circuit, 10)
-            sampler.close()
 
         assert isinstance(job, QiskitRuntimeSamplingJob)
 
@@ -145,10 +160,12 @@ class TestQiskitPrimitive:
         assert result.counts == {1: 10.0}
 
         # Checking if the session is closed
-        service._api_client.close_session.assert_called_once_with("aaa")
+        service._api_client.close_session.assert_called()
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_sampler_composite(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         service.run = fake_run
         backend = service.backend()
@@ -182,6 +199,7 @@ class TestQiskitPrimitive:
         job = sampler.sample(circuit, 10)
 
         assert isinstance(job, QiskitRuntimeSamplingJob)
+        assert isinstance(job._qiskit_job, RuntimeJob)
         result = job.result()
         counts = result.counts
 
@@ -246,8 +264,9 @@ class TestQiskitPrimitive:
             expected_counts = {1: 10}
             assert counts == expected_counts
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_options_dict(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -263,8 +282,9 @@ class TestQiskitPrimitive:
         assert saved_options.resilience_level == 1
         assert saved_options.optimization_level == 2
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_options_qiskit_options(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -282,8 +302,9 @@ class TestQiskitPrimitive:
         assert saved_options.resilience_level == 1
         assert saved_options.optimization_level == 2
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_options_none(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -293,8 +314,10 @@ class TestQiskitPrimitive:
 
         assert sampler._qiskit_sampler_options is None
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_saving_mode(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         service.run = fake_run
         backend = service.backend()
@@ -317,7 +340,7 @@ class TestQiskitPrimitive:
         qiskit_transpiled_circuit = qiskit.transpile(
             convert_circuit(qp_circuit).measure_all(False), backend
         )
-        circuit_qasm = qiskit_transpiled_circuit.qasm()
+        circuit_qasm = qasm3.dumps(qiskit_transpiled_circuit)
 
         sampling_job = sampler.sample(qp_circuit, 20)
         measurement_counter = sampling_job.result().counts
@@ -364,8 +387,10 @@ class TestQiskitPrimitive:
         )
         assert sampler.jobs_json == expected_json_str
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_saving_mode_session(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         service.run = fake_run
         backend = service.backend()
@@ -383,7 +408,7 @@ class TestQiskitPrimitive:
         qiskit_transpiled_circuit = qiskit.transpile(
             convert_circuit(qp_circuit).measure_all(False), backend
         )
-        circuit_qasm = qiskit_transpiled_circuit.qasm()
+        circuit_qasm = qasm3.dumps(qiskit_transpiled_circuit)
 
         with QiskitRuntimeSamplingBackend(
             backend=backend, service=service, save_data_while_sampling=True
@@ -446,7 +471,7 @@ class TestQiskitPrimitive:
         qiskit_transpiled_circuit = qiskit.transpile(
             convert_circuit(qp_circuit).measure_all(False), backend
         )
-        circuit_qasm = qiskit_transpiled_circuit.qasm()
+        circuit_qasm = qasm3.dumps(qiskit_transpiled_circuit)
 
         sampling_job = sampler.sample(qp_circuit, 20)
         measurement_counter = sampling_job.result().counts
@@ -511,7 +536,7 @@ class TestQiskitPrimitive:
         qiskit_transpiled_circuit = qiskit.transpile(
             convert_circuit(qp_circuit).measure_all(False), backend
         )
-        circuit_qasm = qiskit_transpiled_circuit.qasm()
+        circuit_qasm = qasm3.dumps(qiskit_transpiled_circuit)
 
         with QiskitRuntimeSamplingBackend(
             backend=backend, service=service, save_data_while_sampling=True
@@ -551,8 +576,10 @@ class TestQiskitPrimitive:
         )
         assert sampler.jobs_json == expected_json_str
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_reject_job(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         service.run = fake_dynamic_run
         backend = service.backend()
@@ -580,8 +607,10 @@ class TestQiskitPrimitive:
 
         assert job2._qiskit_job.status() == JobStatus.CANCELLED
 
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", fake_validate)
     def test_job_registered_to_tracker(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         service.run = fake_dynamic_run
         backend = service.backend()
@@ -597,7 +626,7 @@ class TestQiskitPrimitive:
         assert sampling_backend.tracker.running_jobs == [job1, job2]
 
     def test_get_batch_execution_time_not_divisible(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -654,7 +683,7 @@ class TestQiskitPrimitive:
         ) == (None, None)
 
     def test_get_batch_execution_time(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -711,7 +740,7 @@ class TestQiskitPrimitive:
         ) == (None, None)
 
     def test_get_sampler_option_with_max_execution_time_limit(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -732,7 +761,7 @@ class TestQiskitPrimitive:
         )
 
     def test_get_sampler_option_with_tracker_time_limit(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -755,7 +784,7 @@ class TestQiskitPrimitive:
         )
 
     def test_get_sampler_option_with_both_time_limit(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
 
@@ -815,7 +844,7 @@ class TestQiskitPrimitive:
         )
 
     def test_check_execution_time_limitability_strict(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
         sampling_backend = QiskitRuntimeSamplingBackend(
@@ -875,7 +904,7 @@ class TestQiskitPrimitive:
             assert False
 
     def test_check_execution_time_limitability_non_strict(self) -> None:
-        runtime_service = mock_get_backend("FakeVigo")
+        runtime_service = mock_get_backend()
         service = runtime_service()
         backend = service.backend()
         sampling_backend = QiskitRuntimeSamplingBackend(

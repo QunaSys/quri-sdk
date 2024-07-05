@@ -50,7 +50,7 @@ def fake_dynamic_run(job_id: str, seconds: float, **kwargs: Any) -> RuntimeJob:
 
 
 def test_add_job_for_tracking() -> None:
-    runtime_service = mock_get_backend("FakeVigo")
+    runtime_service = mock_get_backend()
     service = runtime_service()
 
     tracker = Tracker()
@@ -91,7 +91,7 @@ def test_add_job_for_tracking() -> None:
 
 
 def test_total_run_time() -> None:
-    runtime_service = mock_get_backend("FakeVigo")
+    runtime_service = mock_get_backend()
     service = runtime_service()
 
     tracker = Tracker()

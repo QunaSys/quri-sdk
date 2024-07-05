@@ -9,7 +9,8 @@
 # limitations under the License.
 
 import numpy as np
-from qiskit.providers.fake_provider import FakeBelemV2
+from qiskit.providers.fake_provider import Fake5QV1
+from qiskit.transpiler import CouplingMap
 
 from quri_parts.circuit import QuantumCircuit, gate_names, gates
 from quri_parts.qiskit.circuit.transpile import QiskitTranspiler
@@ -62,7 +63,7 @@ def test_optimization() -> None:
 
 
 def test_backend() -> None:
-    backend = FakeBelemV2()
+    backend = Fake5QV1()
 
     circuit = QuantumCircuit(3)
     circuit.extend(
@@ -77,7 +78,7 @@ def test_backend() -> None:
     )
     target = QiskitTranspiler(backend=backend)(circuit)
 
-    coupling_map = backend.coupling_map.get_edges()
+    coupling_map = CouplingMap(backend.configuration().coupling_map).get_edges()
     for gate in target.gates:
         if gate.name == gate_names.CNOT:
             assert (gate.control_indices[0], gate.target_indices[0]) in coupling_map

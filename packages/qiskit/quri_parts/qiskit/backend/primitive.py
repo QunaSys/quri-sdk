@@ -16,6 +16,7 @@ from typing import Any, Dict, Optional, Sequence, Type, Union
 
 import qiskit
 from qiskit import QuantumCircuit as QiskitQuantumCircuit
+from qiskit import qasm3
 from qiskit.primitives import SamplerResult
 from qiskit_ibm_runtime import (
     IBMBackend,
@@ -314,7 +315,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         shot_dist: Sequence[int],
         jobs_list: list[QiskitRuntimeSamplingJob],
     ) -> None:
-        circuit_qasm_str = qiskit_circuit.qasm()
+        circuit_qasm_str = qasm3.dumps(qiskit_circuit)
         for s in shot_dist:
             if self.tracker is not None:
                 self._run_tracker()

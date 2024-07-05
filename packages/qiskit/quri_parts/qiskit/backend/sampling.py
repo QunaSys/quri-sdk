@@ -12,6 +12,7 @@ from collections.abc import Mapping
 from typing import Any, Optional, Sequence
 
 import qiskit
+from qiskit import qasm3
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend
 from qiskit.result import Result
@@ -139,7 +140,7 @@ class QiskitSamplingBackend(SamplingBackend):
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
-        circuit_qasm_str = transpiled_circuit.qasm()
+        circuit_qasm_str = qasm3.dumps(transpiled_circuit)
 
         jobs: list[QiskitSamplingJob] = []
         try:

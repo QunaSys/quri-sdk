@@ -8,32 +8,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
-
-from qiskit.opflow import PauliOp, PauliSumOp
+from qiskit.circuit import ParameterExpression
+from qiskit.quantum_info import SparsePauliOp
 
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 
-def operator_from_qiskit_op(pauli_operator: Union[PauliSumOp, PauliOp]) -> Operator:
-    """
-    Converts an :class:`PauliSumOp` (or :class:`PauliOp`) to
-    :class:`Operator.
+def operator_from_qiskit_op(pauli_operator: SparsePauliOp) -> Operator:
+    """Converts a :class:`SparsePauliOp` to :class:`Operator`.
+
+    Currently, :class:`SparsePauliOp` with parametric coefficient is not
+    supported.
     """
     qp_op = Operator()
     coeff_list, string_list = [], []
-    if isinstance(pauli_operator, PauliOp):
-        string_list.append(pauli_operator.primitive.to_label())
-        coeff_list.append(pauli_operator.coeff)
 
-    elif isinstance(pauli_operator, PauliSumOp):
-        for pauli_term in pauli_operator:
-            string_list.append(pauli_term.to_pauli_op().primitive.to_label())
-            coeff_list.append(pauli_term.coeffs[0])
+    if isinstance(pauli_operator, SparsePauliOp):
+        for s, c in pauli_operator.to_list():
+            if isinstance(c, ParameterExpression):
+                raise ValueError("Parametric-valued operator is not supported now.")
+            string_list.append(s)
+            coeff_list.append(c)
     else:
         raise NotImplementedError(
-            "Only PauliSumOp and PauliOp can be input."
-            f"But got {type(pauli_operator)}"
+            "Only SparsePauliOp can be input." f"But got {type(pauli_operator)}"
         )
 
     for coeff, pauli_string in zip(coeff_list, string_list):

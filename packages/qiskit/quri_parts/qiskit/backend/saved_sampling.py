@@ -15,6 +15,7 @@ from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
 import qiskit
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
+from qiskit import qasm3
 from qiskit.providers.backend import Backend
 from typing_extensions import TypeAlias
 
@@ -91,7 +92,7 @@ class QiskitSavedDataSamplingJob(SamplingJob):
     Args:
         circuit_qasm: A string that represents the circuit used in a sampling job.
             Note that it should take in the qasm string of a qiskit quantum circuit.
-            It can be accessed by `qiskit_circuit.qasm()`.
+            It can be accessed by `qiskit.qasm3.dumps(qiskit_circuit)`.
         n_shots: The total shots of a sampling job.
         saved_result: A `QiskitSavedDataSamplingResult` instance that represents the
             result when (circuit_str, n_shots) is passed into the sampler.
@@ -227,7 +228,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
         qiskit_circuit.measure_all()
         transpiled_circuit = qiskit.transpile(qiskit_circuit, self._backend)
-        qasm_str = transpiled_circuit.qasm()
+        qasm_str = qasm3.dumps(transpiled_circuit)
         jobs: list[SamplingJob] = []
 
         for s in shot_dist:

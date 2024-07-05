@@ -15,11 +15,10 @@ import numpy as np
 import numpy.typing as npt
 import qiskit.circuit.library as qgate
 import qiskit.quantum_info as qi
-from qiskit import Aer
+from qiskit import qasm3
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate as QiskitGate
-from qiskit.extensions import UnitaryGate
-from qiskit.opflow import X, Y, Z
+from qiskit.circuit.library import UnitaryGate
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
@@ -170,7 +169,7 @@ def test_convert_circuit() -> None:
     expected = QiskitQuantumCircuit(3)
     expected.x(1)
     expected.h(2)
-    expected.cnot(0, 2)
+    expected.cx(0, 2)
     expected.rx(0.125, 0)
 
     assert circuit_equal(converted, expected)
@@ -188,6 +187,9 @@ def test_convert_pauli() -> None:
     converted = convert_circuit(circuit)
     assert converted.num_qubits == 4
 
+    X = qi.SparsePauliOp("X")
+    Y = qi.SparsePauliOp("Y")
+    Z = qi.SparsePauliOp("Z")
     expected = QiskitQuantumCircuit(4)
     expected.pauli(pauli_string="XZYX", qubits=[0, 1, 2, 3])
     evo = qgate.PauliEvolutionGate(Y ^ Z ^ Y ^ X, time=0.133)
@@ -228,11 +230,11 @@ def test_convert_kak_unitary_matrix() -> None:
     circuit.add_TwoQubitUnitaryMatrix_gate(3, 1, umat)
     transpiled = TwoQubitUnitaryMatrixKAKTranspiler()(circuit)
 
-    def get_unitary(circuit: QuantumCircuit) -> npt.NDArray[np.complex128]:
-        sim = Aer.get_backend("unitary_simulator")
+    def get_unitary(circuit: QiskitQuantumCircuit) -> npt.NDArray[np.complex128]:
+        sim = qi.Operator(circuit)
         return cast(
             npt.NDArray[np.complex128],
-            sim.run(circuit).result().get_unitary(circuit).data,
+            sim.data,
         )
 
     target = get_unitary(convert_circuit(circuit))
@@ -262,10 +264,10 @@ def test_convert_circuit_with_measurement() -> None:
     expected = QiskitQuantumCircuit(3, 2)
     expected.x(1)
     expected.h(2)
-    expected.cnot(0, 2)
+    expected.cx(0, 2)
     expected.rx(0.125, 0)
     expected.measure(0, 1)
     expected.x(1)
 
     # Gate order and number of registers remain same.
-    assert converted.qasm() == expected.qasm()
+    assert qasm3.dumps(converted) == qasm3.dumps(expected)

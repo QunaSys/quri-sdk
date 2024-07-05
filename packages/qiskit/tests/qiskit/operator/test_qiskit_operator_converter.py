@@ -8,15 +8,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from qiskit.opflow import PauliOp, PauliSumOp, X, Y, Z
+import numpy as np
+import pytest
+from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli, SparsePauliOp
 
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.qiskit.operator import operator_from_qiskit_op
 
+X = SparsePauliOp("X")
+Y = SparsePauliOp("Y")
+Z = SparsePauliOp("Z")
+
+
+def test_parametric_operator_raises() -> None:
+    with pytest.raises(
+        ValueError, match="Parametric-valued operator is not supported now."
+    ):
+        op = SparsePauliOp(["II", "XZ"], np.array(ParameterVector("a", 2)))
+        operator_from_qiskit_op(op)
+
 
 def test_operator_from_qiskit_op() -> None:
-    qiskit_pauliop = PauliOp(primitive=Pauli("IIZIYIZ"), coeff=2.0)
+    qiskit_pauliop = SparsePauliOp(data=Pauli("IIZIYIZ"), coeffs=[2.0])
     expected_psum = Operator(
         {
             pauli_label("Z2 Y4 Z6"): 2,
@@ -43,7 +57,7 @@ def test_operator_from_qiskit_op() -> None:
     assert operator_from_qiskit_op(pauli_operator=qiskit_pauliop) == expected_psum
 
     # test: qiskit pauliop -> quriparts Operator (corner case)
-    qiskit_pauliop = PauliOp(primitive=Pauli("III"), coeff=2)
+    qiskit_pauliop = SparsePauliOp(data=Pauli("III"), coeffs=[2])
     expected_psum = Operator(
         {
             pauli_label(PAULI_IDENTITY): 2,
@@ -51,13 +65,13 @@ def test_operator_from_qiskit_op() -> None:
     )
     assert operator_from_qiskit_op(pauli_operator=qiskit_pauliop) == expected_psum
 
-    qiskit_paulisumop = PauliSumOp(primitive=SparsePauliOp(Pauli("IIZI")), coeff=2.0)
-    qiskit_paulisumop += PauliSumOp(
-        primitive=SparsePauliOp(Pauli("IIII")), coeff=2.0 + 1j
+    qiskit_paulisumop = SparsePauliOp(data=SparsePauliOp(Pauli("IIZI")), coeffs=[2.0])
+    qiskit_paulisumop += SparsePauliOp(
+        data=SparsePauliOp(Pauli("IIII")), coeffs=[2.0 + 1j]
     )
-    qiskit_paulisumop += PauliSumOp(primitive=SparsePauliOp(Pauli("XIZI")), coeff=0)
-    qiskit_paulisumop += PauliSumOp(
-        primitive=SparsePauliOp(Pauli("XYZI")), coeff=200.0 + 1.3j
+    qiskit_paulisumop += SparsePauliOp(data=SparsePauliOp(Pauli("XIZI")), coeffs=[0])
+    qiskit_paulisumop += SparsePauliOp(
+        data=SparsePauliOp(Pauli("XYZI")), coeffs=[200.0 + 1.3j]
     )
     expected_psum = Operator(
         {

@@ -9,12 +9,14 @@
 # limitations under the License.
 
 import json
-from unittest.mock import MagicMock
+from typing import Any
+from unittest.mock import MagicMock, patch
 
-from qiskit import transpile
+from qiskit import QuantumCircuit as QiskitQuantumCircuit
+from qiskit import qasm3, transpile
 from qiskit.primitives import SamplerResult
+from qiskit.providers.basic_provider import BasicProvider
 from qiskit.result import QuasiDistribution
-from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.backend import CompositeSamplingResult
@@ -53,6 +55,12 @@ def fake_run(**kwargs) -> RuntimeJob:  # type: ignore
     jjob.result = result
 
     return jjob
+
+
+def fake_qiskit_transpile(*args: Any, **kwargs: Any) -> QiskitQuantumCircuit:
+    circuit = QiskitQuantumCircuit(2)
+    circuit.measure_all(inplace=True)
+    return circuit
 
 
 def test_qiskit_saved_data_result() -> None:
@@ -167,7 +175,7 @@ def test_qiskit_saved_data_job() -> None:
 
 def test_replay_sampling_output_and_memory() -> None:
     # Build json string
-    backend = AerSimulator()
+    backend = BasicProvider().get_backend("basic_simulator")
 
     qp_circuit1 = QuantumCircuit(4)
     qp_circuit1.add_H_gate(0)
@@ -199,17 +207,17 @@ def test_replay_sampling_output_and_memory() -> None:
     qp_circuit3.add_RX_gate(2, -10.39)
     qp_circuit3.add_RZ_gate(3, -0.1023)
 
-    circuit1_qasm_str = transpile(
-        convert_circuit(qp_circuit1).measure_all(inplace=False), backend
-    ).qasm()
+    circuit1_qasm_str = qasm3.dumps(
+        transpile(convert_circuit(qp_circuit1).measure_all(inplace=False), backend)
+    )
 
-    circuit2_qasm_str = transpile(
-        convert_circuit(qp_circuit2).measure_all(inplace=False), backend
-    ).qasm()
+    circuit2_qasm_str = qasm3.dumps(
+        transpile(convert_circuit(qp_circuit2).measure_all(inplace=False), backend)
+    )
 
-    circuit3_qasm_str = transpile(
-        convert_circuit(qp_circuit3).measure_all(inplace=False), backend
-    ).qasm()
+    circuit3_qasm_str = qasm3.dumps(
+        transpile(convert_circuit(qp_circuit3).measure_all(inplace=False), backend)
+    )
 
     saved_data_list = [
         {
@@ -663,9 +671,10 @@ def test_replay_sampling_output_and_memory() -> None:
     }
 
 
+@patch("qiskit.transpile", fake_qiskit_transpile)
 def test_runtime_replay_sampling_output_and_memory() -> None:
     # Build json string
-    runtime_service = mock_get_backend("FakeVigo")
+    runtime_service = mock_get_backend()
     service = runtime_service()
     service.run = fake_run
     backend = service.backend()
@@ -700,17 +709,23 @@ def test_runtime_replay_sampling_output_and_memory() -> None:
     qp_circuit3.add_RX_gate(2, -10.39)
     qp_circuit3.add_RZ_gate(3, -0.1023)
 
-    circuit1_qasm_str = transpile(
-        convert_circuit(qp_circuit1).measure_all(inplace=False), backend
-    ).qasm()
+    circuit1_qasm_str = qasm3.dumps(
+        fake_qiskit_transpile(
+            convert_circuit(qp_circuit1).measure_all(inplace=False), backend
+        )
+    )
 
-    circuit2_qasm_str = transpile(
-        convert_circuit(qp_circuit2).measure_all(inplace=False), backend
-    ).qasm()
+    circuit2_qasm_str = qasm3.dumps(
+        fake_qiskit_transpile(
+            convert_circuit(qp_circuit2).measure_all(inplace=False), backend
+        )
+    )
 
-    circuit3_qasm_str = transpile(
-        convert_circuit(qp_circuit3).measure_all(inplace=False), backend
-    ).qasm()
+    circuit3_qasm_str = qasm3.dumps(
+        fake_qiskit_transpile(
+            convert_circuit(qp_circuit3).measure_all(inplace=False), backend
+        )
+    )
 
     saved_data_list = [
         {
