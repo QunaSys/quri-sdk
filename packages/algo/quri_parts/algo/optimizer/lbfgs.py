@@ -17,7 +17,7 @@ import numpy as np
 if TYPE_CHECKING:
     import numpy.typing as npt  # noqa: F401
 
-from scipy.optimize.linesearch import (
+from scipy.optimize._linesearch import (
     LineSearchWarning,
     line_search_wolfe1,
     line_search_wolfe2,
