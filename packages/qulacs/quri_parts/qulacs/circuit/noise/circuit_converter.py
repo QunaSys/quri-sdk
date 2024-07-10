@@ -111,6 +111,7 @@ def convert_circuit_with_noise_model(
         noise_model: :class:`NoiseModel` instance to be applied.
     """
 
+    circuit = circuit.freeze()
     qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
     resolvers = [c.create_resolver() for c in noise_model.noises_for_circuit()]
 

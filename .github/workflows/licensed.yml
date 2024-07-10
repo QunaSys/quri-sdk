@@ -28,14 +28,15 @@ jobs:
         cache-dependency-path: 'packages/*/pyproject.toml'
 
     - run: python -m venv venv
-    - run: . venv/bin/activate
-    - run: pip install -e packages/*
+    - run: |
+        . venv/bin/activate
+        pip install -e packages/*
 
     - uses: jonabc/setup-licensed@v1.1.2
       with:
         version: '3.x'
         github_token: ${{ secrets.GITHUB_TOKEN }}
-    
+
     - run: licensed cache
     - run: licensed status
 

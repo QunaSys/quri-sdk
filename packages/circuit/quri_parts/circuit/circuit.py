@@ -11,6 +11,7 @@
 import warnings
 from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Sequence
+from functools import cached_property
 from typing import Optional, Protocol, Union
 
 from typing_extensions import TypeAlias, TypeGuard
@@ -410,6 +411,10 @@ class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
     @property
     def gates(self) -> Sequence[QuantumGate]:
         return self._gates
+
+    @cached_property
+    def depth(self) -> int:
+        return super().depth
 
     def freeze(self) -> "ImmutableQuantumCircuit":
         return self
