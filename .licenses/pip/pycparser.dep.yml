@@ -1,6 +1,6 @@
 ---
 name: pycparser
-version: '2.21'
+version: '2.22'
 type: pip
 summary: C parser in Python
 homepage: https://github.com/eliben/pycparser

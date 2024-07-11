@@ -1,6 +1,6 @@
 ---
 name: Pillow
-version: 10.2.0
+version: 10.4.0
 type: pip
 summary: Python Imaging Library (Fork)
 homepage: https://python-pillow.org

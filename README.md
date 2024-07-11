@@ -92,7 +92,7 @@ pip install -r requirements-local.txt
 ## Documentation and tutorials
 
 Documentation of QURI Parts is available at <https://quri-parts.qunasys.com>.
-[Tutorials](https://quri-parts.qunasys.com/tutorials.html) would be a good starting point.
+[Tutorials](https://quri-parts.qunasys.com/docs/category/basics) would be a good starting point.
 
 ## Release notes
 
