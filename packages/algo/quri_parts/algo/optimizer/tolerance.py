@@ -31,13 +31,13 @@ def ftol(ftol: float) -> Callable[[float, float], bool]:
     return fn
 
 
-def gtol(gtol: float) -> Callable[["npt.NDArray[np.float_]"], bool]:
+def gtol(gtol: float) -> Callable[["npt.NDArray[np.float64]"], bool]:
     """Returns a function evaluating gradient function tolerance.
 
     The return value is True when ``amax(abs(grad)) <= gtol``.
     """
 
-    def fn(grad: "npt.NDArray[np.float_]") -> bool:
+    def fn(grad: "npt.NDArray[np.float64]") -> bool:
         return cast(float, np.amax(np.abs(grad))) <= gtol
 
     return fn

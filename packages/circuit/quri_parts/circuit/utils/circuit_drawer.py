@@ -346,8 +346,8 @@ def _place_check(
 def _write_gate_string(
     gate_string: Sequence[str],
     row_idx: int,
-    circuit_picture: npt.NDArray[np.string_],
-) -> npt.NDArray[np.string_]:
+    circuit_picture: npt.NDArray[np.bytes_],
+) -> npt.NDArray[np.bytes_]:
     rows, cols = circuit_picture.shape
 
     # Checks if existing circuit block can accomodate ``gate_string``.
@@ -384,7 +384,7 @@ def _write_gate_string(
     return circuit_picture
 
 
-def _connect_wire(circuit_picture: npt.NDArray[np.string_]) -> npt.NDArray[np.string_]:
+def _connect_wire(circuit_picture: npt.NDArray[np.bytes_]) -> npt.NDArray[np.bytes_]:
     horizontal_size = circuit_picture.shape[1]
     for row in range(2, circuit_picture.shape[0], 4):
         p = 0
@@ -409,7 +409,7 @@ def _connect_wire(circuit_picture: npt.NDArray[np.string_]) -> npt.NDArray[np.st
     return circuit_picture
 
 
-def _interm_layer(qubit_count: int) -> npt.NDArray[np.string_]:
+def _interm_layer(qubit_count: int) -> npt.NDArray[np.bytes_]:
     arr = np.full((qubit_count * 4, 1), " ")
     for i in range(qubit_count):
         row_idx = (i + 1) * 4 - 2

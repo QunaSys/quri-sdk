@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 #: Represents a parameter vector subject to optimization.
 #: (A gradient vector is also represented as Params.)
-Params: TypeAlias = "npt.NDArray[np.float_]"
+Params: TypeAlias = "npt.NDArray[np.float64]"
 
 #: Cost function for optimization.
 CostFunction: TypeAlias = Callable[[Params], float]

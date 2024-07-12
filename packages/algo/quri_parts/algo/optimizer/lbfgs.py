@@ -120,7 +120,7 @@ class LBFGS(Optimizer):
         self._rho_const = rho_const
         self._m = m
 
-        self._gtol: Optional[Callable[["npt.NDArray[np.float_]"], bool]] = None
+        self._gtol: Optional[Callable[["npt.NDArray[np.float64]"], bool]] = None
         if gtol is not None:
             if not 0.0 < gtol:
                 raise ValueError("ftol must be a positive float.")
@@ -282,10 +282,11 @@ class LBFGS(Optimizer):
         cost_prev: float,
         extra_condition: Optional[
             Callable[
-                [float, "npt.NDArray[np.float_]", float, "npt.NDArray[np.float_]"], bool
+                [float, "npt.NDArray[np.float64]", float, "npt.NDArray[np.float64]"],
+                bool,
             ]
         ] = None,
-    ) -> tuple[int, int, float, float, float, "npt.NDArray[np.float_]"]:
+    ) -> tuple[int, int, float, float, float, "npt.NDArray[np.float64]"]:
         alpha, fc, gc, fval, old_fval, gval = line_search_wolfe1(
             f=cost_function,
             fprime=grad_function,

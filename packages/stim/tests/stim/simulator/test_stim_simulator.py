@@ -10,7 +10,7 @@
 
 import unittest
 
-from numpy import allclose, angle, array, cfloat, exp
+from numpy import allclose, angle, array, complex128, exp
 from numpy.typing import NDArray
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
@@ -20,7 +20,7 @@ from quri_parts.stim.simulator import evaluate_state_to_vector, run_circuit
 
 class TestSimulator(unittest.TestCase):
     update_circuit: NonParametricQuantumCircuit
-    expected_output: NDArray[cfloat]
+    expected_output: NDArray[complex128]
 
     @classmethod
     def setUpClass(cls) -> None:

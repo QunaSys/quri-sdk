@@ -236,7 +236,7 @@ class NFTfit(NFTBase):
         cost_function: CostFunction,
     ) -> tuple[Params, float, int]:
         x_data = np.pi * np.linspace(-1.0, 1.0, num=self._n_points, endpoint=False)
-        y_data: "npt.NDArray[np.float_]" = np.zeros(self._n_points, dtype=float)
+        y_data: "npt.NDArray[np.float64]" = np.zeros(self._n_points, dtype=float)
 
         params = state.params.copy()
         funcalls = state.funcalls

@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Optional, Union
 
 import numpy as np
 import qulacs as ql
-from numpy import cfloat, zeros
+from numpy import complex128, zeros
 from numpy.typing import NDArray
 
 from quri_parts.circuit import NonParametricQuantumCircuit
@@ -53,7 +53,7 @@ def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState:
 
 def _get_updated_qulacs_state_from_vector(
     circuit: Union[NonParametricQuantumCircuit, _QulacsCircuit],
-    init_state: NDArray[cfloat],
+    init_state: NDArray[complex128],
 ) -> ql.QuantumState:
     if len(init_state) != 2**circuit.qubit_count:
         raise ValueError("Inconsistent qubit length between circuit and state")
@@ -85,21 +85,21 @@ def evaluate_state_to_vector(state: QulacsStateT) -> QuantumStateVector:
 
 def run_circuit(
     circuit: NonParametricQuantumCircuit,
-    init_state: NDArray[cfloat],
-) -> NDArray[cfloat]:
+    init_state: NDArray[complex128],
+) -> NDArray[complex128]:
     """Act a NonParametricQuantumCircuit onto a state vector and returns a new
     state vector."""
 
     qulacs_state = _get_updated_qulacs_state_from_vector(circuit, init_state)
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
-    new_state_vector: NDArray[cfloat] = qulacs_state.get_vector()  # type: ignore
+    new_state_vector: NDArray[complex128] = qulacs_state.get_vector()  # type: ignore
 
     return new_state_vector
 
 
 def get_marginal_probability(
-    state_vector: NDArray[cfloat], measured_values: dict[int, int]
+    state_vector: NDArray[complex128], measured_values: dict[int, int]
 ) -> float:
     """Compute the probability of obtaining a result when measuring on a subset
     of the qubits.

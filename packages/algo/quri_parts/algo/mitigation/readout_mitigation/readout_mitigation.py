@@ -44,7 +44,7 @@ def create_filter_matrix(
     ]
     amatrix = []
     for counts in sampler(pairs):
-        cv: "npt.NDArray[np.float_]" = np.array(
+        cv: "npt.NDArray[np.float64]" = np.array(
             [float(counts[k]) if k in counts else 0.0 for k in range(dim)]
         )
         amatrix.append(cv / linalg.norm(cv, ord=1))
@@ -70,7 +70,7 @@ def readout_mitigation(
     def counts_iter() -> Iterable[MeasurementCounts]:
         for count in counts:
             dim = filter_matrix.shape[0]
-            cnoisy: "npt.NDArray[np.float_]" = np.array(
+            cnoisy: "npt.NDArray[np.float64]" = np.array(
                 [float(count[k]) if k in count else 0.0 for k in range(dim)]
             )
             cideal = filter_matrix.dot(cnoisy)
