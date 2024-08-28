@@ -1,6 +1,6 @@
 ---
 name: pytket
-version: 1.23.0
+version: 1.31.1
 type: pip
 summary: Python module for interfacing with the CQC tket library of quantum software
 homepage: ''

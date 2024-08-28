@@ -1,6 +1,6 @@
 ---
 name: openpulse
-version: 0.5.0
+version: 1.0.0
 type: pip
 summary: Reference OpenPulse AST in Python
 homepage: https://github.com/openqasm/openpulse/
