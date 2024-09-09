@@ -1,6 +1,6 @@
 ---
 name: kiwisolver
-version: 1.4.6
+version: 1.4.7
 type: pip
 summary: A fast implementation of the Cassowary constraint solver
 homepage: ''
