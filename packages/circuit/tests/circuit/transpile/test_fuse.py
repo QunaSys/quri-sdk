@@ -18,6 +18,7 @@ from quri_parts.circuit.transpile import (
     RX2NamedTranspiler,
     RY2NamedTranspiler,
     RZ2NamedTranspiler,
+    ZeroRotationEliminationTranspiler,
 )
 
 
@@ -316,6 +317,36 @@ class TestCNOTHCNOTFuse:
                 gates.H(1),
                 gates.CNOT(1, 2),
                 gates.X(0),
+            ]
+        )
+
+        assert transpiled == expect
+
+
+class TestZeroRotationElimination:
+    def test_eliminate_rot(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 1.0e-11),
+                gates.RY(0, 1.0e-7),
+                gates.RZ(0, -1.0e-11),
+                gates.RX(0, -1.0e-7),
+                gates.RY(0, 2.0 * np.pi - 1.0e-11),
+                gates.RZ(0, 2.0 * np.pi - 1.0e-7),
+                gates.RX(0, 2.0 * np.pi + 1.0e-11),
+                gates.RY(0, 2.0 * np.pi + 1.0e-7),
+            ]
+        )
+        transpiled = ZeroRotationEliminationTranspiler(epsilon=1.0e-9)(circuit)
+
+        expect = QuantumCircuit(1)
+        expect.extend(
+            [
+                gates.RY(0, 1.0e-7),
+                gates.RX(0, -1.0e-7),
+                gates.RZ(0, 2.0 * np.pi - 1.0e-7),
+                gates.RY(0, 2.0 * np.pi + 1.0e-7),
             ]
         )
 
