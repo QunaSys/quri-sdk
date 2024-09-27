@@ -25,11 +25,11 @@ enable = true
 style = "pep440"
 
 [tool.poetry.dependencies]
-python = "^3.9.8"
+python = ">=3.9.8,<3.13.0"
 typing-extensions = "^4.1.1"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-Qulacs = ">=0.3.0, <0.6.0"
+Qulacs = ">=0.3.0, <0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}

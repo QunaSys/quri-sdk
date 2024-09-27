@@ -1,14 +1,14 @@
 ---
 name: cloudpickle
-version: 2.2.1
+version: 3.0.0
 type: pip
 summary: cloudpickle makes it possible to serialize Python constructs
   not supported by the default pickle module from the Python standard library.
 homepage: https://github.com/cloudpipe/cloudpickle
 license: bsd-3-clause
 licenses:
-- sources: LICENSE.txt
-text: |
+- sources: LICENSE
+  text: |
     This module was extracted from the `cloud` package, developed by
     PiCloud, Inc.
 

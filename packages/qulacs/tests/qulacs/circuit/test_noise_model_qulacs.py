@@ -47,7 +47,7 @@ def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
     return (gate_info(g1) == gate_info(g2)) and np.array_equal(
-        g1.get_matrix(), g2.get_matrix()  # type: ignore
+        g1.get_matrix(), g2.get_matrix()
     )
 
 
@@ -275,7 +275,7 @@ def test_convert_kraus_cptp() -> None:
 
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
-    assert np.allclose(cptp, matrix.get_matrix())  # type: ignore
+    assert np.allclose(cptp, matrix.get_matrix())
 
 
 def test_convert_empty_circuit() -> None:

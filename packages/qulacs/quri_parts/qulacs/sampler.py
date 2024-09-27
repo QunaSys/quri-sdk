@@ -147,7 +147,7 @@ def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
         state = qulacs.DensityMatrix(qubit_count)
         qs_circuit.update_quantum_state(state)
 
-        probs = list(np.abs(np.diag(state.get_matrix())))  # type: ignore
+        probs = list(np.abs(np.diag(state.get_matrix())))
         return {i: prob * shots for i, prob in enumerate(probs)}
 
     return _sample_with_noise
