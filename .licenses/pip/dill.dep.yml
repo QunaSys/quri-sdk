@@ -1,6 +1,6 @@
 ---
 name: dill
-version: 0.3.8
+version: 0.3.9
 type: pip
 summary: serialize all of python
 homepage: https://github.com/uqfoundation/dill
