@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, cast
 import numpy as np
 from scipy import linalg
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import (
     ConcurrentSampler,
     MeasurementCounts,
@@ -94,7 +94,7 @@ def create_readout_mitigation_concurrent_sampler(
     filter_matrix = create_filter_matrix(qubit_count, sampler, shots)
 
     def wrapped_sampler(
-        pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         return readout_mitigation(sampler(pairs), filter_matrix)
 

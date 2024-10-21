@@ -15,7 +15,7 @@ from collections.abc import Mapping
 import numpy as np
 from qulacs import QuantumCircuit as QulacsQuantumCircuit
 
-from quri_parts.circuit import NonParametricQuantumCircuit as NPQC
+from quri_parts.circuit import ImmutableQuantumCircuit as NPQC
 from quri_parts.circuit import (
     PauliRotation,
     QuantumCircuit,
@@ -65,7 +65,7 @@ _multi_qubits_gate_qulacs_quri_parts: Mapping[str, MultiQubitGateNameType] = {
 
 def circuit_from_qulacs(qulacs_circuit: QulacsQuantumCircuit) -> NPQC:
     """Converts a :class:`qulacs.QuantumCircuit` to
-    :class:`NonParametricQuantumCircuit`."""
+    :class:`ImmutableQuantumCircuit`."""
     qubit_count = qulacs_circuit.get_qubit_count()
     circuit = QuantumCircuit(qubit_count)
 

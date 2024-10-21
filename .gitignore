@@ -130,3 +130,10 @@ dmypy.json
 
 # License metadata of dependencies
 .licenses/
+
+# Rust
+/target
+/packages/circuit/quri_parts_circuit_rs.*.so
+/packages/circuit/quri_parts_circuit_rs.*.dylib
+/packages/circuit/quri_parts_circuit_rs.*.dll
+/packages/circuit/quri_parts_circuit_rs.*.pyd

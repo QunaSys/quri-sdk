@@ -15,7 +15,7 @@ import numpy as np
 
 import quri_parts.ionq.circuit.gate_names as ionq_gate_names
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     gate_names,
@@ -49,9 +49,7 @@ class IonQNativeTranspiler(CircuitTranspilerProtocol):
     def _is_close(self, x: float, y: float) -> bool:
         return abs(x - y) < self.epsilon
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         phase: MutableMapping[int, float] = defaultdict(float)
         cg = []
 

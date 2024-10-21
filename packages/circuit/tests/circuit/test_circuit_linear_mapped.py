@@ -16,12 +16,12 @@ from quri_parts.circuit import (
     CNOT,
     RX,
     ImmutableBoundParametricQuantumCircuit,
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     Parameter,
+    ParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuit,
     X,
 )
 
@@ -35,9 +35,9 @@ _PARAM_VALS: list[float] = [1.0, 0.5]
 
 
 def mutable_circuit() -> (
-    tuple[LinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]]
+    tuple[LinearMappedParametricQuantumCircuit, Sequence[Parameter]]
 ):
-    circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+    circuit = LinearMappedParametricQuantumCircuit(2)
     for gate in _GATES:
         circuit.add_gate(gate)
     params = circuit.add_parameters("RX", "PauliRotation")
@@ -47,10 +47,10 @@ def mutable_circuit() -> (
 
 
 def immutable_circuit() -> (
-    tuple[ImmutableLinearMappedUnboundParametricQuantumCircuit, Sequence[Parameter]]
+    tuple[ImmutableLinearMappedParametricQuantumCircuit, Sequence[Parameter]]
 ):
     q_circuit, params = mutable_circuit()
-    return ImmutableLinearMappedUnboundParametricQuantumCircuit(q_circuit), params
+    return ImmutableLinearMappedParametricQuantumCircuit(q_circuit), params
 
 
 class TestLinearMappedUnboundParametricQuantumCircuit:
@@ -67,16 +67,14 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
     def test_get_mutable_copy(self) -> None:
         circuit, _ = mutable_circuit()
         circuit_copied = circuit.get_mutable_copy()
-        assert isinstance(circuit_copied, LinearMappedUnboundParametricQuantumCircuit)
+        assert isinstance(circuit_copied, LinearMappedParametricQuantumCircuit)
         assert id(circuit) != id(circuit_copied)
         assert circuit._circuit == circuit_copied._circuit
 
     def test_freeze(self) -> None:
         circuit, _ = mutable_circuit()
         immut_circuit = circuit.freeze()
-        assert isinstance(
-            immut_circuit, ImmutableLinearMappedUnboundParametricQuantumCircuit
-        )
+        assert isinstance(immut_circuit, ImmutableLinearMappedParametricQuantumCircuit)
 
     def test_bind_parameters(self) -> None:
         circuit, _ = mutable_circuit()
@@ -98,7 +96,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         assert expected_circuit.gates == bound_circuit.gates
 
     def test_bind_parameters_by_dict_linear_mapped(self) -> None:
-        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        circuit = LinearMappedParametricQuantumCircuit(2)
         for gate in _GATES:
             circuit.add_gate(gate)
         params = circuit.add_parameters("RX", "PauliRotation")
@@ -120,7 +118,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         print(circuit.param_mapping.mapping)
 
     def test_bind_parameters_linear_mapped(self) -> None:
-        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        circuit = LinearMappedParametricQuantumCircuit(2)
         for gate in _GATES:
             circuit.add_gate(gate)
         params = circuit.add_parameters("RX", "PauliRotation")
@@ -145,7 +143,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         circuit_bound = circuit.bind_parameters(_PARAM_VALS)
         assert circuit_bound.depth == 4
 
-        circuit_2 = LinearMappedUnboundParametricQuantumCircuit(3)
+        circuit_2 = LinearMappedParametricQuantumCircuit(3)
         params = circuit_2.add_parameters("RX1", "RX2")
         circuit_2.add_ParametricRX_gate(0, params[0])
         circuit_2.add_CNOT_gate(0, 2)
@@ -172,12 +170,12 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         assert not circuit.has_trivial_parameter_mapping
 
     def test_add(self) -> None:
-        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        circuit = LinearMappedParametricQuantumCircuit(2)
         params = circuit.add_parameters("RX", "RY")
         circuit.add_ParametricRX_gate(0, params[0])
         circuit.add_ParametricRY_gate(1, params[1])
 
-        lm_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        lm_circuit = LinearMappedParametricQuantumCircuit(2)
         lm_param = lm_circuit.add_parameter("RZ")
         lm_circuit.add_ParametricRZ_gate(0, lm_param)
         got_circuit = circuit + lm_circuit
@@ -194,7 +192,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
 
-        up_circuit = UnboundParametricQuantumCircuit(2)
+        up_circuit = ParametricQuantumCircuit(2)
         in_param = up_circuit.add_ParametricRZ_gate(0)
         got_circuit = circuit + up_circuit
         exp_circuit = circuit.get_mutable_copy()
@@ -222,7 +220,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
             assert got == exp
 
     def test_radd(self) -> None:
-        circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        circuit = LinearMappedParametricQuantumCircuit(2)
         params = circuit.add_parameters("RX", "PauliRotation")
         circuit.add_ParametricRX_gate(0, params[0])
         circuit.add_ParametricPauliRotation_gate([1], [1], params[1])
@@ -230,7 +228,7 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
         got_circuit = qc_circuit + circuit
-        exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        exp_circuit = LinearMappedParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
         exp_params = exp_circuit.add_parameters("RX", "PauliRotation")
         exp_circuit.add_ParametricRX_gate(0, exp_params[0])
@@ -243,10 +241,10 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
 
-        up_circuit = UnboundParametricQuantumCircuit(2)
+        up_circuit = ParametricQuantumCircuit(2)
         up_param = up_circuit.add_ParametricRZ_gate(0)
         got_circuit2 = up_circuit + circuit
-        exp_circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+        exp_circuit = LinearMappedParametricQuantumCircuit(2)
         exp_params = exp_circuit.add_parameters("RZ", "RX", "PauliRotation")
         exp_circuit.add_ParametricRZ_gate(0, exp_params[0])
         exp_circuit.add_ParametricRX_gate(0, exp_params[1])
@@ -273,13 +271,11 @@ class TestImmutableLinearMappedUnboundParametricQuantumCircuit:
     def test_get_mutable_copy(self) -> None:
         circuit, _ = mutable_circuit()
         circuit_copied = circuit.get_mutable_copy()
-        assert isinstance(circuit_copied, LinearMappedUnboundParametricQuantumCircuit)
+        assert isinstance(circuit_copied, LinearMappedParametricQuantumCircuit)
         assert id(circuit) != id(circuit_copied)
         assert circuit._circuit == circuit_copied._circuit
 
     def test_freeze(self) -> None:
         circuit, _ = immutable_circuit()
         immut_circuit = circuit.freeze()
-        assert isinstance(
-            immut_circuit, ImmutableLinearMappedUnboundParametricQuantumCircuit
-        )
+        assert isinstance(immut_circuit, ImmutableLinearMappedParametricQuantumCircuit)

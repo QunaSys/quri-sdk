@@ -14,7 +14,7 @@ from typing import Optional
 from pytket import OpType, passes
 from pytket.backends import Backend
 
-from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.tket.circuit import circuit_from_tket, convert_circuit
@@ -49,7 +49,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
     backend-compatible circuits, convert gate sets, perform circuit
     optimization, etc.
 
-    This transpiler converts NonParametricQuantumCircuit to NonParametricQuantumCircuit
+    This transpiler converts ImmutableQuantumCircuit to ImmutableQuantumCircuit
     just like other transpilers in QURI Parts though the conversion of the circuit to
     Tket and vice versa is performed internally.
 
@@ -91,9 +91,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
         self._backend = backend
         self._optimization_level = optimization_level
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         tket_circ = convert_circuit(circuit)
 
         if self._backend is not None:

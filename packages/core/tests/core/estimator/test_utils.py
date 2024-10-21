@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import UnboundParametricQuantumCircuit
+from quri_parts.circuit import ParametricQuantumCircuit
 from quri_parts.core.estimator import Estimatable
 from quri_parts.core.estimator.utils import is_estimatable
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label, zero
@@ -26,8 +26,8 @@ def test_is_estimatable() -> None:
         GeneralCircuitQuantumState(3),
         ComputationalBasisState(3),
         QuantumStateVector(3),
-        ParametricCircuitQuantumState(3, circuit=UnboundParametricQuantumCircuit(3)),
-        ParametricQuantumStateVector(3, circuit=UnboundParametricQuantumCircuit(3)),
+        ParametricCircuitQuantumState(3, circuit=ParametricQuantumCircuit(3)),
+        ParametricQuantumStateVector(3, circuit=ParametricQuantumCircuit(3)),
     ]
 
     valid_pauli_labels: list[Estimatable] = [

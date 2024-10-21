@@ -15,17 +15,17 @@ from quri_parts.chem.ansatz.particle_conserving_u1 import (
     _add_controlled_ua_gate,
     _u1_ex_gate,
 )
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 
 
 def test_add_controlled_ua_gate() -> None:
     qubit_count = 4
     control_index = 0
     target_index = 1
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter("phi")
     _add_controlled_ua_gate(circuit, control_index, target_index, phi)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     _phi = expected_circuit.add_parameter("phi")
     expected_circuit.add_CZ_gate(control_index, target_index)
     expected_circuit.add_ParametricRZ_gate(target_index, {_phi: -1.0})
@@ -49,10 +49,10 @@ def test_add_controlled_ua_gate() -> None:
     qubit_count = 6
     control_index = 0
     target_index = 5
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter("phi")
     _add_controlled_ua_gate(circuit, control_index, target_index, {phi: -1.0})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     _phi = expected_circuit.add_parameter("phi")
     expected_circuit.add_CZ_gate(control_index, target_index)
     expected_circuit.add_ParametricRZ_gate(target_index, {_phi: 1.0})
@@ -80,7 +80,7 @@ def test_u1_ex_gate() -> None:
     qidx_1 = 1
     qidx_2 = 2
     circuit = _u1_ex_gate(qubit_count, layer_index, qidx_1, qidx_2)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi, theta = expected_circuit.add_parameters("phi", "theta")
     _add_controlled_ua_gate(expected_circuit, qidx_1, qidx_2, phi)
     expected_circuit.add_CZ_gate(qidx_2, qidx_1)
@@ -101,7 +101,7 @@ def test_u1_ex_gate() -> None:
     qidx_1 = 0
     qidx_2 = 5
     circuit = _u1_ex_gate(qubit_count, layer_index, qidx_1, qidx_2)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi, theta = expected_circuit.add_parameters("phi", "theta")
     _add_controlled_ua_gate(expected_circuit, qidx_1, qidx_2, phi)
     expected_circuit.add_CZ_gate(qidx_2, qidx_1)
@@ -125,7 +125,7 @@ def test_particle_conserving_u1() -> None:
     qubit_count = 4
     n_layers = 1
     circuit = ParticleConservingU1(qubit_count, n_layers)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     for i in range(n_layers):
         for j in range(0, qubit_count - 1, 2):
             expected_circuit.extend(_u1_ex_gate(qubit_count, i, j, j + 1))
@@ -141,7 +141,7 @@ def test_particle_conserving_u1() -> None:
     qubit_count = 6
     n_layers = 4
     circuit = ParticleConservingU1(qubit_count, n_layers)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     for i in range(n_layers):
         for j in range(0, qubit_count - 1, 2):
             expected_circuit.extend(_u1_ex_gate(qubit_count, i, j, j + 1))

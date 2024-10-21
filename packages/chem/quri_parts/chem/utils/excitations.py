@@ -13,7 +13,7 @@ from typing import Sequence, cast
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     Parameter,
     ParameterOrLinearFunction,
 )
@@ -95,10 +95,10 @@ def to_spin_symmetric_order(double_excitation: DoubleExcitation) -> DoubleExcita
 
 
 def add_single_excitation_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     excitation_indices: SingleExcitation,
     param_fn: ParameterOrLinearFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     r"""Add a particle-conserving single excitation circuit to the given
     :attr:`circuit` implemented as a Givens rotation :math:`G(\theta)`
 
@@ -121,10 +121,10 @@ def add_single_excitation_circuit(
 
 
 def add_double_excitation_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     excitation_indices: DoubleExcitation,
     param_fn: ParameterOrLinearFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     r"""Add a particle-conserving double excitation circuit to the given
     :attr:`circuit` implemented as a extended Givens rotation :math:`G^2(\theta)` which
     acts on the space of 4 qubits and performs the :math:`U(2)` rotation on the

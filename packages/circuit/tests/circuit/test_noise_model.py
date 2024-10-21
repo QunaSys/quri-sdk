@@ -16,11 +16,11 @@ import numpy as np
 import quri_parts.circuit.gate_names as names
 from quri_parts.circuit import QuantumGate, gates
 from quri_parts.circuit.noise import (
-    AbstractKrausNoise,
     AmplitudeDampingNoise,
     BitFlipNoise,
     BitPhaseFlipNoise,
     DepolarizingNoise,
+    GateNoiseInstruction,
     GeneralDepolarizingNoise,
     KrausNoise,
     NoiseModel,
@@ -180,7 +180,7 @@ def _kraus_list() -> Sequence[Sequence[Sequence[float]]]:
 
 
 _noise_kraus_pair: Sequence[
-    tuple[AbstractKrausNoise, Sequence[Sequence[Sequence[float]]]]
+    tuple[GateNoiseInstruction, Sequence[Sequence[Sequence[float]]]]
 ] = [
     (
         ResetNoise(0.003, 0.002, [0], [names.H]),

@@ -11,7 +11,7 @@
 import numpy as np
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     gate_names,
@@ -41,19 +41,17 @@ def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
     )
 
 
-def _circuit_close(
-    x: NonParametricQuantumCircuit, y: NonParametricQuantumCircuit
-) -> bool:
+def _circuit_close(x: ImmutableQuantumCircuit, y: ImmutableQuantumCircuit) -> bool:
     return len(x.gates) == len(y.gates) and all(
         _gates_close(a, b) for a, b in zip(x.gates, y.gates)
     )
 
 
-def _gate_kinds(circuit: NonParametricQuantumCircuit) -> set[str]:
+def _gate_kinds(circuit: ImmutableQuantumCircuit) -> set[str]:
     return {gate.name for gate in circuit.gates}
 
 
-def _single_qubit_clifford_circuit() -> NonParametricQuantumCircuit:
+def _single_qubit_clifford_circuit() -> ImmutableQuantumCircuit:
     circuit = QuantumCircuit(1)
     circuit.extend(
         [
@@ -72,7 +70,7 @@ def _single_qubit_clifford_circuit() -> NonParametricQuantumCircuit:
     return circuit
 
 
-def _clifford_and_rotation_circuit(theta: float) -> NonParametricQuantumCircuit:
+def _clifford_and_rotation_circuit(theta: float) -> ImmutableQuantumCircuit:
     circuit = QuantumCircuit(2)
     circuit.extend(
         [
@@ -98,7 +96,7 @@ def _clifford_and_rotation_circuit(theta: float) -> NonParametricQuantumCircuit:
     return circuit
 
 
-def _rotation_circuit(theta: float) -> NonParametricQuantumCircuit:
+def _rotation_circuit(theta: float) -> ImmutableQuantumCircuit:
     circuit = QuantumCircuit(2)
     circuit.extend(
         [
@@ -116,7 +114,7 @@ def _rotation_circuit(theta: float) -> NonParametricQuantumCircuit:
     return circuit
 
 
-def _complex_circuit() -> NonParametricQuantumCircuit:
+def _complex_circuit() -> ImmutableQuantumCircuit:
     theta, phi, lam = 2.0 * np.pi * np.random.rand(3)
     umat2 = np.array([[1.0, 1.0], [1.0, -1.0]], dtype=np.complex128) / np.sqrt(2.0)
     umat4 = np.identity(4, dtype=np.complex128)

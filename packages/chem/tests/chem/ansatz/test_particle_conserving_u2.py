@@ -14,7 +14,7 @@ from quri_parts.chem.ansatz.particle_conserving_u2 import (
     ParticleConservingU2,
     _u2_ex_gate,
 )
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 
 
 def test_u2_ex_gate() -> None:
@@ -22,7 +22,7 @@ def test_u2_ex_gate() -> None:
     layer_index = 2
     qubit_indices = (0, 1)
     circuit = _u2_ex_gate(qubit_count, layer_index, qubit_indices)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = expected_circuit.add_parameter("phi")
     expected_circuit.add_CNOT_gate(*qubit_indices)
     expected_circuit.add_RZ_gate(qubit_indices[0], 0.5 * np.pi)
@@ -43,7 +43,7 @@ def test_u2_ex_gate() -> None:
     layer_index = 8
     qubit_indices = (2, 3)
     circuit = _u2_ex_gate(qubit_count, layer_index, qubit_indices)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = expected_circuit.add_parameter("phi")
     expected_circuit.add_CNOT_gate(*qubit_indices)
     expected_circuit.add_RZ_gate(qubit_indices[0], 0.5 * np.pi)
@@ -65,7 +65,7 @@ def test_particle_conserving_u2() -> None:
     qubit_count = 4
     n_layers = 2
     circuit = ParticleConservingU2(qubit_count, n_layers)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     for i in range(n_layers):
         for j in range(qubit_count):
             theta = expected_circuit.add_parameter(f"theta_{i}_{j}")
@@ -88,7 +88,7 @@ def test_particle_conserving_u2() -> None:
     qubit_count = 6
     n_layers = 10
     circuit = ParticleConservingU2(qubit_count, n_layers)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     for i in range(n_layers):
         for j in range(qubit_count):
             theta = expected_circuit.add_parameter(f"theta_{i}_{j}")

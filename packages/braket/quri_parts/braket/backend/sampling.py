@@ -31,7 +31,7 @@ from quri_parts.braket.circuit import (
     BraketSetTranspiler,
     convert_circuit,
 )
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
 
 from .transpiler import AwsDeviceTranspiler
@@ -73,7 +73,7 @@ class BraketSamplingBackend(SamplingBackend):
     Args:
         device: A Braket :class:`braket.devices.Device` for circuit execution.
         circuit_converter: A function converting \
-            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to \
+            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to \
             a Braket :class:`braket.circuits.Circuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
             :class:`~BraketSetTranspiler` is used when not specified.
@@ -134,7 +134,7 @@ class BraketSamplingBackend(SamplingBackend):
             if max > 0:
                 self._max_shots = max
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
         if self._max_shots is not None and n_shots > self._max_shots:

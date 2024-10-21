@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Optional
 
 import numpy as np
 
-from quri_parts.circuit.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently
 
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 
-def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+def _sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
     qubit_count = circuit.qubit_count
     stim_circuit = convert_circuit(circuit)
     stim_circuit.append("M", [i for i in range(qubit_count)])
@@ -42,13 +42,13 @@ def create_stim_clifford_sampler() -> Sampler:
 
 
 def _sample_sequentially(
-    _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    _: Any, circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     return [_sample(circuit, shots) for circuit, shots in circuit_shots_tuples]
 
 
 def _sample_concurrently(
-    circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
+    circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]],
     executor: Optional["Executor"],
     concurrency: int = 1,
 ) -> Iterable[MeasurementCounts]:
@@ -64,7 +64,7 @@ def create_stim_clifford_concurrent_sampler(
     for sampling."""
 
     def sampler(
-        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         return _sample_concurrently(circuit_shots_tuples, executor, concurrency)
 

@@ -15,7 +15,7 @@ import numpy as np
 import quri_parts.quantinuum.circuit.gate_names as native_gate_names
 from quri_parts.circuit import (
     RZ,
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     gate_names,
@@ -180,9 +180,7 @@ class CNOTRZ2RZZTranspiler(CircuitTranspilerProtocol):
             (P5 Arbitrary Angle ZZ Gates)
     """
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         xs = circuit.gates
         ys = []
         i = 0

@@ -14,7 +14,7 @@ from quri_parts.chem.utils.excitations import (
     excitations,
     to_spin_symmetric_order,
 )
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
 
 
@@ -44,10 +44,10 @@ def test_to_spin_symmetric_order() -> None:
 def test_add_single_excitation_circuit() -> None:
     qubit_count = 4
     excitation = (0, 2)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     theta = circuit.add_parameter("theta")
     add_single_excitation_circuit(circuit, excitation, theta)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
     add_controlled_RY_gate(expected_circuit, excitation[1], excitation[0], _theta)
@@ -61,10 +61,10 @@ def test_add_single_excitation_circuit() -> None:
 
     qubit_count = 6
     excitation = (1, 3)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     theta = circuit.add_parameter("theta")
     add_single_excitation_circuit(circuit, excitation, theta)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     _theta = expected_circuit.add_parameter("theta")
     expected_circuit.add_CNOT_gate(*excitation)
     add_controlled_RY_gate(expected_circuit, excitation[1], excitation[0], _theta)
@@ -80,10 +80,10 @@ def test_add_single_excitation_circuit() -> None:
 def test_add_double_excitation_circuit() -> None:
     qubit_count = 6
     excitation = (0, 1, 2, 3)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter("phi")
     add_double_excitation_circuit(circuit, excitation, phi)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     _phi = expected_circuit.add_parameter("phi")
     expected_circuit.add_CNOT_gate(excitation[2], excitation[3])
     expected_circuit.add_CNOT_gate(excitation[0], excitation[2])
@@ -122,10 +122,10 @@ def test_add_double_excitation_circuit() -> None:
 
     qubit_count = 6
     excitation = (0, 1, 4, 5)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter("phi")
     add_double_excitation_circuit(circuit, excitation, phi)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     _phi = expected_circuit.add_parameter("phi")
     expected_circuit.add_CNOT_gate(excitation[2], excitation[3])
     expected_circuit.add_CNOT_gate(excitation[0], excitation[2])

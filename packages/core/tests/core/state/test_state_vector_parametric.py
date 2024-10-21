@@ -15,15 +15,15 @@ import pytest
 
 from quri_parts.circuit import (
     H,
-    ImmutableUnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuit,
+    ImmutableParametricQuantumCircuit,
+    ParametricQuantumCircuit,
     Z,
 )
 from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 
 
 def a_state() -> ParametricQuantumStateVector:
-    circuit = UnboundParametricQuantumCircuit(2)
+    circuit = ParametricQuantumCircuit(2)
     circuit.add_H_gate(0)
     circuit.add_Z_gate(1)
     circuit.add_ParametricRX_gate(0)
@@ -32,15 +32,13 @@ def a_state() -> ParametricQuantumStateVector:
 
 class TestParametricQuantumStateVector:
     def test_construction_with_circuit(self) -> None:
-        circuit = UnboundParametricQuantumCircuit(2)
+        circuit = ParametricQuantumCircuit(2)
         circuit.add_H_gate(0)
         circuit.add_Z_gate(1)
         circuit.add_ParametricRX_gate(0)
         state = ParametricQuantumStateVector(2, circuit, [1.0, 0, 0, 0])
         assert np.all(state.vector == [1.0, 0, 0, 0])
-        assert isinstance(
-            state.parametric_circuit, ImmutableUnboundParametricQuantumCircuit
-        )
+        assert isinstance(state.parametric_circuit, ImmutableParametricQuantumCircuit)
         assert state.parametric_circuit == circuit
 
         circuit.add_Y_gate(0)
@@ -58,7 +56,7 @@ class TestParametricQuantumStateVector:
         state2 = state.with_gates_applied([H(1), Z(0)])
 
         assert state.parametric_circuit != state2.parametric_circuit
-        circuit = cast(UnboundParametricQuantumCircuit, state2.parametric_circuit)
+        circuit = cast(ParametricQuantumCircuit, state2.parametric_circuit)
         assert len(circuit._gates) == 5
 
     def test_bind_parameters(self) -> None:

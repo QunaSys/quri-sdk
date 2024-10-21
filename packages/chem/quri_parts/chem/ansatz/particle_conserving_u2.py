@@ -11,13 +11,13 @@
 from typing import Sequence
 
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 from quri_parts.circuit.utils.controlled_rotations import add_controlled_RX_gate
 
 
-class ParticleConservingU2(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class ParticleConservingU2(ImmutableLinearMappedParametricQuantumCircuit):
     """Parametric quantum circuit that conserves the number of particles. Note
     that this circuit conserves the particle number and spins only if the state
     applied to is represented based on the Jordan-Wigner transformation.
@@ -38,7 +38,7 @@ class ParticleConservingU2(ImmutableLinearMappedUnboundParametricQuantumCircuit)
     """
 
     def __init__(self, n_spin_orbitals: int, n_layers: int):
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
 
         block_gate_qindices = [(i, i + 1) for i in range(0, n_spin_orbitals - 1, 2)]
         block_gate_qindices += [(i, i + 1) for i in range(1, n_spin_orbitals - 1, 2)]
@@ -55,8 +55,8 @@ class ParticleConservingU2(ImmutableLinearMappedUnboundParametricQuantumCircuit)
 
 def _u2_ex_gate(
     qubit_count: int, layer_index: int, qubit_indices: Sequence[int]
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+) -> LinearMappedParametricQuantumCircuit:
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter(f"phi_{layer_index}_{qubit_indices[0]}")
     circuit.add_CNOT_gate(qubit_indices[0], qubit_indices[1])
 

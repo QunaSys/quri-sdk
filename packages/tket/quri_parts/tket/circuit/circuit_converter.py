@@ -15,7 +15,7 @@ from numpy import array, pi
 from pytket import Circuit, OpType
 from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
@@ -105,7 +105,7 @@ def convert_gate(
         )
 
 
-def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
+def convert_circuit(circuit: ImmutableQuantumCircuit) -> Circuit:
     tket_circuit = Circuit(circuit.qubit_count)
     for gate in circuit.gates:
         if gate.name in _single_qubit_gate_tket:

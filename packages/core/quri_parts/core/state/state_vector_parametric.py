@@ -11,7 +11,7 @@
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Optional, Union
 
-from quri_parts.circuit import GateSequence, UnboundParametricQuantumCircuitProtocol
+from quri_parts.circuit import GateSequence, ParametricQuantumCircuitProtocol
 
 from .state import QuantumState
 from .state_parametric import ParametricCircuitQuantumStateMixin
@@ -36,7 +36,7 @@ class ParametricQuantumStateVector(
     def __init__(
         self,
         n_qubits: int,
-        circuit: UnboundParametricQuantumCircuitProtocol,
+        circuit: ParametricQuantumCircuitProtocol,
         vector: Optional[Union[StateVectorType, "npt.ArrayLike"]] = None,
     ) -> None:
         self._n_qubits = n_qubits
@@ -59,7 +59,7 @@ class ParametricQuantumStateVector(
 
         The original state is not changed. For details about the
         primitive circuit, please refer to `.primitive_circuit()` in
-        :class:`UnboundParametricQuantumCircuitProtocol`.
+        :class:`ParametricQuantumCircuitProtocol`.
         """
         return ParametricQuantumStateVector(
             self._n_qubits, self._circuit.primitive_circuit(), self.vector

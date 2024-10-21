@@ -12,8 +12,8 @@ from collections.abc import Sequence
 from typing import Optional
 
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 
 from .two_local import (
@@ -26,7 +26,7 @@ from .two_local import (
 
 
 def _add_ry_rz_gates(
-    circuit: LinearMappedUnboundParametricQuantumCircuit, arg: RotLayerMakerArg
+    circuit: LinearMappedParametricQuantumCircuit, arg: RotLayerMakerArg
 ) -> None:
     layer_index, qubit_index = arg
     theta_y, theta_z = circuit.add_parameters(
@@ -37,13 +37,13 @@ def _add_ry_rz_gates(
 
 
 def _add_cz_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit, arg: EntLayerMakerArg
+    circuit: LinearMappedParametricQuantumCircuit, arg: EntLayerMakerArg
 ) -> None:
     i, j = arg.qubit_indices
     circuit.add_CZ_gate(i, j)
 
 
-class HardwareEfficient(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class HardwareEfficient(ImmutableLinearMappedParametricQuantumCircuit):
     """Hardware-efficient ansatz.
 
     Ref:
@@ -118,7 +118,7 @@ class HardwareEfficient(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
 
 def _add_ry_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit, arg: RotLayerMakerArg
+    circuit: LinearMappedParametricQuantumCircuit, arg: RotLayerMakerArg
 ) -> None:
     layer_index, qubit_index = arg
     theta_y = circuit.add_parameter(f"theta_{layer_index}_{qubit_index}_y")

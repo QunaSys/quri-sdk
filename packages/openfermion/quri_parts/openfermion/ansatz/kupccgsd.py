@@ -12,8 +12,8 @@ from typing import Sequence
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     Parameter,
 )
 from quri_parts.openfermion.transforms import (
@@ -25,7 +25,7 @@ from quri_parts.openfermion.transforms import (
 from quri_parts.openfermion.utils import add_exp_excitation_gates_trotter_decomposition
 
 
-class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class KUpCCGSD(ImmutableLinearMappedParametricQuantumCircuit):
     """k-unitary pair coupled-cluster generalized singles and doubles
     (k-UpCCGSD) ansatz. The ansatz consists of the exponentials of generalized
     single excitation and pair double excitation operators decomposed by first-
@@ -78,7 +78,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
         op_mapper = mapping.of_operator_mapper
         n_qubits = mapping.n_qubits
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+        circuit = LinearMappedParametricQuantumCircuit(n_qubits)
 
         _construct_circuit(
             circuit=circuit,
@@ -94,7 +94,7 @@ class KUpCCGSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
 
 
 def _construct_circuit(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     n_spin_orb: int,
     delta_sz: int,
     k: int,

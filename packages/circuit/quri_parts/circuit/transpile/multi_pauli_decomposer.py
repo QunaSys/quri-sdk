@@ -12,13 +12,22 @@ from collections.abc import Sequence
 
 import numpy as np
 
-from quri_parts.circuit import QuantumGate, gate_names, gates
+from quri_parts.circuit import (
+    LinearMappedParametricQuantumCircuit,
+    LinearParameterMapping,
+    ParameterOrLinearFunction,
+    ParametricQuantumCircuitProtocol,
+    ParametricQuantumGate,
+    QuantumGate,
+    gate_names,
+    gates,
+)
 
-from .transpiler import GateKindDecomposer
+from .transpiler import GateKindDecomposer, ParametricCircuitTranspilerProtocol
 
 
 class PauliDecomposeTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose multi-qubit Pauli gates into X, Y,
+    """CircuitTranspiler, which decomposes multi-qubit Pauli gates into X, Y,
     and Z gates."""
 
     @property
@@ -43,8 +52,24 @@ class PauliDecomposeTranspiler(GateKindDecomposer):
         return ret
 
 
+def rot_gates(
+    rot_sign: int, indices: Sequence[int], pauli_ids: Sequence[int]
+) -> Sequence[QuantumGate]:
+    rc = []
+    for index, pauli in zip(indices, pauli_ids):
+        if pauli == 1:
+            rc.append(gates.H(index))
+        elif pauli == 2:
+            rc.append(gates.RX(index, rot_sign * np.pi / 2.0))
+        elif pauli == 3:
+            pass
+        else:
+            raise ValueError("Pauli id must be either 1, 2, or 3.")
+    return rc
+
+
 class PauliRotationDecomposeTranspiler(GateKindDecomposer):
-    """CircuitTranspiler, which decompose multi-qubit PauliRotation gates into
+    """CircuitTranspiler, which decomposes multi-qubit PauliRotation gates into
     H, RX, RZ, and CNOT gates."""
 
     @property
@@ -57,25 +82,63 @@ class PauliRotationDecomposeTranspiler(GateKindDecomposer):
         angle = gate.params[0]
         ret: list[QuantumGate] = []
 
-        def rot_gates(rot_sign: int = 1) -> Sequence[QuantumGate]:
-            rc = []
-            for index, pauli in zip(indices, pauli_ids):
-                if pauli == 1:
-                    rc.append(gates.H(index))
-                elif pauli == 2:
-                    rc.append(gates.RX(index, rot_sign * np.pi / 2.0))
-                elif pauli == 3:
-                    pass
-                else:
-                    raise ValueError("Pauli id must be either 1, 2, or 3.")
-            return rc
-
-        ret.extend(rot_gates(1))
+        ret.extend(rot_gates(1, indices, pauli_ids))
         for i in reversed(range(1, len(indices))):
             ret.append(gates.CNOT(indices[i], indices[0]))
         ret.append(gates.RZ(indices[0], angle))
         for i in range(1, len(indices)):
             ret.append(gates.CNOT(indices[i], indices[0]))
-        ret.extend(rot_gates(-1))
+        ret.extend(rot_gates(-1, indices, pauli_ids))
+
+        return ret
+
+
+class ParametricPauliRotationDecomposeTranspiler(ParametricCircuitTranspilerProtocol):
+    """CircuitTranspiler, which decomposes multi-qubit ParametricPauliRotation
+    gates into H, RX, RZ, CNOT, and ParametricRZ gates."""
+
+    @staticmethod
+    def add_decomposed_gates(
+        gate: ParametricQuantumGate,
+        circuit: LinearMappedParametricQuantumCircuit,
+        param: ParameterOrLinearFunction,
+    ) -> None:
+        indices = gate.target_indices
+        pauli_ids = gate.pauli_ids
+
+        circuit.extend(rot_gates(1, indices, pauli_ids))
+        for i in reversed(range(1, len(indices))):
+            circuit.add_gate(gates.CNOT(indices[i], indices[0]))
+        circuit.add_ParametricRZ_gate(indices[0], param)
+        for i in range(1, len(indices)):
+            circuit.add_gate(gates.CNOT(indices[i], indices[0]))
+        circuit.extend(rot_gates(-1, indices, pauli_ids))
+
+    def __call__(
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> LinearMappedParametricQuantumCircuit:
+        ret = LinearMappedParametricQuantumCircuit(
+            circuit.qubit_count, circuit.cbit_count
+        )
+        ret._param_mapping = LinearParameterMapping(circuit.param_mapping.in_params)
+        pmap = circuit.param_mapping.mapping
+
+        for gate, param in circuit.primitive_circuit().gates_and_params:
+            if isinstance(gate, QuantumGate):
+                ret.add_gate(gate)
+            else:
+                if param is None:
+                    raise ValueError("Parametric gate with no Parameter: {gate}")
+
+                if gate.name == gate_names.ParametricRX:
+                    ret.add_ParametricRX_gate(gate.target_indices[0], pmap[param])
+                elif gate.name == gate_names.ParametricRY:
+                    ret.add_ParametricRY_gate(gate.target_indices[0], pmap[param])
+                elif gate.name == gate_names.ParametricRZ:
+                    ret.add_ParametricRZ_gate(gate.target_indices[0], pmap[param])
+                elif gate.name == gate_names.ParametricPauliRotation:
+                    self.add_decomposed_gates(gate, ret, pmap[param])
+                else:
+                    raise ValueError(f"Unsupported parametric gate: {gate.name}")
 
         return ret

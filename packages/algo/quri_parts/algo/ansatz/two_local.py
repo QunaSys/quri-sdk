@@ -16,8 +16,8 @@ from typing import Callable, NamedTuple
 from typing_extensions import TypeAlias
 
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 
 
@@ -52,15 +52,15 @@ class EntLayerMakerArg(NamedTuple):
 
 #: Function to rotate a qubit in a rotation layer.
 RotLayerMaker: TypeAlias = Callable[
-    [LinearMappedUnboundParametricQuantumCircuit, RotLayerMakerArg], None
+    [LinearMappedParametricQuantumCircuit, RotLayerMakerArg], None
 ]
 #: Function to entangle a qubit pair in an entanglement layer.
 EntLayerMaker: TypeAlias = Callable[
-    [LinearMappedUnboundParametricQuantumCircuit, EntLayerMakerArg], None
+    [LinearMappedParametricQuantumCircuit, EntLayerMakerArg], None
 ]
 
 
-class TwoLocal(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class TwoLocal(ImmutableLinearMappedParametricQuantumCircuit):
     """The two-local circuit that consists of rotation layers and entanglement
     layers.
 
@@ -150,11 +150,11 @@ def _construct_circuit(
     ent_layer_maker: EntLayerMaker,
     rotation_indices: Sequence[int],
     entangler_map_seq: Sequence[Sequence[tuple[int, int]]],
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     if layer_pattern.replace("r", "").replace("e", "") != "":
         raise ValueError("layer_pattern must contain either 'r' or 'e'.")
 
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     ent_layer_index = 0
 
     for layer_index, p in enumerate(layer_pattern):
@@ -173,7 +173,7 @@ def _construct_circuit(
 
 
 def _add_rotation_layer(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     layer_index: int,
     rotation_indices: Sequence[int],
     rot_layer_maker: RotLayerMaker,
@@ -186,7 +186,7 @@ def _add_rotation_layer(
 
 
 def _add_entanglement_layer(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     layer_index: int,
     entanglement_pairs: Sequence[tuple[int, int]],
     ent_layer_maker: EntLayerMaker,

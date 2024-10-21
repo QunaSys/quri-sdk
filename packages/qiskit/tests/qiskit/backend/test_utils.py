@@ -16,7 +16,7 @@ from qiskit.providers.models import QasmBackendConfiguration
 from qiskit_ibm_runtime import IBMBackend
 
 from quri_parts.backend import BackendError
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.qiskit.backend import (
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
@@ -76,8 +76,8 @@ class TestGetJobMapperAndCircuitTranspiler:
 
     @staticmethod
     def circuit_transpiler(
-        _: NonParametricQuantumCircuit,
-    ) -> NonParametricQuantumCircuit:
+        _: ImmutableQuantumCircuit,
+    ) -> ImmutableQuantumCircuit:
         circuit = QuantumCircuit(2)
         circuit.add_X_gate(0)
         circuit.add_X_gate(0)

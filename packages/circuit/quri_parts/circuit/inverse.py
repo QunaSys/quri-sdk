@@ -14,7 +14,7 @@ from typing import Callable, Union
 import numpy as np
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     gate_names,
     gates,
@@ -79,7 +79,7 @@ def inverse_gate(gate: QuantumGate) -> QuantumGate:
 
 
 def inverse_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
 ) -> QuantumCircuit:
     qubit_count = circuit.qubit_count
 

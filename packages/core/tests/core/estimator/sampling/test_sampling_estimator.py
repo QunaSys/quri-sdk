@@ -19,9 +19,9 @@ import pytest
 
 from quri_parts.circuit import (
     H,
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
+    ParametricQuantumCircuit,
     QuantumCircuit,
-    UnboundParametricQuantumCircuit,
     X,
 )
 from quri_parts.core.estimator import Estimate
@@ -87,7 +87,7 @@ def total_shots() -> int:
 
 
 def sampler(
-    shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     return [counts() for _ in shot_circuit_pairs]
 
@@ -259,7 +259,7 @@ class TestSamplingEstimate:
             state: CircuitQuantumState,
             measurement_groups: Iterable[CommutablePauliSetMeasurement],
             shots_map: dict[CommutablePauliSet, int],
-        ) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
+        ) -> Iterable[tuple[ImmutableQuantumCircuit, int]]:
             default_pairs = get_sampling_circuits_and_shots(
                 state, measurement_groups, shots_map
             )
@@ -289,7 +289,7 @@ class TestSamplingEstimate:
 
     def test_sampling_estimate_zero_shots(self) -> None:
         def sampler(
-            shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+            shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
         ) -> Iterable[MeasurementCounts]:
             return [{} if s == 0 else counts() for _, s in shot_circuit_pairs]
 
@@ -591,7 +591,7 @@ class GeneralSamplingEstimator(unittest.TestCase):
         assert estimate_list[1].value == (1 - 1 + 2 - 4) / 8
 
     def test_parametric_estimate(self) -> None:
-        circuit = UnboundParametricQuantumCircuit(n_qubits)
+        circuit = ParametricQuantumCircuit(n_qubits)
         circuit.add_X_gate(0)
         circuit.add_ParametricRX_gate(0)
         circuit.add_ParametricRY_gate(1)
@@ -606,7 +606,7 @@ class GeneralSamplingEstimator(unittest.TestCase):
         assert_sample(estimate)
 
     def test_concurrent_parametric_estimate(self) -> None:
-        circuit = UnboundParametricQuantumCircuit(n_qubits)
+        circuit = ParametricQuantumCircuit(n_qubits)
         circuit.add_X_gate(0)
         circuit.add_ParametricRX_gate(0)
         circuit.add_ParametricRY_gate(1)

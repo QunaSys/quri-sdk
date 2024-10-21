@@ -9,24 +9,33 @@
 # limitations under the License.
 
 import itertools as it
-from abc import ABC, abstractmethod
-from collections import defaultdict
-from collections.abc import MutableMapping, MutableSequence, Sequence
-from dataclasses import dataclass
-from typing import Protocol, Union, cast
+
+# from abc import ABC, abstractmethod
+from collections.abc import Sequence
+from typing import Union, cast
 
 import numpy as np
 import numpy.linalg as la
 import numpy.typing as npt
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
 from quri_parts.circuit.gate_names import NonParametricGateNameType
+from quri_parts.rust.circuit.noise import (
+    DepthIntervalNoise,
+    GateIntervalNoise,
+    GateNoiseInstruction,
+    MeasurementNoise,
+)
 
 #: Represents a backend-independent noise instruction to be added to NoiseModel.
-NoiseInstruction: TypeAlias = Union["CircuitNoiseInstruction", "GateNoiseInstruction"]
-KrausOperatorSequence: TypeAlias = tuple[npt.NDArray[np.float64], ...]
-GateMatrices: TypeAlias = tuple[npt.NDArray[np.float64], ...]
+NoiseInstruction: TypeAlias = Union[
+    GateNoiseInstruction, GateIntervalNoise, DepthIntervalNoise, MeasurementNoise
+]
+CircuitNoiseInstruction: TypeAlias = Union[
+    GateIntervalNoise, DepthIntervalNoise, MeasurementNoise
+]
+KrausOperatorSequence: TypeAlias = tuple[Sequence[Sequence[float]], ...]
+GateMatrices: TypeAlias = tuple[Sequence[Sequence[float]], ...]
 
 QubitIndices: TypeAlias = Sequence[int]
 QubitNoisePair: TypeAlias = tuple[QubitIndices, "GateNoiseInstruction"]
@@ -44,251 +53,11 @@ def _check_valid_probability(x: float, name: str) -> None:
         raise ValueError(f"{name} must be between 0 and 1 (inclusive) but it was {x}.")
 
 
-class CircuitNoiseInstruction(ABC):
-    """Represents the noise applied depending on the structure of the
-    circuit."""
-
-    def __init__(self, name: str):
-        self._name = name
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @abstractmethod
-    def create_resolver(self) -> "CircuitNoiseResolverProtocol":
-        """Returns new :class:`CircuitNoiseResolverProtocol` instance for each
-        concrete class of :class:`CircuitNoiseInstruction`.
-
-        When converting from the original circuit to a circuit with the
-        noise model applied for each backend, ``noises_for_gate()``
-        method and ``noises_for_depth()`` method of
-        :class:`CircuitNoiseResolverProtocol` are called for each gate
-        while scanning the circuit from front to back, returning the
-        noises that needs to be applied to each position in the circuit.
-        """
-        ...
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name={self.name})"
-
-
-class CircuitNoiseResolverProtocol(Protocol):
-    """This is an helper object used when a quantum circuit is converted into a
-    concrete backend circuit."""
-
-    def noises_for_gate(
-        self, gate: QuantumGate, index: int, circuit: NonParametricQuantumCircuit
-    ) -> Sequence[QubitNoisePair]:
-        """Returns the noises that should be inserted at the ``index`` position
-        in the original circuit by being called with the ``gate`` from the
-        front while scanning the circuit.
-
-        Each :class:`CircuitNoiseInstruction` must implement its own
-        :class:`TraversalIndicatorProtocol` and must returns the instance
-        by ``create_traversal_indicator()`` method.
-
-        Args:
-            gate: :class:`QuantumGate` at `index` position.
-            index: An index indicating the position of the `gate` in the circuit.
-            circuit: Reference of the target circuit.
-        """
-        return []
-
-    def noises_for_depth(
-        self, qubit: int, depths: Sequence[int], circuit: NonParametricQuantumCircuit
-    ) -> Sequence[QubitNoisePair]:
-        """Returns qubit and noise pairs that shoud be applied to the ``qubit``
-        within ``depths``.
-
-        For each qubit, it is assumed that this function will be called each time
-        the depth is progressed by each gate or the scan reaches to the end of the
-        circuit while scanning from the front.
-
-        Args:
-            qubit: Target qubit indice.
-            depths: Sequence of progressed depths of ``qubit``.
-            circuit: Reference of the target circuit.
-        """
-        return []
-
-
-@dataclass(frozen=True)
-class GateNoiseInstruction:
-    """Represents the noise that is applied when individual gates act on
-    qubits."""
-
-    name: str
-    qubit_count: int
-    params: tuple[float, ...]
-    qubit_indices: tuple[int, ...]
-    target_gates: tuple[NonParametricGateNameType, ...]
-
-
-class GateIntervalNoise(CircuitNoiseInstruction):
-    """For each qubit, given single qubit noises are applied each time a
-    certain number of gates are applied.
-
-    Args:
-        single_qubit_noises: Sequence of single qubit :class:`GateNoiseInstruction`.
-        gate_interval: Gate interval. For each qubit, ``single_qubit_noises`` are
-            applied every time ``gate_interval`` gates are applied.
-    """
-
-    def __init__(
-        self,
-        single_qubit_noises: Sequence[GateNoiseInstruction],
-        gate_interval: int,
-    ) -> None:
-        if not gate_interval > 0:
-            raise ValueError("gate_interval must be greater than 0.")
-        if not all(noise.qubit_count == 1 for noise in single_qubit_noises):
-            raise ValueError("single_qubit_noises cannot contain multi qubit noises.")
-        self._gate_interval = gate_interval
-        self._single_qubit_noises = tuple(single_qubit_noises)
-        super().__init__("GateIntervalNoise")
-
-    @property
-    def gate_interval(self) -> int:
-        return self._gate_interval
-
-    @property
-    def single_qubit_noises(self) -> Sequence[GateNoiseInstruction]:
-        return self._single_qubit_noises
-
-    class GateIntervalResolver(CircuitNoiseResolverProtocol):
-        def __init__(self, gate_interval: int, noises: Sequence[GateNoiseInstruction]):
-            self._gate_interval: int = gate_interval
-            self._noises: Sequence[GateNoiseInstruction] = noises
-            self._qubit_indicators: MutableMapping[int, int] = defaultdict(int)
-
-        def noises_for_gate(
-            self,
-            gate: QuantumGate,
-            index: int,
-            circuit: NonParametricQuantumCircuit,
-        ) -> Sequence[QubitNoisePair]:
-            ret = []
-            for q in tuple(gate.control_indices) + tuple(gate.target_indices):
-                self._qubit_indicators[q] += 1
-                if self._qubit_indicators[q] >= self._gate_interval:
-                    self._qubit_indicators[q] = 0
-                    ret.extend([((q,), n) for n in self._noises])
-            return ret
-
-    def create_resolver(self) -> CircuitNoiseResolverProtocol:
-        return self.GateIntervalResolver(self.gate_interval, self.single_qubit_noises)
-
-
-class DepthIntervalNoise(CircuitNoiseInstruction):
-    """Trace the gates of the :class:`QuantumCircuit` from the front to the
-    back, and apply the given single qubit :class:`GateNoiseInstruction` to all
-    qubits every time a certain depth is advanced.
-
-    Args:
-        single_qubit_noises: Sequence of single qubit :class:`GateNoiseInstruction`.
-        depth_interval: Depth interval. Every time the depth advances
-            ``depth_interval``, ``single_qubit_noises`` are applied to all qubits.
-    """
-
-    def __init__(
-        self,
-        single_qubit_noises: Sequence[GateNoiseInstruction],
-        depth_interval: int,
-    ) -> None:
-        if not depth_interval > 0:
-            raise ValueError("depth_interval must be greater than 0.")
-        if not all(noise.qubit_count == 1 for noise in single_qubit_noises):
-            raise ValueError("single_qubit_noises cannot contain multi qubit noises.")
-        self._depth_interval = depth_interval
-        self._single_qubit_noises = tuple(single_qubit_noises)
-        super().__init__("DepthIntervalNoise")
-
-    @property
-    def depth_interval(self) -> int:
-        return self._depth_interval
-
-    @property
-    def single_qubit_noises(self) -> Sequence[GateNoiseInstruction]:
-        return self._single_qubit_noises
-
-    class DepthIntervalResolver(CircuitNoiseResolverProtocol):
-        def __init__(self, depth_interval: int, noises: Sequence[GateNoiseInstruction]):
-            self._depth_interval: int = depth_interval
-            self._noises: Sequence[GateNoiseInstruction] = noises
-
-        def noises_for_depth(
-            self,
-            qubit: int,
-            depths: Sequence[int],
-            circuit: NonParametricQuantumCircuit,
-        ) -> Sequence[QubitNoisePair]:
-            ret: MutableSequence[QubitNoisePair] = []
-            pairs = [((qubit,), n) for n in self._noises]
-            for d in depths:
-                if d > 0 and d % self._depth_interval == 0:
-                    ret.extend(pairs)
-            return ret
-
-    def create_resolver(self) -> CircuitNoiseResolverProtocol:
-        return self.DepthIntervalResolver(self.depth_interval, self.single_qubit_noises)
-
-
-class MeasurementNoise(CircuitNoiseInstruction):
-    """Represents the noise which occurs during the measurement of a qubit. At
-    the right end of the circuit, it applies single qubit noises to all qubits
-    or specified qubits (if given).
-
-    Args:
-        single_qubit_noises: Sequence of single qubit :class:`GateNoiseInstruction`.
-        qubit_indices: Sequence of target qubit indices. If empty, all qubits will
-            be covered.
-    """
-
-    def __init__(
-        self,
-        single_qubit_noises: Sequence[GateNoiseInstruction],
-        qubit_indices: Sequence[int] = [],
-    ):
-        self._qubit_indices = tuple(qubit_indices)
-        self._single_qubit_noises = single_qubit_noises
-        super().__init__("MeasurementNoise")
-
-    @property
-    def qubit_indices(self) -> Sequence[int]:
-        return self._qubit_indices
-
-    @property
-    def apply_to_all_qubits(self) -> bool:
-        return not self._qubit_indices
-
-    @property
-    def single_qubit_noises(self) -> Sequence[GateNoiseInstruction]:
-        return self._single_qubit_noises
-
-    class MeasurementResolver(CircuitNoiseResolverProtocol):
-        def __init__(
-            self, qubits: Sequence[int], noises: Sequence[GateNoiseInstruction]
-        ):
-            self._qubits: Sequence[int] = qubits
-            self._noises: Sequence[GateNoiseInstruction] = noises
-
-        def noises_for_depth(
-            self,
-            qubit: int,
-            depths: Sequence[int],
-            circuit: NonParametricQuantumCircuit,
-        ) -> Sequence[QubitNoisePair]:
-            if circuit.depth in depths:
-                if not self._qubits or qubit in self._qubits:
-                    return [((qubit,), n) for n in self._noises]
-            return []
-
-    def create_resolver(self) -> CircuitNoiseResolverProtocol:
-        return self.MeasurementResolver(self.qubit_indices, self.single_qubit_noises)
-
-
-class BitFlipNoise(GateNoiseInstruction):
+def BitFlipNoise(
+    error_prob: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit bit flip noise.
 
     Args:
@@ -297,27 +66,20 @@ class BitFlipNoise(GateNoiseInstruction):
         target_gates: Sequence of target gate names.
     """
 
-    def __init__(
-        self,
-        error_prob: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(error_prob, "error_prob")
-        super().__init__(
-            name="BitFlipNoise",
-            qubit_count=1,
-            params=(error_prob,),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def error_prob(self) -> float:
-        return self.params[0]
+    return GateNoiseInstruction(
+        name="BitFlipNoise",
+        qubit_count=1,
+        params=(error_prob,),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+    )
 
 
-class PhaseFlipNoise(GateNoiseInstruction):
+def PhaseFlipNoise(
+    error_prob: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit phase flip noise.
 
     Args:
@@ -325,28 +87,20 @@ class PhaseFlipNoise(GateNoiseInstruction):
         qubit_indices: Sequence of target qubit indices.
         target_gates: Sequence of target gate names.
     """
-
-    def __init__(
-        self,
-        error_prob: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(error_prob, "error_prob")
-        super().__init__(
-            name="PhaseFlipNoise",
-            qubit_count=1,
-            params=(error_prob,),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def error_prob(self) -> float:
-        return self.params[0]
+    return GateNoiseInstruction(
+        name="PhaseFlipNoise",
+        qubit_count=1,
+        params=(error_prob,),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+    )
 
 
-class BitPhaseFlipNoise(GateNoiseInstruction):
+def BitPhaseFlipNoise(
+    error_prob: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit bit and phase flip noise.
 
     Args:
@@ -354,28 +108,20 @@ class BitPhaseFlipNoise(GateNoiseInstruction):
         qubit_indices: Sequence of target qubit indices.
         target_gates: Sequence of target gate names.
     """
-
-    def __init__(
-        self,
-        error_prob: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(error_prob, "error_prob")
-        super().__init__(
-            name="BitPhaseFlipNoise",
-            qubit_count=1,
-            params=(error_prob,),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def error_prob(self) -> float:
-        return self.params[0]
+    return GateNoiseInstruction(
+        name="BitPhaseFlipNoise",
+        qubit_count=1,
+        params=(error_prob,),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+    )
 
 
-class DepolarizingNoise(GateNoiseInstruction):
+def DepolarizingNoise(
+    error_prob: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit depolarizing noise.
 
     Args:
@@ -383,25 +129,13 @@ class DepolarizingNoise(GateNoiseInstruction):
         qubit_indices: Sequence of target qubit indices.
         target_gates: Sequence of target gate names.
     """
-
-    def __init__(
-        self,
-        error_prob: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(error_prob, "error_prob")
-        super().__init__(
-            name="DepolarizingNoise",
-            qubit_count=1,
-            params=(error_prob,),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def error_prob(self) -> float:
-        return self.params[0]
+    return GateNoiseInstruction(
+        name="DepolarizingNoise",
+        qubit_count=1,
+        params=(error_prob,),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+    )
 
 
 def _check_valid_qubit_indices(qubit_count: int, qubit_indices: Sequence[int]) -> None:
@@ -423,7 +157,14 @@ def _is_aligned_square_matrices(xss: Sequence[Sequence[Sequence[float]]]) -> boo
     return ss[0, 0] >= 2 and ss[0, 0] == ss[0, 1] and cast(bool, np.all(ss == ss[0]))
 
 
-class PauliNoise(GateNoiseInstruction):
+def PauliNoise(
+    pauli_list: Sequence[Sequence[int]],
+    prob_list: Sequence[float],
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+    eq_tolerance: float = 1.0e-8,
+    name: str = "PauliNoise",
+) -> GateNoiseInstruction:
     """Multi qubit Pauli noise.
 
     In the case of multi qubit noise, qubit_indices should specify the qubits on
@@ -435,56 +176,48 @@ class PauliNoise(GateNoiseInstruction):
         qubit_indices: Sequence of target qubit indices.
         target_gates: Sequence of target gate names.
         eq_tolerance: Allowed error in the total probability over 1.
+        name: Give Specified name for the noise.
     """
 
-    def __init__(
-        self,
-        pauli_list: Sequence[Sequence[int]],
-        prob_list: Sequence[float],
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-        eq_tolerance: float = 1.0e-8,
-    ):
-        if not pauli_list:
-            raise ValueError("pauli_list cannot be empty.")
-        if not prob_list:
-            raise ValueError("prob_list cannot be empty.")
-        if len(pauli_list) != len(prob_list):
-            raise ValueError("pauli_list and prob_list must have the same length.")
-        for i, prob in enumerate(prob_list):
-            _check_valid_probability(prob, f"prob_list[{i}]")
-        if sum(prob_list) - 1.0 > eq_tolerance:
-            raise ValueError("The sum of prob_list must be less than or equal to 1.")
-        self._pauli_list = tuple(pauli_list)
-        self._prob_list = tuple(prob_list)
-        qubit_count = self._get_qubit_count()
-        _check_valid_qubit_indices(qubit_count, qubit_indices)
-        super().__init__(
-            name="PauliNoise",
-            qubit_count=qubit_count,
-            params=(),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def pauli_list(self) -> Sequence[Sequence[int]]:
-        return self._pauli_list
-
-    @property
-    def prob_list(self) -> Sequence[float]:
-        return self._prob_list
-
-    def _get_qubit_count(self) -> int:
-        if np.setdiff1d(self._pauli_list, np.arange(4)).size > 0:
+    def _get_qubit_count(pauli_list: Sequence[Sequence[int]]) -> int:
+        if np.setdiff1d(pauli_list, np.arange(4)).size > 0:
             raise ValueError("A pauli index can only be 0, 1, 2, or 3.")
-        ls: "npt.NDArray[np.int_]" = np.array([len(x) for x in self._pauli_list])
+        ls: "npt.NDArray[np.int_]" = np.array([len(x) for x in pauli_list])
         if not np.all(ls == ls[0]):
             raise ValueError("All Pauli instructions must have the same length.")
         return cast(int, ls[0])
 
+    if not pauli_list:
+        raise ValueError("pauli_list cannot be empty.")
+    if not prob_list:
+        raise ValueError("prob_list cannot be empty.")
+    if len(pauli_list) != len(prob_list):
+        raise ValueError("pauli_list and prob_list must have the same length.")
+    for i, prob in enumerate(prob_list):
+        _check_valid_probability(prob, f"prob_list[{i}]")
+    if sum(prob_list) - 1.0 > eq_tolerance:
+        raise ValueError("The sum of prob_list must be less than or equal to 1.")
 
-class GeneralDepolarizingNoise(PauliNoise):
+    qubit_count = _get_qubit_count(tuple(pauli_list))
+    _check_valid_qubit_indices(qubit_count, qubit_indices)
+
+    return GateNoiseInstruction(
+        name=name,
+        qubit_count=qubit_count,
+        params=(),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        pauli_list=tuple(pauli_list),
+        prob_list=tuple(prob_list),
+    )
+
+
+def GeneralDepolarizingNoise(
+    error_prob: float,
+    qubit_count: int,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Multi qubit general depolarizing noise.
 
     In the case of multi qubit noise, qubit_indices should specify the qubits on
@@ -496,32 +229,33 @@ class GeneralDepolarizingNoise(PauliNoise):
         qubit_indices: Sequence of target qubit indices.
         target_gates: Sequence of target gate names.
     """
+    if not qubit_count > 0:
+        raise ValueError("qubit_count must be larger than 0.")
+    _check_valid_probability(error_prob, "error_prob")
+    _check_valid_qubit_indices(qubit_count, qubit_indices)
 
-    def __init__(
-        self,
-        error_prob: float,
-        qubit_count: int,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        if not qubit_count > 0:
-            raise ValueError("qubit_count must be larger than 0.")
-        _check_valid_probability(error_prob, "error_prob")
-        _check_valid_qubit_indices(qubit_count, qubit_indices)
-        term_counts = 4**qubit_count
-        prob_identity = 1.0 - error_prob
-        prob_pauli = error_prob / (term_counts - 1)
-        prob_list = [prob_identity] + (term_counts - 1) * [prob_pauli]
-        pauli_list = tuple(it.product([0, 1, 2, 3], repeat=qubit_count))
-        super().__init__(
-            pauli_list=pauli_list,
-            prob_list=prob_list,
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
+    term_counts = 4**qubit_count
+    prob_identity = 1.0 - error_prob
+    prob_pauli = error_prob / (term_counts - 1)
+    prob_list = [prob_identity] + (term_counts - 1) * [prob_pauli]
+    pauli_list = tuple(it.product([0, 1, 2, 3], repeat=qubit_count))
+
+    return PauliNoise(
+        pauli_list=pauli_list,
+        prob_list=prob_list,
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        name="GeneralDepolarizingNoise",
+    )
 
 
-class ProbabilisticNoise(GateNoiseInstruction):
+def ProbabilisticNoise(
+    gate_matrices: Sequence[Sequence[Sequence[float]]],
+    prob_list: Sequence[float],
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+    eq_tolerance: float = 1.0e-8,
+) -> GateNoiseInstruction:
     """Multi qubit probabilistic noise.
 
     This noise is defined by giving matrices representing noise gate operations
@@ -538,64 +272,23 @@ class ProbabilisticNoise(GateNoiseInstruction):
         eq_tolerance: Allowed error in the total probability over 1.
     """
 
-    def __init__(
-        self,
-        gate_matrices: Sequence[Sequence[Sequence[float]]],
-        prob_list: Sequence[float],
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-        eq_tolerance: float = 1.0e-8,
-    ):
-        if not gate_matrices:
-            raise ValueError("gate_matrices cannot be empty.")
-        if not prob_list:
-            raise ValueError("prob_list cannot be empty.")
-        if len(gate_matrices) != len(prob_list):
-            raise ValueError("gate_matrices and prob_list must have the same length")
-        for i, prob in enumerate(prob_list):
-            _check_valid_probability(prob, f"prob_list[{i}]")
-        if sum(prob_list) - 1.0 > eq_tolerance:
-            raise ValueError("The sum of prob_list must be less than or equal to 1.")
-        qubit_count = self._get_qubit_count(gate_matrices)
-        self._prob_list, self._gate_matrices = self._get_prob_and_matrix(
-            qubit_count, prob_list, gate_matrices
-        )
-        _check_valid_qubit_indices(qubit_count, qubit_indices)
-        super().__init__(
-            name="ProbabilisticNoise",
-            qubit_count=qubit_count,
-            params=(),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def prob_list(self) -> Sequence[float]:
-        return self._prob_list
-
-    @property
-    def gate_matrices(self) -> tuple[npt.NDArray[np.float64], ...]:
-        return self._gate_matrices
-
     def _get_prob_and_matrix(
-        self,
         qubit_count: int,
         prob_list: Sequence[float],
         gate_matrices: Sequence[Sequence[Sequence[float]]],
     ) -> tuple[Sequence[float], KrausOperatorSequence]:
         pl = list(prob_list)
-        dl: list[npt.NDArray[np.float64]] = [np.array(m) for m in gate_matrices]
+        # dl: list[npt.NDArray[np.float64]] = [np.array(m) for m in gate_matrices]
+        dl = list(gate_matrices)
         sum_prob = sum(prob_list)
 
         if sum_prob < 1.0:
-            dl.append(np.identity(2**qubit_count))
+            dl.append(np.identity(2**qubit_count).tolist())
             pl.append(1.0 - sum_prob)
 
         return tuple(pl), tuple(dl)
 
-    def _get_qubit_count(
-        self, gate_matrices: Sequence[Sequence[Sequence[float]]]
-    ) -> int:
+    def _get_qubit_count(gate_matrices: Sequence[Sequence[Sequence[float]]]) -> int:
         message = (
             "Each gate matrix must be a 2^n by 2^n matrix,"
             " where n is the number of qubits."
@@ -607,34 +300,39 @@ class ProbabilisticNoise(GateNoiseInstruction):
             raise ValueError(message)
         return int(qubit_count)
 
+    if not gate_matrices:
+        raise ValueError("gate_matrices cannot be empty.")
+    if not prob_list:
+        raise ValueError("prob_list cannot be empty.")
+    if len(gate_matrices) != len(prob_list):
+        raise ValueError("gate_matrices and prob_list must have the same length")
+    for i, prob in enumerate(prob_list):
+        _check_valid_probability(prob, f"prob_list[{i}]")
+    if sum(prob_list) - 1.0 > eq_tolerance:
+        raise ValueError("The sum of prob_list must be less than or equal to 1.")
 
-class AbstractKrausNoise(GateNoiseInstruction, ABC):
-    """Abstract base class of gate noise instractions which can return their
-    Kraus operators."""
+    qubit_count = _get_qubit_count(gate_matrices)
+    _prob_list, _gate_matrices = _get_prob_and_matrix(
+        qubit_count, prob_list, gate_matrices
+    )
+    _check_valid_qubit_indices(qubit_count, qubit_indices)
 
-    def __init__(
-        self,
-        name: str,
-        qubit_count: int,
-        params: tuple[float, ...],
-        qubit_indices: tuple[int, ...],
-        target_gates: tuple[NonParametricGateNameType, ...],
-    ):
-        super().__init__(
-            name=name,
-            qubit_count=qubit_count,
-            params=params,
-            qubit_indices=qubit_indices,
-            target_gates=target_gates,
-        )
-
-    @property
-    @abstractmethod
-    def kraus_operators(self) -> KrausOperatorSequence:
-        ...
+    return GateNoiseInstruction(
+        name="ProbabilisticNoise",
+        qubit_count=qubit_count,
+        params=(),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        prob_list=_prob_list,
+        gate_matrices=_gate_matrices,
+    )
 
 
-class KrausNoise(AbstractKrausNoise):
+def KrausNoise(
+    kraus_list: Sequence[Sequence[Sequence[float]]],
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Multi qubit Kraus noise.
 
     In the case of multi qubit noise, qubit_indices should specify the qubits on
@@ -646,35 +344,7 @@ class KrausNoise(AbstractKrausNoise):
         target_gates: Sequence of target gate names.
     """
 
-    def __init__(
-        self,
-        kraus_list: Sequence[Sequence[Sequence[float]]],
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        if not kraus_list:
-            raise ValueError("kraus_list cannot be empty.")
-        qubit_count = self._get_qubit_count(kraus_list)
-        self._kraus_operators = self._get_kraus_operator_sequence(kraus_list)
-        _check_valid_qubit_indices(qubit_count, qubit_indices)
-        super().__init__(
-            name="KrausNoise",
-            qubit_count=qubit_count,
-            params=(),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def kraus_operators(self) -> KrausOperatorSequence:
-        return self._kraus_operators
-
-    def _get_kraus_operator_sequence(
-        self, kraus_list: Sequence[Sequence[Sequence[float]]]
-    ) -> KrausOperatorSequence:
-        return tuple(np.array(m) for m in kraus_list)
-
-    def _get_qubit_count(self, kraus_list: Sequence[Sequence[Sequence[float]]]) -> int:
+    def _get_qubit_count(kraus_list: Sequence[Sequence[Sequence[float]]]) -> int:
         message = (
             "Each Kraus operator must be a 2^n by 2^n matrix,"
             " where n is the number of qubits."
@@ -686,8 +356,28 @@ class KrausNoise(AbstractKrausNoise):
             raise ValueError(message)
         return int(qubit_count)
 
+    if not kraus_list:
+        raise ValueError("kraus_list cannot be empty.")
 
-class ResetNoise(AbstractKrausNoise):
+    qubit_count = _get_qubit_count(kraus_list)
+    _check_valid_qubit_indices(qubit_count, qubit_indices)
+
+    return GateNoiseInstruction(
+        name="KrausNoise",
+        qubit_count=qubit_count,
+        params=(),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        kraus_operators=kraus_list,
+    )
+
+
+def ResetNoise(
+    p0: float,
+    p1: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     r"""Single qubit reset noise.
 
     Args:
@@ -697,41 +387,7 @@ class ResetNoise(AbstractKrausNoise):
         target_gates: Sequence of target gate names.
     """
 
-    def __init__(
-        self,
-        p0: float,
-        p1: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(p0, "p0")
-        _check_valid_probability(p1, "p1")
-        if p0 + p1 > 1:
-            raise ValueError("The sum of p0 and p1 must be less than or equal to 1.")
-        self._kraus_operators = self._get_kraus_operator_sequence(p0, p1)
-        super().__init__(
-            name="ResetNoise",
-            qubit_count=1,
-            params=(p0, p1),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def p0(self) -> float:
-        return self.params[0]
-
-    @property
-    def p1(self) -> float:
-        return self.params[1]
-
-    @property
-    def kraus_operators(self) -> KrausOperatorSequence:
-        return self._kraus_operators
-
-    def _get_kraus_operator_sequence(
-        self, p0: float, p1: float
-    ) -> KrausOperatorSequence:
+    def _get_kraus_operator_sequence(p0: float, p1: float) -> KrausOperatorSequence:
         return (
             np.sqrt(1 - p0 - p1) * np.array([[1, 0], [0, 1]]),
             np.sqrt(p0) * np.array([[1, 0], [0, 0]]),
@@ -740,8 +396,27 @@ class ResetNoise(AbstractKrausNoise):
             np.sqrt(p1) * np.array([[0, 0], [0, 1]]),
         )
 
+    _check_valid_probability(p0, "p0")
+    _check_valid_probability(p1, "p1")
+    if p0 + p1 > 1:
+        raise ValueError("The sum of p0 and p1 must be less than or equal to 1.")
+    _kraus_operators = _get_kraus_operator_sequence(p0, p1)
 
-class PhaseDampingNoise(AbstractKrausNoise):
+    return GateNoiseInstruction(
+        name="ResetNoise",
+        qubit_count=1,
+        params=(p0, p1),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        kraus_operators=_kraus_operators,
+    )
+
+
+def PhaseDampingNoise(
+    phase_damping_rate: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit phase damping noise.
 
     Args:
@@ -750,38 +425,31 @@ class PhaseDampingNoise(AbstractKrausNoise):
         target_gates: Sequence of target gate names.
     """
 
-    def __init__(
-        self,
-        phase_damping_rate: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(phase_damping_rate, "rate")
-        self._kraus_operators = self._get_kraus_operator_sequence(phase_damping_rate)
-        super().__init__(
-            name="PhaseDampingNoise",
-            qubit_count=1,
-            params=(phase_damping_rate,),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def phase_damping_rate(self) -> float:
-        return self.params[0]
-
-    @property
-    def kraus_operators(self) -> KrausOperatorSequence:
-        return self._kraus_operators
-
-    def _get_kraus_operator_sequence(self, rate: float) -> KrausOperatorSequence:
+    def _get_kraus_operator_sequence(rate: float) -> KrausOperatorSequence:
         return (
-            np.array([[1, 0], [0, np.sqrt(1 - rate)]]),
-            np.array([[0, 0], [0, np.sqrt(rate)]]),
+            [[1, 0], [0, np.sqrt(1 - rate)]],
+            [[0, 0], [0, np.sqrt(rate)]],
         )
 
+    _check_valid_probability(phase_damping_rate, "rate")
+    _kraus_operators = _get_kraus_operator_sequence(phase_damping_rate)
 
-class AmplitudeDampingNoise(AbstractKrausNoise):
+    return GateNoiseInstruction(
+        name="PhaseDampingNoise",
+        qubit_count=1,
+        params=(phase_damping_rate,),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        kraus_operators=_kraus_operators,
+    )
+
+
+def AmplitudeDampingNoise(
+    amplitude_damping_rate: float,
+    excited_state_population: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit amplitude damping noise.
 
     Args:
@@ -791,41 +459,7 @@ class AmplitudeDampingNoise(AbstractKrausNoise):
         target_gates: Sequence of target gate names.
     """
 
-    def __init__(
-        self,
-        amplitude_damping_rate: float,
-        excited_state_population: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(amplitude_damping_rate, "rate")
-        _check_valid_probability(excited_state_population, "excited_state_population")
-        self._kraus_operators = self._get_kraus_operator_sequence(
-            amplitude_damping_rate, excited_state_population
-        )
-        super().__init__(
-            name="AmplitudeDampingNoise",
-            qubit_count=1,
-            params=(amplitude_damping_rate, excited_state_population),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def amplitude_damping_rate(self) -> float:
-        return self.params[0]
-
-    @property
-    def excited_state_population(self) -> float:
-        return self.params[1]
-
-    @property
-    def kraus_operators(self) -> KrausOperatorSequence:
-        return self._kraus_operators
-
-    def _get_kraus_operator_sequence(
-        self, rate: float, esp: float
-    ) -> KrausOperatorSequence:
+    def _get_kraus_operator_sequence(rate: float, esp: float) -> KrausOperatorSequence:
         return (
             np.sqrt(1 - esp) * np.array([[1, 0], [0, np.sqrt(1 - rate)]]),
             np.sqrt(1 - esp) * np.array([[0, np.sqrt(rate)], [0, 0]]),
@@ -833,8 +467,29 @@ class AmplitudeDampingNoise(AbstractKrausNoise):
             np.sqrt(esp) * np.array([[0, 0], [np.sqrt(rate), 0]]),
         )
 
+    _check_valid_probability(amplitude_damping_rate, "rate")
+    _check_valid_probability(excited_state_population, "excited_state_population")
+    _kraus_operators = _get_kraus_operator_sequence(
+        amplitude_damping_rate, excited_state_population
+    )
 
-class PhaseAmplitudeDampingNoise(AbstractKrausNoise):
+    return GateNoiseInstruction(
+        name="AmplitudeDampingNoise",
+        qubit_count=1,
+        params=(amplitude_damping_rate, excited_state_population),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        kraus_operators=_kraus_operators,
+    )
+
+
+def PhaseAmplitudeDampingNoise(
+    phase_damping_rate: float,
+    amplitude_damping_rate: float,
+    excited_state_population: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     """Single qubit phase and amplitude damping noise.
 
     Args:
@@ -845,55 +500,8 @@ class PhaseAmplitudeDampingNoise(AbstractKrausNoise):
         target_gates: Sequence of target gate names.
     """
 
-    def __init__(
-        self,
-        phase_damping_rate: float,
-        amplitude_damping_rate: float,
-        excited_state_population: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(phase_damping_rate, "phase_damping_rate")
-        _check_valid_probability(amplitude_damping_rate, "amplitude_damping_rate")
-        if phase_damping_rate + amplitude_damping_rate > 1:
-            raise ValueError(
-                "The sum of phase_damping_rate and amplitude_damping_rate"
-                " must be less than or equal to 1."
-            )
-        _check_valid_probability(excited_state_population, "excited_state_population")
-        self._kraus_operators = self._get_kraus_operator_sequence(
-            phase_damping_rate, amplitude_damping_rate, excited_state_population
-        )
-        super().__init__(
-            name="PhaseAmplitudeDampingNoise",
-            qubit_count=1,
-            params=(
-                phase_damping_rate,
-                amplitude_damping_rate,
-                excited_state_population,
-            ),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def phase_damping_rate(self) -> float:
-        return self.params[0]
-
-    @property
-    def amplitude_damping_rate(self) -> float:
-        return self.params[1]
-
-    @property
-    def excited_state_population(self) -> float:
-        return self.params[2]
-
-    @property
-    def kraus_operators(self) -> KrausOperatorSequence:
-        return self._kraus_operators
-
     def _get_kraus_operator_sequence(
-        self, prate: float, arate: float, esp: float
+        prate: float, arate: float, esp: float
     ) -> KrausOperatorSequence:
         return (
             np.sqrt(1 - esp) * np.array([[1, 0], [0, np.sqrt(1 - arate - prate)]]),
@@ -904,8 +512,41 @@ class PhaseAmplitudeDampingNoise(AbstractKrausNoise):
             np.sqrt(esp) * np.array([[np.sqrt(prate), 0], [0, 0]]),
         )
 
+    _check_valid_probability(phase_damping_rate, "phase_damping_rate")
+    _check_valid_probability(amplitude_damping_rate, "amplitude_damping_rate")
+    if phase_damping_rate + amplitude_damping_rate > 1:
+        raise ValueError(
+            "The sum of phase_damping_rate and amplitude_damping_rate"
+            " must be less than or equal to 1."
+        )
 
-class ThermalRelaxationNoise(AbstractKrausNoise):
+    _check_valid_probability(excited_state_population, "excited_state_population")
+    _kraus_operators = _get_kraus_operator_sequence(
+        phase_damping_rate, amplitude_damping_rate, excited_state_population
+    )
+
+    return GateNoiseInstruction(
+        name="PhaseAmplitudeDampingNoise",
+        qubit_count=1,
+        params=(
+            phase_damping_rate,
+            amplitude_damping_rate,
+            excited_state_population,
+        ),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        kraus_operators=_kraus_operators,
+    )
+
+
+def ThermalRelaxationNoise(
+    t1: float,
+    t2: float,
+    gate_time: float,
+    excited_state_population: float,
+    qubit_indices: Sequence[int] = (),
+    target_gates: Sequence[NonParametricGateNameType] = (),
+) -> GateNoiseInstruction:
     r"""Sigle qubit thermal relaxation noise.
 
     Args:
@@ -917,60 +558,7 @@ class ThermalRelaxationNoise(AbstractKrausNoise):
         target_gates: Target gate names.
     """
 
-    def __init__(
-        self,
-        t1: float,
-        t2: float,
-        gate_time: float,
-        excited_state_population: float,
-        qubit_indices: Sequence[int] = (),
-        target_gates: Sequence[NonParametricGateNameType] = (),
-    ):
-        _check_valid_probability(excited_state_population, "excited_state_population")
-        if gate_time < 0.0:
-            raise ValueError("gate_time must be greater than or equal to 0.")
-        if t1 <= 0.0:
-            raise ValueError("t1 must be greater than 0.")
-        if t2 <= 0.0:
-            raise ValueError("t2 must be greater than 0.")
-        if t2 > 2.0 * t1:
-            raise ValueError("t2 must be less than or equal to 2 * t1.")
-        self._kraus_operators = self._get_kraus_operator_sequence(
-            t1,
-            t2,
-            gate_time,
-            excited_state_population,
-        )
-        super().__init__(
-            name="ThermalRelaxationNoise",
-            qubit_count=1,
-            params=(t1, t2, gate_time, excited_state_population),
-            qubit_indices=tuple(qubit_indices),
-            target_gates=tuple(target_gates),
-        )
-
-    @property
-    def t1(self) -> float:
-        return self.params[0]
-
-    @property
-    def t2(self) -> float:
-        return self.params[1]
-
-    @property
-    def gate_time(self) -> float:
-        return self.params[2]
-
-    @property
-    def excited_state_population(self) -> float:
-        return self.params[3]
-
-    @property
-    def kraus_operators(self) -> KrausOperatorSequence:
-        return self._kraus_operators
-
     def _get_kraus_operator_sequence(
-        self,
         t1: float,
         t2: float,
         gate_time: float,
@@ -1006,8 +594,57 @@ class ThermalRelaxationNoise(AbstractKrausNoise):
         res = np.dot(np.dot(eigvecs, d_matrix), la.inv(eigvecs))
 
         return (
-            np.transpose(res[:, 0].reshape(2, 2)),
-            np.transpose(res[:, 1].reshape(2, 2)),
-            np.transpose(res[:, 2].reshape(2, 2)),
-            np.transpose(res[:, 3].reshape(2, 2)),
+            np.transpose(res[:, 0].reshape(2, 2)).tolist(),
+            np.transpose(res[:, 1].reshape(2, 2)).tolist(),
+            np.transpose(res[:, 2].reshape(2, 2)).tolist(),
+            np.transpose(res[:, 3].reshape(2, 2)).tolist(),
         )
+
+    _check_valid_probability(excited_state_population, "excited_state_population")
+    if gate_time < 0.0:
+        raise ValueError("gate_time must be greater than or equal to 0.")
+    if t1 <= 0.0:
+        raise ValueError("t1 must be greater than 0.")
+    if t2 <= 0.0:
+        raise ValueError("t2 must be greater than 0.")
+    if t2 > 2.0 * t1:
+        raise ValueError("t2 must be less than or equal to 2 * t1.")
+
+    _kraus_operators = _get_kraus_operator_sequence(
+        t1,
+        t2,
+        gate_time,
+        excited_state_population,
+    )
+
+    return GateNoiseInstruction(
+        name="ThermalRelaxationNoise",
+        qubit_count=1,
+        params=(t1, t2, gate_time, excited_state_population),
+        qubit_indices=tuple(qubit_indices),
+        target_gates=tuple(target_gates),
+        kraus_operators=_kraus_operators,
+    )
+
+
+__all__ = [
+    "AmplitudeDampingNoise",
+    "BitFlipNoise",
+    "BitPhaseFlipNoise",
+    "CircuitNoiseInstruction",
+    "DepolarizingNoise",
+    "DepthIntervalNoise",
+    "GateIntervalNoise",
+    "GateNoiseInstruction",
+    "GeneralDepolarizingNoise",
+    "KrausNoise",
+    "MeasurementNoise",
+    "NoiseInstruction",
+    "PhaseFlipNoise",
+    "PauliNoise",
+    "PhaseAmplitudeDampingNoise",
+    "PhaseDampingNoise",
+    "ProbabilisticNoise",
+    "ResetNoise",
+    "ThermalRelaxationNoise",
+]

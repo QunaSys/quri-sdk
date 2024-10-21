@@ -9,12 +9,10 @@
 # limitations under the License.
 
 from .noise_instruction import (
-    AbstractKrausNoise,
     AmplitudeDampingNoise,
     BitFlipNoise,
     BitPhaseFlipNoise,
     CircuitNoiseInstruction,
-    CircuitNoiseResolverProtocol,
     DepolarizingNoise,
     DepthIntervalNoise,
     GateIntervalNoise,
@@ -32,7 +30,7 @@ from .noise_instruction import (
     ResetNoise,
     ThermalRelaxationNoise,
 )
-from .noise_model import NoiseModel
+from .noise_model import CircuitNoiseInstance, NoiseModel
 
 #: Represents a backend-independent noise instruction to be added to NoiseModel.
 NoiseInstruction = NoiseInstruction
@@ -42,15 +40,14 @@ __all__ = [
     "AmplitudeDampingNoise",
     "BitFlipNoise",
     "BitPhaseFlipNoise",
+    "CircuitNoiseInstance",
     "CircuitNoiseInstruction",
-    "ProbabilisticNoise",
     "DepolarizingNoise",
     "DepthIntervalNoise",
     "GateIntervalNoise",
     "GateNoiseInstruction",
     "GeneralDepolarizingNoise",
     "KrausNoise",
-    "AbstractKrausNoise",
     "MeasurementNoise",
     "NoiseModel",
     "NoiseInstruction",
@@ -58,8 +55,8 @@ __all__ = [
     "PhaseAmplitudeDampingNoise",
     "PhaseDampingNoise",
     "PhaseFlipNoise",
+    "ProbabilisticNoise",
     "QubitNoisePair",
     "ResetNoise",
     "ThermalRelaxationNoise",
-    "CircuitNoiseResolverProtocol",
 ]

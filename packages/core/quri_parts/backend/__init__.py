@@ -16,7 +16,7 @@ from typing import Protocol, Union
 
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 
 #: SamplingCounts represents count statistics of repeated sampling or the
 #: measurement probabilities of a quantum circuit. Keys are observed bit
@@ -75,7 +75,7 @@ class SamplingBackend(Protocol):
     """A quantum computing backend that can perform a sampling measurement."""
 
     @abstractmethod
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
         """Perform a sampling measurement of a circuit."""
         ...
 

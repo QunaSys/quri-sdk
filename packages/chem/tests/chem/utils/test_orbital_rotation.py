@@ -9,16 +9,16 @@
 # limitations under the License.
 
 from quri_parts.chem.utils.orbital_rotation import add_orbital_rotation_gate
-from quri_parts.circuit import CONST, LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import CONST, LinearMappedParametricQuantumCircuit
 
 
 def test_add_orbital_rotation_gate() -> None:
     qubit_count = 4
     qubit_indices = (0, 1, 2, 3)
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter("phi")
     add_orbital_rotation_gate(circuit, qubit_indices, phi)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(4)
+    expected_circuit = LinearMappedParametricQuantumCircuit(4)
     _phi = expected_circuit.add_parameter("phi")
     # single excitation (0, 2)
     expected_circuit.add_CNOT_gate(0, 2)
@@ -41,10 +41,10 @@ def test_add_orbital_rotation_gate() -> None:
     expected_bound_circuit = expected_circuit.bind_parameters(params)
     assert bound_circuit == expected_bound_circuit
 
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi = circuit.add_parameter("phi")
     add_orbital_rotation_gate(circuit, qubit_indices, {phi: -2.0})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(4)
+    expected_circuit = LinearMappedParametricQuantumCircuit(4)
     _phi = expected_circuit.add_parameter("phi")
     # single excitation (0, 2)
     expected_circuit.add_CNOT_gate(0, 2)
@@ -67,9 +67,9 @@ def test_add_orbital_rotation_gate() -> None:
     expected_bound_circuit = expected_circuit.bind_parameters(params)
     assert bound_circuit == expected_bound_circuit
 
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     add_orbital_rotation_gate(circuit, qubit_indices, {CONST: 0.5})
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(4)
+    expected_circuit = LinearMappedParametricQuantumCircuit(4)
     expected_circuit.add_CNOT_gate(0, 2)
     expected_circuit.add_ParametricRY_gate(0, {CONST: 0.25})
     expected_circuit.add_CNOT_gate(2, 0)

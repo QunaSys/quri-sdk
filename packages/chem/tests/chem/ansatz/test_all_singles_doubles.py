@@ -14,14 +14,14 @@ from quri_parts.chem.utils.excitations import (
     add_single_excitation_circuit,
     excitations,
 )
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 
 
 def test_all_singles_doubles() -> None:
     qubit_count = 4
     n_electrons = 2
     circuit = AllSinglesDoubles(qubit_count, n_electrons)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     s_exc_indices, d_exc_indices = excitations(qubit_count, n_electrons)
     s_exc_params = expected_circuit.add_parameters(
         *[f"theta_s_{i}" for i in range(len(s_exc_indices))]
@@ -43,7 +43,7 @@ def test_all_singles_doubles() -> None:
     qubit_count = 8
     n_electrons = 4
     circuit = AllSinglesDoubles(qubit_count, n_electrons)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     s_exc_indices, d_exc_indices = excitations(qubit_count, n_electrons)
     s_exc_params = expected_circuit.add_parameters(
         *[f"theta_s_{i}" for i in range(len(s_exc_indices))]

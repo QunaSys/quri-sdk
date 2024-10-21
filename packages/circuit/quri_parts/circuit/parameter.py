@@ -8,24 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-class Parameter:
-    """A class representing parameters in parametric quantum circuits.
-
-    A ``Parameter`` is a placeholder and does not hold a concrete value in it.
-
-    Implementation note: equality of Parameters is evaluated as identity of the objects.
-    This means that even if two Parameters have the same name they are not equal if
-    they are different objects. To achieve this behavior, it is avoided to 1) inherit
-    :class:`~NamedTuple` and 2) define ``__eq__`` method.
-    """
-
-    def __init__(self, name: str = ""):
-        self.name = name
-
-    def __repr__(self) -> str:
-        return f"Parameter(name={self.name})"
-
+#: A class representing parameters in parametric quantum circuits.
+#:
+#: A ``Parameter`` is a placeholder and does not hold a concrete value in it.
+#:
+#: Implementation note: equality of Parameters is evaluated as identity of the objects.
+#: This means that even if two Parameters have the same name they are not equal if
+#: they are different objects. To achieve this behavior, it is avoided to 1) inherit
+#: :class:`~NamedTuple` and 2) define ``__eq__`` method.
+from quri_parts.rust.circuit.parameter import Parameter
 
 #: A placeholder representing a constant term.
 CONST = Parameter()
+
+__all__ = ["CONST", "Parameter"]

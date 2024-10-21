@@ -11,12 +11,7 @@
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Optional, Protocol
 
-from quri_parts.circuit import (
-    GateSequence,
-    ImmutableQuantumCircuit,
-    NonParametricQuantumCircuit,
-    QuantumCircuit,
-)
+from quri_parts.circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
 
 
 class QuantumState(Protocol):
@@ -54,7 +49,7 @@ class CircuitQuantumState(QuantumState):
 
 class CircuitQuantumStateMixin(ABC):
     def __init__(
-        self, n_qubits: int, circuit: Optional[NonParametricQuantumCircuit] = None
+        self, n_qubits: int, circuit: Optional[ImmutableQuantumCircuit] = None
     ) -> None:
         self._circuit: ImmutableQuantumCircuit
         if circuit is None:
@@ -78,7 +73,7 @@ class GeneralCircuitQuantumState(CircuitQuantumStateMixin, CircuitQuantumState):
     applying a circuit to \|00...0> state."""
 
     def __init__(
-        self, n_qubits: int, circuit: Optional[NonParametricQuantumCircuit] = None
+        self, n_qubits: int, circuit: Optional[ImmutableQuantumCircuit] = None
     ) -> None:
         self._n_qubits: int = n_qubits
         CircuitQuantumStateMixin.__init__(self, n_qubits, circuit)

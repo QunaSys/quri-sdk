@@ -15,7 +15,7 @@ from quri_parts.algo.mitigation.post_selection.post_selection import (
     create_general_post_selection_sampler,
     post_selection,
 )
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts
 
 
@@ -44,7 +44,7 @@ def test_post_selection() -> None:
     }
 
 
-def _mock_sampler(_: NonParametricQuantumCircuit, __: int) -> MeasurementCounts:
+def _mock_sampler(_: ImmutableQuantumCircuit, __: int) -> MeasurementCounts:
     return {0b01: 1, 0b10: 10, 0b111: 20, 0b0101: 5, 0b1110: 100}
 
 
@@ -61,7 +61,7 @@ def test_create_general_post_selection_sampler() -> None:
 
 
 def _mock_concurrent_sampler(
-    _: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    _: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     return [
         {0b01: 1, 0b10: 10, 0b111: 20, 0b0101: 5, 0b1110: 100},

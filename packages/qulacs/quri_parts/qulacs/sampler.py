@@ -16,7 +16,7 @@ import numpy as np
 import qulacs
 from numpy.random import default_rng
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.state import GeneralCircuitQuantumState
@@ -35,14 +35,12 @@ _state_vector_sampler = create_qulacs_vector_state_sampler()
 _ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
 
 
-def _sample(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+def _sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
     return _state_vector_sampler(state, shots)
 
 
-def _ideal_sample(
-    circuit: NonParametricQuantumCircuit, shots: int
-) -> MeasurementCounts:
+def _ideal_sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
     return _ideal_vector_sampler(state, shots)
 
@@ -60,13 +58,13 @@ def create_qulacs_vector_sampler() -> Sampler:
 
 
 def _sample_sequentially(
-    _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    _: Any, circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     return [_sample(circuit, shots) for circuit, shots in circuit_shots_tuples]
 
 
 def _sample_concurrently(
-    circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
+    circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]],
     executor: Optional["Executor"],
     concurrency: int = 1,
 ) -> Iterable[MeasurementCounts]:
@@ -82,7 +80,7 @@ def create_qulacs_vector_concurrent_sampler(
     for sampling."""
 
     def sampler(
-        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         return _sample_concurrently(circuit_shots_tuples, executor, concurrency)
 
@@ -94,7 +92,7 @@ def create_qulacs_stochastic_state_vector_sampler(model: NoiseModel) -> Sampler:
     for shot times with noise model."""
 
     def _sample_with_noise(
-        circuit: NonParametricQuantumCircuit, shots: int
+        circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         qubit_count = circuit.qubit_count
         qs_circuit = convert_circuit_with_noise_model(circuit, model)
@@ -115,7 +113,7 @@ def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
     matrix with noise model."""
 
     def _sample_with_noise(
-        circuit: NonParametricQuantumCircuit, shots: int
+        circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         qubit_count = circuit.qubit_count
         qs_circuit = convert_circuit_with_noise_model(circuit, model)
@@ -140,7 +138,7 @@ def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
     with the shot count."""
 
     def _sample_with_noise(
-        circuit: NonParametricQuantumCircuit, shots: int
+        circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         qubit_count = circuit.qubit_count
         qs_circuit = convert_circuit_with_noise_model(circuit, model)
@@ -157,7 +155,7 @@ def create_qulacs_noisesimulator_sampler(model: NoiseModel) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs NoiseSimulator."""
 
     def _sample_with_noise(
-        circuit: NonParametricQuantumCircuit, shots: int
+        circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         qubit_count = circuit.qubit_count
         qs_circuit = convert_circuit_with_noise_model(circuit, model)
@@ -178,14 +176,14 @@ def _create_qulacs_concurrent_sampler_with_noise_model(
     noise_sampler = sampler_creator(model)
 
     def _sample_sequentially(
-        _: Any, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        _: Any, circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         return [
             noise_sampler(circuit, shots) for circuit, shots in circuit_shots_tuples
         ]
 
     def sampler(
-        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         return execute_concurrently(
             _sample_sequentially, None, circuit_shots_tuples, executor, concurrency

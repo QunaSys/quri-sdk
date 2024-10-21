@@ -18,12 +18,12 @@ from braket.tasks import GateModelQuantumTaskResult
 
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.braket.backend import BraketSamplingBackend, BraketSamplingResult
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 
 
 def circuit_converter(
-    _: NonParametricQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
+    _: ImmutableQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
 ) -> Circuit:
     circuit = Circuit()
     circuit.h(0)
@@ -33,7 +33,7 @@ def circuit_converter(
     return circuit
 
 
-def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCircuit:
+def circuit_transpiler(_: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
     circuit = QuantumCircuit(4)
     circuit.add_X_gate(0)
     circuit.add_H_gate(1)
@@ -212,7 +212,7 @@ class TestBraketSamplingBackend:
         circuit.add_Z_gate(2)
 
         def circuit_converter(
-            _: NonParametricQuantumCircuit,
+            _: ImmutableQuantumCircuit,
             transpiler: Optional[CircuitTranspiler] = None,
         ) -> Circuit:
             circuit = Circuit()

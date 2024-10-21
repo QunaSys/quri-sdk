@@ -11,18 +11,18 @@
 import numpy as np
 
 from .. import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     Parameter,
     ParameterOrLinearFunction,
 )
 
 
 def add_controlled_RX_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     control_index: int,
     target_index: int,
     param_fn: ParameterOrLinearFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     """Add a controlled-RX gate to the given ``circuit``."""
     if isinstance(param_fn, Parameter):
         p_fn = {param_fn: 0.5}
@@ -41,11 +41,11 @@ def add_controlled_RX_gate(
 
 
 def add_controlled_RY_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     control_index: int,
     target_index: int,
     param_fn: ParameterOrLinearFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     """Add a controlled-RY gate to the given ``circuit``."""
     if isinstance(param_fn, Parameter):
         p_fn = {param_fn: 0.5}

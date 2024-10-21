@@ -15,8 +15,8 @@ import numpy as np
 
 from quri_parts.circuit import (
     CONST,
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 
 from .two_local import (
@@ -28,7 +28,7 @@ from .two_local import (
 
 
 def _add_A_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit, arg: EntLayerMakerArg
+    circuit: LinearMappedParametricQuantumCircuit, arg: EntLayerMakerArg
 ) -> None:
     layer_index, (i, j) = arg
 
@@ -46,7 +46,7 @@ def _add_A_gate(
 
 
 def _add_SO4_entangler(
-    circuit: LinearMappedUnboundParametricQuantumCircuit, arg: EntLayerMakerArg
+    circuit: LinearMappedParametricQuantumCircuit, arg: EntLayerMakerArg
 ) -> None:
     layer_index, (i, j) = arg
 
@@ -59,7 +59,7 @@ def _add_SO4_entangler(
     circuit.add_CNOT_gate(i, j)
 
 
-class SymmetryPreserving(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class SymmetryPreserving(ImmutableLinearMappedParametricQuantumCircuit):
     """
     Note:
         Simple Nakanishi-Fujii-Todo method of period 2pi does not work for

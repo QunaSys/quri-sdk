@@ -43,7 +43,7 @@ class TestQuantumCircuit:
         assert circuit.qubit_count == 2
         assert len(circuit.gates) == len(_GATES)
         assert circuit.gates == tuple(_GATES)
-        with pytest.raises(ValueError):
+        with pytest.raises((ValueError, TypeError)):
             circuit.add_gate(ParametricRX(0))  # type: ignore
         with pytest.raises(ValueError):
             circuit.add_gate(X(3))
@@ -124,6 +124,7 @@ class TestImmutableQuantumCircuit:
         mut_circuit = circuit.get_mutable_copy()
         assert isinstance(mut_circuit, QuantumCircuit)
         assert circuit == mut_circuit
+        assert id(circuit) != id(mut_circuit)
 
     def test_freeze(self) -> None:
         circuit = immutable_circuit()

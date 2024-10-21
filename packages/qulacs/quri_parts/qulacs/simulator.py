@@ -16,7 +16,7 @@ import qulacs as ql
 from numpy import complex128, zeros
 from numpy.typing import NDArray
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import (
     ConcurrentStateSampler,
     MeasurementCounts,
@@ -52,7 +52,7 @@ def _evaluate_qp_state_to_qulacs_state(state: QulacsStateT) -> ql.QuantumState:
 
 
 def _get_updated_qulacs_state_from_vector(
-    circuit: Union[NonParametricQuantumCircuit, _QulacsCircuit],
+    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     init_state: NDArray[complex128],
 ) -> ql.QuantumState:
     if len(init_state) != 2**circuit.qubit_count:
@@ -82,10 +82,10 @@ def evaluate_state_to_vector(state: QulacsStateT) -> QuantumStateVector:
 
 
 def run_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     init_state: NDArray[complex128],
 ) -> NDArray[complex128]:
-    """Act a NonParametricQuantumCircuit onto a state vector and returns a new
+    """Act a ImmutableQuantumCircuit onto a state vector and returns a new
     state vector."""
 
     qulacs_state = _get_updated_qulacs_state_from_vector(circuit, init_state)

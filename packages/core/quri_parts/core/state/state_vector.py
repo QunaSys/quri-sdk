@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Optional, Union, cast
 import numpy as np
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit.circuit import GateSequence, NonParametricQuantumCircuit
+from quri_parts.circuit.circuit import GateSequence, ImmutableQuantumCircuit
 
 from ..utils.array import readonly_array
 from .state import CircuitQuantumStateMixin, QuantumState
@@ -59,7 +59,7 @@ class QuantumStateVector(
         self,
         n_qubits: int,
         vector: Optional[Union[StateVectorType, "npt.ArrayLike"]] = None,
-        circuit: Optional[NonParametricQuantumCircuit] = None,
+        circuit: Optional[ImmutableQuantumCircuit] = None,
     ):
         self._n_qubits = n_qubits
         QuantumStateVectorMixin.__init__(self, n_qubits, vector)

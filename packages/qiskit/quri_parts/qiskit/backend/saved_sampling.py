@@ -26,7 +26,7 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
@@ -165,7 +165,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         saved_data: A json string output by the `.json_str` property of
             `:class:`~quri_parts.qiskit.backend.QiskitSamplingBackend`.
         circuit_converter: A function converting
-            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
+            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
             :class:`~QiskitSetTranspiler` is used when not specified.
@@ -217,7 +217,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 

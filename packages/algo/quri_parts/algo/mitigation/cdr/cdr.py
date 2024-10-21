@@ -20,7 +20,7 @@ from quri_parts.algo.utils import (
     polynomial_fitting,
 )
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     is_clifford,
@@ -46,11 +46,11 @@ RegressionMethod: TypeAlias = Callable[[float, Iterable[float], Iterable[float]]
 
 
 def make_training_circuits(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     num_non_clifford_untouched: int,
     num_training_circuits: int = 10,
     seed: Optional[int] = None,
-) -> list[NonParametricQuantumCircuit]:
+) -> list[ImmutableQuantumCircuit]:
     """Returns a list of near Clifford circuits obtained by replacing some non-
     Clifford gates in the input circuit by the nearest Clifford gates. The gate
     to be replaced is chosen at random.
@@ -78,7 +78,7 @@ def make_training_circuits(
             non-clifford gate in the circuit."
         )
 
-    training_circuits: list[NonParametricQuantumCircuit] = []
+    training_circuits: list[ImmutableQuantumCircuit] = []
     ram_seed = np.random.RandomState(seed)
     seed_list = list(ram_seed.randint(int(10e4), size=num_training_circuits))
 
@@ -198,7 +198,7 @@ def create_exp_regression_with_const_log(
 
 def cdr(
     obs: Estimatable,
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     noisy_estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
     exact_estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
     regression_method: RegressionMethod,

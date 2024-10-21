@@ -14,12 +14,12 @@ from quri_parts.chem.utils.excitations import (
     excitations,
 )
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 
 
-class AllSinglesDoubles(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class AllSinglesDoubles(ImmutableLinearMappedParametricQuantumCircuit):
     """Parametric quantum circuit consists of single excitation and double
     excitation.
 
@@ -46,7 +46,7 @@ class AllSinglesDoubles(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             n_spin_orbitals, n_fermions
         )
 
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         s_exc_params = circuit.add_parameters(
             *[f"theta_s_{i}" for i in range(len(single_excitations))]
         )

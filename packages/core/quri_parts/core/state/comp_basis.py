@@ -17,7 +17,6 @@ from typing_extensions import TypeAlias
 from quri_parts.circuit import (
     GateSequence,
     ImmutableQuantumCircuit,
-    NonParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     X,
@@ -135,9 +134,7 @@ class ComputationalBasisState(CircuitQuantumState):
     def with_gates_applied(
         self, gates: GateSequence
     ) -> Union["ComputationalBasisState", "GeneralCircuitQuantumState"]:
-        gate_seq = (
-            gates.gates if isinstance(gates, NonParametricQuantumCircuit) else gates
-        )
+        gate_seq = gates.gates if isinstance(gates, ImmutableQuantumCircuit) else gates
         if all(is_pauli_name(gate.name) for gate in gate_seq):
             state = self._as_tuple()
             for gate in gate_seq:

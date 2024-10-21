@@ -14,7 +14,7 @@ import stim
 from numpy import complex128, zeros
 from numpy.typing import NDArray
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 
 from .circuit import convert_circuit
@@ -45,10 +45,10 @@ def evaluate_state_to_vector(
 
 
 def run_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     init_state: NDArray[complex128],
 ) -> NDArray[complex128]:
-    """Act a NonParametricQuantumCircuit onto a state vector and returns a new
+    """Act a ImmutableQuantumCircuit onto a state vector and returns a new
     state vector.
 
     Note that in Stim, the output vector gets canonicalized in the way

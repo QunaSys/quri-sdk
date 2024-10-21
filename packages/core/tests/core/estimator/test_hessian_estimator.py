@@ -15,8 +15,8 @@ import numpy as np
 
 from quri_parts.circuit import (
     CONST,
-    LinearMappedUnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    ParametricQuantumCircuit,
 )
 from quri_parts.core.estimator import Estimatable, MatrixEstimates, _ParametricStateT
 from quri_parts.core.estimator.hessian import create_parameter_shift_hessian_estimator
@@ -32,7 +32,7 @@ class TestParameterShiftHessianEstimate(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        param_circuit = UnboundParametricQuantumCircuit(3)
+        param_circuit = ParametricQuantumCircuit(3)
         param_circuit.add_X_gate(0)
         param_circuit.add_X_gate(1)
         param_circuit.add_X_gate(2)
@@ -88,7 +88,7 @@ class TestParameterShiftHessianEstimateLinearMappedState(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        param_circuit = LinearMappedUnboundParametricQuantumCircuit(3)
+        param_circuit = LinearMappedParametricQuantumCircuit(3)
         param_circuit.add_X_gate(0)
         param_circuit.add_X_gate(1)
         param_circuit.add_X_gate(2)

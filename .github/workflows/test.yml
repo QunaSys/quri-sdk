@@ -4,8 +4,14 @@ on:
   pull_request:
     paths:
       - packages/**/*.py
+      - packages/**/*.rs
+      - ./**/Cargo.toml
+      - ./**/Cargo.lock
+      - rust/**/*.rs
       - poetry.lock
       - .github/workflows/test.yml
+      - .github/actions/python-poetry-install/action.yml
+      - .github/actions/rust-install-cache/action.yml
   push:
     branches: [main]
 
@@ -27,12 +33,19 @@ jobs:
         poetry-version: '1.4.0'
         python-version: ${{ matrix.python_version }}
 
+    - uses: ./.github/actions/rust-install-cache
+      with:
+        toolchain: "stable"
+        additional-key: "test"
+
     - uses: actions/cache@v3
       with:
         path: |
           ~/.julia/
         key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
+
+    - run: cargo test --workspace
 
     - run: |
         poetry env use ${{ matrix.python_version }}

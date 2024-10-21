@@ -14,7 +14,7 @@ from stim import Circuit as StimCircuit
 from typing_extensions import TypeAlias, TypeGuard
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumGate,
     gate_names,
     is_clifford,
@@ -121,8 +121,8 @@ def convert_gate(gate: QuantumGate) -> Sequence[tuple[str, Sequence[int]]]:
     return ret
 
 
-def convert_circuit(circuit: NonParametricQuantumCircuit) -> StimCircuit:
-    """Converts a :class:`~NonParametricQuantumCircuit` to
+def convert_circuit(circuit: ImmutableQuantumCircuit) -> StimCircuit:
+    """Converts a :class:`~ImmutableQuantumCircuit` to
     :class:`stim.Circuit`."""
     gate_str = ""
     for gate in circuit.gates:

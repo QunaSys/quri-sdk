@@ -15,7 +15,7 @@ from numpy import array, pi
 from pytket import Circuit, OpType, Qubit
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     gate_names,
@@ -60,9 +60,9 @@ _three_qubit_gate_quri_parts: Mapping[OpType, ThreeQubitGateNameType] = {
 }
 
 
-def circuit_from_tket(tket_circuit: Circuit) -> NonParametricQuantumCircuit:
+def circuit_from_tket(tket_circuit: Circuit) -> ImmutableQuantumCircuit:
     """Converts a :class:`pytket.Circuit` to
-    :class:`~NonParametricQuantumCircuit`."""
+    :class:`~ImmutableQuantumCircuit`."""
     qubit_count = tket_circuit.n_qubits
     circuit = QuantumCircuit(qubit_count)
 

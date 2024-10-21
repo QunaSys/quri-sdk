@@ -25,7 +25,7 @@ import numpy.typing as npt
 from typing_extensions import TypeAlias
 
 from quri_parts.backend import SamplingBackend
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 
@@ -43,12 +43,12 @@ MeasurementCounts: TypeAlias = Mapping[int, Union[int, float]]
 #: Sampler represents a function that samples a specified (non-parametric) circuit by
 #: a specified times and returns the count statistics. In the case of an ideal Sampler,
 # the return value corresponds to probabilities multiplied by shot count.
-Sampler: TypeAlias = Callable[[NonParametricQuantumCircuit, int], MeasurementCounts]
+Sampler: TypeAlias = Callable[[ImmutableQuantumCircuit, int], MeasurementCounts]
 
 #: ConcurrentSampler represents a function that samples specified (non-parametric)
 #: circuits concurrently.
 ConcurrentSampler: TypeAlias = Callable[
-    [Iterable[tuple[NonParametricQuantumCircuit, int]]], Iterable[MeasurementCounts]
+    [Iterable[tuple[ImmutableQuantumCircuit, int]]], Iterable[MeasurementCounts]
 ]
 
 #: StateSampler representes a function that samples a specific (non-parametric) state by
@@ -93,9 +93,7 @@ def ideal_sample_from_state_vector(
 def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
     """Create a simple :class:`~Sampler` using a :class:`~SamplingBackend`."""
 
-    def sampler(
-        circuit: NonParametricQuantumCircuit, n_shots: int
-    ) -> MeasurementCounts:
+    def sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> MeasurementCounts:
         job = backend.sample(circuit, n_shots)
         return job.result().counts
 
@@ -109,7 +107,7 @@ def create_concurrent_sampler_from_sampling_backend(
     :class:`~SamplingBackend`."""
 
     def sampler(
-        shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         jobs = [
             backend.sample(circuit, n_shots) for circuit, n_shots in shot_circuit_pairs
@@ -122,7 +120,7 @@ def create_concurrent_sampler_from_sampling_backend(
 def create_sampler_from_concurrent_sampler(
     concurrent_sampler: ConcurrentSampler,
 ) -> Sampler:
-    def sampler(circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
+    def sampler(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
         return next(iter(concurrent_sampler([(circuit, shots)])))
 
     return sampler

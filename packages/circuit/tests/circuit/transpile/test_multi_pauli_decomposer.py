@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
+
 import numpy as np
 
 from quri_parts.circuit import (
@@ -15,17 +17,50 @@ from quri_parts.circuit import (
     RX,
     RZ,
     H,
+    ParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
+    ParametricQuantumGate,
     Pauli,
     PauliRotation,
     QuantumCircuit,
+    QuantumGate,
     X,
     Y,
     Z,
 )
 from quri_parts.circuit.transpile import (
+    ParametricPauliRotationDecomposeTranspiler,
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
 )
+
+
+def _gates_close(
+    x: Union[QuantumGate, ParametricQuantumGate],
+    y: Union[QuantumGate, ParametricQuantumGate],
+) -> bool:
+    if isinstance(x, ParametricQuantumGate) and isinstance(y, ParametricQuantumGate):
+        return x == y
+    elif isinstance(x, QuantumGate) and isinstance(y, QuantumGate):
+        return (
+            x.name == y.name
+            and x.target_indices == y.target_indices
+            and x.control_indices == y.control_indices
+            and np.allclose(x.params, y.params)
+            and x.pauli_ids == y.pauli_ids
+            and np.allclose(x.unitary_matrix, y.unitary_matrix)
+        )
+    else:
+        return False
+
+
+def _circuit_close(
+    x: ParametricQuantumCircuitProtocol,
+    y: ParametricQuantumCircuitProtocol,
+) -> bool:
+    return len(x.gates) == len(y.gates) and all(
+        _gates_close(a, b) for a, b in zip(x.gates, y.gates)
+    )
 
 
 class TestMultiPauliDecompose:
@@ -59,3 +94,31 @@ class TestMultiPauliDecompose:
         expect.extend(gates)
 
         assert transpiled.gates == expect.gates
+
+
+class TestParametricMultiPauliDecompose:
+    def test_parametric_pauli_rotation_decompose(self) -> None:
+        circuit = ParametricQuantumCircuit(3)
+        circuit.add_ParametricPauliRotation_gate((0, 2, 1), (2, 3, 1))
+        transpiled = ParametricPauliRotationDecomposeTranspiler()(circuit)
+
+        expect = ParametricQuantumCircuit(3)
+        expect.extend(
+            [
+                RX(0, np.pi / 2.0),
+                H(1),
+                CNOT(1, 0),
+                CNOT(2, 0),
+            ]
+        )
+        expect.add_ParametricRZ_gate(0)
+        expect.extend(
+            [
+                CNOT(2, 0),
+                CNOT(1, 0),
+                RX(0, -np.pi / 2.0),
+                H(1),
+            ]
+        )
+
+        assert _circuit_close(transpiled, expect)

@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     gate_names,
     gates,
@@ -26,9 +26,7 @@ class IdentityInsertionTranspiler(CircuitTranspilerProtocol):
     least one gate acting on it.
     """
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         non_applied = set(range(circuit.qubit_count))
         for gate in circuit.gates:
             for q in tuple(gate.control_indices) + tuple(gate.target_indices):
@@ -47,9 +45,7 @@ class IdentityEliminationTranspiler(CircuitTranspilerProtocol):
     """Generate a new circuit by removing all Identity gates from the given
     circuit."""
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         ret = QuantumCircuit(circuit.qubit_count)
         for gate in circuit.gates:
             if gate.name != gate_names.Identity:

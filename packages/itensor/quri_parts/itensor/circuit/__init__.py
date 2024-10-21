@@ -14,7 +14,7 @@ from typing import Callable, Optional
 import juliacall
 from juliacall import Main as jl
 
-from quri_parts.circuit import NonParametricQuantumCircuit, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
@@ -73,11 +73,11 @@ ITensorSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTransp
 
 
 def convert_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     qubit_sites: juliacall.VectorValue,
     transpiler: Optional[CircuitTranspiler] = ITensorSetTranspiler(),
 ) -> juliacall.VectorValue:
-    """Convert an :class:`~NonParametricQuantumCircuit` to an ITensor ops.
+    """Convert an :class:`~ImmutableQuantumCircuit` to an ITensor ops.
 
     qubit_sites: collection of N "Qubit" sites. please follow
     `the Itensor doc <https://itensor.github.io/ITensors.jl/

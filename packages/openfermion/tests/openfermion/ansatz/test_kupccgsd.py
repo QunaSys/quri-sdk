@@ -10,7 +10,7 @@
 
 import pytest
 
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.openfermion.ansatz.kupccgsd import (
     KUpCCGSD,
     _generalized_pair_double_excitations,
@@ -198,7 +198,7 @@ class TestKUpCCGSD:
     def test_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
         ansatz = KUpCCGSD(n_spin_orbitals)
-        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_ansatz = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(3)])
         expected_ansatz.add_ParametricPauliRotation_gate(
             (0, 1, 2), (2, 3, 1), {params[0]: -1}
@@ -257,9 +257,7 @@ class TestKUpCCGSD:
             operator_mapping,
             trotter_number=2,
         )
-        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
-            n_spin_orbitals - 2
-        )
+        expected_ansatz = LinearMappedParametricQuantumCircuit(n_spin_orbitals - 2)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(6)])
         for i in range(k):
             expected_ansatz.add_ParametricPauliRotation_gate(
@@ -314,7 +312,7 @@ class TestSingletExcitedKUpCCGSD:
     def test_singlet_excited_kupccgsd_k1_trotter1(self) -> None:
         n_spin_orbitals = 4
         ansatz = KUpCCGSD(n_spin_orbitals, singlet_excitation=True)
-        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_ansatz = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(2)])
         expected_ansatz.add_ParametricPauliRotation_gate(
             (0, 1, 2), (2, 3, 1), {params[0]: -1}
@@ -379,9 +377,7 @@ class TestSingletExcitedKUpCCGSD:
             trotter_number=2,
             singlet_excitation=True,
         )
-        expected_ansatz = LinearMappedUnboundParametricQuantumCircuit(
-            n_spin_orbitals - 2
-        )
+        expected_ansatz = LinearMappedParametricQuantumCircuit(n_spin_orbitals - 2)
         params = expected_ansatz.add_parameters(*[f"param{i}" for i in range(4)])
         for i in range(k):
             expected_ansatz.add_ParametricPauliRotation_gate(

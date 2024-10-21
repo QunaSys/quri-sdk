@@ -28,6 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
+quri-parts-rust = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.0.1"

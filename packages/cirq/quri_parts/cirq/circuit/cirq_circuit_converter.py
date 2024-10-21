@@ -20,7 +20,7 @@ from cirq.ops.three_qubit_gates import CCX
 from cirq.protocols.unitary_protocol import unitary
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     UnitaryMatrix,
@@ -59,9 +59,9 @@ _three_qubit_gate_quri_parts: Mapping[Gate, ThreeQubitGateNameType] = {
 }
 
 
-def circuit_from_cirq(cirq_circuit: Circuit) -> NonParametricQuantumCircuit:
+def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
     """Converts a :class:`cirq.Circuit` to
-    :class:`~NonParametricQuantumCircuit`."""
+    :class:`~ImmutableQuantumCircuit`."""
     qubit_count = max([qubit.x for qubit in cirq_circuit.all_qubits()]) + 1
     circuit = QuantumCircuit(qubit_count)
 

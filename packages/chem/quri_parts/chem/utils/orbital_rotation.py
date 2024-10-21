@@ -12,16 +12,16 @@ from typing import Sequence
 
 from quri_parts.chem.utils.excitations import add_single_excitation_circuit
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     ParameterOrLinearFunction,
 )
 
 
 def add_orbital_rotation_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     qubit_indices: Sequence[int],
     param_fn: ParameterOrLinearFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     """Add four-qubit spatial orbital rotation gate
     :math:`\\textrm{QNP}_{\\textrm{OR}}(\\phi)` that conserves the number of particles.
 
@@ -36,7 +36,7 @@ def add_orbital_rotation_gate(
         pennylane.OrbitalRotation.html>`_
 
     Args:
-        circuit: :class:`LinearMappedUnboundParametricQuantumCircuit` that the orbital \
+        circuit: :class:`LinearMappedParametricQuantumCircuit` that the orbital \
         rotation gate is added to.
         phi: :attr:`circuit`\\ 's input parameter.
         coeff: Parameter coefficient.

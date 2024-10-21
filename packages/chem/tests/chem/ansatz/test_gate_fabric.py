@@ -13,7 +13,7 @@ import numpy as np
 from quri_parts.chem.ansatz.gate_fabric import GateFabric, _q_gate
 from quri_parts.chem.utils.excitations import add_double_excitation_circuit
 from quri_parts.chem.utils.orbital_rotation import add_orbital_rotation_gate
-from quri_parts.circuit import CONST, LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import CONST, LinearMappedParametricQuantumCircuit
 
 
 def test_q_gate() -> None:
@@ -21,7 +21,7 @@ def test_q_gate() -> None:
     layer_index = 2
     qubit_indices = (0, 1, 2, 3)
     circuit = _q_gate(qubit_count, layer_index, qubit_indices, False)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     theta, phi = expected_circuit.add_parameters("theta", "phi")
     add_double_excitation_circuit(expected_circuit, qubit_indices, theta)
     add_orbital_rotation_gate(expected_circuit, qubit_indices, phi)
@@ -33,7 +33,7 @@ def test_q_gate() -> None:
     assert bound_circuit == expected_bound_circuit
 
     circuit = _q_gate(qubit_count, layer_index, qubit_indices, True)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     theta, phi = expected_circuit.add_parameters("theta", "phi")
     add_orbital_rotation_gate(expected_circuit, qubit_indices, {CONST: np.pi})
     add_double_excitation_circuit(expected_circuit, qubit_indices, theta)
@@ -50,7 +50,7 @@ def test_gate_fabric() -> None:
     qubit_count = 4
     n_layers = 2
     circuit = GateFabric(qubit_count, n_layers)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     for i in range(n_layers):
         for j in range(0, qubit_count - 3, 4):
             expected_circuit.extend(
@@ -69,7 +69,7 @@ def test_gate_fabric() -> None:
 
     include_pi = True
     circuit = GateFabric(qubit_count, n_layers, include_pi)
-    expected_circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+    expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     for i in range(n_layers):
         for j in range(0, qubit_count - 3, 4):
             expected_circuit.extend(

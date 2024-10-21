@@ -28,7 +28,7 @@ from quri_parts.circuit.transpile import (
 )
 
 if TYPE_CHECKING:
-    from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
+    from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate
     from quri_parts.circuit.gate_names import (
         ParametricGateNameType,
         SingleQubitGateNameType,
@@ -96,9 +96,7 @@ _not_implemented_gates: set["SingleQubitGateNameType"] = {
 }
 
 
-def convert_to_qasm(
-    circuit: "NonParametricQuantumCircuit", text_io: io.TextIOBase
-) -> None:
+def convert_to_qasm(circuit: "ImmutableQuantumCircuit", text_io: io.TextIOBase) -> None:
     """Converts a circuit to OpenQASM and writes it to IO stream.
 
     Args:
@@ -112,7 +110,7 @@ def convert_to_qasm(
         text_io.write(convert_gate_to_qasm_line(gate))
 
 
-def convert_to_qasm_str(circuit: "NonParametricQuantumCircuit") -> str:
+def convert_to_qasm_str(circuit: "ImmutableQuantumCircuit") -> str:
     str_io = io.StringIO()
     convert_to_qasm(circuit, str_io)
     return str_io.getvalue()

@@ -13,7 +13,7 @@ from typing import Callable
 
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.measurement import CommutablePauliSetMeasurement
 from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.sampling import PauliSamplingShotsAllocator
@@ -31,7 +31,7 @@ CircuitShotPairPreparationFunction: TypeAlias = Callable[
         Iterable[CommutablePauliSetMeasurement],
         dict[CommutablePauliSet, int],
     ],
-    Iterable[tuple[NonParametricQuantumCircuit, int]],
+    Iterable[tuple[ImmutableQuantumCircuit, int]],
 ]
 
 
@@ -60,7 +60,7 @@ def get_sampling_circuits_and_shots(
     state: CircuitQuantumState,
     measurement_groups: Iterable[CommutablePauliSetMeasurement],
     shots_map: dict[CommutablePauliSet, int],
-) -> Iterable[tuple[NonParametricQuantumCircuit, int]]:
+) -> Iterable[tuple[ImmutableQuantumCircuit, int]]:
     """Sets up the (circuit, shot) pairs for performing sampling estimation.
     The circuit is given by the measurement circuit concatenated after the
     circuit held inside the state.

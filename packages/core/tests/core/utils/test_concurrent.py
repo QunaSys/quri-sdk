@@ -59,5 +59,5 @@ class TestExecuteConcurrently:
 
 
 def _getpid(c: int, s: Sequence[int]) -> Sequence[tuple[int, int]]:
-    sleep(0.01)
+    sleep(0.3)
     return [(getpid(), c + i) for i in s]

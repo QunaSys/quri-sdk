@@ -8,24 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import (
-    CNOT,
-    CZ,
-    SWAP,
-    H,
-    Identity,
-    Pauli,
-    QuantumGate,
-    S,
-    Sdag,
-    SqrtX,
-    SqrtXdag,
-    SqrtY,
-    SqrtYdag,
-    X,
-    Y,
-    Z,
-)
+from quri_parts.circuit import QuantumGate, gate_names
 from quri_parts.circuit.gate_names import CLIFFORD_GATE_NAMES
 
 from .pauli import PauliLabel, SinglePauli, pauli_product
@@ -36,40 +19,40 @@ _single_Pauli_1q_Clifford_gate_conjugation_table: dict[
     int, dict[str, tuple[int, float]]
 ] = {
     SinglePauli.X: {
-        X.name: (SinglePauli.X, 1.0),
-        Y.name: (SinglePauli.X, -1.0),
-        Z.name: (SinglePauli.X, -1.0),
-        H.name: (SinglePauli.Z, 1.0),
-        S.name: (SinglePauli.Y, 1.0),
-        Sdag.name: (SinglePauli.Y, -1.0),
-        SqrtX.name: (SinglePauli.X, 1.0),
-        SqrtXdag.name: (SinglePauli.X, 1.0),
-        SqrtY.name: (SinglePauli.Z, -1.0),
-        SqrtYdag.name: (SinglePauli.Z, 1.0),
+        gate_names.X: (SinglePauli.X, 1.0),
+        gate_names.Y: (SinglePauli.X, -1.0),
+        gate_names.Z: (SinglePauli.X, -1.0),
+        gate_names.H: (SinglePauli.Z, 1.0),
+        gate_names.S: (SinglePauli.Y, 1.0),
+        gate_names.Sdag: (SinglePauli.Y, -1.0),
+        gate_names.SqrtX: (SinglePauli.X, 1.0),
+        gate_names.SqrtXdag: (SinglePauli.X, 1.0),
+        gate_names.SqrtY: (SinglePauli.Z, -1.0),
+        gate_names.SqrtYdag: (SinglePauli.Z, 1.0),
     },
     SinglePauli.Y: {
-        X.name: (SinglePauli.Y, -1.0),
-        Y.name: (SinglePauli.Y, 1.0),
-        Z.name: (SinglePauli.Y, -1.0),
-        H.name: (SinglePauli.Y, -1.0),
-        S.name: (SinglePauli.X, -1.0),
-        Sdag.name: (SinglePauli.X, 1.0),
-        SqrtX.name: (SinglePauli.Z, 1.0),
-        SqrtXdag.name: (SinglePauli.Z, -1.0),
-        SqrtY.name: (SinglePauli.Y, 1.0),
-        SqrtYdag.name: (SinglePauli.Y, 1.0),
+        gate_names.X: (SinglePauli.Y, -1.0),
+        gate_names.Y: (SinglePauli.Y, 1.0),
+        gate_names.Z: (SinglePauli.Y, -1.0),
+        gate_names.H: (SinglePauli.Y, -1.0),
+        gate_names.S: (SinglePauli.X, -1.0),
+        gate_names.Sdag: (SinglePauli.X, 1.0),
+        gate_names.SqrtX: (SinglePauli.Z, 1.0),
+        gate_names.SqrtXdag: (SinglePauli.Z, -1.0),
+        gate_names.SqrtY: (SinglePauli.Y, 1.0),
+        gate_names.SqrtYdag: (SinglePauli.Y, 1.0),
     },
     SinglePauli.Z: {
-        X.name: (SinglePauli.Z, -1.0),
-        Y.name: (SinglePauli.Z, -1.0),
-        Z.name: (SinglePauli.Z, 1.0),
-        H.name: (SinglePauli.X, 1.0),
-        S.name: (SinglePauli.Z, 1.0),
-        Sdag.name: (SinglePauli.Z, 1.0),
-        SqrtX.name: (SinglePauli.Y, -1.0),
-        SqrtXdag.name: (SinglePauli.Y, 1.0),
-        SqrtY.name: (SinglePauli.X, 1.0),
-        SqrtYdag.name: (SinglePauli.X, -1.0),
+        gate_names.X: (SinglePauli.Z, -1.0),
+        gate_names.Y: (SinglePauli.Z, -1.0),
+        gate_names.Z: (SinglePauli.Z, 1.0),
+        gate_names.H: (SinglePauli.X, 1.0),
+        gate_names.S: (SinglePauli.Z, 1.0),
+        gate_names.Sdag: (SinglePauli.Z, 1.0),
+        gate_names.SqrtX: (SinglePauli.Y, -1.0),
+        gate_names.SqrtXdag: (SinglePauli.Y, 1.0),
+        gate_names.SqrtY: (SinglePauli.X, 1.0),
+        gate_names.SqrtYdag: (SinglePauli.X, -1.0),
     },
 }
 
@@ -78,19 +61,19 @@ _single_Pauli_2q_Clifford_gate_conjugation_table: dict[
     int, dict[str, dict[str, tuple[int, int]]]
 ] = {
     SinglePauli.X: {
-        CNOT.name: {
+        gate_names.CNOT: {
             # Pauli acts on control index. return: (control, target)
             "q1": (SinglePauli.X, SinglePauli.X),
             # Pauli acts on target index. return: (control, target)
             "q2": (0, SinglePauli.X),
         },
-        CZ.name: {
+        gate_names.CZ: {
             # Pauli acts on control index. return: (control, target)
             "q1": (SinglePauli.X, SinglePauli.Z),
             # Pauli acts on target index. return: (control, target)
             "q2": (SinglePauli.Z, SinglePauli.X),
         },
-        SWAP.name: {
+        gate_names.SWAP: {
             # Pauli acts on target1 index. return: (target1, target2)
             "q1": (0, SinglePauli.X),
             # Pauli acts on target2 index. return: (target1, target2)
@@ -98,29 +81,29 @@ _single_Pauli_2q_Clifford_gate_conjugation_table: dict[
         },
     },
     SinglePauli.Y: {
-        CNOT.name: {
+        gate_names.CNOT: {
             "q1": (SinglePauli.Y, SinglePauli.X),
             "q2": (SinglePauli.Z, SinglePauli.Y),
         },
-        CZ.name: {
+        gate_names.CZ: {
             "q1": (SinglePauli.Y, SinglePauli.Z),
             "q2": (SinglePauli.Z, SinglePauli.Y),
         },
-        SWAP.name: {
+        gate_names.SWAP: {
             "q1": (0, SinglePauli.Y),
             "q2": (SinglePauli.Y, 0),
         },
     },
     SinglePauli.Z: {
-        CNOT.name: {
+        gate_names.CNOT: {
             "q1": (SinglePauli.Z, 0),
             "q2": (SinglePauli.Z, SinglePauli.Z),
         },
-        CZ.name: {
+        gate_names.CZ: {
             "q1": (SinglePauli.Z, 0),
             "q2": (0, SinglePauli.Z),
         },
-        SWAP.name: {
+        gate_names.SWAP: {
             "q1": (0, SinglePauli.Z),
             "q2": (SinglePauli.Z, 0),
         },
@@ -140,12 +123,12 @@ def clifford_gate_conjugation(
     """
     if gate.name not in CLIFFORD_GATE_NAMES:
         raise ValueError("{gate.name} gate is not a Clifford gate.")
-    elif gate.name == Pauli.name:
+    elif gate.name == gate_names.Pauli:
         raise NotImplementedError(
             "Please decompose the multi-qubit Pauli gate into single-qubit Pauli gates"
             "before the conjugation. You can use PauliDecomposeTranspiler."
         )
-    if gate.name == Identity.name:
+    if gate.name == gate_names.Identity:
         return pauli, 1.0
 
     res_pauli: PauliLabel = PauliLabel()
@@ -165,7 +148,7 @@ def clifford_gate_conjugation(
             res_coef *= coef
     # multi qubit gates (CNOT, CZ, SWAP)
     elif len([*gate.target_indices, *gate.control_indices]) == 2:
-        if gate.name == SWAP.name:
+        if gate.name == gate_names.SWAP:
             control_index, target_index = gate.target_indices
         else:
             control_index, target_index = (

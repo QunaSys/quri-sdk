@@ -13,13 +13,13 @@ import unittest
 from numpy import allclose, angle, array, complex128, exp
 from numpy.typing import NDArray
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 from quri_parts.stim.simulator import evaluate_state_to_vector, run_circuit
 
 
 class TestSimulator(unittest.TestCase):
-    update_circuit: NonParametricQuantumCircuit
+    update_circuit: ImmutableQuantumCircuit
     expected_output: NDArray[complex128]
 
     @classmethod

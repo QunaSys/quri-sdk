@@ -15,8 +15,8 @@ import numpy as np
 import pytest
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    ParametricQuantumCircuit,
 )
 from quri_parts.core.estimator import Estimatable, Estimate
 from quri_parts.core.estimator.gradient import (
@@ -34,7 +34,7 @@ from quri_parts.qulacs.estimator import (
 
 
 def a_state() -> ParametricCircuitQuantumState:
-    circuit = UnboundParametricQuantumCircuit(1)
+    circuit = ParametricQuantumCircuit(1)
     circuit.add_Z_gate(0)
     circuit.add_ParametricRX_gate(0)
     s = ParametricCircuitQuantumState(1, circuit)
@@ -42,7 +42,7 @@ def a_state() -> ParametricCircuitQuantumState:
 
 
 def b_state() -> ParametricCircuitQuantumState:
-    circuit = UnboundParametricQuantumCircuit(2)
+    circuit = ParametricQuantumCircuit(2)
     circuit.add_H_gate(0)
     circuit.add_X_gate(1)
     circuit.add_ParametricRY_gate(0)
@@ -52,14 +52,14 @@ def b_state() -> ParametricCircuitQuantumState:
 
 
 def c_state() -> ParametricCircuitQuantumState:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(1)
+    circuit = LinearMappedParametricQuantumCircuit(1)
     theta1 = circuit.add_parameter("theta1")
     circuit.add_ParametricRX_gate(0, {theta1: 1 / 2})
     return ParametricCircuitQuantumState(1, circuit)
 
 
 def d_state() -> ParametricCircuitQuantumState:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(2)
+    circuit = LinearMappedParametricQuantumCircuit(2)
     theta1, theta2 = circuit.add_parameters("theta1", "theta2")
     circuit.add_H_gate(0)
     circuit.add_X_gate(1)

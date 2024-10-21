@@ -16,8 +16,8 @@ from quri_parts.chem.utils.excitations import (
     to_spin_symmetric_order,
 )
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 
@@ -33,7 +33,7 @@ from ..utils.add_exp_excitation_gates_trotter_decomposition import (
 )
 
 
-class TrotterUCCSD(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
     r"""Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
     operator decomposed by first-order Trotter product formula. Note that the
@@ -166,7 +166,7 @@ def _construct_circuit(
     trotter_number: int,
     use_singles: bool,
     delta_sz: int = 0,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
     n_fermions = fermion_qubit_mapping.n_fermions
     n_qubits = fermion_qubit_mapping.n_qubits
@@ -176,7 +176,7 @@ def _construct_circuit(
 
     s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=delta_sz)
 
-    circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+    circuit = LinearMappedParametricQuantumCircuit(n_qubits)
     if use_singles:
         s_exc_params = [
             circuit.add_parameter(f"theta_s_{i}") for i in range(len(s_excs))
@@ -199,7 +199,7 @@ def _construct_singlet_excitation_circuit(
     fermion_qubit_mapping: OpenFermionQubitMapping,
     trotter_number: int,
     use_singles: bool,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     n_spin_orbitals = fermion_qubit_mapping.n_spin_orbitals
     n_fermions = fermion_qubit_mapping.n_fermions
     n_qubits = fermion_qubit_mapping.n_qubits
@@ -207,7 +207,7 @@ def _construct_singlet_excitation_circuit(
         n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
     ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
 
-    circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+    circuit = LinearMappedParametricQuantumCircuit(n_qubits)
 
     op_mapper = fermion_qubit_mapping.of_operator_mapper
 

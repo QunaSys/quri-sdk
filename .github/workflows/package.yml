@@ -1,14 +1,193 @@
 name: Package and release
 
 on:
-  pull_request:
   push:
     branches: [main]
   release:
     types: [published]
 
 jobs:
-  package:
+  pre-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Necessary to get tags for correct versioning
+        fetch-depth: 0
+
+    - name: check manual versioning
+      shell: bash
+      run: |
+        GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
+        
+        # process pyproject.toml files
+        for FILE in $(find . -name "pyproject.toml"); do
+          PYPROJECT_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #PYPROJECT_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+        
+        # process Cargo.toml files
+        for FILE in $(find . -name "Cargo.toml"); do
+          CARGO_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "v$CARGO_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #CARGO_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+        
+        echo "Version check finished successfully." 1>&2
+
+  rust-sdist-package:
+    name: Rust sdist package
+    needs: [pre-check]
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: "3.11"
+
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - uses: ./.github/actions/rust-install-cache
+        with:
+          os: ${{ runner.os }}
+          toolchain: "stable"
+          additional-key: "python"
+
+      - run: |
+          poetry env use 3.11
+          mkdir -p dist
+          poetry run pip install maturin==1.7.1
+          source $VENV
+          cp -f packages/rust/NOTICE packages/rust/quri_parts/rust/
+
+          # For sdist generation, only files under `packages/rust` or `rust` are needed.
+          # To prevent errors, we remove some files of `quri-parts` package.
+          rm -rf README.md pyproject.toml quri_parts docs
+          mv packages/rust/pyproject.toml .
+          mv packages/rust/quri_parts .
+          echo 'manifest-path = "packages/rust/Cargo.toml"' >> pyproject.toml
+          poetry run maturin build --sdist -i python3.11 --out dist -m packages/rust/Cargo.toml -vv
+          rm dist/*.whl
+
+      - run: |
+          git reset --hard
+          poetry install -vv --only dev
+          poetry run pip uninstall -y quri-parts-rust
+          poetry run pip install dist/*.tar.gz
+          poetry run pytest packages
+
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: QURI parts packages
+          path: dist/*
+          if-no-files-found: error
+
+  rust-wheel-package:
+    name: Rust wheel package on ${{matrix.system.os}}-${{matrix.python-version}}
+    needs: [pre-check]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "3.9", "3.10", "3.11" ]
+        toolchain: [ "stable" ]
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: ${{matrix.python-version}}
+
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - uses: ./.github/actions/rust-install-cache
+        with:
+          os: ${{ runner.os }}
+          toolchain: ${{ matrix.toolchain }}
+          additional-key: "python"
+          target: ${{matrix.system.target}}
+
+      - run: |
+          poetry env use '${{ steps.setup-python.outputs.python-path }}'
+          mkdir -p dist
+          cp -f NOTICE quri_parts/
+          poetry run pip install maturin==1.7.1
+          poetry build
+          source $VENV
+          cd packages
+          for pkg in *
+          do
+            cd $pkg
+            if [[ -e "Cargo.toml" ]]; then
+              cp -f NOTICE quri_parts/$pkg/
+              cd ../..
+              poetry run maturin build --strip -i python${{ matrix.python-version }} --release --out dist -m packages/$pkg/Cargo.toml
+              cd packages/$pkg
+            fi
+            cd ..
+          done
+
+      - name: Run test
+        shell: bash
+        run: |
+          poetry run pip install pytest
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            poetry install -vv --only main
+          else
+            poetry install -vv --only dev
+          fi
+          for FILE in "$(find dist -name '*.whl')"; do
+            poetry run pip install $FILE
+          done
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            # We cannot run tests on native Windows, since pyscf does not support it.
+            poetry install -vv --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket
+            poetry run pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+          else
+            poetry run pytest packages
+          fi
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: QURI parts packages
+          path: dist/*
+          if-no-files-found: error
+
+  python-package:
+    needs: [pre-check]
     runs-on: ubuntu-latest
 
     steps:
@@ -34,9 +213,11 @@ jobs:
         for pkg in *
         do
           cd $pkg
-          cp -f NOTICE quri_parts/$pkg/
-          poetry build
-          mv dist/* ../../dist
+          if [[ ! -e "Cargo.toml" ]]; then
+            cp -f NOTICE quri_parts/$pkg/
+            poetry build
+            mv dist/* ../../dist
+          fi
           cd ..
         done
 
@@ -47,7 +228,7 @@ jobs:
         if-no-files-found: error
 
   release:
-    needs: [package]
+    needs: [python-package, rust-wheel-package, rust-sdist-package]
     if: github.event_name == 'release'
     runs-on: ubuntu-latest
     steps:

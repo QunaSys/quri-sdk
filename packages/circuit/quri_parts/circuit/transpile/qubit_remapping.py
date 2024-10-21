@@ -10,7 +10,7 @@
 
 from collections.abc import Mapping
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit, QuantumGate
 
 from .transpiler import CircuitTranspilerProtocol
 
@@ -36,16 +36,22 @@ class QubitRemappingTranspiler(CircuitTranspilerProtocol):
         self._qubit_mapping = qubit_mapping
         self._max_index = max(qubit_mapping.values())
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         transpiled = QuantumCircuit(self._max_index + 1)
         qm = self._qubit_mapping
         try:
             for gate in circuit.gates:
                 ci = tuple(qm[index] for index in gate.control_indices)
                 ti = tuple(qm[index] for index in gate.target_indices)
-                g = gate._replace(control_indices=ci, target_indices=ti)
+                g = QuantumGate(
+                    gate.name,
+                    ti,
+                    ci,
+                    gate.classical_indices,
+                    gate.params,
+                    gate.pauli_ids,
+                    gate.unitary_matrix,
+                )
                 transpiled.add_gate(g)
         except KeyError as e:
             raise ValueError(f"Mapping for qubit {e.args} was not specified")

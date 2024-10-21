@@ -12,14 +12,18 @@ inputs:
 runs:
   using: "composite"
   steps:
+
     - name: Install Poetry
       env:
         POETRY_VERSION: ${{ inputs.poetry-version }}
       shell: bash
       run: |
-        curl -sSL https://install.python-poetry.org | python -
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        pip install --user --upgrade pip
+        curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.poetry/bin" >> $GITHUB_PATH
 
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
+

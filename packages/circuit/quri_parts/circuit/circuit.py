@@ -8,15 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import warnings
-from abc import ABC, abstractmethod, abstractproperty
+from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
-from functools import cached_property
 from typing import Optional, Protocol, Union
 
 from typing_extensions import TypeAlias, TypeGuard
 
-from .gate import ParametricQuantumGate, QuantumGate
+#: An immutable quantum circuit having only non-parametric gates.
+#: A mutable quantum circuit having only non-parametric gates.
+from quri_parts.rust.circuit.circuit import ImmutableQuantumCircuit, QuantumCircuit
+
+from .gate import QuantumGate
 from .gates import (
     CNOT,
     CZ,
@@ -49,13 +51,13 @@ from .gates import (
     Z,
 )
 
-GateSequence: TypeAlias = Union["NonParametricQuantumCircuit", Sequence[QuantumGate]]
+GateSequence: TypeAlias = Union["ImmutableQuantumCircuit", Sequence[QuantumGate]]
 
 
 def is_gate_sequence(
     gates: Union["QuantumCircuitProtocol", GateSequence]
 ) -> TypeGuard[GateSequence]:
-    return isinstance(gates, (NonParametricQuantumCircuit, Sequence))
+    return isinstance(gates, (ImmutableQuantumCircuit, Sequence))
 
 
 class QuantumCircuitProtocol(Protocol):
@@ -253,171 +255,20 @@ class MutableQuantumCircuitProtocol(QuantumCircuitProtocol, Protocol):
         self.add_gate(Measurement(qubit_indices, classical_indices))
 
 
-class NonParametricQuantumCircuit(QuantumCircuitProtocol, ABC):
-    """A base class for quantum circuits having only non-parametric gates.
-
-    This class support ``+`` operator with ``GateSequence``.
-    """
-
-    @abstractproperty
-    def gates(self) -> Sequence[QuantumGate]:
-        """Returns the gate sequence of the circuit."""
-        ...
-
-    @property
-    def depth(self) -> int:
-        max_layers_each_qubit = [0] * self.qubit_count
-        for gate in self.gates:
-            acting_ids = [*gate.control_indices, *gate.target_indices]
-            max_layers = max(max_layers_each_qubit[index] for index in acting_ids)
-            for index in acting_ids:
-                max_layers_each_qubit[index] = max_layers + 1
-        return max(max_layers_each_qubit)
-
-    def combine(self, gates: GateSequence) -> "QuantumCircuit":
-        """Create a new circuit with itself and the given gates combined."""
-        circuit = QuantumCircuit(self.qubit_count)
-        circuit.extend(self)
-        circuit.extend(gates)
-        return circuit
-
-    @abstractmethod
-    def freeze(self) -> "ImmutableQuantumCircuit":
-        """Returns a \"freezed\" version of itself.
-
-        The \"freezed\" version is an immutable object and can be reused
-        safely without copying.
-        """
-        ...
-
-    @abstractmethod
-    def get_mutable_copy(self) -> "QuantumCircuit":
-        """Returns a copy of itself that can be modified.
-
-        Use this method when you want to get a new circuit based on an
-        existing circuit but don't want to modify it.
-        """
-        ...
-
-    def __add__(self, gates: GateSequence) -> "QuantumCircuit":
-        if not is_gate_sequence(gates):
-            return NotImplemented
-        return self.combine(gates)
+#: A base class for quantum circuits having only non-parametric gates.
+#:
+#: This class support ``+`` operator with ``GateSequence``.
+ImmutableQuantumCircuit = ImmutableQuantumCircuit
 
 
-class QuantumCircuit(NonParametricQuantumCircuit, MutableQuantumCircuitProtocol):
-    """A mutable quantum circuit having only non-parametric gates."""
+#: Deprecated: use `quri_parts.circuit.ImmutableQuantumCircuit` instead
+NonParametricQuantumCircuit = ImmutableQuantumCircuit
 
-    def __init__(
-        self,
-        qubit_count: int,
-        cbit_count: int = 0,
-        gates: Sequence[QuantumGate] = [],
-    ):
-        self._qubit_count = qubit_count
-        if isinstance(cbit_count, Sequence):
-            warnings.warn(
-                "QuantumCircuit initialization takes cbit_count before gates.",
-                DeprecationWarning,
-            )
-            self._gates = list(cbit_count)
-            self._cbit_count = 0
-        else:
-            self._cbit_count = cbit_count
-            self._gates = list(gates)
-
-    @property
-    def qubit_count(self) -> int:
-        return self._qubit_count
-
-    @property
-    def cbit_count(self) -> int:
-        return self._cbit_count
-
-    @property
-    def gates(self) -> Sequence[QuantumGate]:
-        return tuple(self._gates)
-
-    def freeze(self) -> "ImmutableQuantumCircuit":
-        return ImmutableQuantumCircuit(self)
-
-    def get_mutable_copy(self) -> "QuantumCircuit":
-        circuit = QuantumCircuit(self.qubit_count, self.cbit_count, self._gates)
-        return circuit
-
-    def add_gate(self, gate: QuantumGate, gate_index: Optional[int] = None) -> None:
-        if isinstance(gate, ParametricQuantumGate):
-            raise ValueError(
-                "QuantumCircuit only accepts QuantumGate, not ParametricQuantumGate."
-            )
-        if max([*gate.control_indices, *gate.target_indices]) >= self.qubit_count:
-            raise ValueError(
-                "The indices of the gate applied must be smaller than qubit_count"
-            )
-        if (
-            len(gate.classical_indices) > 0
-            and max(gate.classical_indices) >= self.cbit_count
-        ):
-            raise ValueError(
-                "The classical indices of the gate applied must be smaller",
-                "than cbit_count",
-            )
-
-        if gate_index is not None:
-            self._gates.insert(gate_index, gate)
-        else:
-            self._gates.append(gate)
-
-    def extend(self, gates: GateSequence) -> None:
-        if isinstance(gates, NonParametricQuantumCircuit):
-            gates = gates.gates
-        for gate in gates:
-            self.add_gate(gate)
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, NonParametricQuantumCircuit):
-            return False
-        return self.freeze() == other.freeze()
-
-    def __iadd__(self, gates: GateSequence) -> "QuantumCircuit":
-        if not is_gate_sequence(gates):
-            return NotImplemented
-        self.extend(gates)
-        return self
-
-
-class ImmutableQuantumCircuit(NonParametricQuantumCircuit):
-    """An immutable quantum circuit having only non-parametric gates."""
-
-    def __init__(self, circuit: NonParametricQuantumCircuit):
-        self._qubit_count = circuit.qubit_count
-        self._cbit_count = circuit.cbit_count
-        self._gates = circuit.gates
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, NonParametricQuantumCircuit):
-            return False
-        f = other.freeze()
-        return (self.qubit_count, self.gates) == (f.qubit_count, f.gates)
-
-    @property
-    def qubit_count(self) -> int:
-        return self._qubit_count
-
-    @property
-    def cbit_count(self) -> int:
-        return self._cbit_count
-
-    @property
-    def gates(self) -> Sequence[QuantumGate]:
-        return self._gates
-
-    @cached_property
-    def depth(self) -> int:
-        return super().depth
-
-    def freeze(self) -> "ImmutableQuantumCircuit":
-        return self
-
-    def get_mutable_copy(self) -> QuantumCircuit:
-        return QuantumCircuit(self.qubit_count, self.cbit_count, self.gates)
+__all__ = [
+    "GateSequence",
+    "ImmutableQuantumCircuit",
+    "MutableQuantumCircuitProtocol",
+    "NonParametricQuantumCircuit",
+    "QuantumCircuit",
+    "QuantumCircuitProtocol",
+]

@@ -12,7 +12,7 @@ from collections.abc import Iterable, Mapping, Sequence
 from math import pi
 from typing import cast
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.circuit import gates as gf
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
@@ -170,9 +170,7 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
                 "Target gateset must contain only single qubit clifford gates."
             )
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         ret = []
         cache: dict[str, list[QuantumGate]] = {}
 
@@ -304,9 +302,7 @@ class RY2RZHTranspiler(GateKindDecomposer):
 class IdentityTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler returns the same circuit as the input."""
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         return circuit
 
 
@@ -369,14 +365,12 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
             frozenset(self._target_rotation), IdentityTranspiler()
         )
 
-    def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
+    def _validate(self, circuit: ImmutableQuantumCircuit) -> None:
         for gate in circuit.gates:
             if gate.name in {RX, RY, RZ} and gate.name not in self._target_rotation:
                 raise ValueError(f"{gate} cannot be converted into the target gateset.")
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         tr_circuit = self._decomposer(circuit)
         self._validate(tr_circuit)
         return tr_circuit
@@ -495,14 +489,12 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                 ts.append(trans)
         return ts
 
-    def _validate(self, circuit: NonParametricQuantumCircuit) -> None:
+    def _validate(self, circuit: ImmutableQuantumCircuit) -> None:
         for gate in circuit.gates:
             if gate.name not in self._gateset:
                 raise ValueError(f"{gate} cannot be converted into the target gateset.")
 
-    def __call__(
-        self, circuit: NonParametricQuantumCircuit
-    ) -> NonParametricQuantumCircuit:
+    def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         tr_circuit = self._decomposer(circuit)
         self._validate(tr_circuit)
         return tr_circuit

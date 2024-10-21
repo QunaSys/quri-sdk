@@ -81,6 +81,7 @@ quri-parts-tket = {path = "packages/tket", develop = true}
 botocore = ">=1.29.115"
 
 pytest = ">=7.0.1,<9.0.0"
+maturin = "^1.0"
 
 [tool.poetry.group.lint.dependencies]
 black = "^23.1.0"

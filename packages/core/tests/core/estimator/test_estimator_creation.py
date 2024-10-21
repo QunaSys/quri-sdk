@@ -16,7 +16,7 @@ import numpy as np
 
 from quri_parts.circuit import (
     ImmutableBoundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuit,
+    ParametricQuantumCircuit,
 )
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
@@ -173,7 +173,7 @@ class TestCreateEstimatorFromConcurrentEstimator:
 
 class TestCreateParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
     def setUp(self) -> None:
-        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit = ParametricQuantumCircuit(1)
         self.param_circuit.add_ParametricRX_gate(0)
         self.param_circuit.add_ParametricRY_gate(0)
         self.param_circuit.add_ParametricRZ_gate(0)
@@ -216,7 +216,7 @@ class TestCreateParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
 
 class TestCreateConcurrentParamtericEstimatorFromConcurrentEstimator(unittest.TestCase):
     def setUp(self) -> None:
-        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit = ParametricQuantumCircuit(1)
         self.param_circuit.add_ParametricRX_gate(0)
         self.param_circuit.add_ParametricRY_gate(0)
         self.param_circuit.add_ParametricRZ_gate(0)
@@ -263,7 +263,7 @@ class TestGeneralQuantumEstimator(unittest.TestCase):
         self.op_0 = PAULI_IDENTITY
         self.op_1 = Operator({pauli_label("X0"): 1, pauli_label("Y0"): 1})
 
-        self.param_circuit = UnboundParametricQuantumCircuit(1)
+        self.param_circuit = ParametricQuantumCircuit(1)
         self.param_circuit.add_ParametricRX_gate(0)
         self.param_circuit.add_ParametricRY_gate(0)
         self.param_circuit.add_ParametricRZ_gate(0)

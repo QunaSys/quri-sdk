@@ -12,8 +12,8 @@ from typing import cast
 
 from quri_parts.circuit import (
     H,
-    ImmutableUnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuit,
+    ImmutableParametricQuantumCircuit,
+    ParametricQuantumCircuit,
     Z,
 )
 from quri_parts.core.state import (
@@ -23,7 +23,7 @@ from quri_parts.core.state import (
 
 
 def a_state() -> ParametricCircuitQuantumState:
-    circuit = UnboundParametricQuantumCircuit(2)
+    circuit = ParametricQuantumCircuit(2)
     circuit.add_H_gate(0)
     circuit.add_Z_gate(1)
     circuit.add_ParametricRX_gate(0)
@@ -35,7 +35,7 @@ class TestParametricCircuitQuantumState:
     def test_parametric_circuit(self) -> None:
         state = a_state()
         circuit = state.parametric_circuit
-        assert isinstance(circuit, ImmutableUnboundParametricQuantumCircuit)
+        assert isinstance(circuit, ImmutableParametricQuantumCircuit)
         assert len(circuit._gates) == 3
 
     def test_qubit_count(self) -> None:
@@ -46,7 +46,7 @@ class TestParametricCircuitQuantumState:
         state = a_state()
         state2 = state.with_gates_applied([H(1), Z(0)])
         assert state._circuit != state2._circuit
-        circuit = cast(UnboundParametricQuantumCircuit, state2._circuit)
+        circuit = cast(ParametricQuantumCircuit, state2._circuit)
         assert len(circuit._gates) == 5
 
     def test_bind_parameters(self) -> None:

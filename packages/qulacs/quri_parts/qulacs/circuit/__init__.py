@@ -16,11 +16,10 @@ from numpy.typing import ArrayLike
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuitBase,
-    NonParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    ImmutableParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
     QuantumGate,
-    UnboundParametricQuantumCircuitBase,
-    UnboundParametricQuantumCircuitProtocol,
     gate_names,
 )
 from quri_parts.circuit.gate_names import (
@@ -36,6 +35,7 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
+from quri_parts.rust.qulacs import convert_circuit
 
 from .. import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
@@ -191,21 +191,14 @@ def convert_gate(
         assert False, "Unreachable"
 
 
-def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
-    qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
-    for gate in circuit.gates:
-        qulacs_circuit.add_gate(convert_gate(gate))
-    return qulacs_circuit
-
-
 def convert_parametric_circuit(
-    circuit: UnboundParametricQuantumCircuitProtocol,
+    circuit: ParametricQuantumCircuitProtocol,
 ) -> tuple[
     qulacs.ParametricQuantumCircuit, Callable[[Sequence[float]], Sequence[float]]
 ]:
-    param_circuit: UnboundParametricQuantumCircuitBase
+    param_circuit: ImmutableParametricQuantumCircuit
     param_mapper: Callable[[Sequence[float]], Sequence[float]]
-    if isinstance(circuit, LinearMappedUnboundParametricQuantumCircuitBase):
+    if isinstance(circuit, ImmutableLinearMappedParametricQuantumCircuit):
         param_mapping = circuit.param_mapping
         param_circuit = circuit.primitive_circuit()
         orig_param_mapper = param_mapping.seq_mapper
@@ -213,7 +206,7 @@ def convert_parametric_circuit(
         def param_mapper(s: Sequence[float]) -> Sequence[float]:
             return tuple(-p for p in orig_param_mapper(s))
 
-    elif isinstance(circuit, UnboundParametricQuantumCircuitBase):
+    elif isinstance(circuit, ImmutableParametricQuantumCircuit):
         param_circuit = circuit
 
         def param_mapper(s: Sequence[float]) -> Sequence[float]:

@@ -19,7 +19,7 @@ from quri_parts.algo.utils import (
     exp_fitting_with_const_log,
     polynomial_fitting,
 )
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit, inverse_gate
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit, inverse_gate
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
@@ -36,7 +36,7 @@ class _Estimate(NamedTuple):
 
 
 #: Interface representing folding methods
-FoldingMethod: TypeAlias = Callable[[NonParametricQuantumCircuit, float], list[int]]
+FoldingMethod: TypeAlias = Callable[[ImmutableQuantumCircuit, float], list[int]]
 
 
 #: Interface representing zero noise extrapolation methods
@@ -45,13 +45,11 @@ ZeroExtrapolationMethod: TypeAlias = Callable[[Iterable[float], Iterable[float]]
 
 #: Interface representing scaling methods of circuit
 CircuitScaling: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, float, FoldingMethod], NonParametricQuantumCircuit
+    [ImmutableQuantumCircuit, float, FoldingMethod], ImmutableQuantumCircuit
 ]
 
 
-def _get_residual_n_gates(
-    circuit: NonParametricQuantumCircuit, scale_factor: float
-) -> int:
+def _get_residual_n_gates(circuit: ImmutableQuantumCircuit, scale_factor: float) -> int:
     """Returns the number of gates that need to be additionally folded after
     the gates of the entire circuit has been folded.
 
@@ -77,7 +75,7 @@ def create_folding_left() -> FoldingMethod:
     """
 
     def folding_left(
-        circuit: NonParametricQuantumCircuit, scale_factor: float
+        circuit: ImmutableQuantumCircuit, scale_factor: float
     ) -> list[int]:
         add_gate_num = _get_residual_n_gates(circuit, scale_factor)
         return list(range(add_gate_num))
@@ -93,7 +91,7 @@ def create_folding_right() -> FoldingMethod:
     """
 
     def folding_right(
-        circuit: NonParametricQuantumCircuit, scale_factor: float
+        circuit: ImmutableQuantumCircuit, scale_factor: float
     ) -> list[int]:
         add_gate_num = _get_residual_n_gates(circuit, scale_factor)
         n_gates = len(circuit.gates)
@@ -113,7 +111,7 @@ def create_folding_random(seed: Optional[int] = None) -> FoldingMethod:
     """
 
     def folding_random(
-        circuit: NonParametricQuantumCircuit, scale_factor: float
+        circuit: ImmutableQuantumCircuit, scale_factor: float
     ) -> list[int]:
         add_gate_num = _get_residual_n_gates(circuit, scale_factor)
         list_random = np.random.RandomState(seed)
@@ -127,10 +125,10 @@ def create_folding_random(seed: Optional[int] = None) -> FoldingMethod:
 
 # implementations of CircuitScaling
 def scaling_circuit_folding(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     scale_factor: float,
     folding_method: FoldingMethod,
-) -> NonParametricQuantumCircuit:
+) -> ImmutableQuantumCircuit:
     """Returns a scaled circuit. If the scale factor is odd, all gates are
     folded regardless of the folding method.
 
@@ -247,7 +245,7 @@ def create_exp_extrapolate_with_const_log(
 
 def zne(
     obs: Estimatable,
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
     scale_factors: Iterable[float],
     extrapolate_method: ZeroExtrapolationMethod,
@@ -287,7 +285,7 @@ def zne(
 
 def richardson_extrapolation(
     obs: Estimatable,
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
     scale_factors: Iterable[float],
     folding_method: FoldingMethod,

@@ -22,7 +22,7 @@ from cirq.ops.raw_types import Gate, Operation
 from cirq.ops.swap_gates import SWAP
 from cirq.ops.three_qubit_gates import TOFFOLI
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
@@ -211,8 +211,8 @@ def convert_gate(
         )
 
 
-def convert_circuit(circuit: NonParametricQuantumCircuit) -> Circuit:
-    """Converts a :class:`~NonParametricQuantumCircuit` to
+def convert_circuit(circuit: ImmutableQuantumCircuit) -> Circuit:
+    """Converts a :class:`~ImmutableQuantumCircuit` to
     :class:`cirq.Circuit`."""
     cirq_circuit = Circuit()
     for gate in circuit.gates:

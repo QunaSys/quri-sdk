@@ -16,12 +16,12 @@ from quri_parts.chem.utils.excitations import add_double_excitation_circuit
 from quri_parts.chem.utils.orbital_rotation import add_orbital_rotation_gate
 from quri_parts.circuit import (
     CONST,
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
 )
 
 
-class GateFabric(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class GateFabric(ImmutableLinearMappedParametricQuantumCircuit):
     """Parametric quantum circuit that conserves the number of particles. Note
     that this circuit conserves the particle number only if the state applied
     to is represented based on the Jordan-Wigner transformation.
@@ -51,7 +51,7 @@ class GateFabric(ImmutableLinearMappedUnboundParametricQuantumCircuit):
             raise ValueError(
                 f"GateFabric ansatz requires at least 4 qubits; got {n_spin_orbitals}."
             )
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
 
         block_gate_qindices = [
             (i, i + 1, i + 2, i + 3) for i in range(0, n_spin_orbitals - 3, 4)
@@ -72,8 +72,8 @@ def _q_gate(
     layer_index: int,
     qubit_indices: Sequence[int],
     include_pi: bool,
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+) -> LinearMappedParametricQuantumCircuit:
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     theta, phi = circuit.add_parameters(
         f"theta_{layer_index}_{qubit_indices[0]}",
         f"phi_{layer_index}_{qubit_indices[0]}",

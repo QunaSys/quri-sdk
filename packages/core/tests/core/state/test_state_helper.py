@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from quri_parts.circuit import QuantumCircuit, UnboundParametricQuantumCircuit
+from quri_parts.circuit import ParametricQuantumCircuit, QuantumCircuit
 from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
@@ -35,7 +35,7 @@ def test_circuit_quantum_state() -> None:
     state1 = _circuit_quantum_state(n_qubits, qc)
     assert isinstance(state1, GeneralCircuitQuantumState)
 
-    param_qc = UnboundParametricQuantumCircuit(n_qubits)
+    param_qc = ParametricQuantumCircuit(n_qubits)
     param_qc.add_ParametricRX_gate(0)
     state2 = _circuit_quantum_state(n_qubits, param_qc)
     assert isinstance(state2, ParametricCircuitQuantumState)
@@ -51,7 +51,7 @@ def test_quantum_state_vector() -> None:
     state2 = _quantum_state_vector(n_qubits, [1.0, 0, 0, 0], qc)
     assert isinstance(state2, QuantumStateVector)
 
-    param_qc = UnboundParametricQuantumCircuit(n_qubits)
+    param_qc = ParametricQuantumCircuit(n_qubits)
     param_qc.add_ParametricRX_gate(0)
     state3 = _quantum_state_vector(n_qubits, [1.0, 0, 0, 0], param_qc)
     assert isinstance(state3, ParametricQuantumStateVector)
@@ -94,10 +94,10 @@ def test_apply_circuit(quantum_state_mock: Mock) -> None:
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = ParametricCircuitQuantumState(
-        n_qubits, UnboundParametricQuantumCircuit(n_qubits)
+        n_qubits, ParametricQuantumCircuit(n_qubits)
     )
     state2 = apply_circuit(
-        UnboundParametricQuantumCircuit(n_qubits), GeneralCircuitQuantumState(n_qubits)
+        ParametricQuantumCircuit(n_qubits), GeneralCircuitQuantumState(n_qubits)
     )
     assert isinstance(state2, ParametricCircuitQuantumState)
     assert quantum_state_mock.call_count == 1
@@ -110,48 +110,44 @@ def test_apply_circuit(quantum_state_mock: Mock) -> None:
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = ParametricQuantumStateVector(
-        n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
+        n_qubits, ParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
     )
     state4 = apply_circuit(
-        UnboundParametricQuantumCircuit(n_qubits), QuantumStateVector(n_qubits)
+        ParametricQuantumCircuit(n_qubits), QuantumStateVector(n_qubits)
     )
     assert isinstance(state4, ParametricQuantumStateVector)
     assert quantum_state_mock.call_count == 1
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = ParametricCircuitQuantumState(
-        n_qubits, UnboundParametricQuantumCircuit(n_qubits)
+        n_qubits, ParametricQuantumCircuit(n_qubits)
     )
     state5 = apply_circuit(
         QuantumCircuit(n_qubits),
-        ParametricCircuitQuantumState(
-            n_qubits, UnboundParametricQuantumCircuit(n_qubits)
-        ),
+        ParametricCircuitQuantumState(n_qubits, ParametricQuantumCircuit(n_qubits)),
     )
     assert isinstance(state5, ParametricCircuitQuantumState)
     assert quantum_state_mock.call_count == 1
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = ParametricCircuitQuantumState(
-        n_qubits, UnboundParametricQuantumCircuit(n_qubits)
+        n_qubits, ParametricQuantumCircuit(n_qubits)
     )
     state6 = apply_circuit(
-        UnboundParametricQuantumCircuit(n_qubits),
-        ParametricCircuitQuantumState(
-            n_qubits, UnboundParametricQuantumCircuit(n_qubits)
-        ),
+        ParametricQuantumCircuit(n_qubits),
+        ParametricCircuitQuantumState(n_qubits, ParametricQuantumCircuit(n_qubits)),
     )
     assert isinstance(state6, ParametricCircuitQuantumState)
     assert quantum_state_mock.call_count == 1
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = ParametricQuantumStateVector(
-        n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
+        n_qubits, ParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
     )
     state7 = apply_circuit(
         QuantumCircuit(n_qubits),
         ParametricQuantumStateVector(
-            n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
+            n_qubits, ParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
         ),
     )
     assert isinstance(state7, ParametricQuantumStateVector)
@@ -159,12 +155,12 @@ def test_apply_circuit(quantum_state_mock: Mock) -> None:
 
     quantum_state_mock.reset_mock(return_value=True)
     quantum_state_mock.return_value = ParametricQuantumStateVector(
-        n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
+        n_qubits, ParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
     )
     state8 = apply_circuit(
-        UnboundParametricQuantumCircuit(n_qubits),
+        ParametricQuantumCircuit(n_qubits),
         ParametricQuantumStateVector(
-            n_qubits, UnboundParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
+            n_qubits, ParametricQuantumCircuit(n_qubits), [1.0, 0, 0, 0]
         ),
     )
     assert isinstance(state8, ParametricQuantumStateVector)

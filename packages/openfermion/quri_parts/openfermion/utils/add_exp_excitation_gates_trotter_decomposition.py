@@ -13,7 +13,7 @@ from typing import Sequence, TypeVar, Union, cast
 from openfermion.ops import FermionOperator
 
 from quri_parts.chem.utils.excitations import DoubleExcitation, SingleExcitation
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit, Parameter
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit, Parameter
 from quri_parts.core.operator import Operator
 
 from ..transforms import OpenFermionQubitOperatorMapper
@@ -22,12 +22,12 @@ Excitation = TypeVar("Excitation", SingleExcitation, DoubleExcitation)
 
 
 def add_exp_excitation_gates_trotter_decomposition(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     excitation_indices: Sequence[Excitation],
     params: Sequence[Parameter],
     operator_mapper: OpenFermionQubitOperatorMapper,
     coef: float,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     """Add parametric Pauli rotation gates as a product of the exponentials of
     the excitations to the given :attr:`circuit`."""
     for i, sorb_indices in enumerate(excitation_indices):

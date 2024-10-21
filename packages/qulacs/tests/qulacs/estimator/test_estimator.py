@@ -15,7 +15,7 @@ from typing import Union
 import numpy as np
 import pytest
 
-from quri_parts.circuit import QuantumCircuit, UnboundParametricQuantumCircuit
+from quri_parts.circuit import ParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.noise import BitFlipNoise, NoiseModel
 from quri_parts.core.estimator import GeneralQuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
@@ -293,8 +293,8 @@ class TestVectorConcurrentEstimator:
         ]
 
 
-def parametric_circuit() -> UnboundParametricQuantumCircuit:
-    circuit = UnboundParametricQuantumCircuit(6)
+def parametric_circuit() -> ParametricQuantumCircuit:
+    circuit = ParametricQuantumCircuit(6)
 
     circuit.add_RX_gate(0, -math.pi / 4)
     circuit.add_ParametricRX_gate(0)
@@ -312,7 +312,7 @@ def parametric_circuit() -> UnboundParametricQuantumCircuit:
 
 def create_parametric_vector_state(
     qubit_count: int,
-    circuit: UnboundParametricQuantumCircuit,
+    circuit: ParametricQuantumCircuit,
     bits: int,
 ) -> ParametricQuantumStateVector:
     return ParametricQuantumStateVector(
@@ -691,7 +691,7 @@ class TestDensityMatrixParametricEstimatorWithNoiseModel:
     def test_estimate_with_bitflip_noise(self) -> None:
         model = NoiseModel([BitFlipNoise(1.0)])
 
-        circuit = UnboundParametricQuantumCircuit(6)
+        circuit = ParametricQuantumCircuit(6)
         circuit.add_ParametricRX_gate(0)
         circuit.add_ParametricRY_gate(2)
         circuit.add_ParametricRZ_gate(5)
@@ -808,7 +808,7 @@ class TestDensityMatrixConcurrentParametricEstimatorWithNoiseModel:
     def test_estimate_with_bitflip_noise(self) -> None:
         model = NoiseModel([BitFlipNoise(1.0)])
 
-        circuit = UnboundParametricQuantumCircuit(6)
+        circuit = ParametricQuantumCircuit(6)
         circuit.add_ParametricRX_gate(0)
         circuit.add_ParametricRY_gate(2)
         circuit.add_ParametricRZ_gate(5)

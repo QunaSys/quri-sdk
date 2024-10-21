@@ -11,14 +11,14 @@
 from abc import ABC
 from collections.abc import Sequence
 
-from quri_parts.circuit import GateSequence, UnboundParametricQuantumCircuitProtocol
+from quri_parts.circuit import GateSequence, ParametricQuantumCircuitProtocol
 
 from .state import GeneralCircuitQuantumState, QuantumState
 
 
 class ParametricCircuitQuantumStateMixin(ABC):
     def __init__(
-        self, n_qubits: int, circuit: UnboundParametricQuantumCircuitProtocol
+        self, n_qubits: int, circuit: ParametricQuantumCircuitProtocol
     ) -> None:
         if circuit.qubit_count != n_qubits:
             raise ValueError(
@@ -28,7 +28,7 @@ class ParametricCircuitQuantumStateMixin(ABC):
         self._circuit = circuit.freeze()
 
     @property
-    def parametric_circuit(self) -> UnboundParametricQuantumCircuitProtocol:
+    def parametric_circuit(self) -> ParametricQuantumCircuitProtocol:
         """Parametric circuit to build the quantum state."""
         return self._circuit
 
@@ -46,7 +46,7 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
     def __init__(
         self,
         n_qubits: int,
-        circuit: UnboundParametricQuantumCircuitProtocol,
+        circuit: ParametricQuantumCircuitProtocol,
     ) -> None:
         ParametricCircuitQuantumStateMixin.__init__(self, n_qubits, circuit)
         self._n_qubits: int = n_qubits
@@ -68,7 +68,7 @@ class ParametricCircuitQuantumState(ParametricCircuitQuantumStateMixin, QuantumS
 
         The original state is not changed. For details about the
         primitive circuit, please refer to `.primitive_circuit()` in
-        :class:`UnboundParametricQuantumCircuitProtocol`.
+        :class:`ParametricQuantumCircuitProtocol`.
         """
         return ParametricCircuitQuantumState(
             self._n_qubits, self._circuit.primitive_circuit()

@@ -12,7 +12,7 @@ from typing import Callable, Iterable
 
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 
 #: Represents a filter function for post-selection.
@@ -37,7 +37,7 @@ def create_general_post_selection_sampler(
     """
 
     def post_selection_sampler(
-        circuit: NonParametricQuantumCircuit, shots: int
+        circuit: ImmutableQuantumCircuit, shots: int
     ) -> MeasurementCounts:
         meas_counts = sampler(circuit, shots)
         filtered_counts = post_selection(filter_fn, meas_counts)
@@ -57,7 +57,7 @@ def create_general_post_selection_concurrent_sampler(
     """
 
     def post_selection_concurrent_sampler(
-        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         meas_counts = concurrent_sampler(circuit_shots_tuples)
         filtered_counts = []

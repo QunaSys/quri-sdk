@@ -8,18 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit, Parameter
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit, Parameter
 from quri_parts.core.operator import PAULI_IDENTITY, Operator
 
 
 def add_parametric_commuting_paulis_exp_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     param_fn: dict[Parameter, float],
     qp_operator: Operator,
     coeff: float = 1,
 ) -> None:
     """Add exponential pauli rotation gate to a
-    :class:`~LinearMappedUnboundParametricQuantumCircuit` in place
+    :class:`~LinearMappedParametricQuantumCircuit` in place
     according to the equation:
 
     .. math::

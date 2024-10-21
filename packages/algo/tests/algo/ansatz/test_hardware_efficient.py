@@ -17,7 +17,7 @@ from quri_parts.circuit import (
     CZ,
     RY,
     RZ,
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
     QuantumCircuit,
 )
 
@@ -156,7 +156,7 @@ def _build_circuit_qc4_d3_sub22_real(params_list: Sequence[float]) -> QuantumCir
 
 
 def _test_circuit(
-    ansatz: ImmutableLinearMappedUnboundParametricQuantumCircuit,
+    ansatz: ImmutableLinearMappedParametricQuantumCircuit,
     test_circuit_builder: Callable[[Sequence[float]], QuantumCircuit],
 ) -> None:
     params_list = list(2.0 * np.pi * np.random.random(ansatz.parameter_count))

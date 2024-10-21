@@ -19,7 +19,7 @@ from quri_parts.algo.mitigation.readout_mitigation import (
     create_readout_mitigation_sampler,
     readout_mitigation,
 )
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts
 
 if TYPE_CHECKING:
@@ -51,7 +51,7 @@ class MockRepeatConcurrentSampler:
         self._counter = 0
 
     def __call__(
-        self, pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+        self, pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         cs = []
         for _ in pairs:

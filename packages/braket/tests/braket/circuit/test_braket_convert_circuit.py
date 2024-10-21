@@ -16,10 +16,10 @@ from braket.circuits import Circuit, Gate, Instruction
 
 from quri_parts.braket.circuit import convert_circuit, convert_gate
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    ParametricQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuit,
     gates,
 )
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
@@ -157,7 +157,7 @@ def test_convert_circuit() -> None:
 
 
 def test_convert_bound_parametric_circuit() -> None:
-    circuit = UnboundParametricQuantumCircuit(3)
+    circuit = ParametricQuantumCircuit(3)
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0)
     circuit.add_H_gate(2)
@@ -191,7 +191,7 @@ def test_convert_bound_parametric_circuit() -> None:
 
 
 def test_convert_bound_linear_mapped_parametric_circuit() -> None:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(3)
+    circuit = LinearMappedParametricQuantumCircuit(3)
     theta, phi, rot = circuit.add_parameters("theta", "phi", "rot")
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0, {theta: 0.5})

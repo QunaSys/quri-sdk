@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .circuit_converter import convert_circuit_with_noise_model
+from quri_parts.rust.qulacs import convert_circuit_with_noise_model
 
 __all__ = [
     "convert_circuit_with_noise_model",

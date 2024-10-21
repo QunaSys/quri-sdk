@@ -14,9 +14,9 @@ import numpy as np
 import qulacs
 
 from quri_parts.circuit import (
-    LinearMappedUnboundParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    ParametricQuantumCircuit,
     QuantumCircuit,
-    UnboundParametricQuantumCircuit,
     gates,
 )
 from quri_parts.qulacs.circuit.compiled_circuit import (
@@ -71,7 +71,7 @@ def test_compile_circuit() -> None:
 
 
 def test_compile_parametric_circuit() -> None:
-    circuit = UnboundParametricQuantumCircuit(3)
+    circuit = ParametricQuantumCircuit(3)
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0)
     circuit.add_H_gate(2)
@@ -106,7 +106,7 @@ def test_compile_parametric_circuit() -> None:
 
 
 def test_compile_linear_mapped_parametric_circuit() -> None:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(3)
+    circuit = LinearMappedParametricQuantumCircuit(3)
     theta, phi = circuit.add_parameters("theta", "phi")
     circuit.add_X_gate(1)
     circuit.add_ParametricRX_gate(0, {theta: 0.5})

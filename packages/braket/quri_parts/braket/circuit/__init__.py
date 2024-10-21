@@ -15,7 +15,7 @@ import numpy as np
 from braket.circuits import Circuit, Gate, Instruction
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     ParametricGateNameType,
     SingleQubitGateNameType,
@@ -40,7 +40,7 @@ from quri_parts.circuit.transpile import (
 from .braket_circuit_converter import circuit_from_braket, gate_from_braket
 
 BraketCircuitConverter: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], Circuit
+    [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], Circuit
 ]
 
 
@@ -158,7 +158,7 @@ def convert_gate(gate: QuantumGate) -> Instruction:
 
 
 def convert_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = BraketSetTranspiler(),
 ) -> Circuit:
     if transpiler is not None:

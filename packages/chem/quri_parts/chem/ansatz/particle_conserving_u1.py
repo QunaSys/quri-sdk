@@ -11,15 +11,15 @@
 import numpy as np
 
 from quri_parts.circuit import (
-    ImmutableLinearMappedUnboundParametricQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
+    ImmutableLinearMappedParametricQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
     Parameter,
     ParameterOrLinearFunction,
 )
 from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
 
 
-class ParticleConservingU1(ImmutableLinearMappedUnboundParametricQuantumCircuit):
+class ParticleConservingU1(ImmutableLinearMappedParametricQuantumCircuit):
     """Parametric quantum circuit that conserves the number of particles.
 
     Note that this circuit conserves the particle number and spins only
@@ -42,7 +42,7 @@ class ParticleConservingU1(ImmutableLinearMappedUnboundParametricQuantumCircuit)
     """
 
     def __init__(self, n_spin_orbitals: int, n_layers: int):
-        circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
 
         block_gate_qindices = [(i, i + 1) for i in range(0, n_spin_orbitals - 1, 2)]
         block_gate_qindices += [(i, i + 1) for i in range(1, n_spin_orbitals - 1, 2)]
@@ -56,8 +56,8 @@ class ParticleConservingU1(ImmutableLinearMappedUnboundParametricQuantumCircuit)
 
 def _u1_ex_gate(
     qubit_count: int, layer_index: int, qubit_index_1: int, qubit_index_2: int
-) -> LinearMappedUnboundParametricQuantumCircuit:
-    circuit = LinearMappedUnboundParametricQuantumCircuit(qubit_count)
+) -> LinearMappedParametricQuantumCircuit:
+    circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     phi, theta = circuit.add_parameters(
         f"phi_{layer_index}_{qubit_index_1}", f"theta_{layer_index}_{qubit_index_1}"
     )
@@ -70,11 +70,11 @@ def _u1_ex_gate(
 
 
 def _add_controlled_ua_gate(
-    circuit: LinearMappedUnboundParametricQuantumCircuit,
+    circuit: LinearMappedParametricQuantumCircuit,
     control_index: int,
     target_index: int,
     param_fn: ParameterOrLinearFunction,
-) -> LinearMappedUnboundParametricQuantumCircuit:
+) -> LinearMappedParametricQuantumCircuit:
     if isinstance(param_fn, Parameter):
         inv_sign_p_fn = {param_fn: -1.0}
     else:

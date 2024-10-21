@@ -17,8 +17,8 @@ import numpy as np
 import pytest
 
 from quri_parts.circuit import (
-    UnboundParametricQuantumCircuit,
-    UnboundParametricQuantumCircuitProtocol,
+    ParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
 )
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import ComputationalBasisState, ParametricCircuitQuantumState
@@ -160,8 +160,8 @@ class TestITensorConcurrentEstimator:
         assert result[1].error == 0.0
 
 
-def parametric_circuit() -> UnboundParametricQuantumCircuitProtocol:
-    circuit = UnboundParametricQuantumCircuit(6)
+def parametric_circuit() -> ParametricQuantumCircuitProtocol:
+    circuit = ParametricQuantumCircuit(6)
     circuit.add_RX_gate(0, -math.pi / 4)
     circuit.add_ParametricRX_gate(0)
 
@@ -233,7 +233,7 @@ class TestITensorParametricEstimator:
             }
         )
 
-        circuit = UnboundParametricQuantumCircuit(8)
+        circuit = ParametricQuantumCircuit(8)
         for _ in range(2):
             for i in range(4):
                 circuit.add_X_gate(i)

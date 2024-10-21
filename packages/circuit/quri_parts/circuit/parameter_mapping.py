@@ -76,6 +76,12 @@ class ParameterMapping(Protocol):
         """
         ...
 
+    @abstractproperty
+    def mapping(self) -> "Mapping[Parameter, ParameterOrLinearFunction]":
+        """Returns a mapping from output parameters to input parameters or
+        linear functions of input parameters."""
+        ...
+
     def get_derivatives(self) -> Sequence["ParameterMapping"]:
         r"""Returns a sequence of :class:`~ParameterMapping`\ s of derivatives
         of the original :class:`~ParameterMapping` with respect to each input

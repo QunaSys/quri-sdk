@@ -14,12 +14,12 @@ from quri_parts.circuit import (
     CNOT,
     RX,
     ImmutableBoundParametricQuantumCircuit,
-    ImmutableUnboundParametricQuantumCircuit,
+    ImmutableParametricQuantumCircuit,
     ParametricPauliRotation,
+    ParametricQuantumCircuit,
     ParametricRX,
     QuantumCircuit,
     QuantumGate,
-    UnboundParametricQuantumCircuit,
     X,
 )
 
@@ -32,8 +32,8 @@ _GATES: list[QuantumGate] = [
 _PARAMS: list[float] = [1.0, 0.5]
 
 
-def mutable_circuit() -> UnboundParametricQuantumCircuit:
-    circuit = UnboundParametricQuantumCircuit(2)
+def mutable_circuit() -> ParametricQuantumCircuit:
+    circuit = ParametricQuantumCircuit(2)
     for gate in _GATES:
         circuit.add_gate(gate)
     circuit.add_ParametricRX_gate(0)
@@ -41,9 +41,9 @@ def mutable_circuit() -> UnboundParametricQuantumCircuit:
     return circuit
 
 
-def immutable_circuit() -> ImmutableUnboundParametricQuantumCircuit:
+def immutable_circuit() -> ImmutableParametricQuantumCircuit:
     q_circuit = mutable_circuit()
-    return ImmutableUnboundParametricQuantumCircuit(q_circuit)
+    return ImmutableParametricQuantumCircuit(q_circuit)
 
 
 class TestUnboundParametricQuantumCircuit:
@@ -57,14 +57,14 @@ class TestUnboundParametricQuantumCircuit:
     def test_get_mutable_copy(self) -> None:
         circuit = mutable_circuit()
         circuit_copied = circuit.get_mutable_copy()
-        assert isinstance(circuit_copied, UnboundParametricQuantumCircuit)
+        assert isinstance(circuit_copied, ParametricQuantumCircuit)
         assert id(circuit) != id(circuit_copied)
         assert circuit == circuit_copied
 
     def test_freeze(self) -> None:
         circuit = mutable_circuit()
         immut_circuit = circuit.freeze()
-        assert isinstance(immut_circuit, ImmutableUnboundParametricQuantumCircuit)
+        assert isinstance(immut_circuit, ImmutableParametricQuantumCircuit)
         assert circuit == immut_circuit
 
     def test_bind_parameters(self) -> None:
@@ -76,7 +76,7 @@ class TestUnboundParametricQuantumCircuit:
         assert circuit_bound.gates[4].params[0] == 0.5
 
     def test_bind_parameters_by_dict(self) -> None:
-        circuit = UnboundParametricQuantumCircuit(2)
+        circuit = ParametricQuantumCircuit(2)
         for gate in _GATES:
             circuit.add_gate(gate)
         theta = circuit.add_ParametricRX_gate(0)
@@ -96,7 +96,7 @@ class TestUnboundParametricQuantumCircuit:
         circuit_bound = circuit.bind_parameters(_PARAMS)
         assert circuit_bound.depth == 4
 
-        circuit_2 = UnboundParametricQuantumCircuit(3)
+        circuit_2 = ParametricQuantumCircuit(3)
         circuit_2.add_ParametricRX_gate(0)
         circuit_2.add_CNOT_gate(0, 2)
         circuit_2.add_ParametricRX_gate(1)
@@ -114,7 +114,7 @@ class TestUnboundParametricQuantumCircuit:
         assert got_circuit.gates == exp_circuit.gates
 
         circuit = mutable_circuit()
-        up_circuit = UnboundParametricQuantumCircuit(2)
+        up_circuit = ParametricQuantumCircuit(2)
         up_circuit.add_ParametricRX_gate(0)
         got_circuit = circuit + up_circuit
         exp_circuit = circuit.get_mutable_copy()
@@ -126,7 +126,7 @@ class TestUnboundParametricQuantumCircuit:
         qc_circuit = QuantumCircuit(2)
         qc_circuit.add_H_gate(0)
         got_circuit = qc_circuit + circuit
-        exp_circuit = UnboundParametricQuantumCircuit(2)
+        exp_circuit = ParametricQuantumCircuit(2)
         exp_circuit.add_H_gate(0)
         for gate in _GATES:
             exp_circuit.add_gate(gate)
@@ -158,14 +158,14 @@ class TestImmutableUnboundParametricQuantumCircuit:
     def test_get_mutable_copy(self) -> None:
         circuit = immutable_circuit()
         immut_circuit = circuit.get_mutable_copy()
-        assert isinstance(immut_circuit, UnboundParametricQuantumCircuit)
+        assert isinstance(immut_circuit, ParametricQuantumCircuit)
         assert id(circuit) != id(immut_circuit)
         assert circuit == immut_circuit
 
     def test_freeze(self) -> None:
         circuit = immutable_circuit()
         immut_circuit = circuit.freeze()
-        assert isinstance(immut_circuit, ImmutableUnboundParametricQuantumCircuit)
+        assert isinstance(immut_circuit, ImmutableParametricQuantumCircuit)
         assert circuit == immut_circuit
 
     def test_bind_parameters(self) -> None:

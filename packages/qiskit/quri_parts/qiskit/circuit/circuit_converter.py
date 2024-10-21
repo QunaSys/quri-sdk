@@ -19,7 +19,7 @@ from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import UnitaryGate
 from typing_extensions import TypeAlias
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate, gate_names
+from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     Measurement,
     MultiQubitGateNameType,
@@ -43,7 +43,7 @@ from quri_parts.circuit.transpile import (
 )
 
 QiskitCircuitConverter: TypeAlias = Callable[
-    [NonParametricQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
+    [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
 ]
 
 #: CircuitTranspiler to convert a circuit configuration suitable for Qiskit.
@@ -164,10 +164,10 @@ def convert_gate(gate: QuantumGate) -> Gate:
 
 
 def convert_circuit(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
     transpiler: Optional[CircuitTranspiler] = QiskitSetTranspiler(),
 ) -> QuantumCircuit:
-    """Converts a :class:`NonParametricQuantumCircuit` to
+    """Converts a :class:`ImmutableQuantumCircuit` to
     :class:`qiskit.QuantumCircuit`."""
     if transpiler is not None:
         circuit = transpiler(circuit)

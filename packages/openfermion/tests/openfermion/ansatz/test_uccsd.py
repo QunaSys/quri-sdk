@@ -14,7 +14,7 @@ import pytest
 from openfermion import FermionOperator
 
 from quri_parts.chem.utils.excitations import excitations
-from quri_parts.circuit import LinearMappedUnboundParametricQuantumCircuit
+from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 from quri_parts.core.operator import Operator, pauli_label, truncate
 from quri_parts.openfermion.ansatz.uccsd import (
@@ -46,7 +46,7 @@ class TestConstructCircuit:
             trotter_number,
             use_singles,
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
         op_mapper = fermion_qubit_mapping.of_operator_mapper
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
@@ -75,7 +75,7 @@ class TestConstructCircuit:
             trotter_number,
             use_singles,
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         param = expected_circuit.add_parameter("param")
         op_mapper = fermion_qubit_mapping.of_operator_mapper
         _, d_excs = excitations(n_spin_orbitals, n_electrons)
@@ -106,7 +106,7 @@ class TestConstructCircuit:
         n_qubits = fermion_qubit_mapping.n_qubits
         assert isinstance(n_qubits, int)
         op_mapper = fermion_qubit_mapping.of_operator_mapper
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_qubits)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_qubits)
         params = expected_circuit.add_parameters("param1", "param2", "param3")
         s_excs, d_excs = excitations(n_spin_orbitals, n_electrons)
         add_exp_excitation_gates_trotter_decomposition(
@@ -142,7 +142,7 @@ class TestConstructSpinSymmetricCircuit:
             trotter_number,
             use_singles,
         )
-        expected_circuit = LinearMappedUnboundParametricQuantumCircuit(n_spin_orbitals)
+        expected_circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)
         s_0_2 = expected_circuit.add_parameter("s_0_2")
         s_0_3 = expected_circuit.add_parameter("s_0_3")
         s_1_2 = expected_circuit.add_parameter("s_1_2")

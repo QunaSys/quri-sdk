@@ -13,7 +13,7 @@ from collections.abc import Mapping
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     UnitaryMatrix,
@@ -66,9 +66,9 @@ _U_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
 
 def circuit_from_qiskit(
     qiskit_circuit: QiskitQuantumCircuit,
-) -> NonParametricQuantumCircuit:
+) -> ImmutableQuantumCircuit:
     """Converts a :class:`qiskit.QuantumCircuit` to
-    :class:`NonParametricQuantumCircuit`."""
+    :class:`ImmutableQuantumCircuit`."""
     qubit_count = qiskit_circuit.num_qubits
     circuit = QuantumCircuit(qubit_count)
 

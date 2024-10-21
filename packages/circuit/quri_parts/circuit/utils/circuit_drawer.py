@@ -18,10 +18,10 @@ import numpy as np
 import numpy.typing as npt
 
 from quri_parts.circuit import (
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
     ParametricQuantumGate,
     QuantumGate,
-    UnboundParametricQuantumCircuitProtocol,
     gate_names,
 )
 
@@ -61,9 +61,7 @@ _GATE_WIDTH = 7
 
 
 def draw_circuit(
-    circuit: Union[
-        NonParametricQuantumCircuit, UnboundParametricQuantumCircuitProtocol
-    ],
+    circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
     line_length: int = 80,
 ) -> None:
     """Circuit drawer which outputs given circuit as an ASCII art to standard

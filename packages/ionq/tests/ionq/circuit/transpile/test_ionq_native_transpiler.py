@@ -20,7 +20,7 @@ from quri_parts.circuit import (
     RY,
     RZ,
     H,
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     QuantumGate,
     S,
@@ -90,7 +90,7 @@ def ionq_gate_matrix(gate: QuantumGate) -> npt.NDArray[np.complex128]:
 
 
 def ionq_circuit_state(
-    circuit: NonParametricQuantumCircuit,
+    circuit: ImmutableQuantumCircuit,
 ) -> npt.NDArray[np.complex128]:
     ionq_gates_1 = [ionq_gate_names.GPi, ionq_gate_names.GPi2]
     ionq_gates_2 = [ionq_gate_names.XX, ionq_gate_names.MS]

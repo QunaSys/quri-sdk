@@ -18,7 +18,7 @@ from numpy.testing import assert_almost_equal
 
 from quri_parts.circuit import (
     H,
-    NonParametricQuantumCircuit,
+    ImmutableQuantumCircuit,
     QuantumCircuit,
     inverse_circuit,
 )
@@ -95,7 +95,7 @@ def total_shots() -> int:
 
 
 def single_sampler(
-    _: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    _: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     all_counts = list(counts())
     count = all_counts[0]
@@ -103,7 +103,7 @@ def single_sampler(
 
 
 def sampler(
-    _: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    _: Iterable[tuple[ImmutableQuantumCircuit, int]]
 ) -> Iterable[MeasurementCounts]:
     return counts()
 
@@ -229,7 +229,7 @@ class TestSamplingOverlapWeightedSumEstimate:
 
     def test_sampling_overlap_weighted_sum_estimate_zero_shots(self) -> None:
         def sampler(
-            shot_circuit_pairs: Iterable[tuple[NonParametricQuantumCircuit, int]]
+            shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
         ) -> Iterable[MeasurementCounts]:
             return [
                 {} if shot_circuit_pair[1] == 0 else count

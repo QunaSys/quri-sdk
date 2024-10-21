@@ -15,7 +15,7 @@ import pytest
 from typing_extensions import TypeAlias
 
 from quri_parts.chem.properties import create_energy_gradient_estimator
-from quri_parts.circuit import UnboundParametricQuantumCircuit
+from quri_parts.circuit import ParametricQuantumCircuit
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import (
     ComputationalBasisState,
@@ -51,7 +51,7 @@ def test_energy_gradient_estimator() -> None:
     ] = create_energy_gradient_estimator(estimator, h_params, _h_generator)
 
     # no circuit parameters
-    param_circuit = UnboundParametricQuantumCircuit(qubit_count)
+    param_circuit = ParametricQuantumCircuit(qubit_count)
     param_circuit.extend(ComputationalBasisState(qubit_count, bits=0b111).circuit)
     param_state = ParametricCircuitQuantumState(qubit_count, param_circuit)
     expected = [-3.0, -2.0, -18.0, -192.0, -1.0, 6.0]
