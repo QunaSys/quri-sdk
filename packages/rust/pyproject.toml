@@ -40,6 +40,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
     "Typing :: Typed"
 ]
+packages = [
+    { include = "quri_parts" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.9.8"
