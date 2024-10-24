@@ -416,3 +416,45 @@ class TestGateSetConversion:
         ]
         transpiled = GateSetConversionTranspiler(target_gateset)(_complex_circuit())
         assert _gate_kinds(transpiled) <= set(target_gateset)
+
+    def test_paulirotation_transpile(self) -> None:
+        target_gateset: list[GateNameType] = [
+            gate_names.H,
+            gate_names.S,
+            gate_names.RZ,
+            gate_names.CNOT,
+        ]
+
+        targets = (0, 2)
+        ids = (2, 2)
+        theta = np.pi / 7.0
+
+        circuit = QuantumCircuit(3)
+        circuit.add_PauliRotation_gate(targets, ids, theta)
+        transpiled = GateSetConversionTranspiler(target_gateset)(circuit)
+        assert _gate_kinds(transpiled) <= set(target_gateset)
+        assert list(transpiled.gates) == [
+            gates.S(0),
+            gates.S(0),
+            gates.S(0),
+            gates.H(0),
+            gates.S(0),
+            gates.S(0),
+            gates.S(0),
+            gates.S(2),
+            gates.S(2),
+            gates.S(2),
+            gates.H(2),
+            gates.S(2),
+            gates.S(2),
+            gates.S(2),
+            gates.CNOT(2, 0),
+            gates.RZ(0, theta),
+            gates.CNOT(2, 0),
+            gates.S(0),
+            gates.H(0),
+            gates.S(0),
+            gates.S(2),
+            gates.H(2),
+            gates.S(2),
+        ]

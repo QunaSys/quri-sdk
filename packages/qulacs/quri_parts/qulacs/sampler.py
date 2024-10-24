@@ -18,9 +18,15 @@ from numpy.random import default_rng
 
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
-from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
+from quri_parts.core.sampling import (
+    ConcurrentSampler,
+    GeneralSampler,
+    MeasurementCounts,
+    Sampler,
+)
 from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
 from .circuit.noise import convert_circuit_with_noise_model
 from .simulator import (
@@ -85,6 +91,24 @@ def create_qulacs_vector_concurrent_sampler(
         return _sample_concurrently(circuit_shots_tuples, executor, concurrency)
 
     return sampler
+
+
+def create_qulacs_general_vector_sampler() -> (
+    GeneralSampler[QulacsStateT, QulacsParametricStateT]
+):
+    """Creates a Qulacs :class:`GeneralSampler`"""
+    sampler = create_qulacs_vector_sampler()
+    state_sampler = create_qulacs_vector_state_sampler()
+    return GeneralSampler(sampler, state_sampler)
+
+
+def create_qulacs_general_vector_ideal_sampler() -> (
+    GeneralSampler[QulacsStateT, QulacsParametricStateT]
+):
+    """Creates an ideal Qulacs :class:`GeneralSampler`"""
+    sampler = create_qulacs_vector_ideal_sampler()
+    state_sampler = create_qulacs_ideal_vector_state_sampler()
+    return GeneralSampler(sampler, state_sampler)
 
 
 def create_qulacs_stochastic_state_vector_sampler(model: NoiseModel) -> Sampler:

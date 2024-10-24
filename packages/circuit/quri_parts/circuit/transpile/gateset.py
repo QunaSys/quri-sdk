@@ -172,7 +172,7 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
     def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         ret = []
-        cache: dict[str, list[QuantumGate]] = {}
+        cache: dict[str, list[str]] = {}
 
         for gate in circuit.gates:
             if gate.name not in CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
@@ -188,20 +188,22 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
                 continue
 
             if gate.name in cache:
-                ret.extend(cache[gate.name])
+                ret.extend(
+                    QuantumGate(name=name, target_indices=gate.target_indices)
+                    for name in cache[gate.name]
+                )
                 continue
 
             for candidate in _equiv_clifford_table[gate.name]:
                 if set(candidate) <= self._gateset:
-                    expand = [
+                    cache[gate.name] = candidate
+                    ret.extend(
                         QuantumGate(name=name, target_indices=gate.target_indices)
                         for name in candidate
-                    ]
-                    cache[gate.name] = expand
-                    ret.extend(expand)
+                    )
                     break
             else:
-                cache[gate.name] = [gate]
+                cache[gate.name] = [gate.name]
                 ret.append(gate)
 
         return QuantumCircuit(circuit.qubit_count, gates=ret)

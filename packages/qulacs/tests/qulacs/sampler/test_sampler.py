@@ -8,22 +8,36 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import unittest
+import unittest.mock
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 import numpy as np
 import numpy.testing as npt
 import pytest
 
-from quri_parts.circuit import QuantumCircuit
+from quri_parts.circuit import (
+    LinearMappedUnboundParametricQuantumCircuit,
+    QuantumCircuit,
+    UnboundParametricQuantumCircuit,
+)
 from quri_parts.circuit.noise import BitFlipNoise, NoiseModel
-from quri_parts.core.sampling import ConcurrentSampler, Sampler
+from quri_parts.core.sampling import (
+    ConcurrentSampler,
+    MeasurementCounts,
+    Sampler,
+    ideal_sample_from_state_vector,
+)
+from quri_parts.core.state import quantum_state
 from quri_parts.qulacs.circuit.compiled_circuit import compile_circuit
 from quri_parts.qulacs.sampler import (
     create_qulacs_density_matrix_concurrent_sampler,
     create_qulacs_density_matrix_ideal_sampler,
     create_qulacs_density_matrix_sampler,
+    create_qulacs_general_vector_ideal_sampler,
+    create_qulacs_general_vector_sampler,
     create_qulacs_noisesimulator_concurrent_sampler,
     create_qulacs_noisesimulator_sampler,
     create_qulacs_stochastic_state_vector_concurrent_sampler,
@@ -32,6 +46,7 @@ from quri_parts.qulacs.sampler import (
     create_qulacs_vector_ideal_sampler,
     create_qulacs_vector_sampler,
 )
+from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor
@@ -136,6 +151,368 @@ class TestQulacsVectorConcurrentSampler:
         assert set(results_with_compiled_circuit[1]) == {0b0001, 0b0011}
         assert all(c >= 0 for c in results_with_compiled_circuit[1].values())
         assert sum(results_with_compiled_circuit[1].values()) == 2000
+
+
+class TestQulacsVectorGeneralSampler(unittest.TestCase):
+    def setUp(self) -> None:
+        self.general_sampler = create_qulacs_general_vector_sampler()
+        self.general_sampler.sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.sampler
+        )
+        self.general_sampler.state_sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.state_sampler
+        )
+        self.general_sampler.parametric_sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.parametric_sampler
+        )
+        self.general_sampler.parametric_state_sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.parametric_state_sampler
+        )
+
+        self.circuit = circuit()
+        n_qubits = self.circuit.qubit_count
+        for i in range(n_qubits):
+            self.circuit.add_H_gate(i)
+
+        self.state = quantum_state(n_qubits, circuit=self.circuit)
+
+        self.param_circuit_1 = LinearMappedUnboundParametricQuantumCircuit(
+            self.circuit.qubit_count
+        )
+        self.param_circuit_1.extend(self.circuit.gates)
+        a, b = self.param_circuit_1.add_parameters("a", "b")
+        self.param_circuit_1.add_ParametricRZ_gate(0, {a: 1, b: 2})
+        self.param_state_1 = quantum_state(n_qubits, circuit=self.param_circuit_1)
+
+        self.param_circuit_2 = UnboundParametricQuantumCircuit(self.circuit.qubit_count)
+        self.param_circuit_2.extend(self.circuit.gates)
+        self.param_circuit_2.add_ParametricRZ_gate(0)
+        self.param_state_2 = quantum_state(
+            n_qubits, circuit=self.param_circuit_2, vector=np.ones(2**n_qubits) / 4
+        )
+
+    def test_call_as_sampler(self) -> None:
+        qubits = 4
+
+        counts = self.general_sampler(self.circuit, 100)
+
+        cast(unittest.mock.Mock, self.general_sampler.sampler).assert_called_once_with(
+            self.circuit, 100
+        )
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 100
+
+    def test_call_as_state_sampler(self) -> None:
+        qubits = 4
+        counts = self.general_sampler(self.state, 200)
+
+        cast(
+            unittest.mock.Mock, self.general_sampler.state_sampler
+        ).assert_called_once_with(self.state, 200)
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 200
+
+    def test_call_as_param_sampler_linear_mapped_circuit(self) -> None:
+        qubits = 4
+        counts = self.general_sampler(self.param_circuit_1, 300, [10.0, 20.0])
+
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_sampler
+        ).assert_called_once_with(self.param_circuit_1, 300, [10.0, 20.0])
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 300
+
+    def test_call_as_param_sampler_unbound_circuit(self) -> None:
+        qubits = 4
+        counts = self.general_sampler(self.param_circuit_2, 400, [20.0])
+
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_sampler
+        ).assert_called_once_with(self.param_circuit_2, 400, [20.0])
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 400
+
+    def test_call_as_param_circuit_state_sampler(self) -> None:
+        qubits = 4
+
+        counts = self.general_sampler(self.param_state_1, 500, [20.0, 30.0])
+
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_state_sampler
+        ).assert_called_once_with(self.param_state_1, 500, [20.0, 30.0])
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 500
+
+    def test_call_as_param_state_vector_sampler(self) -> None:
+        qubits = 4
+        counts = self.general_sampler(self.param_state_2, 600, [20.0])
+
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_state_sampler
+        ).assert_called_once_with(self.param_state_2, 600, [20.0])
+
+        assert set(counts.keys()).issubset(range(2**qubits))
+        assert all(c >= 0 for c in counts.values())
+        assert sum(counts.values()) == 600
+
+    def test_call_as_mixed_concurrent_sampler(self) -> None:
+        qubits = 4
+
+        # Call without list
+        counts = self.general_sampler(
+            (self.circuit, 100),
+            (self.state, 200),
+            (self.param_circuit_1, 300, [10.0, 20.0]),
+            (self.param_circuit_2, 400, [20.0]),
+            (self.param_state_1, 500, [20.0, 30.0]),
+            (self.param_state_2, 600, [20.0]),
+        )
+
+        for count, shots in zip(counts, [100, 200, 300, 400, 500, 600]):
+            assert set(count.keys()).issubset(range(2**qubits))
+            assert all(c >= 0 for c in count.values())
+            assert sum(count.values()) == shots
+
+        # Call with list
+        counts = self.general_sampler(
+            [
+                (self.circuit, 100),
+                (self.state, 200),
+                (self.param_circuit_1, 300, [10.0, 20.0]),
+                (self.param_circuit_2, 400, [20.0]),
+                (self.param_state_1, 500, [20.0, 30.0]),
+                (self.param_state_2, 600, [20.0]),
+            ]
+        )
+
+        for count, shots in zip(counts, [100, 200, 300, 400, 500, 600]):
+            assert set(count.keys()).issubset(range(2**qubits))
+            assert all(c >= 0 for c in count.values())
+            assert sum(count.values()) == shots
+
+
+class TestQulacsVectorIdealGeneralSampler(unittest.TestCase):
+    def setUp(self) -> None:
+        self.general_sampler = create_qulacs_general_vector_ideal_sampler()
+        self.general_sampler.sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.sampler
+        )
+        self.general_sampler.state_sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.state_sampler
+        )
+        self.general_sampler.parametric_sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.parametric_sampler
+        )
+        self.general_sampler.parametric_state_sampler = unittest.mock.Mock(
+            side_effect=self.general_sampler.parametric_state_sampler
+        )
+
+        self.circuit = circuit()
+        n_qubits = self.circuit.qubit_count
+        for i in range(n_qubits):
+            self.circuit.add_H_gate(i)
+
+        self.state = quantum_state(n_qubits, circuit=self.circuit)
+
+        self.param_circuit_1 = LinearMappedUnboundParametricQuantumCircuit(
+            self.circuit.qubit_count
+        )
+        self.param_circuit_1.extend(self.circuit.gates)
+        a, b = self.param_circuit_1.add_parameters("a", "b")
+        self.param_circuit_1.add_ParametricRZ_gate(0, {a: 1, b: 2})
+        self.param_state_1 = quantum_state(n_qubits, circuit=self.param_circuit_1)
+
+        self.param_circuit_2 = UnboundParametricQuantumCircuit(self.circuit.qubit_count)
+        self.param_circuit_2.extend(self.circuit.gates)
+        self.param_circuit_2.add_ParametricRZ_gate(0)
+        self.param_state_2 = quantum_state(
+            n_qubits, circuit=self.param_circuit_2, vector=np.ones(2**n_qubits) / 4
+        )
+
+        self.test_param_1 = [20.0, 30.0]
+        self.test_param_2 = [20.0]
+
+        (
+            self.circuit_cnt,
+            self.state_cnt,
+            self.linear_mapped_circuit_cnt,
+            self.unbound_circuit_cnt,
+            self.linear_mapped_state_cnt,
+            self.unbound_state_vec_cnt,
+        ) = self._get_ideal_cnts()
+
+    def _get_ideal_cnts(self) -> tuple[MeasurementCounts, ...]:
+        n_qubit = 4
+        circuit_state_vec = evaluate_state_to_vector(
+            quantum_state(n_qubit, circuit=self.circuit)
+        ).vector
+
+        circuit_cnt = ideal_sample_from_state_vector(circuit_state_vec, 100)
+        state_cnt = ideal_sample_from_state_vector(circuit_state_vec, 200)
+
+        linear_mapped_circuit_vec = evaluate_state_to_vector(
+            quantum_state(
+                n_qubit,
+                circuit=self.param_circuit_1.bind_parameters(self.test_param_1),
+            )
+        ).vector
+        linear_mapped_circuit_cnt = ideal_sample_from_state_vector(
+            linear_mapped_circuit_vec, 300
+        )
+        linear_mapped_state_cnt = ideal_sample_from_state_vector(
+            linear_mapped_circuit_vec, 500
+        )
+
+        unbound_circuit_vec = evaluate_state_to_vector(
+            quantum_state(
+                n_qubit,
+                circuit=self.param_circuit_2.bind_parameters(self.test_param_2),
+            )
+        ).vector
+        unbound_circuit_cnt = ideal_sample_from_state_vector(unbound_circuit_vec, 400)
+
+        param_state_vec = evaluate_state_to_vector(
+            quantum_state(
+                n_qubit,
+                circuit=self.param_circuit_2.bind_parameters(self.test_param_2),
+                vector=np.ones(2**n_qubit) / 4,
+            )
+        ).vector
+
+        unbound_state_vec_cnt = ideal_sample_from_state_vector(param_state_vec, 600)
+
+        return (
+            circuit_cnt,
+            state_cnt,
+            linear_mapped_circuit_cnt,
+            unbound_circuit_cnt,
+            linear_mapped_state_cnt,
+            unbound_state_vec_cnt,
+        )
+
+    def test_call_as_sampler(self) -> None:
+        counts = self.general_sampler(self.circuit, 100)
+        cast(unittest.mock.Mock, self.general_sampler.sampler).assert_called_once_with(
+            self.circuit, 100
+        )
+        assert counts == self.circuit_cnt
+
+    def test_call_as_state_sampler(self) -> None:
+        counts = self.general_sampler(self.state, 200)
+        cast(
+            unittest.mock.Mock, self.general_sampler.state_sampler
+        ).assert_called_once_with(self.state, 200)
+        assert counts == self.state_cnt
+
+    def test_call_as_param_sampler_linear_mapped_circuit(self) -> None:
+        counts = self.general_sampler(self.param_circuit_1, 300, [20.0, 30.0])
+
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_sampler
+        ).assert_called_once_with(self.param_circuit_1, 300, [20.0, 30.0])
+        assert counts == self.linear_mapped_circuit_cnt
+
+    def test_call_as_param_sampler_unbound_circuit(self) -> None:
+        counts = self.general_sampler(self.param_circuit_2, 400, [20.0])
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_sampler
+        ).assert_called_once_with(self.param_circuit_2, 400, [20.0])
+        assert counts == self.unbound_circuit_cnt
+
+    def test_call_as_param_circuit_state_sampler(self) -> None:
+        counts = self.general_sampler(self.param_state_1, 500, [20.0, 30.0])
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_state_sampler
+        ).assert_called_once_with(self.param_state_1, 500, [20.0, 30.0])
+        assert counts == self.linear_mapped_state_cnt
+
+    def test_call_as_param_state_vector_sampler(self) -> None:
+        counts = self.general_sampler(self.param_state_2, 600, [20.0])
+        cast(
+            unittest.mock.Mock, self.general_sampler.parametric_state_sampler
+        ).assert_called_once_with(self.param_state_2, 600, [20.0])
+        assert counts == self.unbound_state_vec_cnt
+
+    def test_call_as_param_concurrent_sampler(self) -> None:
+        counts = list(
+            self.general_sampler(
+                self.param_circuit_1,
+                [(300, [10.0, 20.0]), (100, [0.0, 0.0])],
+            )
+        )
+        assert len(counts) == 2
+        assert counts[0] == self.linear_mapped_circuit_cnt
+        assert counts[1] == self.circuit_cnt
+
+    def test_call_as_param_concurrent_state_sampler(self) -> None:
+        counts = list(
+            self.general_sampler(
+                self.param_state_1,
+                [(300, [10.0, 20.0]), (100, [0.0, 0.0])],
+            )
+        )
+        assert len(counts) == 2
+        assert counts[0] == self.linear_mapped_circuit_cnt
+        assert counts[1] == self.circuit_cnt
+
+    def test_call_as_mixed_concurrent_sampler(self) -> None:
+        # Call without list
+        counts = self.general_sampler(
+            (self.circuit, 100),
+            (self.state, 200),
+            (self.param_circuit_1, 300, [10.0, 20.0]),
+            (self.param_circuit_2, 400, [20.0]),
+            (self.param_state_1, 500, [20.0, 30.0]),
+            (self.param_state_2, 600, [20.0]),
+        )
+
+        for count, expected_count in zip(
+            counts,
+            [
+                self.circuit_cnt,
+                self.state_cnt,
+                self.linear_mapped_circuit_cnt,
+                self.unbound_circuit_cnt,
+                self.linear_mapped_state_cnt,
+                self.unbound_state_vec_cnt,
+            ],
+        ):
+            assert count == expected_count
+
+        # Call with list
+        counts = self.general_sampler(
+            [
+                (self.circuit, 100),
+                (self.state, 200),
+                (self.param_circuit_1, 300, [10.0, 20.0]),
+                (self.param_circuit_2, 400, [20.0]),
+                (self.param_state_1, 500, [20.0, 30.0]),
+                (self.param_state_2, 600, [20.0]),
+            ]
+        )
+
+        for count, expected_count in zip(
+            counts,
+            [
+                self.circuit_cnt,
+                self.state_cnt,
+                self.linear_mapped_circuit_cnt,
+                self.unbound_circuit_cnt,
+                self.linear_mapped_state_cnt,
+                self.unbound_state_vec_cnt,
+            ],
+        ):
+            assert count == expected_count
 
 
 class TestSamplerWithNoiseModel:
