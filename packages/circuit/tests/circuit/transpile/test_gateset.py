@@ -8,10 +8,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union
+
 import numpy as np
 
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
+    NonParametricQuantumCircuit,
+    ParametricQuantumCircuit,
+    ParametricQuantumCircuitProtocol,
+    ParametricQuantumGate,
     QuantumCircuit,
     QuantumGate,
     gate_names,
@@ -21,6 +27,8 @@ from quri_parts.circuit.gate_names import CliffordGateNameType, GateNameType
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
     GateSetConversionTranspiler,
+    ParametricRX2RZHTranspiler,
+    ParametricRY2RZHTranspiler,
     RotationConversionTranspiler,
     RX2RYRZTranspiler,
     RX2RZHTranspiler,
@@ -30,18 +38,29 @@ from quri_parts.circuit.transpile import (
 )
 
 
-def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
-    return (
-        x.name == y.name
-        and x.target_indices == y.target_indices
-        and x.control_indices == y.control_indices
-        and np.allclose(x.params, y.params)
-        and x.pauli_ids == y.pauli_ids
-        and np.allclose(x.unitary_matrix, y.unitary_matrix)
-    )
+def _gates_close(
+    x: Union[QuantumGate, ParametricQuantumGate],
+    y: Union[QuantumGate, ParametricQuantumGate],
+) -> bool:
+    if isinstance(x, ParametricQuantumGate) and isinstance(y, ParametricQuantumGate):
+        return x == y
+    elif isinstance(x, QuantumGate) and isinstance(y, QuantumGate):
+        return (
+            x.name == y.name
+            and x.target_indices == y.target_indices
+            and x.control_indices == y.control_indices
+            and np.allclose(x.params, y.params)
+            and x.pauli_ids == y.pauli_ids
+            and np.allclose(x.unitary_matrix, y.unitary_matrix)
+        )
+    else:
+        return False
 
 
-def _circuit_close(x: ImmutableQuantumCircuit, y: ImmutableQuantumCircuit) -> bool:
+def _circuit_close(
+    x: Union[NonParametricQuantumCircuit, ParametricQuantumCircuitProtocol],
+    y: Union[NonParametricQuantumCircuit, ParametricQuantumCircuitProtocol],
+) -> bool:
     return len(x.gates) == len(y.gates) and all(
         _gates_close(a, b) for a, b in zip(x.gates, y.gates)
     )
@@ -291,6 +310,34 @@ class TestRotationKindDecompose:
                 gates.RX(0, -np.pi / 2.0),
             ]
         )
+        assert _circuit_close(transpiled, expect)
+
+
+class TestParametricRotationKindDecompose:
+    def test_parametricrx2rzh_transpile(self) -> None:
+        circuit = ParametricQuantumCircuit(1)
+        circuit.add_ParametricRX_gate(0)
+        transpiled = ParametricRX2RZHTranspiler()(circuit)
+
+        expect = ParametricQuantumCircuit(1)
+        expect.add_H_gate(0)
+        expect.add_ParametricRZ_gate(0)
+        expect.add_H_gate(0)
+
+        assert _circuit_close(transpiled, expect)
+
+    def test_parametricry2rzh_transpile(self) -> None:
+        circuit = ParametricQuantumCircuit(1)
+        circuit.add_ParametricRY_gate(0)
+        transpiled = ParametricRY2RZHTranspiler()(circuit)
+
+        expect = ParametricQuantumCircuit(1)
+        expect.add_RZ_gate(0, -np.pi / 2.0)
+        expect.add_H_gate(0)
+        expect.add_ParametricRZ_gate(0)
+        expect.add_H_gate(0)
+        expect.add_RZ_gate(0, np.pi / 2.0)
+
         assert _circuit_close(transpiled, expect)
 
 

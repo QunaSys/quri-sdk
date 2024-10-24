@@ -432,6 +432,16 @@ def create_concurrent_parametric_state_sampler_from_concurrent_state_sampler(
     return _concurrent_parametric_state_sampler
 
 
+def sample_from_probibility_distribution(
+    n_sample: int,
+    probibility_distribution: Union[Sequence[float], npt.NDArray[np.float64]],
+) -> MeasurementCounts:
+    """Sample from a probibility distribution."""
+    rng = np.random.default_rng()
+    counts = rng.multinomial(n_sample, np.round(probibility_distribution, 12))
+    return Counter(dict(((i, count) for i, count in enumerate(counts) if count > 0)))
+
+
 def sample_from_state_vector(
     state_vector: npt.NDArray[np.complex128], n_shots: int
 ) -> MeasurementCounts:
@@ -440,10 +450,8 @@ def sample_from_state_vector(
     assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
-    probs = np.abs(state_vector) ** 2
-    rng = np.random.default_rng()
-    counts = rng.multinomial(n_shots, probs)
-    return Counter(dict(((i, count) for i, count in enumerate(counts) if count > 0)))
+    probs = cast(npt.NDArray[np.float64], np.abs(state_vector) ** 2)
+    return sample_from_probibility_distribution(n_shots, probs)
 
 
 def ideal_sample_from_state_vector(
@@ -456,6 +464,40 @@ def ideal_sample_from_state_vector(
         raise ValueError("probabilities do not sum to 1")
 
     probs = np.abs(state_vector) ** 2
+    return {i: prob * n_shots for i, prob in enumerate(probs)}
+
+
+def sample_from_density_matrix(
+    density_matrix: npt.NDArray[np.complex128], n_shots: int
+) -> MeasurementCounts:
+    assert (
+        density_matrix.ndim == 2
+    ), f"Density matrix must be 2 dimensional, but got {density_matrix.ndim}."
+
+    n_qubits: float = np.log2(density_matrix.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+
+    if not np.isclose(np.trace(density_matrix), 1):
+        raise ValueError("probabilities do not sum to 1")
+
+    probs = np.diag(density_matrix).real
+    return sample_from_probibility_distribution(n_shots, probs)
+
+
+def ideal_sample_from_density_matrix(
+    density_matrix: npt.NDArray[np.complex128], n_shots: int
+) -> MeasurementCounts:
+    assert (
+        density_matrix.ndim == 2
+    ), f"Density matrix must be 2 dimensional, but got {density_matrix.ndim}."
+
+    n_qubits: float = np.log2(density_matrix.shape[0])
+    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
+
+    if not np.isclose(np.trace(density_matrix), 1):
+        raise ValueError("probabilities do not sum to 1")
+
+    probs = np.diag(density_matrix).real
     return {i: prob * n_shots for i, prob in enumerate(probs)}
 
 

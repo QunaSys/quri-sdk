@@ -12,7 +12,13 @@ from collections.abc import Iterable, Mapping, Sequence
 from math import pi
 from typing import cast
 
-from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
+    LinearMappedParametricQuantumCircuit,
+    LinearParameterMapping,
+    ParametricQuantumCircuitProtocol,
+    QuantumCircuit,
+)
 from quri_parts.circuit import gates as gf
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import (
@@ -32,6 +38,10 @@ from quri_parts.circuit.gate_names import (
     GateNameType,
     H,
     Identity,
+    ParametricPauliRotation,
+    ParametricRX,
+    ParametricRY,
+    ParametricRZ,
     Pauli,
     PauliRotation,
     S,
@@ -86,6 +96,7 @@ from .transpiler import (
     CircuitTranspiler,
     CircuitTranspilerProtocol,
     GateKindDecomposer,
+    ParametricCircuitTranspilerProtocol,
     SequentialTranspiler,
 )
 from .unitary_matrix_decomposer import (
@@ -299,6 +310,85 @@ class RY2RZHTranspiler(GateKindDecomposer):
             gf.H(qubit),
             gf.RZ(qubit, pi / 2.0),
         ]
+
+
+class ParametricRX2RZHTranspiler(ParametricCircuitTranspilerProtocol):
+    def __call__(
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> LinearMappedParametricQuantumCircuit:
+        ret = LinearMappedParametricQuantumCircuit(
+            circuit.qubit_count, circuit.cbit_count
+        )
+        ret._param_mapping = LinearParameterMapping(circuit.param_mapping.in_params)
+        pmap = circuit.param_mapping.mapping
+
+        for gate, param in circuit.primitive_circuit().gates_and_params:
+            if isinstance(gate, QuantumGate):
+                ret.add_gate(gate)
+            else:
+                if param is None:
+                    raise ValueError("Parametric gate with no Parameter: {gate}")
+
+                qubit = gate.target_indices[0]
+                if gate.name == ParametricRX:
+                    ret.add_H_gate(qubit)
+                    ret.add_ParametricRZ_gate(qubit, pmap[param])
+                    ret.add_H_gate(qubit)
+                elif gate.name == ParametricRY:
+                    ret.add_ParametricRY_gate(qubit, pmap[param])
+                elif gate.name == ParametricRZ:
+                    ret.add_ParametricRZ_gate(qubit, pmap[param])
+                elif gate.name == ParametricPauliRotation:
+                    ret.add_ParametricPauliRotation_gate(
+                        gate.target_indices,
+                        gate.pauli_ids,
+                        pmap[param],
+                    )
+                else:
+                    raise ValueError(f"Unsupported parametric gate: {gate.name}")
+
+        return ret
+
+
+class ParametricRY2RZHTranspiler(ParametricCircuitTranspilerProtocol):
+    def __call__(
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> LinearMappedParametricQuantumCircuit:
+        ret = LinearMappedParametricQuantumCircuit(
+            circuit.qubit_count, circuit.cbit_count
+        )
+        ret._param_mapping = LinearParameterMapping(circuit.param_mapping.in_params)
+        pmap = circuit.param_mapping.mapping
+
+        for gate, param in circuit.primitive_circuit().gates_and_params:
+            if isinstance(gate, QuantumGate):
+                ret.add_gate(gate)
+            else:
+                if param is None:
+                    raise ValueError("Parametric gate with no Parameter: {gate}")
+
+                qubit = gate.target_indices[0]
+                if gate.name == ParametricRX:
+                    ret.add_ParametricRX_gate(qubit, pmap[param])
+                elif gate.name == ParametricRY:
+                    qubit = gate.target_indices[0]
+                    ret.add_RZ_gate(qubit, -pi / 2.0)
+                    ret.add_H_gate(qubit)
+                    ret.add_ParametricRZ_gate(qubit, pmap[param])
+                    ret.add_H_gate(qubit)
+                    ret.add_RZ_gate(qubit, pi / 2.0)
+                elif gate.name == ParametricRZ:
+                    ret.add_ParametricRZ_gate(qubit, pmap[param])
+                elif gate.name == ParametricPauliRotation:
+                    ret.add_ParametricPauliRotation_gate(
+                        gate.target_indices,
+                        gate.pauli_ids,
+                        pmap[param],
+                    )
+                else:
+                    raise ValueError(f"Unsupported parametric gate: {gate.name}")
+
+        return ret
 
 
 class IdentityTranspiler(CircuitTranspilerProtocol):

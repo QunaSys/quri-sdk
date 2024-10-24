@@ -62,6 +62,8 @@ from .gate_kind_decomposer import (
 from .gateset import (
     CliffordConversionTranspiler,
     GateSetConversionTranspiler,
+    ParametricRX2RZHTranspiler,
+    ParametricRY2RZHTranspiler,
     RotationConversionTranspiler,
     RX2RYRZTranspiler,
     RX2RZHTranspiler,
@@ -87,6 +89,7 @@ from .transpiler import (
     ParallelDecomposer,
     ParametricCircuitTranspiler,
     ParametricCircuitTranspilerProtocol,
+    ParametricSequentialTranspiler,
     ParametricTranspiler,
     SequentialTranspiler,
 )
@@ -195,9 +198,20 @@ class CliffordRZSetTranspiler(SequentialTranspiler):
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only basic gates for STAR architecture (H, RZ, and CNOT).
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
-STARSetTranspiler: Callable[
-    [], CircuitTranspiler
-] = lambda: GateSetConversionTranspiler([gate_names.H, gate_names.RZ, gate_names.CNOT])
+STARSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
+    [
+        RX2RZHTranspiler(),
+        RY2RZHTranspiler(),
+        GateSetConversionTranspiler(
+            [
+                gate_names.H,
+                gate_names.S,
+                gate_names.RZ,
+                gate_names.CNOT,
+            ]
+        ),
+    ]
+)
 
 
 __all__ = [
@@ -223,6 +237,13 @@ __all__ = [
     "ParallelDecomposer",
     "PauliDecomposeTranspiler",
     "PauliRotationDecomposeTranspiler",
+    "ParametricPauliRotationDecomposeTranspiler",
+    "ParametricTranspiler",
+    "ParametricCircuitTranspiler",
+    "ParametricCircuitTranspilerProtocol",
+    "ParametricRX2RZHTranspiler",
+    "ParametricRY2RZHTranspiler",
+    "ParametricSequentialTranspiler",
     "QubitRemappingTranspiler",
     "RotationConversionTranspiler",
     "RX2RYRZTranspiler",

@@ -30,6 +30,7 @@ typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
 scipy = "^1.11.3"
+networkx = "*"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}

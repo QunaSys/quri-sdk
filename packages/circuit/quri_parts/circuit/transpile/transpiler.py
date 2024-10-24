@@ -234,3 +234,15 @@ class ParametricTranspiler(ParametricCircuitTranspilerProtocol):
             ret.extend(self._transpiler(cc).gates)
 
         return ret
+
+
+class ParametricSequentialTranspiler(ParametricCircuitTranspilerProtocol):
+    def __init__(self, transpilers: Sequence[ParametricCircuitTranspiler]):
+        self._transpilers = transpilers
+
+    def __call__(
+        self, circuit: ParametricQuantumCircuitProtocol
+    ) -> ParametricQuantumCircuitProtocol:
+        for transpiler in self._transpilers:
+            circuit = transpiler(circuit)
+        return circuit

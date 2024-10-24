@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from typing import Callable, Optional
 
 from typing_extensions import TypeAlias
@@ -46,6 +46,19 @@ class SquareLattice:
                     f"The same coordinates were specified multiple times: {v}."
                 )
             self._coord_to_qubit[v] = k
+        self._xsize, self._ysize = xsize, ysize
+
+    @property
+    def xsize(self) -> int:
+        return self._xsize
+
+    @property
+    def ysize(self) -> int:
+        return self._ysize
+
+    @property
+    def qubits(self) -> Collection[int]:
+        return self._qubit_to_coord.keys()
 
     def get_qubit(self, coord: Coordinate) -> int:
         """Returns qubit index corresponding to the given coordinate."""

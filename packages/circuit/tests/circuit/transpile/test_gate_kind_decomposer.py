@@ -701,6 +701,11 @@ class TestSTARSetTranspile:
         transpiled = STARSetTranspiler()(circuit)
 
         target_set = {gate.name for gate in transpiled.gates}
-        expect_set = {gate_names.H, gate_names.RZ, gate_names.CNOT}
+        expect_set = {
+            gate_names.H,
+            gate_names.S,
+            gate_names.RZ,
+            gate_names.CNOT,
+        }
 
         assert target_set <= expect_set
