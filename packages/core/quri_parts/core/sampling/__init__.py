@@ -438,7 +438,11 @@ def sample_from_probibility_distribution(
 ) -> MeasurementCounts:
     """Sample from a probibility distribution."""
     rng = np.random.default_rng()
-    counts = rng.multinomial(n_sample, np.round(probibility_distribution, 12))
+    rounded_prob = np.round(probibility_distribution, 12)
+    norm = np.sum(rounded_prob)
+    assert np.isclose(norm, 1.0), "Probabilty does not sum to 1.0"
+    rounded_prob = rounded_prob / norm
+    counts = rng.multinomial(n_sample, rounded_prob)
     return Counter(dict(((i, count) for i, count in enumerate(counts) if count > 0)))
 
 

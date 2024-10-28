@@ -198,6 +198,7 @@ def test_convert_circuit() -> None:
         gates.H(2),
         gates.CNOT(0, 2),
         gates.RX(0, 0.125),
+        gates.TOFFOLI(2, 0, 1),
     ]
     for g in original_gates:
         circuit.add_gate(g)
@@ -210,6 +211,7 @@ def test_convert_circuit() -> None:
         qulacs.gate.H(2),
         qulacs.gate.CNOT(0, 2),
         qulacs.gate.RX(0, -0.125),
+        qulacs.gate.TOFFOLI(2, 0, 1),
     ]
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected in enumerate(expected_gates):

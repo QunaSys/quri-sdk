@@ -104,6 +104,19 @@ class TestQuantumCircuit:
         assert isinstance(combined_circuit, QuantumCircuit)
         assert combined_circuit.gates == exp_circuit.gates
 
+    def test_compare_pauli_rot(self) -> None:
+        circuit1 = QuantumCircuit(3)
+        circuit2 = QuantumCircuit(3)
+        circuit1.add_H_gate(0)
+        circuit1.add_PauliRotation_gate([1, 2], [1, 1], 2)
+        circuit1.add_PauliRotation_gate([0, 1, 2], [3, 1, 1], -2)
+        circuit1.add_H_gate(0)
+        circuit2.add_H_gate(0)
+        circuit2.add_PauliRotation_gate([1, 2], [1, 1], 2)
+        circuit2.add_PauliRotation_gate([1, 0, 2], [1, 3, 1], -2)
+        circuit2.add_H_gate(0)
+        assert circuit1 == circuit2
+
 
 class TestQuantumCircuitDeprecation:
     def test_order_flip(self) -> None:

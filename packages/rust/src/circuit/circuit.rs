@@ -24,7 +24,13 @@ impl PartialEq for ImmutableQuantumCircuit {
     fn eq(&self, other: &Self) -> bool {
         self.qubit_count == other.qubit_count
             && self.cbit_count == other.cbit_count
-            && &self.gates == &other.gates
+            && &self.gates.0.len() == &other.gates.0.len()
+            && self
+                .gates
+                .0
+                .iter()
+                .zip(&other.gates.0)
+                .all(|(l, r)| l.clone().into_property() == r.clone().into_property())
     }
 }
 

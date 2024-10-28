@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 mod noise;
 
 pub fn convert_add_gate<'py>(
+    py: Python<'py>,
     gate: &QuantumGate,
     qulacs_circuit: Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
@@ -77,7 +78,11 @@ pub fn convert_add_gate<'py>(
             qulacs_circuit.call_method1("add_SWAP_gate", (*q1, *q2))?;
         }
         QuantumGate::TOFFOLI(q1, q2, q3) => {
-            qulacs_circuit.call_method1("add_TOFFOLI_gate", (*q1, *q2, *q3))?;
+            let toffoli_gate = py
+                .import_bound("qulacs.gate")?
+                .getattr("TOFFOLI")?
+                .call1((*q1, *q2, *q3))?;
+            qulacs_circuit.call_method1("add_gate", (toffoli_gate,))?;
         }
         QuantumGate::UnitaryMatrix(qs, mat) => {
             qulacs_circuit.call_method1(
@@ -124,7 +129,7 @@ fn convert_circuit<'py>(
         .getattr("QuantumCircuit")?
         .call1((circuit.qubit_count,))?;
     for gate in &circuit.gates.0 {
-        qulacs_circuit = convert_add_gate(gate, qulacs_circuit)?;
+        qulacs_circuit = convert_add_gate(py, gate, qulacs_circuit)?;
     }
     Ok(qulacs_circuit.as_any().clone())
 }

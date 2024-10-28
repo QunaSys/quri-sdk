@@ -175,7 +175,7 @@ pub fn convert_circuit_with_noise_model<'py>(
             qulacs_circuit = convert_add_noise(py, &qubits, &noise, qulacs_circuit)?;
         }
 
-        qulacs_circuit = convert_add_gate(gate, qulacs_circuit)?;
+        qulacs_circuit = convert_add_gate(py, gate, qulacs_circuit)?;
 
         // gate noises
         for (qubits, noise) in NoiseModel::noises_for_gate(&noise_model_instance, gate.clone()) {

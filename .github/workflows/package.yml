@@ -145,7 +145,6 @@ jobs:
           mkdir -p dist
           cp -f NOTICE quri_parts/
           poetry run pip install maturin==1.7.1
-          poetry build
           source $VENV
           cd packages
           for pkg in *
