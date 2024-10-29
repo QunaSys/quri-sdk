@@ -6,6 +6,14 @@ import networkx as nx
 from quri_parts.backend.device import DeviceProperty, GateProperty, QubitProperty
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import gate_names
+from quri_parts.circuit.transpile import (
+    ParametricPauliRotationDecomposeTranspiler,
+    ParametricRX2RZHTranspiler,
+    ParametricRY2RZHTranspiler,
+    ParametricSequentialTranspiler,
+    ParametricTranspiler,
+    STARSetTranspiler,
+)
 
 
 def generate_device_property(
@@ -132,6 +140,16 @@ def generate_device_property(
     # 2d^2 physical qubits per single patch, including syndrome measurement qubits
     physical_qubit_count = (2 * code_distance**2) * total_patches
 
+    trans = STARSetTranspiler()
+    param_trans = ParametricSequentialTranspiler(
+        [
+            ParametricPauliRotationDecomposeTranspiler(),
+            ParametricRX2RZHTranspiler(),
+            ParametricRY2RZHTranspiler(),
+            ParametricTranspiler(trans),
+        ]
+    )
+
     return DeviceProperty(
         qubit_count=qubit_count,
         qubits=qubits,
@@ -146,4 +164,6 @@ def generate_device_property(
         gate_properties=gate_properties,
         physical_qubit_count=physical_qubit_count,
         background_error=(1.0 - qec_fidelity_per_qec_cycle, qec_cycle),
+        analyze_transpiler=trans,
+        analyze_parametric_transpiler=param_trans,
     )

@@ -12,6 +12,7 @@ on:
       - .github/workflows/test.yml
       - .github/actions/python-poetry-install/action.yml
       - .github/actions/rust-install-cache/action.yml
+      - ./**/*.jl
   push:
     branches: [main]
 

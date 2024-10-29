@@ -100,6 +100,12 @@ def test_clifford_t_device() -> None:
     assert 0.0 < estimate_circuit_fidelity(circuit, device, background_error=True) < 1.0
     assert 0.0 < estimate_circuit_latency(circuit, device).value
 
+    assert device.analyze_transpiler is not None
+    assert {
+        gate.name
+        for gate in device.analyze_transpiler(_non_star_native_circuit()).gates
+    } <= {gate_names.H, gate_names.S, gate_names.CNOT, gate_names.RZ}
+
 
 def test_nisq_iontrap_device() -> None:
     native_gates: set[gate_names.GateNameType] = {

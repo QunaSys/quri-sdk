@@ -98,6 +98,8 @@ class DeviceProperty:
 
     transpiler: Optional[CircuitTranspiler] = None
     parametric_transpiler: Optional[ParametricCircuitTranspiler] = None
+    analyze_transpiler: Optional[CircuitTranspiler] = None
+    analyze_parametric_transpiler: Optional[ParametricCircuitTranspiler] = None
     noise_model: Optional[NoiseModel] = None
 
     def __init__(
@@ -114,6 +116,8 @@ class DeviceProperty:
         provider: Optional[str] = None,
         transpiler: Optional[CircuitTranspiler] = None,
         parametric_transpiler: Optional[ParametricCircuitTranspiler] = None,
+        analyze_transpiler: Optional[CircuitTranspiler] = None,
+        analyze_parametric_transpiler: Optional[ParametricCircuitTranspiler] = None,
         noise_model: Optional[NoiseModel] = None,
     ) -> None:
         self.qubit_count = qubit_count
@@ -130,6 +134,8 @@ class DeviceProperty:
         self.provider = provider
         self.transpiler = transpiler
         self.parametric_transpiler = parametric_transpiler
+        self.analyze_transpiler = analyze_transpiler
+        self.analyze_parametric_transpiler = analyze_parametric_transpiler
         self.noise_model = noise_model
 
     def gate_property(self, quantum_gate: QuantumGate) -> GateProperty:
