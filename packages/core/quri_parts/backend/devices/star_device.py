@@ -48,7 +48,7 @@ def generate_device_property(
     def logical_error_round(p: float, d: int) -> float:
         plz = logical_error_model(ci=0.067976, pthi=0.0038510, p=p, d=d)
         plx = logical_error_model(ci=0.081997, pthi=0.0041612, p=p, d=d)
-        return plz + plx
+        return min(plz + plx, 1.0)
 
     logical_fidelity_round = 1.0 - logical_error_round(
         p=physical_error_rate, d=code_distance
