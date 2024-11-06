@@ -3885,7 +3885,7 @@ test = ["openfermion"]
 
 [[package]]
 name = "quri-parts-algo"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "Algorithms for quantum computers"
 optional = false
 python-versions = "^3.9.8"
@@ -3904,7 +3904,7 @@ url = "packages/algo"
 
 [[package]]
 name = "quri-parts-braket"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use Amazon Braket SDK with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -3924,7 +3924,7 @@ url = "packages/braket"
 
 [[package]]
 name = "quri-parts-chem"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "Quantum computer algorithms for chemistry"
 optional = false
 python-versions = "^3.9.8"
@@ -3941,7 +3941,7 @@ url = "packages/chem"
 
 [[package]]
 name = "quri-parts-circuit"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
@@ -3959,7 +3959,7 @@ url = "packages/circuit"
 
 [[package]]
 name = "quri-parts-cirq"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use Cirq with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -3977,7 +3977,7 @@ url = "packages/cirq"
 
 [[package]]
 name = "quri-parts-core"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A platform-independent library for quantum computing"
 optional = false
 python-versions = "^3.9.8"
@@ -3985,6 +3985,7 @@ files = []
 develop = true
 
 [package.dependencies]
+networkx = "*"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
 scipy = "^1.11.3"
@@ -3996,7 +3997,7 @@ url = "packages/core"
 
 [[package]]
 name = "quri-parts-ionq"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use IonQ with QIRI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4013,7 +4014,7 @@ url = "packages/ionq"
 
 [[package]]
 name = "quri-parts-itensor"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use ITensor with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4031,7 +4032,7 @@ url = "packages/itensor"
 
 [[package]]
 name = "quri-parts-openfermion"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A support library for using OpenFermion with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4050,7 +4051,7 @@ url = "packages/openfermion"
 
 [[package]]
 name = "quri-parts-openqasm"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A support library for using OpenQASM 3 with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4066,7 +4067,7 @@ url = "packages/openqasm"
 
 [[package]]
 name = "quri-parts-pyscf"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use PySCF with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4086,7 +4087,7 @@ url = "packages/pyscf"
 
 [[package]]
 name = "quri-parts-qiskit"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use Qiskit with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4108,7 +4109,7 @@ url = "packages/qiskit"
 
 [[package]]
 name = "quri-parts-quantinuum"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use Quantinuum with QIRI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4125,7 +4126,7 @@ url = "packages/quantinuum"
 
 [[package]]
 name = "quri-parts-qulacs"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use Qulacs with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4133,7 +4134,7 @@ files = []
 develop = true
 
 [package.dependencies]
-Qulacs = ">=0.3.0, <0.7.0"
+Qulacs = ">=0.5.6"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 quri-parts-rust = "*"
@@ -4145,7 +4146,7 @@ url = "packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.19.0"
+version = "0.20.3"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
@@ -4162,7 +4163,7 @@ url = "packages/rust"
 
 [[package]]
 name = "quri-parts-stim"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use Stim with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -4180,7 +4181,7 @@ url = "packages/stim"
 
 [[package]]
 name = "quri-parts-tket"
-version = "0.19.0.post51.dev0+cd46f129"
+version = "0.20.3.post4.dev0+5ded4088"
 description = "A plugin to use tket with QURI Parts"
 optional = false
 python-versions = "^3.9.8"
@@ -5253,4 +5254,4 @@ tket = ["quri-parts-tket"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9.8"
-content-hash = "82fe0dfccc67f8732e79d89c1c16c6e65dc8291b7a0b9d0e810f190f991ae3fd"
+content-hash = "4d5d091474a4e0f79d14af1c5feadb80eee32f5ee3b67d66b5b252e6c09a0146"

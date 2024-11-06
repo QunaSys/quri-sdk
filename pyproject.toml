@@ -26,6 +26,7 @@ style = "pep440"
 
 [tool.poetry.dependencies]
 python = "^3.9.8"
+quri-parts-rust = "*"
 quri-parts-core = "*"
 quri-parts-circuit = "*"
 quri-parts-algo = "*"
@@ -59,6 +60,7 @@ pyscf = ["quri-parts-pyscf"]
 tket = ["quri-parts-tket"]
 
 [tool.poetry.group.dev.dependencies]
+quri-parts-rust = {path = "packages/rust", develop = true}
 quri-parts-circuit = {path = "packages/circuit", develop = true}
 quri-parts-core = {path = "packages/core", develop = true}
 quri-parts-qulacs = {path = "packages/qulacs", develop = true}

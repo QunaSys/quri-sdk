@@ -29,7 +29,7 @@ python = "^3.9.8"
 typing-extensions = "^4.1.1"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-Qulacs = ">=0.3.0, <0.7.0"
+Qulacs = ">=0.5.6"
 quri-parts-rust = "*"
 
 [tool.poetry.group.dev.dependencies]
