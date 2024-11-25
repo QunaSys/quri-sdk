@@ -9,7 +9,7 @@ num-complex = "0.4.6"
 quri-parts = { path = "../../", version = "0.20.3", features = ["python"] }
 
 [dependencies.pyo3]
-version = "*"
+version = "0.22.6"
 features = ["extension-module", "macros", "num-complex", "py-clone"]
 
 [lib]

@@ -48,4 +48,4 @@ runs:
 
     - name: Generate Cargo.lock
       shell: ${{ inputs.shell }}
-      run: cargo generate-lockfile
+      run: cargo generate-lockfile --locked
