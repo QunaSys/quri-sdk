@@ -45,7 +45,3 @@ runs:
       if: inputs.target != ''
       shell: ${{ inputs.shell }}
       run: rustup target add ${{ inputs.target }}
-
-    - name: Generate Cargo.lock
-      shell: ${{ inputs.shell }}
-      run: cargo generate-lockfile --locked
