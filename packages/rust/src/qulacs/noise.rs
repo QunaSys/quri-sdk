@@ -18,30 +18,36 @@ fn make_dense_matrix<'py>(
 
 fn convert_add_pauli_noise<'py>(
     py: Python<'py>,
-    qubits: &Vec<usize>,
+    _qubits: &Vec<usize>,
     pauli_noise: &GateNoiseInstruction,
     qulacs_circuit: Bound<'py, PyAny>,
+    fill_identity: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
     let module = py.import_bound("qulacs.gate")?;
     let mut probs = pauli_noise.prob_list.clone();
-    let paulies = pauli_noise.pauli_list.clone();
     let mut gates = vec![];
     for pauli in &pauli_noise.pauli_list {
         gates.push(
             module
                 .getattr("Pauli")?
-                .call1((qubits.clone(), pauli.clone()))?,
+                .call1((pauli_noise.qubit_indices.clone(), pauli.clone()))?,
         );
     }
-    let psum: f64 = probs.iter().sum();
-    if psum < 1.0 {
-        gates.push(module.getattr("Identity")?.call1((qubits.len(),))?);
-        probs.push(1.0 - psum);
+    if fill_identity {
+        let psum: f64 = probs.iter().sum();
+        if psum < 1.0 {
+            gates.push(
+                module
+                    .getattr("Identity")?
+                    .call1((pauli_noise.qubit_indices[0],))?,
+            );
+            probs.push(1.0 - psum);
+        }
     }
     let prob_gate = py
         .import_bound("qulacs.gate")?
         .getattr("Probabilistic")?
-        .call1((probs, paulies))?;
+        .call1((probs, gates))?;
     qulacs_circuit.call_method1("add_gate", (prob_gate,))?;
     Ok(qulacs_circuit)
 }
@@ -128,7 +134,7 @@ fn convert_add_noise<'py>(
             )?;
         }
         "PauliNoise" | "GeneralDepolarizingNoise" => {
-            circuit = convert_add_pauli_noise(py, qubits, noise, circuit)?;
+            circuit = convert_add_pauli_noise(py, qubits, noise, circuit, false)?;
         }
         "ProbabilisticNoise" => {
             circuit = convert_add_probabilistic_noise(py, qubits, noise, circuit)?;

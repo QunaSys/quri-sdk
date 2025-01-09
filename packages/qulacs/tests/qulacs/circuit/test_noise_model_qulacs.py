@@ -29,6 +29,7 @@ from quri_parts.circuit.noise import (
     KrausNoise,
     MeasurementNoise,
     NoiseModel,
+    PauliNoise,
     PhaseFlipNoise,
 )
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
@@ -288,3 +289,40 @@ def test_convert_empty_circuit() -> None:
     noise_model_readout = NoiseModel([MeasurementNoise([BitFlipNoise(1.0)])])
     converted_readout = convert_circuit_with_noise_model(circuit, noise_model_readout)
     assert converted_readout.get_gate_count() == 1
+
+
+def test_convert_pauli_noise() -> None:
+    circuit = QuantumCircuit(3)
+    circuit.add_H_gate(2)
+    circuit.add_X_gate(0)
+    circuit.add_CNOT_gate(2, 1)
+    circuit.add_Z_gate(2)
+
+    noises = [
+        PauliNoise(
+            pauli_list=[[1, 2], [2, 3]],
+            prob_list=[0.001, 0.002],
+            qubit_indices=[1, 2],
+            target_gates=[names.CNOT],
+        )
+    ]
+    model = NoiseModel(noises)
+
+    converted = convert_circuit_with_noise_model(circuit, model)
+    expected_gates = [
+        qulacs.gate.H(2),
+        qulacs.gate.X(0),
+        qulacs.gate.CNOT(2, 1),
+        qulacs.gate.Probabilistic(
+            [0.001, 0.002],
+            [
+                qulacs.gate.Pauli([1, 2], [1, 2]),
+                qulacs.gate.Pauli([1, 2], [2, 3]),
+            ],
+        ),
+        qulacs.gate.Z(2),
+    ]
+
+    assert converted.get_gate_count() == len(expected_gates)
+    for i, expected_gate in enumerate(expected_gates):
+        assert converted.get_gate(i).to_json() == expected_gate.to_json()
