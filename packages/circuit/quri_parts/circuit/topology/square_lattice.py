@@ -122,9 +122,12 @@ class SquareLatticeSWAPInsertionTranspiler(GateDecomposer):
         self._square_lattice = square_lattice
 
     def is_target_gate(self, gate: QuantumGate) -> bool:
-        return gate.name in gate_names.TWO_QUBIT_GATE_NAMES
+        return len(gate.control_indices) + len(gate.target_indices) > 1
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        if gate.name not in {gate_names.CNOT, gate_names.SWAP, gate_names.CZ}:
+            raise ValueError(f"Unsupported multi qubit gate: {gate.name}")
+
         qubit_a, qubit_b = tuple(gate.control_indices) + tuple(gate.target_indices)
 
         if self._square_lattice.is_adjacent(qubit_a, qubit_b):

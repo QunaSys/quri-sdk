@@ -92,6 +92,7 @@ def generate_device_property(
 
     trans = SequentialTranspiler(
         [
+            GateSetConversionTranspiler(native_gates),
             SquareLatticeSWAPInsertionTranspiler(lattice),
             GateSetConversionTranspiler(native_gates),
         ]

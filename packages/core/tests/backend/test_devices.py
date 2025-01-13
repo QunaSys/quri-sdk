@@ -167,3 +167,31 @@ def test_nisq_spcond_device() -> None:
         0.0 < estimate_circuit_fidelity(circuit, device, background_error=False) < 1.0
     )
     assert 0.0 < estimate_circuit_latency(circuit, device).value
+
+
+def test_nisq_spcond_device_trans() -> None:
+    native_gates: set[gate_names.GateNameType] = {
+        gate_names.RZ,
+        gate_names.SqrtX,
+        gate_names.X,
+        gate_names.CNOT,
+    }
+
+    device_prop = nisq_spcond_lattice.generate_device_property(
+        lattice=SquareLattice(4, 4),
+        native_gates=native_gates,
+        gate_error_1q=1e-3,
+        gate_error_2q=1e-2,
+        gate_error_meas=1e-2,
+        gate_time_1q=TimeValue(60, TimeUnit.NANOSECOND),
+        gate_time_2q=TimeValue(660, TimeUnit.NANOSECOND),
+        gate_time_meas=TimeValue(1.4, TimeUnit.MICROSECOND),
+    )
+
+    circuit = QuantumCircuit(4)
+    circuit.add_PauliRotation_gate((2, 0), (3, 3), 0.1)
+
+    assert device_prop.transpiler is not None
+    tc1 = device_prop.transpiler(circuit)
+    tc2 = device_prop.transpiler(tc1)
+    assert tc1.gates == tc2.gates
