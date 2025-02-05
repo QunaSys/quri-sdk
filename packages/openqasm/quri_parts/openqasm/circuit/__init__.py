@@ -45,6 +45,7 @@ OpenQASMTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspil
 _HEADER = """OPENQASM 3;
 include "stdgates.inc";"""
 _QUBIT_VAR_NAME = "q"
+_BIT_VAR_NAME = "c"
 
 # For information on "stdgates.inc", see https://arxiv.org/abs/2104.14722v2
 
@@ -105,9 +106,11 @@ def convert_to_qasm(circuit: "ImmutableQuantumCircuit", text_io: io.TextIOBase) 
     """
     text_io.write(_HEADER + "\n")
     text_io.write(f"qubit[{int(circuit.qubit_count)}] {_QUBIT_VAR_NAME};\n")
+    text_io.write(f"bit[{int(circuit.qubit_count)}] {_BIT_VAR_NAME};\n")
     for gate in circuit.gates:
         text_io.write("\n")
         text_io.write(convert_gate_to_qasm_line(gate))
+    text_io.write(f"\n{_BIT_VAR_NAME} = measure {_QUBIT_VAR_NAME};")
 
 
 def convert_to_qasm_str(circuit: "ImmutableQuantumCircuit") -> str:

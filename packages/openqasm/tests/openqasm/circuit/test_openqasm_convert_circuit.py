@@ -124,8 +124,10 @@ class TestConvertToQasm:
         expected = """OPENQASM 3;
 include "stdgates.inc";
 qubit[7] q;
+bit[7] c;
 
 x q[0];
-z q[6];"""
+z q[6];
+c = measure q;"""
 
         assert actual == expected
