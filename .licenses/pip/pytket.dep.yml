@@ -1,6 +1,6 @@
 ---
 name: pytket
-version: 1.37.0
+version: 1.41.0
 type: pip
 summary: Quantum computing toolkit and interface to the TKET compiler
 homepage: ''

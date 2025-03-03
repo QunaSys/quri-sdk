@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         python_version:
-          - 3.9
+          - '3.10'
 
     runs-on: ubuntu-latest
 
