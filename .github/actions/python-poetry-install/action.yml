@@ -13,6 +13,10 @@ runs:
   using: "composite"
   steps:
 
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+
     - name: Install Poetry
       env:
         POETRY_VERSION: ${{ inputs.poetry-version }}
@@ -22,8 +26,4 @@ runs:
         pip install --user --upgrade pip
         curl -sSL https://install.python-poetry.org | python3 -
         echo "$HOME/.poetry/bin" >> $GITHUB_PATH
-
-    - uses: actions/setup-python@v4
-      with:
-        python-version: ${{ inputs.python-version }}
 
