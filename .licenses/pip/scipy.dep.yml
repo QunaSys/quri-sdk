@@ -3,7 +3,7 @@ name: scipy
 version: 1.15.2
 type: pip
 summary: Fundamental algorithms for scientific computing in Python
-homepage: ''
+homepage: https://scipy.org/
 license: bsd-3-clause
 licenses:
 - sources: LICENSE.txt

@@ -17,3 +17,4 @@
 # -e ./packages/pyscf
 # -e ./packages/itensor
 # -e ./packages/tket
+# -e ./packages/qsub

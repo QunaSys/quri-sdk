@@ -1,6 +1,6 @@
 ---
 name: symengine
-version: 0.10.0
+version: 0.13.0
 type: pip
 summary: Python library providing wrappers to SymEngine
 homepage: https://github.com/symengine/symengine.py
@@ -306,3 +306,4 @@ notices:
     Pieter Eendebak <pieter.eendebak@gmail.com>
     Ayush Kumar <ayushk7102@gmail.com>
     Christian Clauss <cclauss@me.com>
+    Moraxyc <i@qaq.li>

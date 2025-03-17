@@ -1,8 +1,8 @@
 ---
 name: typing_extensions
-version: 4.6.3
+version: 4.12.2
 type: pip
-summary: Backported and Experimental Type Hints for Python 3.7+
+summary: Backported and Experimental Type Hints for Python 3.8+
 homepage: ''
 license: psf-2.0
 licenses:

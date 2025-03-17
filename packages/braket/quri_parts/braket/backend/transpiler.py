@@ -10,12 +10,7 @@
 
 from braket.aws import AwsDevice
 
-from quri_parts.circuit.transpile import (
-    CircuitTranspiler,
-    CZ2CNOTHTranspiler,
-    Identity2RZTranspiler,
-    SequentialTranspiler,
-)
+from quri_parts.circuit.transpile import CZ2CNOTHTranspiler, SequentialTranspiler
 
 
 class AwsDeviceTranspiler(SequentialTranspiler):
@@ -31,7 +26,7 @@ class AwsDeviceTranspiler(SequentialTranspiler):
     """
 
     def __init__(self, device: AwsDevice):
-        transpilers: list[CircuitTranspiler] = []
+        transpilers = []
         device_action = device.properties.dict()["action"]
         if "braket.ir.jaqcd.program" in device_action.keys():
             device_operation = device_action["braket.ir.jaqcd.program"][
@@ -44,6 +39,4 @@ class AwsDeviceTranspiler(SequentialTranspiler):
 
         if "cz" not in device_operation:
             transpilers.append(CZ2CNOTHTranspiler())
-        if "i" not in device_operation:
-            transpilers.append(Identity2RZTranspiler())
         super().__init__(transpilers)

@@ -1,10 +1,10 @@
 ---
 name: qiskit
-version: 1.2.4
+version: 1.4.1
 type: pip
 summary: An open-source SDK for working with quantum computers at the level of extended
   quantum circuits, operators, and primitives.
-homepage: ''
+homepage: https://www.ibm.com/quantum/qiskit
 license: apache-2.0
 licenses:
 - sources: LICENSE.txt

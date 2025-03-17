@@ -1,6 +1,6 @@
 ---
 name: python-dateutil
-version: 2.8.2
+version: 2.9.0.post0
 type: pip
 summary: Extensions to the standard Python datetime module
 homepage: https://github.com/dateutil/dateutil

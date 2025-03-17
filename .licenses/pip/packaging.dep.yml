@@ -1,6 +1,6 @@
 ---
 name: packaging
-version: '23.1'
+version: '24.2'
 type: pip
 summary: Core utilities for Python packages
 homepage: ''

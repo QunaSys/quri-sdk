@@ -44,6 +44,7 @@ quri-parts-ionq = { version = "*", optional = true }
 quri-parts-itensor = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
 quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
+quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -58,6 +59,7 @@ ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
 tket = ["quri-parts-tket"]
+qsub = ["quri-parts-qsub"]
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-rust = {path = "packages/rust", develop = true}
@@ -77,6 +79,7 @@ quri-parts-ionq = {path = "packages/ionq", develop = true}
 quri-parts-itensor = {path = "packages/itensor", develop = true}
 quri-parts-pyscf = {path = "packages/pyscf", develop = true}
 quri-parts-tket = {path = "packages/tket", develop = true, python = ">=3.10" }
+quri-parts-qsub = {path = "packages/qsub", develop = true, python = ">=3.10" }
 
 # To avoid poetry downloading hundreds versions of botocore
 # https://github.com/python-poetry/poetry/issues/7858
