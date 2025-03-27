@@ -26,6 +26,7 @@ from quri_parts.circuit import (
 from quri_parts.circuit.gate_names import CliffordGateNameType, GateNameType
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
+    CliffordRZSetTranspiler,
     GateSetConversionTranspiler,
     ParametricRX2RZHTranspiler,
     ParametricRY2RZHTranspiler,
@@ -505,3 +506,27 @@ class TestGateSetConversion:
             gates.H(2),
             gates.S(2),
         ]
+
+
+class TestTypicalGateSetConversion:
+    def test_clifford_rz_set_transpile(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.add_H_gate(0)
+        circuit.add_CNOT_gate(0, 1)
+        circuit.add_RZ_gate(0, 0.5 * np.pi)
+        circuit.add_RZ_gate(1, 0.25 * np.pi)
+        circuit.add_RZ_gate(2, 0.5 * np.pi)
+        circuit.add_RZ_gate(2, 0.25 * np.pi)
+
+        transpiler = CliffordRZSetTranspiler()
+        transpiled_circuit = transpiler(circuit)
+
+        expected_gates = [
+            gates.H(0),
+            gates.CNOT(0, 1),
+            gates.S(0),
+            gates.RZ(1, 0.25 * np.pi),
+            gates.RZ(2, 0.75 * np.pi),
+        ]
+
+        assert list(transpiled_circuit.gates) == expected_gates

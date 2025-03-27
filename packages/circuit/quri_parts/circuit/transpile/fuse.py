@@ -236,8 +236,9 @@ class RZ2NamedTranspiler(GateKindDecomposer):
     """Convert RZ gate to Identity, Z, S, Sdag, T, or Tdag gate if it is
     equivalent to a sequence of these gates."""
 
-    def __init__(self, epsilon: float = 1.0e-9):
+    def __init__(self, epsilon: float = 1.0e-9, allow_t_tdag: bool = True):
         self._epsilon = epsilon
+        self._allow_t_tdag = allow_t_tdag
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -253,19 +254,19 @@ class RZ2NamedTranspiler(GateKindDecomposer):
         if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
             return [gates.Identity(target)]
         elif self._is_close(theta, np.pi / 4.0):
-            return [gates.T(target)]
+            return [gates.T(target)] if self._allow_t_tdag else [gate]
         elif self._is_close(theta, np.pi / 2.0):
             return [gates.S(target)]
         elif self._is_close(theta, 3.0 * np.pi / 4.0):
-            return [gates.S(target), gates.T(target)]
+            return [gates.S(target), gates.T(target)] if self._allow_t_tdag else [gate]
         elif self._is_close(theta, np.pi):
             return [gates.Z(target)]
         elif self._is_close(theta, 5.0 * np.pi / 4.0):
-            return [gates.Z(target), gates.T(target)]
+            return [gates.Z(target), gates.T(target)] if self._allow_t_tdag else [gate]
         elif self._is_close(theta, 3.0 * np.pi / 2.0):
             return [gates.Sdag(target)]
         elif self._is_close(theta, 7.0 * np.pi / 4.0):
-            return [gates.Tdag(target)]
+            return [gates.Tdag(target)] if self._allow_t_tdag else [gate]
         else:
             return [gate]
 
