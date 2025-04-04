@@ -479,7 +479,13 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         target_gateset: A Sequence of allowed output gate names.
     """
 
-    def __init__(self, target_gateset: Iterable[GateNameType], epsilon: float = 1.0e-9):
+    def __init__(
+        self,
+        target_gateset: Iterable[GateNameType],
+        epsilon: float = 1.0e-9,
+        validation: bool = True,
+    ):
+        self._validation = validation
         self._epsilon = epsilon
         self._gateset = set(target_gateset)
         self._target_clifford = cast(
@@ -588,5 +594,6 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
 
     def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         tr_circuit = self._decomposer(circuit)
-        self._validate(tr_circuit)
+        if self._validation:
+            self._validate(tr_circuit)
         return tr_circuit

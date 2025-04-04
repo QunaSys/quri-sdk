@@ -194,6 +194,7 @@ def test_convert_pauli_rotation_gate() -> None:
 def test_convert_circuit() -> None:
     circuit = QuantumCircuit(3)
     original_gates = [
+        gates.Identity(0),
         gates.X(1),
         gates.H(2),
         gates.CNOT(0, 2),
@@ -207,6 +208,7 @@ def test_convert_circuit() -> None:
     assert converted.get_qubit_count() == 3
 
     expected_gates = [
+        qulacs.gate.Identity(0),
         qulacs.gate.X(1),
         qulacs.gate.H(2),
         qulacs.gate.CNOT(0, 2),

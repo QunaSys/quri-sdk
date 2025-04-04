@@ -12,7 +12,11 @@ pub fn convert_add_gate<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     match gate {
         QuantumGate::Identity(q1) => {
-            qulacs_circuit.call_method1("add_Identity_gate", (*q1,))?;
+            let identity_gate = py
+                .import_bound("qulacs.gate")?
+                .getattr("Identity")?
+                .call1((*q1,))?;
+            qulacs_circuit.call_method1("add_gate", (identity_gate,))?;
         }
         QuantumGate::X(q1) => {
             qulacs_circuit.call_method1("add_X_gate", (*q1,))?;

@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Callable, Optional, Type
+from typing import Callable, Optional, Type, Union
 
 import numpy as np
 import qiskit.circuit.library as qgate
@@ -41,6 +41,7 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
     [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit
@@ -75,9 +76,12 @@ _single_qubit_rotation_gate_qiskit: Mapping[SingleQubitGateNameType, Type[Gate]]
     gate_names.RZ: qgate.RZGate,
 }
 
-_two_qubit_gate_qiskit: Mapping[TwoQubitGateNameType, Type[Gate]] = {
+_two_qubit_gate_qiskit: Mapping[
+    Union[TwoQubitGateNameType, QiskitTwoQubitGateNameType], Type[Gate]
+] = {
     gate_names.CNOT: qgate.CXGate,
     gate_names.CZ: qgate.CZGate,
+    ECR: qgate.ECRGate,
     gate_names.SWAP: qgate.SwapGate,
 }
 

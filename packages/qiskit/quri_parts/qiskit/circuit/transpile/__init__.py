@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Optional
+from typing import Optional, Union
 
 from qiskit import transpile
 from qiskit.providers import Backend
@@ -18,8 +18,9 @@ from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
+from quri_parts.qiskit.circuit.gate_names import ECR, QiskitGateNameType
 
-_qp_qiskit_gate_name_map: Mapping[GateNameType, str] = {
+_qp_qiskit_gate_name_map: Mapping[Union[GateNameType, QiskitGateNameType], str] = {
     gate_names.Identity: "id",
     gate_names.X: "x",
     gate_names.Y: "y",
@@ -37,8 +38,10 @@ _qp_qiskit_gate_name_map: Mapping[GateNameType, str] = {
     gate_names.U3: "u",
     gate_names.CNOT: "cx",
     gate_names.CZ: "cz",
+    ECR: "ecr",
     gate_names.SWAP: "swap",
     gate_names.TOFFOLI: "ccx",
+    gate_names.Measurement: "measure",
 }
 
 
@@ -63,7 +66,7 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         backend: Optional[Backend] = None,
-        basis_gates: Optional[Sequence[GateNameType]] = None,
+        basis_gates: Optional[Sequence[Union[GateNameType, QiskitGateNameType]]] = None,
         optimization_level: Optional[int] = None,
     ):
         self._basis_gates: Optional[list[str]] = None

@@ -34,7 +34,6 @@ networkx = "*"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
-
 quri-parts-qulacs = {path = "../qulacs", develop = true}
 pytest = "^7.0.1"
 flake8 = "^4.0.1"

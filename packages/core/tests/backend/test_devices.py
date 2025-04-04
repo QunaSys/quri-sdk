@@ -117,7 +117,8 @@ def test_nisq_iontrap_device() -> None:
 
     device = nisq_iontrap_device.generate_device_property(
         qubit_count=16,
-        native_gates=native_gates,
+        native_gates_1q=native_gates & gate_names.SINGLE_QUBIT_GATE_NAMES,
+        native_gates_2q=native_gates & gate_names.TWO_QUBIT_GATE_NAMES,
         gate_error_1q=1.0e-5,
         gate_error_2q=1.0e-3,
         gate_error_meas=1.0e-3,
@@ -148,7 +149,8 @@ def test_nisq_spcond_device() -> None:
 
     device = nisq_spcond_lattice.generate_device_property(
         lattice=SquareLattice(4, 4),
-        native_gates=native_gates,
+        native_gates_1q=native_gates & gate_names.SINGLE_QUBIT_GATE_NAMES,
+        native_gates_2q=native_gates & gate_names.TWO_QUBIT_GATE_NAMES,
         gate_error_1q=1.0e-4,
         gate_error_2q=1.0e-2,
         gate_error_meas=1.0e-2,
@@ -179,7 +181,8 @@ def test_nisq_spcond_device_trans() -> None:
 
     device_prop = nisq_spcond_lattice.generate_device_property(
         lattice=SquareLattice(4, 4),
-        native_gates=native_gates,
+        native_gates_1q=native_gates & gate_names.SINGLE_QUBIT_GATE_NAMES,
+        native_gates_2q=native_gates & gate_names.TWO_QUBIT_GATE_NAMES,
         gate_error_1q=1e-3,
         gate_error_2q=1e-2,
         gate_error_meas=1e-2,

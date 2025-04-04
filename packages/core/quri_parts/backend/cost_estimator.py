@@ -2,7 +2,6 @@ from collections.abc import Collection, Mapping
 from typing import Callable, cast
 
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumGate
-from quri_parts.circuit.gate_names import GateNameType
 
 from .device import DeviceProperty
 from .units import TimeUnit, TimeValue
@@ -36,7 +35,7 @@ def _gate_kind_weighted_depth(
 def _estimate_gate_latency(
     circuit: NonParametricQuantumCircuit,
     device: DeviceProperty,
-    kinds: Collection[GateNameType] = [],
+    kinds: Collection[str] = [],
 ) -> TimeValue:
     latency = 0.0
     for gate in circuit.gates:
@@ -80,7 +79,7 @@ def estimate_circuit_latency(
 def _estimate_gate_fidelity(
     circuit: NonParametricQuantumCircuit,
     device: DeviceProperty,
-    kinds: Collection[GateNameType] = [],
+    kinds: Collection[str] = [],
 ) -> float:
     fidelity = 1.0
     for gate in circuit.gates:

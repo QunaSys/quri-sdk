@@ -10,10 +10,11 @@
 
 from typing import Callable
 
+from quri_parts.circuit import gate_names
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
+    GateSetConversionTranspiler,
     ParallelDecomposer,
-    RotationSetTranspiler,
     SequentialTranspiler,
 )
 
@@ -33,7 +34,10 @@ from .quantinuum_native_transpiler import (
 QuantinuumSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
     [
         CZ2RZZZTranspiler(),
-        RotationSetTranspiler(),
+        GateSetConversionTranspiler(
+            [gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT],
+            validation=False,
+        ),
         CNOTRZ2RZZTranspiler(),
         ParallelDecomposer(
             [
