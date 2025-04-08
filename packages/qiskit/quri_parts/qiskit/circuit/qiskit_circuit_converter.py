@@ -11,6 +11,7 @@
 from collections.abc import Mapping
 from typing import Union
 
+from qiskit import transpile
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 
 from quri_parts.circuit import (
@@ -72,11 +73,28 @@ _U_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
 
 def circuit_from_qiskit(
     qiskit_circuit: QiskitQuantumCircuit,
+    pre_conversion: bool = False,
 ) -> ImmutableQuantumCircuit:
     """Converts a :class:`qiskit.QuantumCircuit` to
-    :class:`ImmutableQuantumCircuit`."""
+    :class:`ImmutableQuantumCircuit`.
+
+    Args:
+        qiskit_circuit: Qiskit QuantumCircuit to be converted to QURI Parts.
+        pre_conversion: Convert gates not supported by QURI Parts in advance on the
+            Qiskit side.
+    """
     qubit_count = qiskit_circuit.num_qubits
     circuit = QuantumCircuit(qubit_count)
+
+    if pre_conversion:
+        allowed_gates = (
+            _single_qubit_gate_qiskit_quri_parts.keys()
+            | _single_qubit_rotation_gate_qiskit_quri_parts.keys()
+            | _two_qubit_gate_qiskit_quri_parts.keys()
+            | _three_qubits_gate_quri_parts.keys()
+            | _U_gate_qiskit_quri_parts.keys()
+        )
+        qiskit_circuit = transpile(qiskit_circuit, basis_gates=allowed_gates)
 
     for instruction, q, r in qiskit_circuit:
         gname = instruction.name

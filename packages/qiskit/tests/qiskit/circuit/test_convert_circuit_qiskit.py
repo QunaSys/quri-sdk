@@ -176,24 +176,24 @@ def test_convert_circuit() -> None:
 
 
 def test_convert_pauli() -> None:
-    circuit = QuantumCircuit(4)
+    circuit = QuantumCircuit(5)
     original_gates = [
-        gates.Pauli([0, 1, 2, 3], [1, 2, 3, 1]),
-        gates.PauliRotation([0, 1, 2, 3], [1, 2, 3, 2], 0.266),
+        gates.Pauli([0, 1, 3, 4], [1, 2, 3, 1]),
+        gates.PauliRotation([0, 1, 3, 4], [1, 2, 3, 2], 0.266),
     ]
     for gate in original_gates:
         circuit.add_gate(gate)
 
-    converted = convert_circuit(circuit)
-    assert converted.num_qubits == 4
+    converted = convert_circuit(circuit, transpiler=None)
+    assert converted.num_qubits == 5
 
     X = qi.SparsePauliOp("X")
     Y = qi.SparsePauliOp("Y")
     Z = qi.SparsePauliOp("Z")
-    expected = QiskitQuantumCircuit(4)
-    expected.pauli(pauli_string="XZYX", qubits=[0, 1, 2, 3])
+    expected = QiskitQuantumCircuit(5)
+    expected.pauli(pauli_string="XZYX", qubits=[0, 1, 3, 4])
     evo = qgate.PauliEvolutionGate(Y ^ Z ^ Y ^ X, time=0.133)
-    expected.append(evo, [0, 1, 2, 3])
+    expected.append(evo, [0, 1, 3, 4])
 
     assert circuit_equal(converted, expected)
 

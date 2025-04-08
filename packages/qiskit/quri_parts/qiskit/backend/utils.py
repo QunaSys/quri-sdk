@@ -16,7 +16,6 @@ from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
-from quri_parts.qiskit.circuit import QiskitSetTranspiler
 
 DEFAULT_MAX_SHOT = int(1e6)
 
@@ -107,10 +106,9 @@ def get_job_mapper_and_circuit_transpiler(
             2 → 5, 3 → 0, then the ``qubit_mapping`` should be
             ``{0: 4, 1: 2, 2: 5, 3: 0}``.
         circuit_transpiler: A transpiler applied to the circuit before running it.
-            :class:`~QiskitSetTranspiler` is used when not specified.
     """
     if circuit_transpiler is None:
-        circuit_transpiler = QiskitSetTranspiler()
+        circuit_transpiler = SequentialTranspiler([])
 
     if qubit_mapping:
         mapper = BackendQubitMapping(qubit_mapping)

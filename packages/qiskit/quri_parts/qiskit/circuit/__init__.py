@@ -8,17 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .circuit_converter import (
-    QiskitCircuitConverter,
-    QiskitSetTranspiler,
-    convert_circuit,
-    convert_gate,
-)
+from .circuit_converter import QiskitCircuitConverter, convert_circuit, convert_gate
 from .qiskit_circuit_converter import circuit_from_qiskit
 
 __all__ = [
     "QiskitCircuitConverter",
-    "QiskitSetTranspiler",
     "convert_gate",
     "convert_circuit",
     "circuit_from_qiskit",
