@@ -79,6 +79,7 @@ jobs:
           rm -rf README.md pyproject.toml quri_parts docs
           mv packages/rust/pyproject.toml .
           mv packages/rust/quri_parts .
+          rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub
           echo 'manifest-path = "packages/rust/Cargo.toml"' >> pyproject.toml
           poetry run maturin build --sdist -i python3.11 --out dist -m packages/rust/Cargo.toml -vv
           rm dist/*.whl
@@ -87,15 +88,16 @@ jobs:
           git reset --hard
           poetry install -vv --only dev
           poetry run pip uninstall -y quri-parts-rust
+          rm -rf quri_parts
           poetry run pip install dist/*.tar.gz
           poetry run pytest packages
-
 
       - uses: actions/upload-artifact@v4
         with:
           name: quri-parts-packages-rust-sdist
           path: dist/*
           if-no-files-found: error
+          overwrite: true
 
   rust-wheel-package:
     name: Rust wheel package on ${{matrix.system.os}}-${{matrix.python-version}}
@@ -105,7 +107,7 @@ jobs:
       fail-fast: false
       matrix:
         system:
-          - os: "ubuntu-latest"
+          - os: "ubuntu-20.04"
             target: "x86_64-unknown-linux-gnu"
           - os: "macos-13"
             target: "x86_64-apple-darwin"
@@ -159,6 +161,7 @@ jobs:
             fi
             cd ..
           done
+          ls ../dist
 
       - name: Run test
         shell: bash
@@ -185,6 +188,7 @@ jobs:
           name: quri-parts-packages-rust-whl-${{matrix.system.target}}-${{matrix.python-version}}
           path: dist/*
           if-no-files-found: error
+          overwrite: true
 
   python-package:
     needs: [pre-check]
@@ -199,13 +203,14 @@ jobs:
     - uses: ./.github/actions/python-poetry-install
       with:
         poetry-version: '1.4.0'
-        python-version: '3.9'
+        python-version: '3.10'
 
-    - run: |
+    - shell: bash
+      run: |
+        pip install setuptools
+        poetry env use 3.10
+        poetry self add setuptools
         poetry self add "poetry-dynamic-versioning[plugin]"
-
-    - run: |
-        poetry env use 3.9
         mkdir -p dist
         cp -f NOTICE quri_parts/
         poetry build
@@ -226,6 +231,7 @@ jobs:
         name: quri-parts-packages-python
         path: dist/*
         if-no-files-found: error
+        overwrite: true
 
   merge:
     needs: [python-package, rust-wheel-package, rust-sdist-package]
