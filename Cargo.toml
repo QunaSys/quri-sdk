@@ -1,6 +1,6 @@
 [package]
 name = "quri-parts"
-version = "0.20.3"
+version = "0.21.0"
 edition = "2021"
 description = "Platform-independent quantum computing library"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]
@@ -22,7 +22,5 @@ features = ["extension-module"]
 optional = true
 
 [workspace]
-members = [
-	"packages/rust",
-]
+members = ["packages/rust"]
 resolver = "2"

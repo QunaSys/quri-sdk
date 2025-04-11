@@ -12,27 +12,22 @@ readme = "README.md"
 repository = "https://github.com/QunaSys/quri-parts"
 documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
-classifiers = [
-    "Topic :: Scientific/Engineering :: Physics",
-    "Typing :: Typed"
-]
-packages = [
-    { include = "quri_parts" }
-]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
+packages = [{ include = "quri_parts" }]
 
 [tool.poetry-dynamic-versioning]
 enable = true
 style = "pep440"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.10,<3.12"
 quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
-qulacsvis = { git = "https://github.com/QunaSys/qulacs-visualizer", rev = "control_swap" }
+qulacsvis = "^0.7.3"
 
 [tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../circuit", develop = true}
-quri-parts-qulacs = {path = "../qulacs", develop = true}
+quri-parts-circuit = { path = "../circuit", develop = true }
+quri-parts-qulacs = { path = "../qulacs", develop = true }
 
 pytest = "^7.0.1"
 flake8 = "^4.0.1"

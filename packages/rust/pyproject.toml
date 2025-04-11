@@ -3,23 +3,16 @@ requires = ["poetry-core>=1.0.0", "maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-dependencies = [
-	"typing-extensions>=4.1.1,<5.0.0",
-	"numpy>=1.22.0",
-]
+dependencies = ["typing-extensions>=4.1.1,<5.0.0", "numpy>=1.22.0"]
 name = "quri-parts-rust"
-version = "0.20.3"
+version = "0.21.0"
 description = "Platform-independent quantum circuit library"
-license = { text = "Apache-2.0"}
-authors = [
-	{name = "QURI Parts Authors", email = "<opensource@qunasys.com>"},
-]
+license = { text = "Apache-2.0" }
+
+authors = [{ name = "QURI Parts Authors", email = "<opensource@qunasys.com>" }]
 requires-python = ">=3.9.8,<4.0.0"
 keywords = ["quantum", "quantum computing"]
-classifiers = [
-    "Topic :: Scientific/Engineering :: Physics",
-    "Typing :: Typed"
-]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
 
 [project.urls]
 Repository = "https://github.com/QunaSys/quri-parts"
@@ -28,7 +21,7 @@ Documentation = "https://quri-parts.qunasys.com"
 # The followings is needed for rust-sdist-package CI
 [tool.poetry]
 name = "quri-parts-rust"
-version = "0.20.3"
+version = "0.21.0"
 description = "Platform-independent quantum circuit library"
 license = "Apache-2.0"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]
@@ -36,13 +29,8 @@ readme = "README.md"
 repository = "https://github.com/QunaSys/quri-parts"
 documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
-classifiers = [
-    "Topic :: Scientific/Engineering :: Physics",
-    "Typing :: Typed"
-]
-packages = [
-    { include = "quri_parts" }
-]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
+packages = [{ include = "quri_parts" }]
 
 [tool.poetry.dependencies]
 python = "^3.9.8"
