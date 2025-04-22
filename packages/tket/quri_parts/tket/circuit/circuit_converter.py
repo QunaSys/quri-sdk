@@ -12,8 +12,7 @@ from collections.abc import Mapping
 from typing import Sequence
 
 from numpy import array, pi
-from pytket import Circuit, OpType
-from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
+from pytket.circuit import Circuit, Op, OpType, Unitary1qBox, Unitary2qBox, Unitary3qBox
 
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
@@ -70,30 +69,31 @@ _special_named_gate_matrix: Mapping[
 
 def convert_gate(
     gate: QuantumGate,
-) -> OpType:
+) -> Op:
     if is_single_qubit_gate_name(gate.name):
         if gate.name in _single_qubit_gate_tket:
-            return _single_qubit_gate_tket[gate.name]
+            return Op.create(_single_qubit_gate_tket[gate.name])
 
         elif gate.name in _special_named_gate_matrix:
-            return Unitary1qBox(_special_named_gate_matrix[gate.name])
+            return Unitary1qBox(array(_special_named_gate_matrix[gate.name]))
 
         else:
-            return _single_qubit_rotation_gate_tket[gate.name]
+            params = [float(p / pi) for p in gate.params]
+            return Op.create(_single_qubit_rotation_gate_tket[gate.name], params)
 
     elif is_two_qubit_gate_name(gate.name):
-        return _two_qubit_gate_tket[gate.name]
+        return Op.create(_two_qubit_gate_tket[gate.name])
 
     elif is_three_qubit_gate_name(gate.name):
-        return _three_qubit_gate_tket[gate.name]
+        return Op.create(_three_qubit_gate_tket[gate.name])
 
     elif is_unitary_matrix_gate_name(gate.name):
         if len(gate.target_indices) == 1:
-            return Unitary1qBox(gate.unitary_matrix)
+            return Unitary1qBox(array(gate.unitary_matrix))
         elif len(gate.target_indices) == 2:
-            return Unitary2qBox(gate.unitary_matrix)
+            return Unitary2qBox(array(gate.unitary_matrix))
         elif len(gate.target_indices) == 3:
-            return Unitary3qBox(gate.unitary_matrix)
+            return Unitary3qBox(array(gate.unitary_matrix))
         else:
             raise ValueError("tKet only supports unitary gates up to 3 qubits")
 
@@ -108,43 +108,6 @@ def convert_gate(
 def convert_circuit(circuit: ImmutableQuantumCircuit) -> Circuit:
     tket_circuit = Circuit(circuit.qubit_count)
     for gate in circuit.gates:
-        if gate.name in _single_qubit_gate_tket:
-            target_qubit = gate.target_indices
-            tket_circuit.add_gate(convert_gate(gate), target_qubit)
-
-        elif gate.name in _single_qubit_rotation_gate_tket:
-            target_qubit = gate.target_indices
-            params = array(gate.params) / pi
-            tket_circuit.add_gate(convert_gate(gate), params, target_qubit)
-
-        elif gate.name in _two_qubit_gate_tket:
-            target_qubit = gate.target_indices
-            control_qubit = gate.control_indices
-            tket_circuit.add_gate(convert_gate(gate), (*control_qubit, *target_qubit))
-
-        elif gate.name in _three_qubit_gate_tket:
-            target_qubit = tuple(gate.target_indices)
-            control_qubit = tuple(gate.control_indices)
-            tket_circuit.add_gate(convert_gate(gate), control_qubit + target_qubit)
-
-        elif gate.name in _special_named_gate_matrix:
-            target_qubit = gate.target_indices
-            tket_circuit.add_unitary1qbox(convert_gate(gate), target_qubit[0])
-
-        elif gate.name == "UnitaryMatrix":
-            if len(gate.target_indices) == 1:
-                target_qubit = gate.target_indices
-                tket_circuit.add_unitary1qbox(convert_gate(gate), *target_qubit)
-            elif len(gate.target_indices) == 2:
-                target_qubit = gate.target_indices
-                tket_circuit.add_unitary2qbox(convert_gate(gate), *target_qubit)
-            elif len(gate.target_indices) == 3:
-                target_qubit = gate.target_indices
-                tket_circuit.add_unitary3qbox(convert_gate(gate), *target_qubit)
-            else:
-                raise ValueError("tKet only supports unitary gates up to 3 qubits")
-
-        else:
-            raise ValueError(f"{gate.name} gate is not supported.")
-
+        converted = convert_gate(gate)
+        tket_circuit.add_gate(converted, (*gate.control_indices, *gate.target_indices))
     return tket_circuit

@@ -10,7 +10,7 @@ pub mod parameter;
 #[derive(Clone, Debug, PartialEq)]
 pub enum MaybeUnbound {
     Bound(f64),
-    Unbound(parameter::Wrapper),
+    Unbound(parameter::Parameter),
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {

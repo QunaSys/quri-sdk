@@ -9,11 +9,11 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, Sequence, Type, cast
+from typing import Callable, Sequence
 
 import numpy as np
 from pytket import Circuit, OpType, Qubit
-from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
+from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox
 from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
@@ -22,9 +22,9 @@ from quri_parts.tket.circuit import convert_circuit
 
 def circuit_equal(c1: Circuit, c2: Circuit) -> bool:
     def qubits_to_idx_list(qubits: Sequence[Qubit]) -> list[int]:
-        get_index_number_from_qubit: Callable[[Qubit], int] = lambda qubit: cast(
-            int, qubit.index[0]
-        )
+        get_index_number_from_qubit: Callable[[Qubit], int] = lambda qubit: qubit.index[
+            0
+        ]
         return list(map(get_index_number_from_qubit, qubits))
 
     for gate1, gate2 in zip(c1, c2):
@@ -120,7 +120,7 @@ def test_convert_single_qubit_sgate() -> None:
         assert circuit_equal(converted, expected)
 
 
-rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], Type[OpType]] = {
+rotation_gate_mapping: Mapping[Callable[[int, float], QuantumGate], OpType] = {
     gates.RX: OpType.Rx,
     gates.RY: OpType.Ry,
     gates.RZ: OpType.Rz,
@@ -208,7 +208,7 @@ def test_convert_unitary_matrix_1q_gate() -> None:
     qp_circuit.add_gate(qp_gate)
 
     tket_circuit = Circuit(n_qubit)
-    tket_circuit.add_unitary1qbox(Unitary1qBox(umat), target_index)
+    tket_circuit.add_unitary1qbox(Unitary1qBox(np.array(umat)), target_index)
 
     converted = convert_circuit(qp_circuit)
     expected = tket_circuit

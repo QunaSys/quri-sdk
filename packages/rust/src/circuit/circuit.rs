@@ -25,12 +25,10 @@ impl PartialEq for ImmutableQuantumCircuit {
         self.qubit_count == other.qubit_count
             && self.cbit_count == other.cbit_count
             && &self.gates.0.len() == &other.gates.0.len()
-            && self
-                .gates
-                .0
-                .iter()
-                .zip(&other.gates.0)
-                .all(|(l, r)| l.clone().into_property() == r.clone().into_property())
+            && self.gates.0.iter().zip(&other.gates.0).all(|(l, r)| {
+                l.clone().map_param(Some).into_property()
+                    == r.clone().map_param(Some).into_property()
+            })
     }
 }
 

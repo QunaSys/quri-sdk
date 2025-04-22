@@ -114,7 +114,7 @@ pub fn convert_add_gate<'py>(
         other => {
             return Err(PyRuntimeError::new_err(format!(
                 "{} is not supported",
-                &other.clone().into_property().name
+                &other.clone().map_param(Some).into_property().name
             )))
         }
     }

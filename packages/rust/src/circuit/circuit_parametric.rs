@@ -1,6 +1,6 @@
 use crate::circuit::circuit::ImmutableQuantumCircuit;
 use crate::circuit::gate::QuantumGate;
-use crate::circuit::parameter::{Parameter, Wrapper};
+use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
 use num_complex::Complex64;
 use pyo3::conversion::FromPyObject;
@@ -27,7 +27,27 @@ impl PartialEq for ImmutableParametricQuantumCircuit {
     fn eq(&self, other: &Self) -> bool {
         &self.qubit_count == &other.qubit_count
             && &self.cbit_count == &other.cbit_count
-            && &self.gates == &other.gates
+            && &self.gates.0.len() == &other.gates.0.len()
+            && self.gates.0.iter().zip(&other.gates.0).all(|(l, r)| {
+                l.clone()
+                    .map_param(|p| {
+                        if let MaybeUnbound::Bound(p) = p {
+                            Some(p)
+                        } else {
+                            None
+                        }
+                    })
+                    .into_property()
+                    == r.clone()
+                        .map_param(|p| {
+                            if let MaybeUnbound::Bound(p) = p {
+                                Some(p)
+                            } else {
+                                None
+                            }
+                        })
+                        .into_property()
+            })
     }
 }
 
@@ -35,9 +55,9 @@ impl ImmutableParametricQuantumCircuit {
     fn bind_parameters_internal(
         slf: &Bound<'_, Self>,
         params: Vec<f64>,
-    ) -> PyResult<(ImmutableQuantumCircuit, HashMap<Wrapper, f64>)> {
+    ) -> PyResult<(ImmutableQuantumCircuit, HashMap<Parameter, f64>)> {
         impl MaybeUnbound {
-            pub fn unwrap_or_else(&self, f: impl FnOnce(Wrapper) -> Option<f64>) -> Option<f64> {
+            pub fn unwrap_or_else(&self, f: impl FnOnce(Parameter) -> Option<f64>) -> Option<f64> {
                 match self {
                     Self::Bound(p) => Some(*p),
                     Self::Unbound(p) => f(p.clone()),
@@ -143,16 +163,64 @@ impl ImmutableParametricQuantumCircuit {
 #[pymethods]
 impl ImmutableParametricQuantumCircuit {
     #[new]
-    #[pyo3(signature = (circuit))]
+    #[pyo3(signature = (circuit=None))]
     #[pyo3(text_signature = "(circuit: ImmutableParametricQuantumCircuit)")]
-    fn py_new(circuit: &Self) -> Self {
-        ImmutableParametricQuantumCircuit {
-            qubit_count: circuit.qubit_count,
-            cbit_count: circuit.cbit_count,
-            gates: circuit.gates.clone(),
-            depth_cache: None,
-            is_immutable: false,
+    fn py_new(circuit: Option<&Self>) -> Self {
+        if let Some(circuit) = circuit {
+            ImmutableParametricQuantumCircuit {
+                qubit_count: circuit.qubit_count,
+                cbit_count: circuit.cbit_count,
+                gates: circuit.gates.clone(),
+                depth_cache: None,
+                is_immutable: true,
+            }
+        } else {
+            // used with __setstate__()
+            ImmutableParametricQuantumCircuit {
+                qubit_count: 0,
+                cbit_count: 0,
+                gates: BasicBlock(Vec::new()),
+                depth_cache: None,
+                is_immutable: true,
+            }
         }
+    }
+
+    #[pyo3(name = "__getstate__")]
+    fn py_getstate(
+        slf: Bound<'_, Self>,
+    ) -> PyResult<(usize, usize, Vec<(Py<PyAny>, Option<Parameter>)>)> {
+        let gates = Self::get_gates_and_params(slf.borrow())?;
+        let borrowed = slf.borrow();
+        Ok((borrowed.qubit_count, borrowed.cbit_count, gates))
+    }
+
+    #[pyo3(name = "__setstate__")]
+    fn py_setstate(
+        slf: Bound<'_, Self>,
+        state: (usize, usize, Vec<(Py<PyAny>, Option<Parameter>)>),
+    ) -> PyResult<()> {
+        let mut borrowed = slf.borrow_mut();
+        let gates = state
+            .2
+            .into_iter()
+            .map(|(gate, param)| {
+                if let Ok(gate) = gate.extract::<'_, '_, QuantumGate<f64>>(slf.py()) {
+                    Ok(gate.map_param(MaybeUnbound::Bound))
+                } else {
+                    let gate = gate.extract::<'_, '_, QuantumGate<()>>(slf.py())?;
+                    let param = param.ok_or(pyo3::exceptions::PyValueError::new_err(format!(
+                        "Requires parameter",
+                    )))?;
+                    Ok(gate.map_param(|()| MaybeUnbound::Unbound(param.clone())))
+                }
+            })
+            .collect::<PyResult<Vec<_>>>()?;
+        borrowed.gates = quri_parts::BasicBlock(gates);
+        borrowed.qubit_count = state.0;
+        borrowed.cbit_count = state.1;
+        borrowed.depth_cache = None;
+        Ok(())
     }
 
     #[getter]
@@ -162,19 +230,19 @@ impl ImmutableParametricQuantumCircuit {
             .iter()
             .map(|g| match g.clone().instantiate()? {
                 Ok(g) => Ok(QuantumGate::into_py(g, slf.py())),
-                Err(g) => Ok(Py::new(slf.py(), g.0)?.into_any()),
+                Err(g) => Ok(g.0.into_py(slf.py()).into_any()),
             })
             .collect()
     }
 
     #[getter]
-    fn get_gates_and_params(slf: PyRef<'_, Self>) -> PyResult<Vec<(Py<PyAny>, Option<Wrapper>)>> {
+    fn get_gates_and_params(slf: PyRef<'_, Self>) -> PyResult<Vec<(Py<PyAny>, Option<Parameter>)>> {
         slf.gates
             .0
             .iter()
             .map(|g| match g.clone().instantiate()? {
                 Ok(g) => Ok((QuantumGate::into_py(g, slf.py()), None)),
-                Err(g) => Ok((Py::new(slf.py(), g.0)?.into_any(), Some(g.1))),
+                Err(g) => Ok((g.0.into_py(slf.py()).into_any(), Some(g.1))),
             })
             .collect()
     }
@@ -183,7 +251,7 @@ impl ImmutableParametricQuantumCircuit {
     /// quri_parts.circuit.circuit_parametric.ImmutableBoundParametricQuantumCircuit
     #[allow(non_snake_case)]
     #[getter]
-    fn get__gates(slf: PyRef<'_, Self>) -> PyResult<Vec<(Py<PyAny>, Option<Wrapper>)>> {
+    fn get__gates(slf: PyRef<'_, Self>) -> PyResult<Vec<(Py<PyAny>, Option<Parameter>)>> {
         Self::get_gates_and_params(slf)
     }
 
@@ -219,17 +287,12 @@ impl ImmutableParametricQuantumCircuit {
     #[getter]
     fn get_param_mapping<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyAny>> {
         let params = Self::get__params(slf.borrow());
-        let py_params = params
-            .iter()
-            .map(|a| a.0.clone())
-            .collect::<Vec<_>>()
-            .into_py(slf.py());
         slf.py()
             .import_bound("quri_parts.circuit.parameter_mapping")?
             .getattr("LinearParameterMapping")?
             .call1((
-                py_params.clone(),
-                py_params.clone(),
+                params.clone(),
+                params.clone(),
                 params
                     .iter()
                     .map(|p| (p.clone(), p.clone()))
@@ -285,7 +348,7 @@ impl ImmutableParametricQuantumCircuit {
 
     fn bind_parameters_by_dict(
         slf: &Bound<'_, Self>,
-        params_dict: HashMap<Wrapper, f64>,
+        params_dict: HashMap<Parameter, f64>,
     ) -> PyResult<Py<ImmutableBoundParametricQuantumCircuit>> {
         let params = Self::get__params(slf.borrow());
         Self::bind_parameters(
@@ -306,7 +369,7 @@ impl ImmutableParametricQuantumCircuit {
 
     #[allow(non_snake_case)]
     #[getter]
-    fn get__params(slf: PyRef<'_, Self>) -> Vec<Wrapper> {
+    fn get__params(slf: PyRef<'_, Self>) -> Vec<Parameter> {
         slf.gates
             .0
             .iter()
@@ -413,7 +476,7 @@ impl ParametricQuantumCircuit {
 #[pymethods]
 impl ParametricQuantumCircuit {
     #[new]
-    #[pyo3(signature = (qubit_count, cbit_count=0))]
+    #[pyo3(signature = (qubit_count=0, cbit_count=0))]
     #[pyo3(text_signature = "(qubit_count: int, cbit_count: int = 0)")]
     fn py_new(qubit_count: usize, cbit_count: usize) -> (Self, ImmutableParametricQuantumCircuit) {
         let base = ImmutableParametricQuantumCircuit {
@@ -471,39 +534,45 @@ impl ParametricQuantumCircuit {
     }
 
     #[allow(non_snake_case)]
-    fn add_ParametricRX_gate(mut slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<Wrapper> {
-        let param = Py::new(slf.py(), Parameter::new(String::new()))?;
-        let pw = Wrapper(param);
+    fn add_ParametricRX_gate(
+        mut slf: PyRefMut<'_, Self>,
+        qubit_index: usize,
+    ) -> PyResult<Parameter> {
+        let param = Parameter::new(String::new());
         Self::add_gate_inner(
             &mut slf,
-            QuantumGate::RX(qubit_index, MaybeUnbound::Unbound(pw.clone())),
+            QuantumGate::RX(qubit_index, MaybeUnbound::Unbound(param.clone())),
             None,
         )?;
-        Ok(pw)
+        Ok(param)
     }
 
     #[allow(non_snake_case)]
-    fn add_ParametricRY_gate(mut slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<Wrapper> {
-        let param = Py::new(slf.py(), Parameter::new(String::new()))?;
-        let pw = Wrapper(param);
+    fn add_ParametricRY_gate(
+        mut slf: PyRefMut<'_, Self>,
+        qubit_index: usize,
+    ) -> PyResult<Parameter> {
+        let param = Parameter::new(String::new());
         Self::add_gate_inner(
             &mut slf,
-            QuantumGate::RY(qubit_index, MaybeUnbound::Unbound(pw.clone())),
+            QuantumGate::RY(qubit_index, MaybeUnbound::Unbound(param.clone())),
             None,
         )?;
-        Ok(pw)
+        Ok(param)
     }
 
     #[allow(non_snake_case)]
-    fn add_ParametricRZ_gate(mut slf: PyRefMut<'_, Self>, qubit_index: usize) -> PyResult<Wrapper> {
-        let param = Py::new(slf.py(), Parameter::new(String::new()))?;
-        let pw = Wrapper(param);
+    fn add_ParametricRZ_gate(
+        mut slf: PyRefMut<'_, Self>,
+        qubit_index: usize,
+    ) -> PyResult<Parameter> {
+        let param = Parameter::new(String::new());
         Self::add_gate_inner(
             &mut slf,
-            QuantumGate::RZ(qubit_index, MaybeUnbound::Unbound(pw.clone())),
+            QuantumGate::RZ(qubit_index, MaybeUnbound::Unbound(param.clone())),
             None,
         )?;
-        Ok(pw)
+        Ok(param)
     }
 
     #[allow(non_snake_case)]
@@ -511,19 +580,18 @@ impl ParametricQuantumCircuit {
         mut slf: PyRefMut<'_, Self>,
         target_indices: Vec<usize>,
         pauli_ids: Vec<u8>,
-    ) -> PyResult<Wrapper> {
-        let param = Py::new(slf.py(), Parameter::new(String::new()))?;
-        let pw = Wrapper(param);
+    ) -> PyResult<Parameter> {
+        let param = Parameter::new(String::new());
         Self::add_gate_inner(
             &mut slf,
             QuantumGate::PauliRotation(
                 target_indices.into(),
                 pauli_ids.into(),
-                MaybeUnbound::Unbound(pw.clone()),
+                MaybeUnbound::Unbound(param.clone()),
             ),
             None,
         )?;
-        Ok(pw)
+        Ok(param)
     }
 
     #[allow(non_snake_case)]
@@ -766,7 +834,7 @@ impl ParametricQuantumCircuit {
 )]
 #[derive(Debug)]
 pub struct ImmutableBoundParametricQuantumCircuit(
-    HashMap<Wrapper, f64>,
+    HashMap<Parameter, f64>,
     Py<ImmutableParametricQuantumCircuit>,
 );
 
@@ -781,9 +849,8 @@ impl ImmutableBoundParametricQuantumCircuit {
         let map = parameter_map
             .items()?
             .unbind()
-            .extract::<'_, '_, Vec<(Py<Parameter>, f64)>>(circuit.py())?
+            .extract::<'_, '_, Vec<(Parameter, f64)>>(circuit.py())?
             .into_iter()
-            .map(|(p, f)| (Wrapper(p), f))
             .collect();
         ImmutableParametricQuantumCircuit::bind_parameters_by_dict(&circuit, map)
     }
@@ -799,7 +866,7 @@ impl ImmutableBoundParametricQuantumCircuit {
     }
 
     #[getter]
-    fn get_parameter_map(&self) -> HashMap<Wrapper, f64> {
+    fn get_parameter_map(&self) -> HashMap<Parameter, f64> {
         self.0.clone()
     }
 

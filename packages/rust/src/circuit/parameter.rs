@@ -1,49 +1,10 @@
 use pyo3::prelude::*;
 
-#[derive(Clone, Debug)]
-pub struct Wrapper(pub Py<Parameter>);
-
-impl core::fmt::Display for Wrapper {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        Python::with_gil(|py| {
-            let p = self.0.borrow(py);
-            f.write_str(&format!("Parameter(name={})", &p.name))
-        })
-    }
-}
-
-impl core::cmp::PartialEq for Wrapper {
-    fn eq(&self, other: &Self) -> bool {
-        self.0.as_ptr() as usize == other.0.as_ptr() as usize
-    }
-}
-
-impl core::cmp::Eq for Wrapper {}
-
-impl core::hash::Hash for Wrapper {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        state.write_u64(self.0.as_ptr() as u64)
-    }
-}
-
-impl pyo3::conversion::IntoPy<PyObject> for Wrapper {
-    fn into_py(self, py: Python<'_>) -> PyObject {
-        self.0.into_py(py)
-    }
-}
-
-impl<'py> pyo3::conversion::FromPyObject<'py> for Wrapper {
-    fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-        Ok(Self(<Py<Parameter> as pyo3::conversion::FromPyObject<
-            'py,
-        >>::extract_bound(ob)?))
-    }
-}
-
-#[pyclass]
+#[pyclass(eq, get_all, ord, module = "quri_parts.rust.circuit.parameter")]
 #[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Parameter {
     name: String,
+    id: u64,
 }
 
 impl core::fmt::Display for Parameter {
@@ -57,11 +18,33 @@ impl Parameter {
     #[new]
     #[pyo3(signature = (name = String::new()))]
     pub fn new(name: String) -> Self {
-        Parameter { name: name.into() }
+        use std::sync::atomic::{AtomicU64, Ordering};
+        use std::sync::OnceLock;
+
+        // The `Parameter` may be sustained beyond processes with (un-)pickling. To prevent
+        // overlapping, here we should use random number unique for processes.
+        static RANDOM: OnceLock<u64> = OnceLock::new();
+
+        let random = RANDOM.get_or_init(|| {
+            use std::hash::{BuildHasher, Hasher};
+            std::collections::hash_map::RandomState::new()
+                .build_hasher()
+                .finish()
+        });
+
+        static COUNTER: AtomicU64 = AtomicU64::new(0);
+        let count = COUNTER
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |x| Some(x + 1))
+            .unwrap();
+
+        Parameter {
+            name: name.into(),
+            id: random ^ count,
+        }
     }
 
     #[getter]
-    fn get_name(&self) -> String {
+    pub(crate) fn get_name(&self) -> String {
         self.name.clone().into()
     }
 
@@ -70,36 +53,27 @@ impl Parameter {
         self.name = s.into();
     }
 
-    #[pyo3(name = "__eq__")]
-    fn py_eq(slf: Py<Self>, other: PyObject) -> bool {
-        slf.as_ptr() == other.as_ptr()
-    }
-
     #[pyo3(name = "__repr__")]
     fn py_repr(&self) -> String {
         format!("Parameter(name={})", &self.name)
     }
 
     #[pyo3(name = "__hash__")]
-    fn py_hash(slf: Py<Self>) -> usize {
-        slf.as_ptr() as usize
+    fn py_hash(slf: Bound<'_, Self>) -> u64 {
+        slf.borrow().id
     }
 
-    #[pyo3(name = "__reduce__")]
-    fn py_reduce(slf: Bound<'_, Self>) -> (PyObject, (String,)) {
-        (
-            Bound::new(
-                slf.py(),
-                Self {
-                    name: String::new(),
-                },
-            )
-            .unwrap()
-            .getattr("__class__")
-            .unwrap()
-            .unbind(),
-            (slf.borrow().name.clone().into(),),
-        )
+    #[pyo3(name = "__getstate__")]
+    fn py_getstate(slf: Bound<'_, Self>) -> (String, u64) {
+        let borrowed = slf.borrow();
+        (borrowed.name.clone(), borrowed.id)
+    }
+
+    #[pyo3(name = "__setstate__")]
+    fn py_setstate(slf: Bound<'_, Self>, state: (String, u64)) {
+        let mut borrowed = slf.borrow_mut();
+        borrowed.name = state.0;
+        borrowed.id = state.1;
     }
 }
 

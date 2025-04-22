@@ -84,7 +84,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
         if not (0 <= optimization_level <= 3):
             raise ValueError("optimization_level must be 0 to 3.")
 
-        self._basis_gates: Optional[set[str]] = None
+        self._basis_gates: Optional[set[OpType]] = None
         if basis_gates is not None:
             self._basis_gates = {_qp_tket_gate_name_map[name] for name in basis_gates}
 
@@ -102,14 +102,17 @@ class TketTranspiler(CircuitTranspilerProtocol):
 
         pass_list = []
         if self._optimization_level == 1:
-            pass_list.append(passes.SynthesiseTket())  # type: ignore
+            pass_list.append(passes.SynthesiseTket())
         elif self._optimization_level >= 2:
-            pass_list.append(passes.FullPeepholeOptimise())  # type: ignore
+            pass_list.append(passes.FullPeepholeOptimise())
 
         if self._basis_gates is not None:
-            pass_list.append(passes.auto_rebase_pass(self._basis_gates))
+            if hasattr(passes, "auto_rebase_pass"):
+                pass_list.append(passes.auto_rebase_pass(self._basis_gates))
+            else:
+                pass_list.append(passes.AutoRebase(self._basis_gates))
 
-        passes.SequencePass(pass_list).apply(tket_circ)  # type: ignore
+        passes.SequencePass(pass_list).apply(tket_circ)
         return circuit_from_tket(tket_circ)
 
 

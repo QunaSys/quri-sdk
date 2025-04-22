@@ -125,7 +125,10 @@ def circuit_from_tket(tket_circuit: Circuit) -> ImmutableQuantumCircuit:
             or gate_name == OpType.Unitary2qBox
             or gate_name == OpType.Unitary3qBox
         ):
-            matrix = operation.op.get_matrix()
+            if hasattr(operation.op, "get_matrix"):
+                matrix = operation.op.get_matrix()
+            else:
+                matrix = operation.op.get_unitary()
             circuit.add_UnitaryMatrix_gate(target_indices=qubits, unitary_matrix=matrix)
 
         else:

@@ -1,5 +1,5 @@
-use crate::circuit::gate::{GenericGateProperty, ParametricQuantumGate, QuantumGate};
-use crate::circuit::parameter::Wrapper;
+use crate::circuit::gate::{ParametricQuantumGate, QuantumGate};
+use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
@@ -154,15 +154,7 @@ pub fn rz<'py>(target_index: usize, angle: f64) -> QuantumGate {
     text_signature = "(target_index: int)",
 )]
 pub fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
-    ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricRX".to_owned().into(),
-        target_indices: vec![target_index].into(),
-        control_indices: vec![].into(),
-        classical_indices: vec![].into(),
-        params: vec![].into(),
-        pauli_ids: vec![].into(),
-        unitary_matrix: None,
-    })
+    QuantumGate::RX(target_index, ())
 }
 
 #[pyfunction(
@@ -171,15 +163,7 @@ pub fn parametric_rx(target_index: usize) -> ParametricQuantumGate {
     text_signature = "(target_index: int)",
 )]
 pub fn parametric_ry(target_index: usize) -> ParametricQuantumGate {
-    ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricRY".to_owned().into(),
-        target_indices: vec![target_index].into(),
-        control_indices: vec![].into(),
-        classical_indices: vec![].into(),
-        params: vec![].into(),
-        pauli_ids: vec![].into(),
-        unitary_matrix: None,
-    })
+    QuantumGate::RY(target_index, ())
 }
 
 #[pyfunction(
@@ -188,15 +172,7 @@ pub fn parametric_ry(target_index: usize) -> ParametricQuantumGate {
     text_signature = "(target_index: int)",
 )]
 pub fn parametric_rz(target_index: usize) -> ParametricQuantumGate {
-    ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricRZ".to_owned().into(),
-        target_indices: vec![target_index].into(),
-        control_indices: vec![].into(),
-        classical_indices: vec![].into(),
-        params: vec![].into(),
-        pauli_ids: vec![].into(),
-        unitary_matrix: None,
-    })
+    QuantumGate::RZ(target_index, ())
 }
 
 #[pyfunction(
@@ -208,15 +184,7 @@ pub fn parametric_pauli_rotation(
     target_indices: Vec<usize>,
     pauli_ids: Vec<u8>,
 ) -> ParametricQuantumGate {
-    ParametricQuantumGate(GenericGateProperty {
-        name: "ParametricPauliRotation".to_owned().into(),
-        target_indices: target_indices.into(),
-        control_indices: vec![].into(),
-        classical_indices: vec![].into(),
-        params: vec![].into(),
-        pauli_ids: pauli_ids.into(),
-        unitary_matrix: None,
-    })
+    QuantumGate::PauliRotation(target_indices, pauli_ids, ())
 }
 
 #[pyfunction(
@@ -424,7 +392,7 @@ pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
 impl QuantumGate<MaybeUnbound> {
     pub fn instantiate<'py>(
         self,
-    ) -> PyResult<Result<QuantumGate, (ParametricQuantumGate, Wrapper)>> {
+    ) -> PyResult<Result<QuantumGate, (ParametricQuantumGate, Parameter)>> {
         match self {
             Self::Identity(q) => Ok(Ok(identity(q))),
             Self::X(q) => Ok(Ok(x(q))),

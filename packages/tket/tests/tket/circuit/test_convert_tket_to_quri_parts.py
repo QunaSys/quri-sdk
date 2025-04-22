@@ -9,8 +9,7 @@
 # limitations under the License.
 
 import numpy as np
-from pytket import Circuit, OpType
-from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox  # type: ignore
+from pytket.circuit import Circuit, OpType, Unitary1qBox, Unitary2qBox, Unitary3qBox
 from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumGate, gates
@@ -53,7 +52,7 @@ def test_circuit_from_tket() -> None:
     tket_circuit.CZ(1, 2)
     tket_circuit.SWAP(0, 2)
     tket_circuit.CCX(0, 1, 2)
-    tket_circuit.add_unitary1qbox(Unitary1qBox(unitary_1q_matrix), 2)
+    tket_circuit.add_unitary1qbox(Unitary1qBox(np.array(unitary_1q_matrix)), 2)
     tket_circuit.add_unitary2qbox(Unitary2qBox(unitary_2q_matrix), 0, 2)
     tket_circuit.add_unitary3qbox(Unitary3qBox(unitary_3q_matrix), 0, 2, 3)
 

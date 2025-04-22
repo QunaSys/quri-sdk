@@ -121,185 +121,7 @@ impl<P: Clone> QuantumGate<P> {
     }
 }
 
-impl QuantumGate<f64> {
-    pub fn from_property(prop: GenericGateProperty) -> PyResult<Option<Self>> {
-        let is_nonpara_named_1q_gate = || {
-            prop.target_indices.len() == 1
-                && prop.control_indices.is_empty()
-                && prop.classical_indices.is_empty()
-                && prop.params.is_empty()
-                && prop.pauli_ids.is_empty()
-                && prop.unitary_matrix.is_none()
-        };
-
-        let is_para_1q_gate = || {
-            prop.target_indices.len() == 1
-                && prop.control_indices.is_empty()
-                && prop.classical_indices.is_empty()
-                && prop.params.len() == 1
-                && prop.pauli_ids.is_empty()
-                && prop.unitary_matrix.is_none()
-        };
-
-        match prop.name.as_str() {
-            "Identity" if is_nonpara_named_1q_gate() => {
-                Ok(Some(Self::Identity(prop.target_indices[0])))
-            }
-            "X" if is_nonpara_named_1q_gate() => Ok(Some(Self::X(prop.target_indices[0]))),
-            "Y" if is_nonpara_named_1q_gate() => Ok(Some(Self::Y(prop.target_indices[0]))),
-            "Z" if is_nonpara_named_1q_gate() => Ok(Some(Self::Z(prop.target_indices[0]))),
-            "H" if is_nonpara_named_1q_gate() => Ok(Some(Self::H(prop.target_indices[0]))),
-            "S" if is_nonpara_named_1q_gate() => Ok(Some(Self::S(prop.target_indices[0]))),
-            "Sdag" if is_nonpara_named_1q_gate() => Ok(Some(Self::Sdag(prop.target_indices[0]))),
-            "SqrtX" if is_nonpara_named_1q_gate() => Ok(Some(Self::SqrtX(prop.target_indices[0]))),
-            "SqrtXdag" if is_nonpara_named_1q_gate() => {
-                Ok(Some(Self::SqrtXdag(prop.target_indices[0])))
-            }
-            "SqrtY" if is_nonpara_named_1q_gate() => Ok(Some(Self::SqrtY(prop.target_indices[0]))),
-            "SqrtYdag" if is_nonpara_named_1q_gate() => {
-                Ok(Some(Self::SqrtYdag(prop.target_indices[0])))
-            }
-            "T" if is_nonpara_named_1q_gate() => Ok(Some(Self::T(prop.target_indices[0]))),
-            "Tdag" if is_nonpara_named_1q_gate() => Ok(Some(Self::Tdag(prop.target_indices[0]))),
-            "RX" if is_para_1q_gate() => Ok(Some(Self::RX(prop.target_indices[0], prop.params[0]))),
-            "RY" if is_para_1q_gate() => Ok(Some(Self::RY(prop.target_indices[0], prop.params[0]))),
-            "RZ" if is_para_1q_gate() => Ok(Some(Self::RZ(prop.target_indices[0], prop.params[0]))),
-            "U1" if is_para_1q_gate() => Ok(Some(Self::U1(prop.target_indices[0], prop.params[0]))),
-            "U2" if prop.control_indices.is_empty()
-                && prop.target_indices.len() == 1
-                && prop.classical_indices.is_empty()
-                && prop.params.len() == 2
-                && prop.pauli_ids.is_empty()
-                && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::U2(
-                    prop.target_indices[0],
-                    prop.params[0],
-                    prop.params[1],
-                )))
-            }
-            "U3" if prop.control_indices.is_empty()
-                && prop.target_indices.len() == 1
-                && prop.classical_indices.is_empty()
-                && prop.params.len() == 3
-                && prop.pauli_ids.is_empty()
-                && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::U3(
-                    prop.target_indices[0],
-                    prop.params[0],
-                    prop.params[1],
-                    prop.params[2],
-                )))
-            }
-            "CNOT"
-                if prop.control_indices.len() == 1
-                    && prop.target_indices.len() == 1
-                    && prop.classical_indices.is_empty()
-                    && prop.params.is_empty()
-                    && prop.pauli_ids.is_empty()
-                    && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::CNOT(
-                    prop.control_indices[0],
-                    prop.target_indices[0],
-                )))
-            }
-            "CZ" if prop.control_indices.len() == 1
-                && prop.target_indices.len() == 1
-                && prop.classical_indices.is_empty()
-                && prop.params.is_empty()
-                && prop.pauli_ids.is_empty()
-                && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::CZ(
-                    prop.control_indices[0],
-                    prop.target_indices[0],
-                )))
-            }
-            "SWAP"
-                if prop.control_indices.is_empty()
-                    && prop.target_indices.len() == 2
-                    && prop.classical_indices.is_empty()
-                    && prop.params.is_empty()
-                    && prop.pauli_ids.is_empty()
-                    && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::SWAP(
-                    prop.target_indices[0],
-                    prop.target_indices[1],
-                )))
-            }
-            "TOFFOLI"
-                if prop.control_indices.len() == 2
-                    && prop.target_indices.len() == 1
-                    && prop.classical_indices.is_empty()
-                    && prop.params.is_empty()
-                    && prop.pauli_ids.is_empty()
-                    && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::TOFFOLI(
-                    prop.control_indices[0],
-                    prop.control_indices[1],
-                    prop.target_indices[0],
-                )))
-            }
-            "UnitaryMatrix"
-                if prop.control_indices.is_empty()
-                    && prop.classical_indices.is_empty()
-                    && prop.params.is_empty()
-                    && prop.pauli_ids.is_empty()
-                    && prop.unitary_matrix.is_some() =>
-            {
-                Ok(Some(crate::circuit::gates::unitary_matrix(
-                    prop.target_indices.into(),
-                    prop.unitary_matrix
-                        .unwrap()
-                        .into_iter()
-                        .map(|v| v.into())
-                        .collect(),
-                )?))
-            }
-            "Pauli"
-                if prop.control_indices.is_empty()
-                    && prop.classical_indices.is_empty()
-                    && prop.params.is_empty()
-                    && prop.pauli_ids.len() == prop.target_indices.len()
-                    && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::Pauli(prop.target_indices, prop.pauli_ids)))
-            }
-            "PauliRotation"
-                if prop.control_indices.is_empty()
-                    && prop.classical_indices.is_empty()
-                    && prop.params.len() == 1
-                    && prop.pauli_ids.len() == prop.target_indices.len()
-                    && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::PauliRotation(
-                    prop.target_indices,
-                    prop.pauli_ids,
-                    prop.params[0],
-                )))
-            }
-            "ParametricRX" | "ParametricRY" | "ParametricRZ" => Ok(None),
-            "Measurement"
-                if prop.control_indices.is_empty()
-                    && prop.target_indices.len() == prop.classical_indices.len()
-                    && prop.params.is_empty()
-                    && prop.pauli_ids.is_empty()
-                    && prop.unitary_matrix.is_none() =>
-            {
-                Ok(Some(Self::Measurement(
-                    prop.target_indices,
-                    prop.classical_indices,
-                )))
-            }
-
-            _ => Ok(Some(Self::Other(Box::new(prop)))),
-        }
-    }
-
+impl QuantumGate<Option<f64>> {
     pub fn into_property(self) -> GenericGateProperty {
         fn nonpara_named_1q_gate(name: &str, q: usize) -> GenericGateProperty {
             GenericGateProperty {
@@ -339,9 +161,12 @@ impl QuantumGate<f64> {
             Self::SqrtYdag(q) => nonpara_named_1q_gate("SqrtYdag", q),
             Self::T(q) => nonpara_named_1q_gate("T", q),
             Self::Tdag(q) => nonpara_named_1q_gate("Tdag", q),
-            Self::RX(q, p) => para_1q_gate("RX", q, p),
-            Self::RY(q, p) => para_1q_gate("RY", q, p),
-            Self::RZ(q, p) => para_1q_gate("RZ", q, p),
+            Self::RX(q, Some(p)) => para_1q_gate("RX", q, p),
+            Self::RY(q, Some(p)) => para_1q_gate("RY", q, p),
+            Self::RZ(q, Some(p)) => para_1q_gate("RZ", q, p),
+            Self::RX(q, None) => nonpara_named_1q_gate("ParametricRX", q),
+            Self::RY(q, None) => nonpara_named_1q_gate("ParametricRY", q),
+            Self::RZ(q, None) => nonpara_named_1q_gate("ParametricRZ", q),
             Self::U1(q, p) => para_1q_gate("U1", q, p),
             Self::U2(q, p0, p1) => GenericGateProperty {
                 name: "U2".to_owned().into(),
@@ -390,10 +215,16 @@ impl QuantumGate<f64> {
                 pauli_ids,
                 ..Default::default()
             },
-            Self::PauliRotation(target_indices, pauli_ids, angle) => GenericGateProperty {
+            Self::PauliRotation(target_indices, pauli_ids, Some(angle)) => GenericGateProperty {
                 name: "PauliRotation".to_owned().into(),
                 target_indices,
                 params: vec![angle].into(),
+                pauli_ids,
+                ..Default::default()
+            },
+            Self::PauliRotation(target_indices, pauli_ids, None) => GenericGateProperty {
+                name: "ParametricPauliRotation".to_owned().into(),
+                target_indices,
                 pauli_ids,
                 ..Default::default()
             },
@@ -418,6 +249,206 @@ pub struct GenericGateProperty {
     pub params: Vec<f64>,
     pub pauli_ids: Vec<u8>,
     pub unitary_matrix: Option<Vec<Vec<Complex64>>>,
+}
+
+impl GenericGateProperty {
+    pub fn into_gate(self) -> PyResult<QuantumGate<Option<f64>>> {
+        let is_nonpara_named_1q_gate = || {
+            self.target_indices.len() == 1
+                && self.control_indices.is_empty()
+                && self.classical_indices.is_empty()
+                && self.params.is_empty()
+                && self.pauli_ids.is_empty()
+                && self.unitary_matrix.is_none()
+        };
+
+        let is_para_1q_gate = || {
+            self.target_indices.len() == 1
+                && self.control_indices.is_empty()
+                && self.classical_indices.is_empty()
+                && self.params.len() == 1
+                && self.pauli_ids.is_empty()
+                && self.unitary_matrix.is_none()
+        };
+
+        match self.name.as_str() {
+            "Identity" if is_nonpara_named_1q_gate() => {
+                Ok(QuantumGate::Identity(self.target_indices[0]))
+            }
+            "X" if is_nonpara_named_1q_gate() => Ok(QuantumGate::X(self.target_indices[0])),
+            "Y" if is_nonpara_named_1q_gate() => Ok(QuantumGate::Y(self.target_indices[0])),
+            "Z" if is_nonpara_named_1q_gate() => Ok(QuantumGate::Z(self.target_indices[0])),
+            "H" if is_nonpara_named_1q_gate() => Ok(QuantumGate::H(self.target_indices[0])),
+            "S" if is_nonpara_named_1q_gate() => Ok(QuantumGate::S(self.target_indices[0])),
+            "Sdag" if is_nonpara_named_1q_gate() => Ok(QuantumGate::Sdag(self.target_indices[0])),
+            "SqrtX" if is_nonpara_named_1q_gate() => Ok(QuantumGate::SqrtX(self.target_indices[0])),
+            "SqrtXdag" if is_nonpara_named_1q_gate() => {
+                Ok(QuantumGate::SqrtXdag(self.target_indices[0]))
+            }
+            "SqrtY" if is_nonpara_named_1q_gate() => Ok(QuantumGate::SqrtY(self.target_indices[0])),
+            "SqrtYdag" if is_nonpara_named_1q_gate() => {
+                Ok(QuantumGate::SqrtYdag(self.target_indices[0]))
+            }
+            "T" if is_nonpara_named_1q_gate() => Ok(QuantumGate::T(self.target_indices[0])),
+            "Tdag" if is_nonpara_named_1q_gate() => Ok(QuantumGate::Tdag(self.target_indices[0])),
+            "RX" if is_para_1q_gate() => Ok(QuantumGate::RX(
+                self.target_indices[0],
+                Some(self.params[0]),
+            )),
+            "RY" if is_para_1q_gate() => Ok(QuantumGate::RY(
+                self.target_indices[0],
+                Some(self.params[0]),
+            )),
+            "RZ" if is_para_1q_gate() => Ok(QuantumGate::RZ(
+                self.target_indices[0],
+                Some(self.params[0]),
+            )),
+            "U1" if is_para_1q_gate() => {
+                Ok(QuantumGate::U1(self.target_indices[0], self.params[0]))
+            }
+            "U2" if self.control_indices.is_empty()
+                && self.target_indices.len() == 1
+                && self.classical_indices.is_empty()
+                && self.params.len() == 2
+                && self.pauli_ids.is_empty()
+                && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::U2(
+                    self.target_indices[0],
+                    self.params[0],
+                    self.params[1],
+                ))
+            }
+            "U3" if self.control_indices.is_empty()
+                && self.target_indices.len() == 1
+                && self.classical_indices.is_empty()
+                && self.params.len() == 3
+                && self.pauli_ids.is_empty()
+                && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::U3(
+                    self.target_indices[0],
+                    self.params[0],
+                    self.params[1],
+                    self.params[2],
+                ))
+            }
+            "CNOT"
+                if self.control_indices.len() == 1
+                    && self.target_indices.len() == 1
+                    && self.classical_indices.is_empty()
+                    && self.params.is_empty()
+                    && self.pauli_ids.is_empty()
+                    && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::CNOT(
+                    self.control_indices[0],
+                    self.target_indices[0],
+                ))
+            }
+            "CZ" if self.control_indices.len() == 1
+                && self.target_indices.len() == 1
+                && self.classical_indices.is_empty()
+                && self.params.is_empty()
+                && self.pauli_ids.is_empty()
+                && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::CZ(
+                    self.control_indices[0],
+                    self.target_indices[0],
+                ))
+            }
+            "SWAP"
+                if self.control_indices.is_empty()
+                    && self.target_indices.len() == 2
+                    && self.classical_indices.is_empty()
+                    && self.params.is_empty()
+                    && self.pauli_ids.is_empty()
+                    && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::SWAP(
+                    self.target_indices[0],
+                    self.target_indices[1],
+                ))
+            }
+            "TOFFOLI"
+                if self.control_indices.len() == 2
+                    && self.target_indices.len() == 1
+                    && self.classical_indices.is_empty()
+                    && self.params.is_empty()
+                    && self.pauli_ids.is_empty()
+                    && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::TOFFOLI(
+                    self.control_indices[0],
+                    self.control_indices[1],
+                    self.target_indices[0],
+                ))
+            }
+            "UnitaryMatrix"
+                if self.control_indices.is_empty()
+                    && self.classical_indices.is_empty()
+                    && self.params.is_empty()
+                    && self.pauli_ids.is_empty()
+                    && self.unitary_matrix.is_some() =>
+            {
+                Ok(crate::circuit::gates::unitary_matrix(
+                    self.target_indices.into(),
+                    self.unitary_matrix
+                        .unwrap()
+                        .into_iter()
+                        .map(|v| v.into())
+                        .collect(),
+                )?
+                .map_param(|_| unreachable!()))
+            }
+            "Pauli"
+                if self.control_indices.is_empty()
+                    && self.classical_indices.is_empty()
+                    && self.params.is_empty()
+                    && self.pauli_ids.len() == self.target_indices.len()
+                    && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::Pauli(self.target_indices, self.pauli_ids))
+            }
+            "PauliRotation"
+                if self.control_indices.is_empty()
+                    && self.classical_indices.is_empty()
+                    && self.params.len() == 1
+                    && self.pauli_ids.len() == self.target_indices.len()
+                    && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::PauliRotation(
+                    self.target_indices,
+                    self.pauli_ids,
+                    Some(self.params[0]),
+                ))
+            }
+            "ParametricRX" if is_nonpara_named_1q_gate() => {
+                Ok(QuantumGate::RX(self.target_indices[0], None))
+            }
+            "ParametricRY" if is_nonpara_named_1q_gate() => {
+                Ok(QuantumGate::RY(self.target_indices[0], None))
+            }
+            "ParametricRZ" if is_nonpara_named_1q_gate() => {
+                Ok(QuantumGate::RZ(self.target_indices[0], None))
+            }
+            "Measurement"
+                if self.control_indices.is_empty()
+                    && self.target_indices.len() == self.classical_indices.len()
+                    && self.params.is_empty()
+                    && self.pauli_ids.is_empty()
+                    && self.unitary_matrix.is_none() =>
+            {
+                Ok(QuantumGate::Measurement(
+                    self.target_indices,
+                    self.classical_indices,
+                ))
+            }
+
+            _ => Ok(QuantumGate::Other(Box::new(self))),
+        }
+    }
 }
 
 fn unordered_eq<I0, I1>(lhs: I0, rhs: I1) -> bool
@@ -478,110 +509,7 @@ impl PartialEq for GenericGateProperty {
     }
 }
 
-#[pyclass(subclass, frozen, eq, module = "quri_parts.rust.circuit.gate")]
-#[derive(Clone, Debug, PartialEq)]
-pub struct ParametricQuantumGate(pub(crate) GenericGateProperty);
-
-#[pymethods]
-impl ParametricQuantumGate {
-    #[new]
-    #[pyo3(
-        signature = (name, target_indices, control_indices=Vec::new(), pauli_ids=Vec::new()),
-        text_signature = "(
-            name: str,
-            target_indices: Sequence[int],
-            control_indices: Sequence[int] = [],
-            pauli_ids: Sequence[int] = [],
-        )"
-    )]
-    fn py_new<'py>(
-        name: String,
-        target_indices: Vec<usize>,
-        control_indices: Vec<usize>,
-        pauli_ids: Vec<u8>,
-    ) -> ParametricQuantumGate {
-        let prop = GenericGateProperty {
-            name: name.clone().into(),
-            target_indices: target_indices.into(),
-            control_indices: control_indices.into(),
-            pauli_ids: pauli_ids.into(),
-            classical_indices: vec![].into(),
-            params: vec![].into(),
-            unitary_matrix: None,
-        };
-        ParametricQuantumGate(prop)
-    }
-
-    #[pyo3(name = "__repr__")]
-    fn py_repr(&self) -> String {
-        self.0.get_compat_string_parametric()
-    }
-
-    #[pyo3(name = "__reduce__")]
-    fn py_reduce(
-        slf: &Bound<'_, Self>,
-    ) -> PyResult<(PyObject, (String, Vec<usize>, Vec<usize>, Vec<u8>))> {
-        let data = &slf.get().0;
-        Ok((
-            Bound::new(slf.py(), ParametricQuantumGate(slf.get().0.clone()))
-                .unwrap()
-                .getattr("__class__")
-                .unwrap()
-                .unbind(),
-            (
-                data.name.clone().into(),
-                data.target_indices.clone().into(),
-                data.control_indices.clone().into(),
-                data.pauli_ids.clone().into(),
-            ),
-        ))
-    }
-
-    #[pyo3(name = "__hash__")]
-    pub(crate) fn py_hash(&self) -> u64 {
-        use std::collections::hash_map::DefaultHasher;
-        use std::hash::{Hash, Hasher};
-        let mut hasher = DefaultHasher::new();
-        let data = self.0.clone();
-        data.name.hash(&mut hasher);
-        data.target_indices.hash(&mut hasher);
-        data.control_indices.hash(&mut hasher);
-        for p in data.params.iter() {
-            p.to_le_bytes().hash(&mut hasher);
-        }
-        data.pauli_ids.hash(&mut hasher);
-        hasher.finish()
-    }
-
-    #[getter]
-    fn get_name(&self) -> String {
-        self.0.name.clone().into()
-    }
-
-    #[getter]
-    fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        let v: Vec<usize> = slf.get().0.target_indices.clone().into();
-        PyTuple::new_bound(slf.py(), v)
-    }
-
-    #[getter]
-    fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        let v: Vec<usize> = slf.get().0.control_indices.clone().into();
-        PyTuple::new_bound(slf.py(), v)
-    }
-
-    #[getter]
-    fn get_params<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        let v: Vec<f64> = slf.get().0.params.clone().into();
-        PyTuple::new_bound(slf.py(), v)
-    }
-
-    #[getter]
-    fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-        let v: Vec<u8> = slf.get().0.pauli_ids.clone().into();
-        PyTuple::new_bound(slf.py(), v)
-    }
-}
+pub type ParametricQuantumGate = QuantumGate<()>;
 
 fn format_tuple<T: core::fmt::Display>(input: &[T]) -> String {
     let out = input
@@ -683,17 +611,31 @@ mod wrapper {
                     .map(|v| v.into_iter().map(Into::into).collect())
                     .into(),
             };
-            Ok(Self(QuantumGate::from_property(prop)?.ok_or(
-                pyo3::exceptions::PyValueError::new_err(format!(
+            let mut bad_flag = false;
+            let ret = prop.into_gate()?.map_param(|p| match p {
+                Some(p) => p,
+                None => {
+                    bad_flag = true;
+                    0.0
+                }
+            });
+            if bad_flag {
+                Err(pyo3::exceptions::PyValueError::new_err(format!(
                     "Cannot initialize QuantumGate with {}",
                     &name
-                )),
-            )?))
+                )))
+            } else {
+                Ok(Self(ret))
+            }
         }
 
         #[pyo3(name = "__repr__")]
         fn py_repr(&self) -> String {
-            self.0.clone().into_property().get_compat_string()
+            self.0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .get_compat_string()
         }
 
         #[pyo3(name = "__reduce__")]
@@ -711,7 +653,7 @@ mod wrapper {
                 Option<Vec<Vec<Complex64>>>,
             ),
         )> {
-            let data = &slf.get().0.clone().into_property();
+            let data = &slf.get().0.clone().map_param(Some).into_property();
             Ok((
                 slf.getattr("__class__").unwrap().unbind(),
                 (
@@ -734,7 +676,7 @@ mod wrapper {
             use std::collections::hash_map::DefaultHasher;
             use std::hash::{Hash, Hasher};
             let mut hasher = DefaultHasher::new();
-            let data = self.0.clone().into_property();
+            let data = self.0.clone().map_param(Some).into_property();
             data.name.hash(&mut hasher);
             data.target_indices.hash(&mut hasher);
             data.control_indices.hash(&mut hasher);
@@ -756,47 +698,90 @@ mod wrapper {
 
         #[pyo3(name = "__eq__")]
         fn py_eq(&self, other: &Self) -> bool {
-            self.0.clone().into_property() == other.0.clone().into_property()
+            self.0.clone().map_param(Some).into_property()
+                == other.0.clone().map_param(Some).into_property()
         }
 
         #[getter]
         fn get_name(&self) -> String {
-            self.0.clone().into_property().name.into()
+            self.0.clone().map_param(Some).into_property().name.into()
         }
 
         #[getter]
         fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            let v: Vec<usize> = slf.get().0.clone().into_property().target_indices.into();
+            let v: Vec<usize> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .target_indices
+                .into();
             PyTuple::new_bound(slf.py(), v)
         }
 
         #[getter]
         fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            let v: Vec<usize> = slf.get().0.clone().into_property().control_indices.into();
+            let v: Vec<usize> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .control_indices
+                .into();
             PyTuple::new_bound(slf.py(), v)
         }
 
         #[getter]
         fn get_classical_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            let v: Vec<usize> = slf.get().0.clone().into_property().classical_indices.into();
+            let v: Vec<usize> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .classical_indices
+                .into();
             PyTuple::new_bound(slf.py(), v)
         }
 
         #[getter]
         fn get_params<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            let v: Vec<f64> = slf.get().0.clone().into_property().params.into();
+            let v: Vec<f64> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .params
+                .into();
             PyTuple::new_bound(slf.py(), v)
         }
 
         #[getter]
         fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            let v: Vec<u8> = slf.get().0.clone().into_property().pauli_ids.into();
+            let v: Vec<u8> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .pauli_ids
+                .into();
             PyTuple::new_bound(slf.py(), v)
         }
 
         #[getter]
         fn get_unitary_matrix<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
-            if let Some(mat) = slf.get().0.clone().into_property().unitary_matrix {
+            if let Some(mat) = slf
+                .get()
+                .0
+                .clone()
+                .map_param(Some)
+                .into_property()
+                .unitary_matrix
+            {
                 let mat = mat
                     .into_iter()
                     .map(|row| {
@@ -826,15 +811,177 @@ mod wrapper {
         }
     }
 
+    #[pyclass(
+        frozen,
+        module = "quri_parts.rust.circuit.gate",
+        name = "ParametricQuantumGate"
+    )]
+    #[derive(Clone, Debug, PartialEq)]
+    struct ParametricQuantumGateWrapper(QuantumGate<()>);
+
+    impl<T> IntoPy<T> for QuantumGate<()>
+    where
+        ParametricQuantumGateWrapper: IntoPy<T>,
+    {
+        fn into_py(self, py: Python<'_>) -> T {
+            ParametricQuantumGateWrapper(self).into_py(py)
+        }
+    }
+
+    impl<'py> pyo3::conversion::FromPyObject<'py> for QuantumGate<()> {
+        fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
+            Ok(<ParametricQuantumGateWrapper as pyo3::conversion::FromPyObject<'py>>::extract_bound(ob)?.0)
+        }
+    }
+
+    #[pymethods]
+    impl ParametricQuantumGateWrapper {
+        #[new]
+        #[pyo3(
+            signature = (name, target_indices, control_indices=Vec::new(), pauli_ids=Vec::new()),
+            text_signature = "(
+                name: str,
+                target_indices: Sequence[int],
+                control_indices: Sequence[int] = [],
+                pauli_ids: Sequence[int] = [],
+            )"
+        )]
+        fn py_new(
+            name: String,
+            target_indices: Vec<usize>,
+            control_indices: Vec<usize>,
+            pauli_ids: Vec<u8>,
+        ) -> PyResult<Self> {
+            let prop = GenericGateProperty {
+                name: name.clone().into(),
+                target_indices: target_indices.into(),
+                control_indices: control_indices.into(),
+                pauli_ids: pauli_ids.into(),
+                ..Default::default()
+            };
+            let mut bad_flag = false;
+            let ret = prop.into_gate()?.map_param(|p| {
+                if p.is_some() {
+                    bad_flag = true;
+                }
+                ()
+            });
+            if !bad_flag && name.starts_with("Parametric") {
+                Ok(Self(ret))
+            } else {
+                Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Cannot initialize QuantumGate with {}",
+                    &name
+                )))
+            }
+        }
+
+        #[pyo3(name = "__repr__")]
+        fn py_repr(&self) -> String {
+            self.0
+                .clone()
+                .map_param(|_| None)
+                .into_property()
+                .get_compat_string_parametric()
+        }
+
+        #[pyo3(name = "__reduce__")]
+        fn py_reduce(
+            slf: &Bound<'_, Self>,
+        ) -> PyResult<(PyObject, (String, Vec<usize>, Vec<usize>, Vec<u8>))> {
+            let data = &slf.get().0.clone().map_param(|_| None).into_property();
+            Ok((
+                slf.getattr("__class__").unwrap().unbind(),
+                (
+                    data.name.clone().into(),
+                    data.target_indices.clone().into(),
+                    data.control_indices.clone().into(),
+                    data.pauli_ids.clone().into(),
+                ),
+            ))
+        }
+
+        #[pyo3(name = "__hash__")]
+        pub(crate) fn py_hash(&self) -> u64 {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut hasher = DefaultHasher::new();
+            let data = self.0.clone().map_param(|_| None).into_property();
+            data.name.hash(&mut hasher);
+            data.target_indices.hash(&mut hasher);
+            data.control_indices.hash(&mut hasher);
+            for p in data.params.iter() {
+                p.to_le_bytes().hash(&mut hasher);
+            }
+            data.pauli_ids.hash(&mut hasher);
+            hasher.finish()
+        }
+
+        #[pyo3(name = "__eq__")]
+        fn py_eq(&self, other: &Self) -> bool {
+            self.0.clone().map_param(|_| None).into_property()
+                == other.0.clone().map_param(|_| None).into_property()
+        }
+
+        #[getter]
+        fn get_name(&self) -> String {
+            self.0
+                .clone()
+                .map_param(|_| None)
+                .into_property()
+                .name
+                .into()
+        }
+
+        #[getter]
+        fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+            let v: Vec<usize> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(|_| None)
+                .into_property()
+                .target_indices
+                .into();
+            PyTuple::new_bound(slf.py(), v)
+        }
+
+        #[getter]
+        fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+            let v: Vec<usize> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(|_| None)
+                .into_property()
+                .control_indices
+                .into();
+            PyTuple::new_bound(slf.py(), v)
+        }
+
+        #[getter]
+        fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+            let v: Vec<u8> = slf
+                .get()
+                .0
+                .clone()
+                .map_param(|_| None)
+                .into_property()
+                .pauli_ids
+                .into();
+            PyTuple::new_bound(slf.py(), v)
+        }
+    }
+
     pub fn add_quantum_gate(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m.add_class::<QuantumGateWrapper>()?;
+        m.add_class::<ParametricQuantumGateWrapper>()?;
         Ok(())
     }
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
     let m = PyModule::new_bound(py, "gate")?;
-    m.add_class::<ParametricQuantumGate>()?;
     wrapper::add_quantum_gate(&m)?;
     Ok(m)
 }

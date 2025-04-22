@@ -249,7 +249,14 @@ impl NoiseModel {
             gate,
             &self
                 .gate_noises_for_all_qubits_specified_gates
-                .get::<String>(&gate.clone().into_property().name.into())
+                .get::<String>(
+                    &gate
+                        .clone()
+                        .map_param(|p| Some(p))
+                        .into_property()
+                        .name
+                        .into(),
+                )
                 .unwrap_or(&vec![])
                 .clone(),
             py,
@@ -281,7 +288,7 @@ impl NoiseModel {
         let ids = gate.get_qubits();
         let mut ret = vec![];
 
-        let name = gate.clone().into_property().name;
+        let name = gate.clone().map_param(Some).into_property().name;
 
         ret.extend(ids.iter().flat_map(|q| {
             let qs = vec![*q];
