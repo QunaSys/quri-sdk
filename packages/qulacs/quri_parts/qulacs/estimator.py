@@ -27,17 +27,17 @@ from quri_parts.core.estimator import (
 from quri_parts.core.operator import zero
 from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
-from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 from quri_parts.qulacs.circuit.compiled_circuit import (
     _QulacsCircuit,
     _QulacsLinearMappedUnboundParametricCircuit,
     _QulacsUnboundParametricCircuit,
 )
 
-from . import cast_to_list
 from .circuit import convert_circuit, convert_parametric_circuit
 from .circuit.noise import convert_circuit_with_noise_model
 from .operator import convert_operator
+from .types import QulacsParametricStateT, QulacsStateT
+from .utils import cast_to_list
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor

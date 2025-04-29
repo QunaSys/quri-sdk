@@ -22,9 +22,9 @@ from quri_parts.core.estimator import (
 )
 from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
-from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
-from . import cast_to_list
+from .types import QulacsParametricStateT, QulacsStateT
+from .utils import cast_to_list
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor

@@ -8,11 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import NamedTuple
 
+from .mol import cas
 
-class Register(NamedTuple):
-    uid: int
-
-    def __str__(self) -> str:
-        return f"r{self.uid}"
+__all__ = [
+    "cas",
+]

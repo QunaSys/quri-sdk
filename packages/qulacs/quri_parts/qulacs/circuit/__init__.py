@@ -37,7 +37,7 @@ from quri_parts.circuit.gate_names import (
 )
 from quri_parts.rust.qulacs import convert_circuit
 
-from .. import cast_to_list
+from ..utils import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
 from .qulacs_circuit_converter import circuit_from_qulacs
 

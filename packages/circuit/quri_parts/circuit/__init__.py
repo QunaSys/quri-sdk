@@ -78,6 +78,7 @@ from .parameter_mapping import (
     ParameterMapping,
     ParameterOrLinearFunction,
 )
+from .utils.circuit_drawer import draw_circuit
 
 #: A placeholder representing a constant term.
 CONST = CONST
@@ -152,4 +153,5 @@ __all__ = [
     "inverse_gate",
     "inverse_circuit",
     "is_clifford",
+    "draw_circuit",
 ]

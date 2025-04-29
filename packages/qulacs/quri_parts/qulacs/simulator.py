@@ -33,7 +33,8 @@ from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
 
-from . import QulacsStateT, cast_to_list
+from .types import QulacsStateT
+from .utils import cast_to_list
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor

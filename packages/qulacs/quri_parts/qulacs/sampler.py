@@ -24,7 +24,6 @@ from quri_parts.core.sampling import (
 )
 from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
-from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 
 from .circuit.noise import convert_circuit_with_noise_model
 from .simulator import (
@@ -34,6 +33,7 @@ from .simulator import (
     create_qulacs_noisesimulator_state_sampler,
     create_qulacs_vector_state_sampler,
 )
+from .types import QulacsParametricStateT, QulacsStateT
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor
