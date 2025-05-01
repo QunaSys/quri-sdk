@@ -1,6 +1,6 @@
 ---
-name: mypy-extensions
-version: 1.0.0
+name: mypy_extensions
+version: 1.1.0
 type: pip
 summary: Type system extensions for programs checked with the mypy type checker.
 homepage: https://github.com/python/mypy_extensions
