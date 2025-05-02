@@ -159,6 +159,8 @@ jobs:
         if: runner.os == 'Linux'
         uses: pypa/cibuildwheel@v2.23.2
         env:
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD: "cp3${{ matrix.python-version }}-manylinux_i686 cp3${{ matrix.python-version }}-manylinux_x86_64"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BEFORE_ALL_LINUX: "pip install maturin==1.8.3 && curl https://sh.rustup.rs -sSf | sh -s -- --target ${{matrix.system.target}} --default-toolchain ${{matrix.toolchain}} -y && yum install -y openssl-devel"
@@ -173,6 +175,9 @@ jobs:
         shell: bash
         run: |
           poetry run pip install pytest
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              sudo apt install -y libjpeg-dev
+          fi
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
             poetry install -vv --only main
           else
@@ -182,7 +187,7 @@ jobs:
               poetry run pip install dist/*.manylinux2014_x86_64.whl
           else
             for FILE in "$(find dist -name '*.whl')"; do
-              poetry run pip install $FILE
+              poetry run pip install -v $FILE
             done
           fi
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
