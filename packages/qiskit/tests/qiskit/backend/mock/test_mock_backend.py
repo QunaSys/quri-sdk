@@ -12,13 +12,14 @@ from typing import Any, Optional
 from unittest.mock import patch
 
 from qiskit import QuantumCircuit
-from qiskit_ibm_runtime import Sampler, Session
+from qiskit_ibm_runtime import SamplerV2 as Sampler
+from qiskit_ibm_runtime import Session
 
 from .ibm_runtime_service_mock import mock_get_backend
 
 
 class TestMockRuntimeService:
-    @patch("qiskit_ibm_runtime.SamplerV1._validate_options", return_value=None)
+    @patch("qiskit_ibm_runtime.SamplerV2._validate_options", return_value=None)
     def test_fake_service_call(self, _: Optional[Any] = None) -> None:
         # Checking if fake backend works
         runtime_service = mock_get_backend()
@@ -30,11 +31,11 @@ class TestMockRuntimeService:
             bell.cx(0, 1)
             bell.measure_all(inplace=True)
 
-            _ = sampler.run(bell, shots=1000)
+            _ = sampler.run([bell], shots=1000)
 
         service.run.assert_called_once()
         args_list = service.run.call_args_list
         assert len(args_list) == 1
         _, kwargs = args_list[0]
-        shots = kwargs["inputs"]["run_options"]["shots"]
+        shots = kwargs["inputs"]["pubs"][0].shots
         assert shots == 1000

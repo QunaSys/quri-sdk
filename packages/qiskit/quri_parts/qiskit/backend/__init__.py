@@ -16,7 +16,6 @@ from .primitive import (
 )
 from .sampling import QiskitSamplingBackend, QiskitSamplingJob, QiskitSamplingResult
 from .saved_sampling import (
-    QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingBackend,
     QiskitSavedDataSamplingJob,
     QiskitSavedDataSamplingResult,
@@ -36,7 +35,6 @@ __all__ = [
     "QiskitRuntimeSamplingBackend",
     "QiskitRuntimeSamplingJob",
     "QiskitRuntimeSamplingResult",
-    "QiskitRuntimeSavedDataSamplingResult",
     "device_connectivity_graph",
     "QiskitSavedDataSamplingJob",
     "QiskitSavedDataSamplingResult",

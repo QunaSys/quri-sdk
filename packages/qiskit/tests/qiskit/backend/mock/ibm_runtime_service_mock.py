@@ -40,6 +40,7 @@ def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:
         NameError: If the specified value of backend
     """
     mock_qiskit_runtime_service = MagicMock(spec=QiskitRuntimeService)
+    mock_qiskit_runtime_service._channel_strategy = "fake_strategy"
 
     conf = MagicMock(spec=QasmBackendConfiguration)
     conf.max_shots = int(1e6)
@@ -49,6 +50,7 @@ def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:
     fake_backend._instance = None
     fake_backend.configuration.return_value = conf
     fake_backend.version = 0
+    fake_backend.target.num_qubits = 127
 
     mock_qiskit_runtime_service.backend.return_value = fake_backend
     mock_qiskit_runtime_service.return_value = mock_qiskit_runtime_service

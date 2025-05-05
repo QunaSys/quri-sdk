@@ -10,7 +10,7 @@
 
 import json
 from collections import defaultdict
-from typing import Any, Mapping, MutableMapping, Optional, Sequence, Union
+from typing import Any, Mapping, Optional, Sequence
 
 import qiskit
 from pydantic.dataclasses import dataclass
@@ -26,7 +26,7 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit import ImmutableQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
@@ -63,29 +63,6 @@ class QiskitSavedDataSamplingResult(SamplingResult):
 
 
 @dataclass
-class QiskitRuntimeSavedDataSamplingResult(SamplingResult):
-    """An object that holds quasi disttribution and total shot count from
-    qiskit runtime output and converts it into quri-parts sampling count.
-
-    Args:
-        quasi_dist: The first element of the quasi_dists attribute of a
-            :class:`qiskit.primitives.SamplerResult` object.
-        n_shots: The metadata[0]["shots"] output of a
-            :class:`qiskit.primitives.SamplerResult` object.
-    """
-
-    quasi_dist: dict[int, float]
-    n_shots: int
-
-    @property
-    def counts(self) -> SamplingCounts:
-        measurements: MutableMapping[int, float] = {}
-        for result, quasi_prob in self.quasi_dist.items():
-            measurements[result] = quasi_prob * self.n_shots
-        return measurements
-
-
-@dataclass
 class QiskitSavedDataSamplingJob(SamplingJob):
     """An object that represents a saved sampling job.
 
@@ -100,13 +77,9 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 
     circuit_qasm: str
     n_shots: int
-    saved_result: Union[
-        QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult
-    ]
+    saved_result: QiskitSavedDataSamplingResult
 
-    def result(
-        self,
-    ) -> Union[QiskitSavedDataSamplingResult, QiskitRuntimeSavedDataSamplingResult]:
+    def result(self) -> QiskitSavedDataSamplingResult:
         return self.saved_result
 
 
@@ -165,7 +138,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         saved_data: A json string output by the `.json_str` property of
             `:class:`~quri_parts.qiskit.backend.QiskitSamplingBackend`.
         circuit_converter: A function converting
-            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
+            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
         enable_shots_roundup: If True, when a number of shots specified to
@@ -216,7 +189,7 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 

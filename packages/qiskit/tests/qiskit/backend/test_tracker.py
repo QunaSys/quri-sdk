@@ -24,7 +24,7 @@ from .mock.ibm_runtime_service_mock import mock_get_backend
 def fake_dynamic_run(job_id: str, seconds: float, **kwargs: Any) -> RuntimeJob:
     jjob = MagicMock(spec=RuntimeJob)
 
-    jjob._status = JobStatus.RUNNING
+    jjob._status = "RUNNING"
     jjob._job_id = job_id
 
     def _status() -> JobStatus:
@@ -34,11 +34,11 @@ def fake_dynamic_run(job_id: str, seconds: float, **kwargs: Any) -> RuntimeJob:
         return str(jjob._job_id)
 
     def _metrics() -> dict[str, Any]:
-        if jjob._status != JobStatus.DONE:
+        if jjob._status != "DONE":
             return {}
         return {"usage": {"seconds": seconds}}
 
-    def _set_status(job_response: dict[Any, JobStatus]) -> None:
+    def _set_status(job_response: dict[Any, str]) -> None:
         jjob._status = list(job_response.values())[0]
 
     jjob.status = _status
@@ -116,20 +116,20 @@ def test_total_run_time() -> None:
     assert tracker.total_run_time == 0
 
     # Backend finishes Job 1 execution
-    job1._qiskit_job._set_status({"new job status": JobStatus.DONE})
+    job1._qiskit_job._set_status({"new job status": "DONE"})
     assert tracker.total_run_time == 10.0
     assert tracker.running_jobs == [job2, job3, job4]
     assert tracker.finished_jobs == [job1]
 
     # Backend finishes Job 2 execution
-    job2._qiskit_job._set_status({"new job status": JobStatus.DONE})
+    job2._qiskit_job._set_status({"new job status": "DONE"})
 
     assert tracker.total_run_time == 60.0
     assert tracker.running_jobs == [job3, job4]
     assert tracker.finished_jobs == [job1, job2]
 
     # Backend finishes Job 3 execution
-    job3._qiskit_job._set_status({"new job status": JobStatus.DONE})
+    job3._qiskit_job._set_status({"new job status": "DONE"})
 
     assert tracker.total_run_time == 140.0
     assert tracker.running_jobs == [job4]

@@ -25,7 +25,7 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit import ImmutableQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
@@ -74,7 +74,7 @@ class QiskitSamplingBackend(SamplingBackend):
         backend: A Qiskit :class:`qiskit.providers.backend.Backend`
             for circuit execution.
         circuit_converter: A function converting
-            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
+            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
         enable_shots_roundup: If True, when a number of shots specified to
@@ -128,7 +128,7 @@ class QiskitSamplingBackend(SamplingBackend):
         self._save_data_while_sampling = save_data_while_sampling
         self._saved_data: list[tuple[str, int, QiskitSamplingJob]] = []
 
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 

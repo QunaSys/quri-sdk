@@ -19,7 +19,7 @@ from qiskit import qasm3
 from qiskit.providers.basic_provider import BasicProvider
 
 from quri_parts.backend import CompositeSamplingJob
-from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.backend import (
     QiskitSamplingBackend,
@@ -31,7 +31,7 @@ from quri_parts.qiskit.circuit import convert_circuit
 
 
 def circuit_converter(
-    _: ImmutableQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
+    _: NonParametricQuantumCircuit, transpiler: Optional[CircuitTranspiler] = None
 ) -> qiskit.QuantumCircuit:
     circuit = qiskit.QuantumCircuit(4)
     circuit.h(0)
@@ -41,7 +41,7 @@ def circuit_converter(
     return circuit
 
 
-def circuit_transpiler(_: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
+def circuit_transpiler(_: NonParametricQuantumCircuit) -> NonParametricQuantumCircuit:
     circuit = QuantumCircuit(4)
     circuit.add_X_gate(0)
     circuit.add_H_gate(1)
@@ -182,7 +182,7 @@ class TestQiskitSamplingBackend:
         circuit.add_Z_gate(2)
 
         def circuit_converter(
-            _: ImmutableQuantumCircuit,
+            _: NonParametricQuantumCircuit,
             transpiler: Optional[CircuitTranspiler] = None,
         ) -> qiskit.QuantumCircuit:
             circuit = qiskit.QuantumCircuit(3)

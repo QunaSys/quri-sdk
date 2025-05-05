@@ -17,17 +17,13 @@ from typing import Any, Dict, Optional, Sequence, Type, Union
 import qiskit
 from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import qasm3
-from qiskit.primitives import SamplerResult
-from qiskit_ibm_runtime import (
-    IBMBackend,
-    Options,
-    QiskitRuntimeService,
-    RuntimeJob,
-    Sampler,
-    Session,
-)
+from qiskit.primitives import PrimitiveResult
+from qiskit_ibm_runtime import IBMBackend, QiskitRuntimeService
+from qiskit_ibm_runtime import RuntimeJobV2 as RuntimeJob
+from qiskit_ibm_runtime import SamplerOptions
+from qiskit_ibm_runtime import SamplerV2 as Sampler
+from qiskit_ibm_runtime import Session
 
-import quri_parts.qiskit.backend.tracker as tracker
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,
@@ -36,15 +32,16 @@ from quri_parts.backend import (
     SamplingJob,
     SamplingResult,
 )
-from quri_parts.circuit import ImmutableQuantumCircuit
+from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
-    QiskitRuntimeSavedDataSamplingResult,
     QiskitSavedDataSamplingJob,
+    QiskitSavedDataSamplingResult,
     encode_saved_data_job_sequence_to_json,
 )
+from .tracker import Tracker
 from .utils import (
     distribute_backend_shots,
     get_backend_min_max_shot,
@@ -57,27 +54,27 @@ RUNTIME_BACKEND_MAX_EXE_TIME = 300.0
 class QiskitRuntimeSamplingResult(SamplingResult):
     """Class for the results by Qiskit sampler job."""
 
-    def __init__(self, qiskit_result: SamplerResult):
-        if not isinstance(qiskit_result, SamplerResult):
-            raise ValueError("Only qiskit_ibm_runtime.SamplerResult is supported")
+    def __init__(self, qiskit_result: PrimitiveResult):
+        if not isinstance(qiskit_result, PrimitiveResult):
+            raise ValueError("Only qiskit_ibm_runtime.PrimitiveResult is supported")
+        self._check_only_1_result(qiskit_result)
         self._qiskit_result = qiskit_result
+
+    def _check_only_1_result(self, qiskit_result: PrimitiveResult) -> None:
+        pub_res_list = qiskit_result._pub_results
+        if len(pub_res_list) != 1:
+            raise ValueError(
+                "The Result must contain distribution for one circuit but"
+                f"found {len(pub_res_list)}"
+            )
 
     @property
     def counts(self) -> SamplingCounts:
-        # It must contain only one circuit result
-        if len(self._qiskit_result.quasi_dists) != 1:
-            raise ValueError(
-                "The Result must contain distribution for one circuit but"
-                f"found {len(self._qiskit_result.quasi_dists)}"
-            )
-        assert len(self._qiskit_result.metadata) == 1
-
-        total_count: int = self._qiskit_result.metadata[0]["shots"]
-
-        measurements: MutableMapping[int, float] = {}
-        for result, quasi_prob in self._qiskit_result.quasi_dists[0].items():
-            measurements[result] = quasi_prob * total_count
-        return measurements
+        measurement_cnt_str: MutableMapping[str, int] = self._qiskit_result[
+            0
+        ].data.meas.get_counts()
+        measurement_cnt = {int(b, 2): c for b, c in measurement_cnt_str.items()}
+        return measurement_cnt
 
 
 class QiskitRuntimeSamplingJob(SamplingJob):
@@ -87,7 +84,7 @@ class QiskitRuntimeSamplingJob(SamplingJob):
         self._qiskit_job = qiskit_job
 
     def result(self) -> SamplingResult:
-        qiskit_result: SamplerResult = self._qiskit_job.result()
+        qiskit_result = self._qiskit_job.result()
         return QiskitRuntimeSamplingResult(qiskit_result)
 
 
@@ -101,7 +98,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
         that interacts with the Qiskit Runtime service.
         circuit_converter: A function converting
-            :class:`~quri_parts.circuit.ImmutableQuantumCircuit` to
+            :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
         circuit_transpiler: A transpiler applied to the circuit before running it.
             :class:`~QiskitTranspiler` is used when not specified.
@@ -146,7 +143,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         circuit_transpiler: Optional[CircuitTranspiler] = None,
         enable_shots_roundup: bool = True,
         qubit_mapping: Optional[Mapping[int, int]] = None,
-        sampler_options: Union[None, Options, Dict[str, Any]] = None,
+        sampler_options: Union[None, SamplerOptions, Dict[str, Any]] = None,
         run_kwargs: Mapping[str, Any] = {},
         save_data_while_sampling: bool = False,
         total_time_limit: Optional[int] = None,
@@ -178,9 +175,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
         # Sampler options
         if isinstance(sampler_options, dict):
-            options = Options(**sampler_options)
+            options = SamplerOptions(**sampler_options)
             self._qiskit_sampler_options = options
-        elif isinstance(sampler_options, Options):
+        elif isinstance(sampler_options, SamplerOptions):
             self._qiskit_sampler_options = sampler_options
         elif sampler_options is None:
             self._qiskit_sampler_options = None
@@ -188,13 +185,13 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             raise ValueError("Invalid type for sampler_options")
 
         # Tracker related
-        self.tracker: Optional[tracker.Tracker] = None
+        self.tracker: Optional[Tracker] = None
         self._time_limit = 0.0
         self._single_job_max_execution_time = single_job_max_execution_time
         self._strict = strict_time_limit
 
         if total_time_limit is not None:
-            self.tracker = tracker.Tracker()
+            self.tracker = Tracker()
             self._time_limit = total_time_limit
 
     def close(self) -> None:
@@ -269,11 +266,11 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
 
     def _get_sampler_option_with_time_limit(
         self, batch_exe_time: Optional[int], batch_time_left: Optional[int]
-    ) -> Options:
+    ) -> SamplerOptions:
         options = (
             deepcopy(self._qiskit_sampler_options)
             if self._qiskit_sampler_options is not None
-            else Options()
+            else SamplerOptions()
         )
 
         if batch_exe_time is not None and batch_time_left is not None:
@@ -321,8 +318,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 self._run_tracker()
 
             qiskit_runtime_job = runtime_sampler.run(
-                qiskit_circuit, shots=s, **self._run_kwargs
+                [qiskit_circuit], shots=s, **self._run_kwargs
             )
+            print(qiskit_runtime_job)
             qiskit_runtime_sampling_job = QiskitRuntimeSamplingJob(qiskit_runtime_job)
 
             if self.tracker is not None:
@@ -335,7 +333,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 )
             jobs_list.append(qiskit_runtime_sampling_job)
 
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
         if not n_shots >= 1:
             raise ValueError("n_shots should be a positive integer.")
 
@@ -405,14 +403,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         job_list = []
         for circuit_qasm_str, n_shots, qiskit_runtime_sampling_job in self._saved_data:
             result = qiskit_runtime_sampling_job._qiskit_job.result()
-            quasi_dists = result.quasi_dists
-            assert len(quasi_dists) == 1, ValueError(
-                "The Result must contain distribution for one circuit but"
-                f"found {len(quasi_dists)}"
-            )
-            quasi_dist = quasi_dists[0]
-            saved_sampling_result = QiskitRuntimeSavedDataSamplingResult(
-                quasi_dist=quasi_dist, n_shots=n_shots
+            saved_sampling_result = QiskitSavedDataSamplingResult(
+                result[0].data.meas.get_counts()
             )
             saved_sampling_job = QiskitSavedDataSamplingJob(
                 circuit_qasm=circuit_qasm_str,
