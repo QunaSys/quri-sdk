@@ -29,6 +29,10 @@ T = TypeVar("T")
 
 class EvaluatorHooks(Generic[T], ABC):
     @abstractmethod
+    def reset(self) -> None:
+        ...
+
+    @abstractmethod
     def result(self) -> T:
         ...
 
@@ -64,6 +68,7 @@ class Evaluator(Generic[T]):
     hooks: EvaluatorHooks[T]
 
     def run(self, sub: MachineSub) -> T:
+        self.hooks.reset()
         self._call_stack: list[SubId] = []
         self._call_sub(sub, sub.qubits, sub.registers)
         return self.hooks.result()

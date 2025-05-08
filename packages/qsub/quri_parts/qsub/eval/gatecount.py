@@ -22,8 +22,10 @@ from ..register import Register
 class GateCountEvaluatorHooks(EvaluatorHooks[dict[BaseIdent, int]]):
     def __init__(self, ops: Iterable[AbstractOp] = ()) -> None:
         self._target_ops = set([op.base_id for op in ops])
-        self._counts: dict[BaseIdent, int] = defaultdict(int)
+        self.reset()
 
+    def reset(self) -> None:
+        self._counts: dict[BaseIdent, int] = defaultdict(int)
         self._cache: dict[SubId, dict[BaseIdent, int]] = {}
 
     def result(self) -> dict[BaseIdent, int]:

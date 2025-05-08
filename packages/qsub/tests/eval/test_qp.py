@@ -1,5 +1,5 @@
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.qsub.compile import compile
+from quri_parts.qsub.compile import compile, compile_sub
 from quri_parts.qsub.eval.quriparts import (
     QURIPartsEvaluatorHooks,
     quri_parts_codegen,
@@ -7,7 +7,7 @@ from quri_parts.qsub.eval.quriparts import (
 )
 from quri_parts.qsub.evaluate import Evaluator
 from quri_parts.qsub.expand import full_expand
-from quri_parts.qsub.lib.std import CNOT, CZ, RZ, H, S, T, Toffoli
+from quri_parts.qsub.lib.std import CNOT, CZ, RZ, H, S, T, Toffoli, X
 from quri_parts.qsub.opsub import OpSubDef, opsub
 from quri_parts.qsub.sub import SubBuilder
 
@@ -88,3 +88,18 @@ def test_compare_to_expand() -> None:
     evaluated_circuit = Evaluator(QURIPartsEvaluatorHooks()).run(compiled_msub)
 
     assert expanded_evaluated_circuit == evaluated_circuit
+
+
+def test_reuse_evaluator() -> None:
+    b = SubBuilder(1)
+    b.add_op(X, b.qubits)
+
+    sub = b.build()
+    primitives = (X,)
+    compiled = compile_sub(sub, primitives)
+
+    qp_generator = Evaluator(QURIPartsEvaluatorHooks())
+    qp_circuit_0 = qp_generator.run(compiled)
+    qp_circuit_1 = qp_generator.run(compiled)
+
+    assert qp_circuit_0.gates == qp_circuit_1.gates

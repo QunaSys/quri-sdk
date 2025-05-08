@@ -106,6 +106,9 @@ def _convert_op(
 
 class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
     def __init__(self) -> None:
+        self.reset()
+
+    def reset(self) -> None:
         self._gates: list[QuantumGate] = []
         self._qubit_map_stack: list[dict[Qubit, Qubit]] = []
         self._qubit_map: Optional[dict[Qubit, Qubit]] = None

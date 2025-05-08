@@ -19,8 +19,10 @@ from ..register import Register
 
 class AuxQubitCountEvaluatorHooks(EvaluatorHooks[int]):
     def __init__(self) -> None:
-        self._max_aux_count = 0
+        self.reset()
 
+    def reset(self) -> None:
+        self._max_aux_count = 0
         self._cache: dict[SubId, int] = defaultdict(int)
 
     def result(self) -> int:
