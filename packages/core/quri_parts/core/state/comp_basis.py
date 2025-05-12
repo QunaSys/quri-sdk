@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from functools import cached_property
-from typing import Literal, Union
+from typing import Literal, Mapping, Union
 
 import numpy as np
 from typing_extensions import TypeAlias
@@ -154,6 +154,10 @@ class ComputationalBasisState(CircuitQuantumState):
     def phase(self) -> float:
         """The phase of the state."""
         return self._phase * np.pi / 2
+
+    def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
+        """Sample the state using qulacs."""
+        return self.circuit.sample(n_shots)
 
 
 def comp_basis_superposition(

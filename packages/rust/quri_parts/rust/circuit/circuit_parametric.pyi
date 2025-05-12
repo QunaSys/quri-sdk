@@ -61,6 +61,10 @@ class ImmutableParametricQuantumCircuit(ParametricQuantumCircuitProtocol):
     def __radd__(
         self, gates: Union[GateSequence, "ParametricQuantumCircuitProtocol"]
     ) -> "ImmutableParametricQuantumCircuit": ...
+    def sample(
+        self, shots: int, param: Sequence[float]
+    ) -> Mapping[int, Union[int, float]]: ...
+    def draw(self) -> None: ...
 
 class ParametricQuantumCircuit(
     ImmutableParametricQuantumCircuit, MutableParametricQuantumCircuitProtocol

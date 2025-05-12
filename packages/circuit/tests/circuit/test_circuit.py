@@ -117,6 +117,14 @@ class TestQuantumCircuit:
         circuit2.add_H_gate(0)
         assert circuit1 == circuit2
 
+    def test_sample(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.add_H_gate(0)
+        circuit.add_CNOT_gate(0, 1)
+        samples = circuit.sample(1000)
+        assert len(samples) == 2
+        assert sum(samples.values()) == 1000
+
 
 class TestQuantumCircuitDeprecation:
     def test_order_flip(self) -> None:

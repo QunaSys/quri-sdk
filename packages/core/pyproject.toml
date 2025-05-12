@@ -29,6 +29,7 @@ python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
+quri-parts-qulacs = "*"
 scipy = "^1.11.3"
 networkx = "*"
 

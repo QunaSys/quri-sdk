@@ -4050,6 +4050,7 @@ develop = true
 networkx = "*"
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
+quri-parts-qulacs = "*"
 scipy = "^1.11.3"
 typing-extensions = "^4.1.1"
 

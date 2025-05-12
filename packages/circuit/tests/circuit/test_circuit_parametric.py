@@ -146,6 +146,14 @@ class TestUnboundParametricQuantumCircuit:
             ParametricPauliRotation([1], [1]),
         ]
 
+    def test_sample(self) -> None:
+        circuit = ParametricQuantumCircuit(3)
+        circuit.add_ParametricRX_gate(0)
+        circuit.add_CNOT_gate(0, 2)
+        samples = circuit.sample(1000, [np.pi / 4])
+        assert len(samples) == 2
+        assert sum(samples.values()) == 1000
+
 
 class TestImmutableUnboundParametricQuantumCircuit:
     def test_immutable_unbound_parametric_quantum_circuit(self) -> None:

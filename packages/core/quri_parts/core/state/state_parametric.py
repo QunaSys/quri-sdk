@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from abc import ABC
-from collections.abc import Sequence
+from typing import Sequence
 
 from quri_parts.circuit import GateSequence, ParametricQuantumCircuitProtocol
 
