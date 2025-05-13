@@ -11,13 +11,14 @@
 from ._namespace import NS
 from .cnot import CNOT
 from .conditional import Cbz, Label, conditional
-from .control import Controlled, MultiControlled
+from .control import Controlled, MultiControlled, MultiControlledAllOne
 from .cz import CZ
 from .inverse import Inverse
 from .logic import scoped_and, scoped_and_clifford_t, scoped_and_single_toffoli
 from .measure import M
 from .multipauli import Pauli, PauliRotation
 from .rotation import RX, RY, RZ, Phase
+from .simulator import GeneralizedPermutation, Matrix, Permutation
 from .single_clifford import (
     H,
     Identity,
@@ -67,7 +68,11 @@ __all__ = [
     "conditional",
     "Controlled",
     "MultiControlled",
+    "MultiControlledAllOne",
     "scoped_and",
     "scoped_and_clifford_t",
     "scoped_and_single_toffoli",
+    "GeneralizedPermutation",
+    "Matrix",
+    "Permutation",
 ]

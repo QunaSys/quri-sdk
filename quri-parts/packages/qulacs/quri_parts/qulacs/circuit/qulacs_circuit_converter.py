@@ -13,8 +13,6 @@ from cmath import phase
 from collections.abc import Mapping
 
 import numpy as np
-from qulacs import QuantumCircuit as QulacsQuantumCircuit
-
 from quri_parts.circuit import ImmutableQuantumCircuit as NPQC
 from quri_parts.circuit import (
     PauliRotation,
@@ -24,10 +22,13 @@ from quri_parts.circuit import (
     gate_names,
 )
 from quri_parts.circuit.gate_names import (
+    MCGateNameType,
     MultiQubitGateNameType,
     SingleQubitGateNameType,
     TwoQubitGateNameType,
 )
+
+from qulacs import QuantumCircuit as QulacsQuantumCircuit
 
 _single_qubit_gate_qulacs_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "I": gate_names.Identity,
@@ -61,6 +62,8 @@ _multi_qubits_gate_qulacs_quri_parts: Mapping[str, MultiQubitGateNameType] = {
     "Pauli": gate_names.Pauli,
     "Pauli-rotation": gate_names.PauliRotation,
 }
+
+_mc_gate_qulacs_quri_parts: Mapping[str, MCGateNameType] = {}
 
 
 def circuit_from_qulacs(qulacs_circuit: QulacsQuantumCircuit) -> NPQC:

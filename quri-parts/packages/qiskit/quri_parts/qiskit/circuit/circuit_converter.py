@@ -12,15 +12,9 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type, Union
 
 import numpy as np
-import qiskit.circuit.library as qgate
-import qiskit.quantum_info as qi
-from qiskit.circuit import QuantumCircuit
-from qiskit.circuit.gate import Gate
-from qiskit.circuit.library import UnitaryGate
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
+    MCGateNameType,
     Measurement,
     MultiQubitGateNameType,
     ParametricGateNameType,
@@ -28,6 +22,7 @@ from quri_parts.circuit.gate_names import (
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
     is_gate_name,
+    is_mc_gate_name,
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
@@ -36,6 +31,13 @@ from quri_parts.circuit.gate_names import (
     is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import CircuitTranspiler
+from typing_extensions import TypeAlias
+
+import qiskit.circuit.library as qgate
+import qiskit.quantum_info as qi
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit.gate import Gate
+from qiskit.circuit.library import UnitaryGate
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
@@ -45,6 +47,26 @@ QiskitCircuitConverter: TypeAlias = Callable[
 _X = qi.SparsePauliOp("X")
 _Y = qi.SparsePauliOp("Y")
 _Z = qi.SparsePauliOp("Z")
+
+_mc_gate_qiskit: Mapping[MCGateNameType, Type[Gate]] = {
+    gate_names.MCX: qgate.MCXGate,
+    gate_names.MCY: qgate.YGate,
+    gate_names.MCZ: qgate.ZGate,
+    gate_names.MCH: qgate.HGate,
+    gate_names.MCS: qgate.SGate,
+    gate_names.MCSdag: qgate.SdgGate,
+    gate_names.MCT: qgate.TGate,
+    gate_names.MCTdag: qgate.TdgGate,
+    gate_names.MCSqrtX: qgate.SXGate,
+    gate_names.MCSqrtXdag: qgate.SXdgGate,
+}
+
+_mc_rot_gate_qiskit: Mapping[MCGateNameType, Type[Gate]] = {
+    gate_names.MCRX: qgate.RXGate,
+    gate_names.MCRY: qgate.RYGate,
+    gate_names.MCRZ: qgate.RZGate,
+    gate_names.MCU1: qgate.PhaseGate,
+}
 
 _single_qubit_gate_qiskit: Mapping[SingleQubitGateNameType, Type[Gate]] = {
     gate_names.Identity: qgate.IGate,
@@ -145,11 +167,25 @@ def convert_gate(gate: QuantumGate) -> Gate:
             for p in reversed(gate.pauli_ids[:-1]):
                 operator ^= gate_map_op[p]
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
+        
+    elif is_mc_gate_name(gate.name):
+        if gate.name == gate_names.MCX:
+            return _mc_gate_qiskit[gate.name](num_ctrl_qubits=len(gate.control_indices))
+        elif gate.name in _mc_gate_qiskit:
+            return _mc_gate_qiskit[gate.name]().control(
+                num_ctrl_qubits=len(gate.control_indices)
+            )
+        elif gate.name in _mc_rot_gate_qiskit:
+            return _mc_rot_gate_qiskit[gate.name](gate.params[0]).control(
+                num_ctrl_qubits=len(gate.control_indices)
+            )
+        else:
+            raise ValueError(f"Unknown multi-controlled gate: {gate.name}")
 
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported.")
     else:
-        assert False, "Unreachable"
+        assert False, f"Unreachable, {gate.name=}"
 
     raise NotImplementedError(
         f"Conversion of {gate.name} to qiskit has not been implemented."

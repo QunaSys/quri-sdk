@@ -20,7 +20,7 @@ from quri_parts.qsub.sub import Sub, SubBuilder
 
 from .cnot import CNOT
 from .conditional import conditional
-from .control import Controlled, MultiControlled
+from .control import Controlled, MultiControlled, MultiControlledAllOne
 from .cz import CZ
 from .measure import M
 from .single_clifford import H, Sdag, X
@@ -104,22 +104,23 @@ def _multi_controlled_sub(
         add_neg()
         return builder.build()
 
-    def recursive_and(i: int, a: Optional[Qubit] = None) -> None:
-        if i == control_bits - 1:
-            assert a
-            builder.add_op(Controlled(op), (a, *qubits[control_bits:]))
-        else:
-            if i == 0:
-                i0 = qubits[0]
-            else:
-                assert a
-                i0 = a
-            i1 = qubits[i + 1]
-            with s_and(builder, i0, i1) as a:
-                recursive_and(i + 1, a)
+    # def recursive_and(i: int, a: Optional[Qubit] = None) -> None:
+    #     if i == control_bits - 1:
+    #         assert a
+    #         builder.add_op(Controlled(op), (a, *qubits[control_bits:]))
+    #     else:
+    #         if i == 0:
+    #             i0 = qubits[0]
+    #         else:
+    #             assert a
+    #             i0 = a
+    #         i1 = qubits[i + 1]
+    #         with s_and(builder, i0, i1) as a:
+    #             recursive_and(i + 1, a)
 
     add_neg()
-    recursive_and(0)
+    # recursive_and(0)
+    builder.add_op(MultiControlledAllOne(op, control_bits), qubits)
     add_neg()
 
     return builder.build()

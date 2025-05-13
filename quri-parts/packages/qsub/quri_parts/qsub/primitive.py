@@ -17,6 +17,7 @@ from quri_parts.qsub.lib.std import (
     SWAP,
     H,
     Identity,
+    MultiControlledAllOne,
     Phase,
     S,
     Sdag,
@@ -42,4 +43,4 @@ CliffordRZ = Clifford + (RZ,)
 RotationSet = Rotation + TwoQubitClifford
 RZSet = (X, SqrtX, RZ, CNOT)
 FTQCBasicSet = (H, S, T, CNOT)
-AllBasicSet = CliffordT + Rotation + (Toffoli,)
+AllBasicSet = CliffordT + Rotation + (Toffoli, MultiControlledAllOne)

@@ -85,6 +85,40 @@ primitive_param_op_gate_mapping: Mapping[
     std.Phase.base_id: gates.RZ,
 }
 
+mc_primitive_op_gate_mapping: Mapping[
+    BaseIdent,
+    Callable[[int], QuantumGate]
+    | Callable[[int, int], QuantumGate]
+    | Callable[[int, int, int], QuantumGate],
+] = {
+    #     std.CNOT.base_id: gates.CNOT,
+    #     std.CZ.base_id: gates.CZ,
+    #     std.H.base_id: gates.H,
+    #     std.Identity.base_id: gates.Identity,
+    #     std.S.base_id: gates.S,
+    #     std.Sdag.base_id: gates.Sdag,
+    #     std.SqrtX.base_id: gates.SqrtX,
+    #     std.SqrtXdag.base_id: gates.SqrtXdag,
+    #     std.SqrtY.base_id: gates.SqrtY,
+    #     std.SqrtYdag.base_id: gates.SqrtYdag,
+    #     std.SWAP.base_id: gates.SWAP,
+    #     std.T.base_id: gates.T,
+    #     std.Tdag.base_id: gates.Tdag,
+    #     std.Toffoli.base_id: gates.TOFFOLI,
+    std.X.base_id: gates.MCX,
+    #     std.Y.base_id: gates.Y,
+    #     std.Z.base_id: gates.Z,
+}
+mc_primitive_param_op_gate_mapping: Mapping[
+    BaseIdent,
+    Callable[[int, float], QuantumGate],
+] = {
+    # std.RX.base_id: gates.RX,
+    # std.RY.base_id: gates.RY,
+    # std.RZ.base_id: gates.RZ,
+    # std.Phase.base_id: gates.RZ,
+}
+
 
 def _convert_op(
     mop: MachineOp,
@@ -100,6 +134,24 @@ def _convert_op(
         return primitive_param_op_gate_mapping[mop.op.id.base](
             qubit_map[qubits[0]].uid, cast(float, mop.op.id.params[0])
         )
+    elif mop.op.base_id == std.MultiControlledAllOne.base_id:
+        target_op = mop.op.id.params[0]
+        n_controls = mop.op.id.params[1]
+        if target_op.base_id in primitive_op_gate_mapping:
+            return mc_primitive_op_gate_mapping[target_op.base_id](
+                *[qubit_map[q].uid for q in qubits[n_controls:]],
+                control_indices=[qubit_map[q].uid for q in qubits[:n_controls]],
+            )
+        elif target_op.base_id in primitive_param_op_gate_mapping:
+            return mc_primitive_param_op_gate_mapping[mop.op.id.base](
+                qubit_map[qubits[0]].uid,
+                cast(float, mop.op.id.params[0]),
+                control_indices=qubit_map[qubits[:n_controls]],
+            )
+        else:
+            raise ValueError(
+                f"Op mapping to QuantumGate is not supported for {target_op}."
+            )
     else:
         raise ValueError(f"Op mapping to QuantumGate is not supported for {mop.op.id}.")
 

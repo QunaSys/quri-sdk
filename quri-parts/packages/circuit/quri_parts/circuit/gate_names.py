@@ -34,6 +34,45 @@ SingleQubitGateNameType: TypeAlias = Literal[
     "U3",
 ]
 
+MCGateNameType: TypeAlias = Literal[
+    "MCX",
+    "MCY",
+    "MCZ",
+    "MCH",
+    "MCRX",
+    "MCRY",
+    "MCRZ",
+    "MCU1",
+    "MCS",
+    "MCSdag",
+    "MCT",
+    "MCTdag",
+    "MCSqrtX",
+    "MCSqrtXdag",
+    "MCSqrtY",
+    "MCSqrtYdag",
+]
+
+MCX: Literal["MCX"] = "MCX"
+MCY: Literal["MCY"] = "MCY"
+MCZ: Literal["MCZ"] = "MCZ"
+MCH: Literal["MCH"] = "MCH"
+MCRX: Literal["MCRX"] = "MCRX"
+MCRY: Literal["MCRY"] = "MCRY"
+MCRZ: Literal["MCRZ"] = "MCRZ"
+MCS: Literal["MCS"] = "MCS"
+MCSdag: Literal["MCSdag"] = "MCSdag"
+MCT: Literal["MCT"] = "MCT"
+MCTdag: Literal["MCTdag"] = "MCTdag"
+MCSqrtX: Literal["MCSqrtX"] = "MCSqrtX"
+MCSqrtXdag: Literal["MCSqrtXdag"] = "MCSqrtXdag"
+MCSqrtY: Literal["MCSqrtY"] = "MCSqrtY"
+MCSqrtYdag: Literal["MCSqrtYdag"] = "MCSqrtYdag"
+MCRX: Literal["MCRX"] = "MCRX"
+MCRY: Literal["MCRY"] = "MCRY"
+MCRZ: Literal["MCRZ"] = "MCRZ"
+MCU1: Literal["MCU1"] = "MCU1"
+
 Identity: Literal["Identity"] = "Identity"
 X: Literal["X"] = "X"
 Y: Literal["Y"] = "Y"
@@ -53,6 +92,15 @@ RZ: Literal["RZ"] = "RZ"
 U1: Literal["U1"] = "U1"
 U2: Literal["U2"] = "U2"
 U3: Literal["U3"] = "U3"
+
+MC_GATE_NAMES: set[MCGateNameType] = {MCX, MCY, MCZ, MCH, MCS, MCSdag, MCT, MCTdag,
+    MCSqrtX, MCSqrtXdag, MCSqrtY, MCSqrtYdag,
+                                      MCRX, MCRY, MCRZ, MCU1}
+
+
+def is_mc_gate_name(gate_name: str) -> TypeGuard[MCGateNameType]:
+    return gate_name in MC_GATE_NAMES
+
 
 SINGLE_QUBIT_GATE_NAMES: set[SingleQubitGateNameType] = {
     Identity,
@@ -247,6 +295,7 @@ GateNameType: TypeAlias = Literal[
     UnitaryMatrixGateNameType,
     ParametricGateNameType,
     MeasurementGateNameType,
+    MCGateNameType,
 ]
 
 GATE_NAMES: set[GateNameType] = (
@@ -257,6 +306,7 @@ GATE_NAMES: set[GateNameType] = (
     | UNITARY_MATRIX_GATE_NAMES
     | PARAMETRIC_GATE_NAMES
     | MEASUREMENT_GATE_NAMES
+    | MC_GATE_NAMES
 )
 
 

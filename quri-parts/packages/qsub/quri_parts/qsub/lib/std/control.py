@@ -92,7 +92,93 @@ class _MultiControlled(ParamUnitaryDef[Op, int, int]):
 MultiControlled: OpFactory[Op, int, int] = param_op(_MultiControlled)
 
 
+class _MultiControlledAllOne(ParamUnitaryDef[Op, int]):
+    ns = NS
+    name = "MultiControlledAllOne"
+
+    def qubit_count_fn(self, target_op: Op, control_bits: int) -> int:
+        return target_op.qubit_count + control_bits
+
+    def reg_count_fn(self, target_op: Op, control_bits: int) -> int:
+        return target_op.reg_count
+
+    def validate_params(
+        self,
+        target_op: Op,
+        control_bits: int,
+    ) -> None:
+        if not target_op.unitary:
+            raise ParameterValidationError(f"target_op {target_op} is not unitary")
+        if not control_bits >= 1:
+            raise ParameterValidationError(
+                f"control_bits should be a positive integer but {control_bits}"
+            )
+
+
+MultiControlledAllOne: OpFactory[Op, int] = param_op(_MultiControlledAllOne)
 # Sub resolver definitions
+
+
+def multi_controlled_all_one_sub_resolver(
+    op: Op, repository: SubRepository
+) -> Sub | None:
+    target_op = op.id.params[0]
+    assert isinstance(target_op, Op)
+
+    target_sub_resolver = repository.find_resolver(target_op)
+    if not target_sub_resolver:
+        return None
+    target_sub = target_sub_resolver(target_op, repository)
+    if not target_sub:
+        return None
+
+    builder = SubBuilder(op.qubit_count, op.reg_count)
+    n_control = op.id.params[1]
+    control_q, target_q = builder.qubits[:n_control], builder.qubits[n_control:]
+
+    target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
+    qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
+        zip(target_sub.aux_qubits, target_aq)
+    )
+
+    target_ar = tuple(builder.add_aux_register() for _ in target_sub.aux_registers)
+    reg_map = dict(zip(target_sub.registers, builder.registers)) | dict(
+        zip(target_sub.aux_registers, target_ar)
+    )
+
+    for o, qs, rs in target_sub.operations:
+        if o.unitary:
+            builder.add_op(
+                MultiControlledAllOne(o),
+                (*control_q, *(qubit_map[q] for q in qs)),
+                tuple(reg_map[r] for r in rs),
+            )
+        else:
+            raise RuntimeError(
+                f"This condition is not supported for multi-controlled gates: {o.unitary=}"
+            )
+            # TODO: properly handle this case
+            # builder.add_op(
+            #     o,
+            #     tuple(qubit_map[q] for q in qs),
+            #     tuple(reg_map[r] for r in rs),
+            # )
+
+    phase = target_sub.phase % (2 * math.pi)
+    if phase > 1e-13:
+        raise RuntimeError(
+            f"Non-zero global phase is not supported for multi-controlled gates: {phase=}"
+        )
+    # if phase == math.pi:
+    #     builder.add_op(Z, (c,))
+    # elif phase == math.pi / 2:
+    #     builder.add_op(S, (c,))
+    # elif phase == 3 * math.pi / 2:
+    #     builder.add_op(Sdag, (c,))
+    # elif phase != 0:
+    #     builder.add_op(Phase(phase), (c,))
+
+    return builder.build()
 
 
 def controlled_sub_resolver(op: Op, repository: SubRepository) -> Sub | None:
@@ -432,6 +518,9 @@ def register_controlled_resolver(
 
 _repo = default_repository()
 _repo.register_sub_resolver(Controlled, controlled_sub_resolver)
+_repo.register_sub_resolver(
+    MultiControlledAllOne, multi_controlled_all_one_sub_resolver
+)
 
 _resolvers: Collection[tuple[AbstractOp, SubResolver]] = [
     (X, controlled_x_resolver),
