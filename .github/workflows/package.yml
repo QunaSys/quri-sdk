@@ -174,6 +174,7 @@ jobs:
       - name: Run test
         shell: bash
         run: |
+          poetry env use '${{ steps.setup-python.outputs.python-path }}'
           poetry run pip install pytest
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev

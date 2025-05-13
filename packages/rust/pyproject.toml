@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 dependencies = ["typing-extensions>=4.1.1,<5.0.0", "numpy>=1.22.0"]
 name = "quri-parts-rust"
-version = "0.21.0"
+version = "0.22.0"
 description = "Platform-independent quantum circuit library"
 license = { text = "Apache-2.0" }
 
@@ -21,7 +21,7 @@ Documentation = "https://quri-parts.qunasys.com"
 # The followings is needed for rust-sdist-package CI
 [tool.poetry]
 name = "quri-parts-rust"
-version = "0.21.0"
+version = "0.22.0"
 description = "Platform-independent quantum circuit library"
 license = "Apache-2.0"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]
