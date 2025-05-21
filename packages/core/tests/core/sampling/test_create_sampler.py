@@ -33,7 +33,7 @@ from quri_parts.core.sampling import (
     create_parametric_sampler_from_sampler,
     create_parametric_state_sampler_from_state_sampler,
     create_sampler_from_sampling_backend,
-    sample_from_probibility_distribution,
+    sample_from_probability_distribution,
 )
 from quri_parts.core.state import (
     CircuitQuantumState,
@@ -48,20 +48,20 @@ def test_sample_from_probibility_distribution() -> None:
     norm = 1.0
     p1 = 0.4
     prob = np.array([p1, norm - p1])
-    cnts = sample_from_probibility_distribution(1000, prob)
+    cnts = sample_from_probability_distribution(1000, prob)
     assert sum(list(cnts.values())) == 1000
 
     norm = 1.000000000002
     p1 = 0.4
     prob = np.array([p1, norm - p1])
-    cnts = sample_from_probibility_distribution(1000, prob)
+    cnts = sample_from_probability_distribution(1000, prob)
     assert sum(list(cnts.values())) == 1000
 
     norm = 1.001
     p1 = 0.4
     prob = np.array([p1, norm - p1])
     with pytest.raises(AssertionError, match="Probabilty does not sum to 1.0"):
-        cnts = sample_from_probibility_distribution(1000, prob)
+        cnts = sample_from_probability_distribution(1000, prob)
 
     # Potentially dangerous case: large amount of small probabilities (p < 1e-12)
     # When they are rounded away, sum of the rest of the probabilities slightly > 1.
@@ -73,7 +73,7 @@ def test_sample_from_probibility_distribution() -> None:
     with pytest.raises(ValueError):
         rng = np.random.default_rng()
         rng.multinomial(1000, prob.round(12))
-    cnts = sample_from_probibility_distribution(1000, prob)
+    cnts = sample_from_probability_distribution(1000, prob)
     assert sum(list(cnts.values())) == 1000
 
 

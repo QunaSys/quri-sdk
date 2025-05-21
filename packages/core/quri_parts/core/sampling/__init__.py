@@ -18,6 +18,7 @@ from typing import (
     Iterable,
     Mapping,
     NamedTuple,
+    Optional,
     Sequence,
     TypeVar,
     Union,
@@ -432,13 +433,14 @@ def create_concurrent_parametric_state_sampler_from_concurrent_state_sampler(
     return _concurrent_parametric_state_sampler
 
 
-def sample_from_probibility_distribution(
+def sample_from_probability_distribution(
     n_sample: int,
-    probibility_distribution: Union[Sequence[float], npt.NDArray[np.float64]],
+    probability_distribution: Union[Sequence[float], npt.NDArray[np.float64]],
+    seed: Optional[int] = None,
 ) -> MeasurementCounts:
     """Sample from a probibility distribution."""
-    rng = np.random.default_rng()
-    rounded_prob = np.round(probibility_distribution, 12)
+    rng = np.random.default_rng(seed=seed)
+    rounded_prob = np.round(probability_distribution, 12)
     norm = np.sum(rounded_prob)
     assert np.isclose(norm, 1.0), "Probabilty does not sum to 1.0"
     rounded_prob = rounded_prob / norm
@@ -455,7 +457,7 @@ def sample_from_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
     probs = cast(npt.NDArray[np.float64], np.abs(state_vector) ** 2)
-    return sample_from_probibility_distribution(n_shots, probs)
+    return sample_from_probability_distribution(n_shots, probs)
 
 
 def ideal_sample_from_state_vector(
@@ -485,7 +487,7 @@ def sample_from_density_matrix(
         raise ValueError("probabilities do not sum to 1")
 
     probs = np.diag(density_matrix).real
-    return sample_from_probibility_distribution(n_shots, probs)
+    return sample_from_probability_distribution(n_shots, probs)
 
 
 def ideal_sample_from_density_matrix(

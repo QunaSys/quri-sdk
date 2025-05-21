@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 from typing import Optional
 
 import numpy as np
@@ -17,7 +18,15 @@ from braket.devices import LocalSimulator
 from braket.tasks import GateModelQuantumTaskResult
 
 from quri_parts.backend import CompositeSamplingJob
-from quri_parts.braket.backend import BraketSamplingBackend, BraketSamplingResult
+from quri_parts.braket.backend import (
+    BraketSamplingBackend,
+    BraketSamplingJob,
+    BraketSamplingResult,
+)
+from quri_parts.braket.backend.saved_sampling import (
+    BraketSavedDataSamplingJob,
+    BraketSavedDataSamplingResult,
+)
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 
@@ -239,3 +248,98 @@ class TestBraketSamplingBackend:
         assert set(counts.keys()) == {0b001, 0b011}
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == 1000
+
+    def test_saving_mode_jobs(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.add_X_gate(0)
+        circuit.add_H_gate(1)
+        circuit.add_Z_gate(2)
+
+        braket_circuit = circuit_converter(circuit)
+        program_str = braket_circuit.to_ir().json()
+
+        device = LocalSimulator()
+
+        backend = BraketSamplingBackend(
+            device, circuit_converter=circuit_converter, save_data_while_sampling=True
+        )
+        backend._max_shots = 200
+
+        job_1 = backend.sample(circuit, 100)
+        assert isinstance(job_1, BraketSamplingJob)
+        braket_result_1 = job_1._braket_task.result().measurement_counts
+        expected_saved_results_1 = [
+            BraketSavedDataSamplingJob(
+                program_str, 100, BraketSavedDataSamplingResult(braket_result_1)
+            )
+        ]
+        assert backend.jobs == expected_saved_results_1
+
+        job_2 = backend.sample(circuit, 1000)
+        assert isinstance(job_2, CompositeSamplingJob)
+
+        expected_saved_results_2 = []
+        for job in job_2.jobs:
+            assert isinstance(job, BraketSamplingJob)
+            expected_saved_results_2.append(
+                BraketSavedDataSamplingJob(
+                    program_str,
+                    200,
+                    BraketSavedDataSamplingResult(
+                        job._braket_task.result().measurement_counts
+                    ),
+                )
+            )
+
+        for j1, j2 in zip(
+            backend.jobs, expected_saved_results_1 + expected_saved_results_2
+        ):
+            assert j1 == j2
+
+    def test_saving_mode_jobs_json(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.add_X_gate(0)
+        circuit.add_H_gate(1)
+        circuit.add_Z_gate(2)
+
+        braket_circuit = circuit_converter(circuit)
+        program_str = braket_circuit.to_ir().json()
+
+        device = LocalSimulator()
+
+        backend = BraketSamplingBackend(
+            device, circuit_converter=circuit_converter, save_data_while_sampling=True
+        )
+        backend._max_shots = 200
+
+        job_1 = backend.sample(circuit, 100)
+        assert isinstance(job_1, BraketSamplingJob)
+        braket_saved_json_1 = job_1._braket_task.result().measurement_counts
+        expected_saved_json_1 = [
+            {
+                "circuit_program_str": program_str,
+                "n_shots": 100,
+                "saved_result": {"raw_data": braket_saved_json_1},
+            }
+        ]
+        assert json.loads(backend.jobs_json) == expected_saved_json_1
+
+        job_2 = backend.sample(circuit, 1000)
+        assert isinstance(job_2, CompositeSamplingJob)
+        expected_saved_json_2 = []
+        for job in job_2.jobs:
+            assert isinstance(job, BraketSamplingJob)
+            expected_saved_json_2.append(
+                {
+                    "circuit_program_str": program_str,
+                    "n_shots": 200,
+                    "saved_result": {
+                        "raw_data": job._braket_task.result().measurement_counts
+                    },
+                }
+            )
+
+        for j1, j2 in zip(
+            json.loads(backend.jobs_json), expected_saved_json_1 + expected_saved_json_2
+        ):
+            assert j1 == j2

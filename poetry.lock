@@ -1236,7 +1236,6 @@ description = "Simple Python interface for Graphviz"
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
-markers = "python_version >= \"3.10\""
 files = [
     {file = "graphviz-0.20.3-py3-none-any.whl", hash = "sha256:81f848f2904515d8cd359cc611faba817598d2feaac4027b266aa3eda7b3dde5"},
     {file = "graphviz-0.20.3.zip", hash = "sha256:09d6bc81e6a9fa392e7ba52135a9d49f1ed62526f96499325930e87ca1b5925d"},
@@ -4437,7 +4436,7 @@ url = "packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.21.0"
+version = "0.22.0"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
@@ -4471,6 +4470,25 @@ stim = "^1.11.0"
 [package.source]
 type = "directory"
 url = "packages/stim"
+
+[[package]]
+name = "quri-parts-tensornetwork"
+version = "0.0.0"
+description = "A plugin to use tensornetwork with QURI Parts"
+optional = false
+python-versions = "^3.9.8"
+groups = ["main", "dev"]
+files = []
+develop = true
+
+[package.dependencies]
+quri-parts-circuit = "*"
+quri-parts-core = "*"
+tensornetwork-ng = "^0.5.1"
+
+[package.source]
+type = "directory"
+url = "packages/tensornetwork"
 
 [[package]]
 name = "quri-parts-tket"
@@ -5303,6 +5321,25 @@ files = [
 ]
 
 [[package]]
+name = "tensornetwork-ng"
+version = "0.5.1"
+description = "A high level tensor network API for accelerated tensor network calculations."
+optional = false
+python-versions = ">=3.7.0"
+groups = ["main", "dev"]
+files = [
+    {file = "tensornetwork_ng-0.5.1-py3-none-any.whl", hash = "sha256:d9479a8fc35c14aac327b1aba345672fe1e303ae88ed8d5c896c79a429a59afd"},
+    {file = "tensornetwork_ng-0.5.1.tar.gz", hash = "sha256:b123073969c3a5440bc364f7a0c1e428b19d3b7c0c7b4c7e6aa2e936bd7dbaf3"},
+]
+
+[package.dependencies]
+graphviz = ">=0.11.1"
+h5py = ">=2.9.0"
+numpy = ">=1.17"
+opt-einsum = ">=2.3.0"
+scipy = ">=1.1"
+
+[[package]]
 name = "terminado"
 version = "0.18.1"
 description = "Tornado websocket backend for the Xterm.js Javascript terminal emulator library."
@@ -5622,9 +5659,10 @@ qsub = ["quri-parts-qsub"]
 quantinuum = ["quri-parts-quantinuum"]
 qulacs = ["quri-parts-qulacs"]
 stim = ["quri-parts-stim"]
+tensornetwork = ["quri-parts-tensornetwork"]
 tket = ["quri-parts-tket"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.8,<3.13"
-content-hash = "f69f51d24ed114710b84ae7ac3e5a95a0b63c75e6ad0227f8ef10c0fbd892cab"
+content-hash = "3de78d1f90b424c00bced9f8279fb0fef8262c1e912b2ed7d8e3d076fd7fac75"
