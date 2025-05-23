@@ -1,6 +1,6 @@
 # QURI Parts OpenQASM
 
-QURI Parts OpenFermion is a support library for using OpenQASM 3 with QURI Parts.
+QURI Parts OpenQASM is a support library for using OpenQASM 3 with QURI Parts.
 
 Note: some gates (SqrtX, SqrtXdag, SqrtY, SqrtYdag) are not implemented yet.
 

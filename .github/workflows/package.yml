@@ -174,7 +174,7 @@ jobs:
       - name: Run test
         shell: bash
         run: |
-          poetry env use '${{ steps.setup-python.outputs.python-path }}'
+          poetry env use 3.${{ matrix.python-version }}
           poetry run pip install pytest
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
@@ -193,7 +193,7 @@ jobs:
           fi
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
             # We cannot run tests on native Windows, since pyscf does not support it.
-            poetry install -vv --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket --extras qsub
+            poetry install -vv --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket --extras qsub --extras tensornetwork
             poetry run pytest packages --ignore=packages/pyscf --ignore=packages/itensor
           else
             poetry run pytest packages

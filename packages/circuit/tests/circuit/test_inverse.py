@@ -105,8 +105,14 @@ def _assert_inverse_gates(a: QuantumGate, b: QuantumGate) -> None:
 
 
 def _assert_inverse_circuits(a: QuantumCircuit, b: QuantumCircuit) -> None:
-    assert a == inverse_circuit(b)
-    assert inverse_circuit(a) == b
+    if a != inverse_circuit(b):
+        raise AssertionError(
+            f"a != inverse_circuit(b). {a=}, {b=}, {inverse_circuit(b)=}"
+        )
+    if inverse_circuit(a) != b:
+        raise AssertionError(
+            f"inverse_circuit(a) != b. {a=}, {b=}, {inverse_circuit(a)=}"
+        )
 
 
 def test_inverse_gate() -> None:
