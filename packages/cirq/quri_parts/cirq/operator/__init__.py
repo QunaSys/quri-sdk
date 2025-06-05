@@ -38,4 +38,4 @@ def operator_from_cirq_op(operator: Union[PauliString[Any], PauliSum]) -> Operat
     return qp_op
 
 
-__all__ = ["qp_operator_from_cirq_op"]
+__all__ = ["operator_from_cirq_op"]

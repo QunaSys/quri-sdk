@@ -106,5 +106,5 @@ __all__ = [
     "bitwise_pauli_reconstructor_factory",
     "bitwise_commuting_pauli_measurement",
     "individual_pauli_measurement",
-    "CachedMeasuremetFactory",
+    "CachedMeasurementFactory",
 ]

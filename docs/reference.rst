@@ -24,4 +24,6 @@ API Reference
     quri_parts/itensor/quri_parts.itensor
     quri_parts/pyscf/quri_parts.pyscf
     quri_parts/tket/quri_parts.tket
+    quri_parts/qsub/quri_parts.qsub
+    quri_parts/tensornetwork/quri_parts.tensornetwork
 

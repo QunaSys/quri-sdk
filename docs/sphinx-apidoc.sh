@@ -19,6 +19,8 @@ pkgs="
     itensor
     pyscf
     tket
+    qsub
+    tensornetwork
 "
 
 for pkg in $pkgs
