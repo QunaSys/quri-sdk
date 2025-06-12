@@ -180,9 +180,9 @@ def controlled_z_resolver(op: Op, repository: SubRepository) -> Sub:
 def controlled_h_resolver(op: Op, repository: SubRepository) -> Sub:
     builder = SubBuilder(op.qubit_count, op.reg_count)
     q0, q1 = builder.qubits
-    builder.add_op(RY(math.pi / 4), (q1,))
-    builder.add_op(CZ, (q0, q1))
     builder.add_op(RY(-math.pi / 4), (q1,))
+    builder.add_op(CZ, (q0, q1))
+    builder.add_op(RY(math.pi / 4), (q1,))
     return builder.build()
 
 

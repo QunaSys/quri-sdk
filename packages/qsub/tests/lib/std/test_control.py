@@ -300,9 +300,9 @@ def test_controlled_h() -> None:
     assert len(sub.aux_registers) == 0
     q0, q1 = sub.qubits
     assert tuple(sub.operations) == (
-        (RY(math.pi / 4), (q1,), ()),
-        (CZ, (q0, q1), ()),
         (RY(-math.pi / 4), (q1,), ()),
+        (CZ, (q0, q1), ()),
+        (RY(math.pi / 4), (q1,), ()),
     )
     assert sub.phase == 0
 
