@@ -30,7 +30,8 @@ jobs:
 
     - run: |
         poetry env use ${{ matrix.python_version }}
-        poetry install --only main,dev,typecheck
+        poetry run pip install -vvv -e packages/rust
+        poetry install -vvv --only main,dev,typecheck
 
     - name: Cache mypy cache
       uses: actions/cache@v3

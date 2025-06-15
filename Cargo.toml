@@ -1,6 +1,6 @@
 [package]
 name = "quri-parts"
-version = "0.22.0"
+version = "0.22.1"
 edition = "2021"
 description = "Platform-independent quantum computing library"
 authors = ["QURI Parts Authors <opensource@qunasys.com>"]

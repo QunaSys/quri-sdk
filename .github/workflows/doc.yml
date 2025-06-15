@@ -40,7 +40,8 @@ jobs:
 
     - run: |
         poetry env use 3.9
-        poetry install --only main,dev,doc
+        poetry run pip install -vvv -e packages/rust
+        poetry install -vvv --only main,dev,doc
 
     - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
   

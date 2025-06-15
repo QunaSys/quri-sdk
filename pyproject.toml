@@ -38,7 +38,7 @@ quri-parts-quantinuum = { version = "*", optional = true }
 quri-parts-ionq = { version = "*", optional = true }
 quri-parts-itensor = { version = "*", optional = true }
 quri-parts-pyscf = { version = "*", optional = true }
-quri-parts-tensornetwork = { version = "*", optional = true}
+quri-parts-tensornetwork = { version = "*", optional = true }
 quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
 quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
 
@@ -59,25 +59,25 @@ tensornetwork = ["quri-parts-tensornetwork"]
 qsub = ["quri-parts-qsub"]
 
 [tool.poetry.group.dev.dependencies]
-quri-parts-rust = {path = "packages/rust", develop = true}
-quri-parts-circuit = {path = "packages/circuit", develop = true}
-quri-parts-core = {path = "packages/core", develop = true}
-quri-parts-qulacs = {path = "packages/qulacs", develop = true}
-quri-parts-algo = {path = "packages/algo", develop = true}
-quri-parts-chem = {path = "packages/chem", develop = true}
-quri-parts-braket = {path = "packages/braket", develop = true}
-quri-parts-qiskit = {path = "packages/qiskit", develop = true}
-quri-parts-cirq = {path = "packages/cirq", develop = true}
-quri-parts-openfermion = {path = "packages/openfermion", develop = true}
-quri-parts-stim = {path = "packages/stim", develop = true}
-quri-parts-openqasm = {path = "packages/openqasm", develop = true}
-quri-parts-quantinuum = {path = "packages/quantinuum", develop = true}
-quri-parts-ionq = {path = "packages/ionq", develop = true}
-quri-parts-itensor = {path = "packages/itensor", develop = true}
-quri-parts-pyscf = {path = "packages/pyscf", develop = true}
-quri-parts-tensornetwork = {path = "packages/tensornetwork", develop = true}
-quri-parts-tket = {path = "packages/tket", develop = true, python = ">=3.10" }
-quri-parts-qsub = {path = "packages/qsub", develop = true, python = ">=3.10" }
+quri-parts-rust = { path = "packages/rust", develop = true }
+quri-parts-circuit = { path = "packages/circuit", develop = true }
+quri-parts-core = { path = "packages/core", develop = true }
+quri-parts-qulacs = { path = "packages/qulacs", develop = true }
+quri-parts-algo = { path = "packages/algo", develop = true }
+quri-parts-chem = { path = "packages/chem", develop = true }
+quri-parts-braket = { path = "packages/braket", develop = true }
+quri-parts-qiskit = { path = "packages/qiskit", develop = true }
+quri-parts-cirq = { path = "packages/cirq", develop = true }
+quri-parts-openfermion = { path = "packages/openfermion", develop = true }
+quri-parts-stim = { path = "packages/stim", develop = true }
+quri-parts-openqasm = { path = "packages/openqasm", develop = true }
+quri-parts-quantinuum = { path = "packages/quantinuum", develop = true }
+quri-parts-ionq = { path = "packages/ionq", develop = true }
+quri-parts-itensor = { path = "packages/itensor", develop = true }
+quri-parts-pyscf = { path = "packages/pyscf", develop = true }
+quri-parts-tensornetwork = { path = "packages/tensornetwork", develop = true }
+quri-parts-tket = { path = "packages/tket", develop = true, python = ">=3.10" }
+quri-parts-qsub = { path = "packages/qsub", develop = true, python = ">=3.10" }
 
 # To avoid poetry downloading hundreds versions of botocore
 # https://github.com/python-poetry/poetry/issues/7858
