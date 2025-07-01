@@ -11,6 +11,7 @@ from quri_parts.qsub.lib.std import (
     SWAP,
     Controlled,
     H,
+    Inverse,
     M,
     MultiControlled,
     Phase,
@@ -27,11 +28,15 @@ from quri_parts.qsub.lib.std import (
     Y,
     Z,
 )
-from quri_parts.qsub.lib.std.control import controlled_sub_resolver
+from quri_parts.qsub.lib.std.control import (
+    controlled_sub_resolver,
+    register_controlled_resolver,
+)
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
-from quri_parts.qsub.resolve import SubRepository, default_repository
-from quri_parts.qsub.sub import SubBuilder
+from quri_parts.qsub.opsub import OpSubDef, opsub
+from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
+from quri_parts.qsub.sub import Sub, SubBuilder
 
 
 class TestControlledOp:
@@ -640,3 +645,54 @@ def test_controlled_multicontrolled() -> None:
         (MultiControlled(Y, 4, 0b0101), (q0, q1, q2, q3, q4), ()),
     )
     assert sub.phase == 0
+
+
+def test_inverse_optimized_controlled() -> None:
+    class _HCXH(OpSubDef):
+        name = "HCXH"
+        qubit_count = 2
+
+        def sub(self, builder: SubBuilder) -> None:
+            aux_q = builder.add_aux_qubit()
+            qs = builder.qubits
+            builder.add_op(H, (qs[0],))
+            builder.add_op(H, (qs[1],))
+            builder.add_op(CNOT, (qs[1], aux_q))
+            builder.add_op(H, (qs[1],))
+            builder.add_op(H, (qs[0],))
+
+    HCXH, _ = opsub(_HCXH)
+
+    def controlled_h_cx_h_resolver(op: Op, repository: SubRepository) -> Sub:
+        target_op = op.id.params[0]
+        assert isinstance(target_op, Op)
+        builder = SubBuilder(op.qubit_count, op.reg_count)
+        a = builder.add_aux_qubit()
+        qs = builder.qubits
+        builder.add_op(Controlled(H), (qs[0], qs[1]))
+        builder.add_op(Controlled(H), (qs[0], qs[2]))
+        builder.add_op(Controlled(S), (qs[0], qs[1]))
+        builder.add_op(Controlled(S), (qs[0], qs[2]))
+        builder.add_op(CNOT, (qs[2], a))
+        builder.add_op(Controlled(H), (qs[0], qs[2]))
+        builder.add_op(Controlled(H), (qs[0], qs[1]))
+        return builder.build()
+
+    test_sub_repository = SubRepository()
+    register_controlled_resolver(test_sub_repository, controlled_h_cx_h_resolver, HCXH)
+
+    inv_op = Controlled(Inverse(HCXH))
+    ctrl_inv_sub = resolve_sub(inv_op, test_sub_repository)
+    assert ctrl_inv_sub is not None
+    qs = ctrl_inv_sub.qubits
+    aux_qs = ctrl_inv_sub.aux_qubits
+    expected_resolved_sub = (
+        (Inverse(Controlled(H)), (qs[0], qs[1]), ()),
+        (Inverse(Controlled(H)), (qs[0], qs[2]), ()),
+        (CNOT, (qs[2], aux_qs[0]), ()),
+        (Inverse(Controlled(S)), (qs[0], qs[2]), ()),
+        (Inverse(Controlled(S)), (qs[0], qs[1]), ()),
+        (Inverse(Controlled(H)), (qs[0], qs[2]), ()),
+        (Inverse(Controlled(H)), (qs[0], qs[1]), ()),
+    )
+    assert tuple(ctrl_inv_sub.operations) == expected_resolved_sub

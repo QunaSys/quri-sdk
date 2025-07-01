@@ -155,14 +155,14 @@ dependencies = [
 
 [[package]]
 name = "quri-parts"
-version = "0.22.0"
+version = "0.22.1"
 dependencies = [
  "pyo3",
 ]
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.22.0"
+version = "0.22.1"
 dependencies = [
  "num-complex",
  "pyo3",

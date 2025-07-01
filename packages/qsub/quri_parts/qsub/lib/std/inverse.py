@@ -20,6 +20,8 @@ from quri_parts.qsub.op import (
     ParamUnitaryDef,
     param_op,
 )
+from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import (
     SubRepository,
     SubResolver,
@@ -58,6 +60,41 @@ def _single_op_sub(op: Op) -> Sub:
     return b.build()
 
 
+def _copy_sub_skeleton(
+    target_sub: Sub,
+) -> tuple[SubBuilder, dict[Qubit, Qubit], dict[Register, Register]]:
+    qubit_count = len(target_sub.qubits)
+    reg_count = len(target_sub.registers)
+    builder = SubBuilder(qubit_count, reg_count)
+    target_q = builder.qubits
+    target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
+    qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
+        zip(target_sub.aux_qubits, target_aq)
+    )
+    target_ar = tuple(builder.add_aux_register() for _ in target_sub.aux_registers)
+    reg_map = dict(zip(target_sub.registers, builder.registers)) | dict(
+        zip(target_sub.aux_registers, target_ar)
+    )
+    return builder, qubit_map, reg_map
+
+
+def get_inverted_sub(target_sub: Sub) -> Sub:
+    builder, qubit_map, reg_map = _copy_sub_skeleton(target_sub)
+    for o, qs, rs in reversed(target_sub.operations):
+        qubits = tuple(qubit_map[q] for q in qs)
+        regs = tuple(reg_map[r] for r in rs)
+        if o.self_inverse:
+            io = o
+        elif o.unitary:
+            io = Inverse(o)
+        else:
+            io = o
+        builder.add_op(io, qubits, regs)
+    phase = target_sub.phase
+    builder.add_phase(-phase)
+    return builder.build()
+
+
 def inverse_sub_resolver(op: Op, repository: SubRepository) -> Sub | None:
     target_op = op.id.params[0]
     assert isinstance(target_op, Op)
@@ -71,31 +108,7 @@ def inverse_sub_resolver(op: Op, repository: SubRepository) -> Sub | None:
     if not target_sub:
         return None
 
-    builder = SubBuilder(op.qubit_count, op.reg_count)
-    target_q = builder.qubits
-
-    target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
-    qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
-        zip(target_sub.aux_qubits, target_aq)
-    )
-
-    target_ar = tuple(builder.add_aux_register() for _ in target_sub.aux_registers)
-    reg_map = dict(zip(target_sub.registers, builder.registers)) | dict(
-        zip(target_sub.aux_registers, target_ar)
-    )
-
-    for o, qs, rs in reversed(target_sub.operations):
-        qubits = tuple(qubit_map[q] for q in qs)
-        regs = tuple(reg_map[r] for r in rs)
-        if o.self_inverse:
-            io = o
-        elif o.unitary:
-            io = Inverse(o)
-        else:
-            io = o
-        builder.add_op(io, qubits, regs)
-
-    return builder.build()
+    return get_inverted_sub(target_sub)
 
 
 def inverse_target_condition(op: AbstractOp) -> SubResolverCondition:
@@ -158,6 +171,17 @@ def inverse_multicontrolled_resolver(op: Op, repository: SubRepository) -> Sub:
     return builder.build()
 
 
+def inverse_inverse_resolver(op: Op, repository: SubRepository) -> Sub:
+    target = op.id.params[0]
+    assert isinstance(target, Op)
+    assert target.base_id == Inverse.base_id
+    inner_op = target.id.params[0]
+    assert isinstance(inner_op, Op)
+    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder.add_op(inner_op, builder.qubits)
+    return builder.build()
+
+
 _repo = default_repository()
 _repo.register_sub_resolver(Inverse, inverse_sub_resolver)
 
@@ -176,6 +200,7 @@ _resolvers: Collection[tuple[AbstractOp, SubResolver]] = [
     (Tdag, _inverse_op_resolver_gen(T)),
     (Controlled, inverse_controlled_resolver),
     (MultiControlled, inverse_multicontrolled_resolver),
+    (Inverse, inverse_inverse_resolver),
 ]
 
 for target, resolver in _resolvers:

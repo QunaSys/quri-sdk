@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from quri_parts.qsub.lib.std import (
@@ -134,6 +135,27 @@ class TestInverseSub:
         )
         assert sub.phase == 0
 
+    def test_inverse_global_phase(self) -> None:
+        F = Op(Ident(NameSpace("test"), "F"), 1, 0)
+        builder = SubBuilder(1)
+        qs = builder.qubits
+        builder.add_op(T, qs)
+        builder.add_phase(0.12)
+        f_sub = builder.build()
+        repository = SubRepository()
+        repository.register_sub(F, f_sub)
+
+        fdag = Inverse(F)
+        sub = inverse_sub_resolver(fdag, repository)
+        assert sub
+        assert len(sub.qubits) == 1
+        assert len(sub.aux_qubits) == 0
+        assert len(sub.registers) == 0
+        assert len(sub.aux_registers) == 0
+        qs = sub.qubits
+        assert tuple(sub.operations) == ((Inverse(T), qs, ()),)
+        assert sub.phase == -0.12 % (2 * np.pi)
+
 
 def test_inverse_controlled() -> None:
     ctdag = Inverse(Controlled(T))
@@ -163,6 +185,15 @@ def test_inverse_multicontrolled() -> None:
         (MultiControlled(Inverse(T), 3, 0b010), sub.qubits, ()),
     )
     assert sub.phase == 0
+
+
+def test_inverse_inverse() -> None:
+    invinv = Inverse(Inverse(T))
+    resolver = _repo.find_resolver(invinv)
+    assert resolver is not None
+    sub = resolver(invinv, _repo)
+    assert sub is not None
+    assert tuple(sub.operations) == ((T, sub.qubits, ()),)
 
 
 def test_inverse_op() -> None:

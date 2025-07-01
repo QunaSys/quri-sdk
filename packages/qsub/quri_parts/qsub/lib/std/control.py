@@ -10,7 +10,9 @@
 
 import math
 from collections.abc import Collection
+from typing import Any
 
+from quri_parts.qsub.lib import std
 from quri_parts.qsub.op import (
     AbstractOp,
     Ident,
@@ -367,6 +369,65 @@ def controlled_multicontrolled_resolver(op: Op, repository: SubRepository) -> Su
         MultiControlled(inner_op, control_bits, control_value), builder.qubits
     )
     return builder.build()
+
+
+def _get_ctrl_inverse_resolver(
+    ctrl_resolver: SubResolver, repository: SubRepository
+) -> SubResolver:
+    from quri_parts.qsub.lib.std.inverse import get_inverted_sub
+
+    def get_inner_op(op: Op) -> Op:
+        params = op.id.params
+        assert len(params) == 1
+        inv_op = params[0]
+        assert isinstance(inv_op, Op)
+        inner_params = inv_op.id.params
+        assert len(inner_params) == 1
+        inner_op = inner_params[0]
+        assert isinstance(inner_op, Op)
+        return inner_op
+
+    class ControlInvSubResolver(SubResolver):
+        def __call__(self, ctrl_inv_op: Op, repository: SubRepository) -> Sub | None:
+            # ctrl_inv_op is supposed to be Controlled(Inverse(op))
+            inner_op = get_inner_op(ctrl_inv_op)
+            ctrl_sub = ctrl_resolver(Controlled(inner_op), repository)
+            assert ctrl_sub is not None
+            inv_ctrl_sub = get_inverted_sub(ctrl_sub)
+            return inv_ctrl_sub
+
+    return ControlInvSubResolver()
+
+
+def _get_inv_target_condition(op: AbstractOp) -> SubResolverCondition:
+    inner_base_id = op.base_id
+
+    def cond(op_id: Ident) -> bool:
+        assert len(op_id.params) > 0
+        outer_op = op_id.params[0]
+        assert isinstance(outer_op, Op)
+        if outer_op.base_id != std.Inverse.base_id:
+            return False
+        assert len(outer_op.id.params) > 0
+        inner_op = outer_op.id.params[0]
+        assert isinstance(inner_op, Op)
+        return inner_op.base_id == inner_base_id
+
+    return cond
+
+
+def register_controlled_resolver(
+    sub_repository: SubRepository,
+    control_resolver: SubResolver,
+    op: Op | OpFactory[Any],
+) -> None:
+    """"""
+    sub_repository.register_sub_resolver(
+        Controlled, control_resolver, control_target_condition(op)
+    )
+    inv_ctrl_resolver = _get_ctrl_inverse_resolver(control_resolver, sub_repository)
+    cond = _get_inv_target_condition(op)
+    sub_repository.register_sub_resolver(Controlled, inv_ctrl_resolver, cond)
 
 
 _repo = default_repository()
