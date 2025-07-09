@@ -11,14 +11,31 @@
 from ._namespace import NS
 from .cnot import CNOT
 from .conditional import Cbz, Label, conditional
-from .control import Controlled, MultiControlled, MultiControlledAllOne
+from .control import Controlled
 from .cz import CZ
-from .inverse import Inverse
 from .logic import scoped_and, scoped_and_clifford_t, scoped_and_single_toffoli
 from .measure import M
+from .multi_control import MultiControlled
+from .multi_control_gates import (
+    MCH,
+    MCRX,
+    MCRY,
+    MCRZ,
+    MCS,
+    MCT,
+    MCU1,
+    MCX,
+    MCY,
+    MCZ,
+    MCSdag,
+    MCSqrtX,
+    MCSqrtXdag,
+    MCSqrtY,
+    MCSqrtYdag,
+    MCTdag,
+)
 from .multipauli import Pauli, PauliRotation
 from .rotation import RX, RY, RZ, Phase
-from .simulator import GeneralizedPermutation, Matrix, Permutation
 from .single_clifford import (
     H,
     Identity,
@@ -36,6 +53,9 @@ from .swap import SWAP
 from .t import T, Tdag
 from .toffoli import Toffoli
 
+# should be imported after multi_control
+from .inverse import Inverse  # isort: skip
+
 __all__ = [
     "Cbz",
     "CNOT",
@@ -45,6 +65,23 @@ __all__ = [
     "Inverse",
     "Label",
     "M",
+    "MCH",
+    "MCRX",
+    "MCRY",
+    "MCRZ",
+    "MCS",
+    "MCSdag",
+    "MCSqrtX",
+    "MCSqrtXdag",
+    "MCSqrtY",
+    "MCSqrtYdag",
+    "MCT",
+    "MCTdag",
+    "MCU1",
+    "MCX",
+    "MCY",
+    "MCZ",
+    "Phase",
     "NS",
     "Pauli",
     "PauliRotation",
@@ -68,11 +105,7 @@ __all__ = [
     "conditional",
     "Controlled",
     "MultiControlled",
-    "MultiControlledAllOne",
     "scoped_and",
     "scoped_and_clifford_t",
     "scoped_and_single_toffoli",
-    "GeneralizedPermutation",
-    "Matrix",
-    "Permutation",
 ]

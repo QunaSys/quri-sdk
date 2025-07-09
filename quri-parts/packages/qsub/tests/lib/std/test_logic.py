@@ -17,7 +17,7 @@ from quri_parts.qsub.lib.std import (
     scoped_and,
     scoped_and_clifford_t,
 )
-from quri_parts.qsub.lib.std.logic import (
+from quri_parts.qsub.lib.std.multi_control import (
     MultiControlledCliffordTSub,
     MultiControlledSub,
 )

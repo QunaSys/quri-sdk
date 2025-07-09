@@ -11,7 +11,13 @@
 from collections.abc import Mapping, Sequence
 from typing import Callable, Union, cast
 
+import qulacs
 from numpy.typing import ArrayLike
+from qulacs.gate import to_matrix_gate
+
+# from quri_parts.rust.qulacs import convert_circuit
+from typing_extensions import assert_never
+
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,
@@ -35,11 +41,6 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
-
-# from quri_parts.rust.qulacs import convert_circuit
-from typing_extensions import assert_never
-
-import qulacs
 
 from ..utils import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
@@ -165,9 +166,6 @@ def _dense_matrix_gate_qulacs(
     )
 
 
-from qulacs.gate import to_matrix_gate
-
-
 def convert_gate(
     gate: QuantumGate,
 ) -> qulacs.QuantumGateBase:
@@ -176,31 +174,27 @@ def convert_gate(
 
     if is_mc_gate_name(gate.name):
         if gate.name in _mc_single_qubit_gate_qulacs:
-            base_gate = _mc_single_qubit_gate_qulacs[gate.name](
-                index=gate.target_indices[0]
-            )
+            base_gate = _mc_single_qubit_gate_qulacs[gate.name](gate.target_indices[0])
             base_gate = to_matrix_gate(base_gate)
             for ctrl in gate.control_indices:
                 assert isinstance(ctrl, int), f"ctrl should be int. actual={ctrl}"
-                base_gate.add_control_qubit(ctrl, 1)
+                base_gate.add_control_qubit(ctrl, 1)  # type: ignore
             return base_gate
         elif gate.name in _mc_single_qubit_reverse_rotation_gate_qulacs:
             base_gate = _mc_single_qubit_reverse_rotation_gate_qulacs[gate.name](
-                index=gate.target_indices[0], angle=-gate.params[0]
+                gate.target_indices[0], -gate.params[0]
             )
             base_gate = to_matrix_gate(base_gate)
             for ctrl in gate.control_indices:
                 assert isinstance(ctrl, int), f"ctrl should be int. actual={ctrl}"
-                base_gate.add_control_qubit(ctrl, 1)
+                base_gate.add_control_qubit(ctrl, 1)  # type: ignore
             return base_gate
-        elif gate.name== gate_names.MCU1:
-            base_gate = qulacs.gate.U1(
-                *gate.target_indices, *gate.params
-            )
+        elif gate.name == gate_names.MCU1:
+            base_gate = qulacs.gate.U1(*gate.target_indices, *gate.params)
             base_gate = to_matrix_gate(base_gate)
             for ctrl in gate.control_indices:
                 assert isinstance(ctrl, int), f"ctrl should be int. actual={ctrl}"
-                base_gate.add_control_qubit(ctrl, 1)
+                base_gate.add_control_qubit(ctrl, 1)  # type: ignore
             return base_gate
         else:
             raise ValueError(f"Unimplemented gate: {gate.name}")

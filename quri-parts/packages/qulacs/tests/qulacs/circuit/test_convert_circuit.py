@@ -8,12 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 from collections.abc import Mapping
-from typing import Callable, cast
+from typing import Any, Callable, cast
 
 import numpy as np
+import pytest
 import qulacs
+from qulacs.gate import to_matrix_gate
 
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
@@ -34,13 +35,12 @@ from quri_parts.qulacs.circuit import (
     convert_parametric_circuit,
 )
 from quri_parts.qulacs.simulator import evaluate_state_to_vector
-from qulacs.gate import to_matrix_gate
 
 
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
     def gate_info(
         g: qulacs.QuantumGateBase,
-    ) -> tuple[str, list[int], list[int]]:
+    ) -> tuple[str, list[int], list[int], list[int]]:
         return (
             g.get_name(),
             g.get_target_index_list(),
@@ -211,7 +211,7 @@ def test_convert_pauli_rotation_gate() -> None:
         (gates.MCSqrtYdag, qulacs.gate.sqrtYdag),
     ],
 )
-def test_convert_mc_single_qubit_gate(gate_factory, qulacs_factory):
+def test_convert_mc_single_qubit_gate(gate_factory: Any, qulacs_factory: Any) -> None:
     g = gate_factory(control_indices=(0, 1), target_index=2)
     converted = convert_gate(g)
     expected = to_matrix_gate(qulacs_factory(2))
@@ -228,7 +228,7 @@ def test_convert_mc_single_qubit_gate(gate_factory, qulacs_factory):
         (gates.MCRZ, qulacs.gate.RZ),
     ],
 )
-def test_convert_mc_rotation_gate(gate_factory, qulacs_factory):
+def test_convert_mc_rotation_gate(gate_factory: Any, qulacs_factory: Any) -> None:
     angle = 0.5
     g = gate_factory(control_indices=(1,), target_index=3, angle=angle)
     converted = convert_gate(g)
@@ -237,9 +237,9 @@ def test_convert_mc_rotation_gate(gate_factory, qulacs_factory):
     assert gates_equal(converted, expected)
 
 
-def test_convert_mcu1_gate():
+def test_convert_mcu1_gate() -> None:
     angle = 0.25
-    g = gates.MCU1(control_indices=(0, 2), target_index=1, angle=angle)
+    g = gates.MCU1(control_indices=[0, 2], target_index=1, angle=angle)
     converted = convert_gate(g)
     expected = to_matrix_gate(qulacs.gate.U1(1, angle))
     expected.add_control_qubit(0, 1)

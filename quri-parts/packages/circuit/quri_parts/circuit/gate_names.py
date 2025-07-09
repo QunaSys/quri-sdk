@@ -68,9 +68,6 @@ MCSqrtX: Literal["MCSqrtX"] = "MCSqrtX"
 MCSqrtXdag: Literal["MCSqrtXdag"] = "MCSqrtXdag"
 MCSqrtY: Literal["MCSqrtY"] = "MCSqrtY"
 MCSqrtYdag: Literal["MCSqrtYdag"] = "MCSqrtYdag"
-MCRX: Literal["MCRX"] = "MCRX"
-MCRY: Literal["MCRY"] = "MCRY"
-MCRZ: Literal["MCRZ"] = "MCRZ"
 MCU1: Literal["MCU1"] = "MCU1"
 
 Identity: Literal["Identity"] = "Identity"
@@ -93,9 +90,24 @@ U1: Literal["U1"] = "U1"
 U2: Literal["U2"] = "U2"
 U3: Literal["U3"] = "U3"
 
-MC_GATE_NAMES: set[MCGateNameType] = {MCX, MCY, MCZ, MCH, MCS, MCSdag, MCT, MCTdag,
-    MCSqrtX, MCSqrtXdag, MCSqrtY, MCSqrtYdag,
-                                      MCRX, MCRY, MCRZ, MCU1}
+MC_GATE_NAMES: set[MCGateNameType] = {
+    MCX,
+    MCY,
+    MCZ,
+    MCH,
+    MCS,
+    MCSdag,
+    MCT,
+    MCTdag,
+    MCSqrtX,
+    MCSqrtXdag,
+    MCSqrtY,
+    MCSqrtYdag,
+    MCRX,
+    MCRY,
+    MCRZ,
+    MCU1,
+}
 
 
 def is_mc_gate_name(gate_name: str) -> TypeGuard[MCGateNameType]:

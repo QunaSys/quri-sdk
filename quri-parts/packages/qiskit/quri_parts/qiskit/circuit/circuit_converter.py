@@ -12,6 +12,13 @@ from collections.abc import Mapping, Sequence
 from typing import Callable, Optional, Type, Union
 
 import numpy as np
+import qiskit.circuit.library as qgate
+import qiskit.quantum_info as qi
+from qiskit.circuit import QuantumCircuit
+from qiskit.circuit.gate import Gate
+from qiskit.circuit.library import UnitaryGate
+from typing_extensions import TypeAlias
+
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     MCGateNameType,
@@ -31,13 +38,6 @@ from quri_parts.circuit.gate_names import (
     is_unitary_matrix_gate_name,
 )
 from quri_parts.circuit.transpile import CircuitTranspiler
-from typing_extensions import TypeAlias
-
-import qiskit.circuit.library as qgate
-import qiskit.quantum_info as qi
-from qiskit.circuit import QuantumCircuit
-from qiskit.circuit.gate import Gate
-from qiskit.circuit.library import UnitaryGate
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 QiskitCircuitConverter: TypeAlias = Callable[
@@ -167,7 +167,7 @@ def convert_gate(gate: QuantumGate) -> Gate:
             for p in reversed(gate.pauli_ids[:-1]):
                 operator ^= gate_map_op[p]
             return qgate.PauliEvolutionGate(operator, time=float(gate.params[0] / 2))
-        
+
     elif is_mc_gate_name(gate.name):
         if gate.name == gate_names.MCX:
             return _mc_gate_qiskit[gate.name](num_ctrl_qubits=len(gate.control_indices))

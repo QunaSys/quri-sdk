@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Callable, Optional, cast
+from typing import Callable, Dict, Optional
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 
@@ -29,6 +29,22 @@ quri_parts_codegen = CodeGenerator(
         std.CZ,
         std.H,
         std.Identity,
+        std.MCH,
+        std.MCRX,
+        std.MCRY,
+        std.MCRZ,
+        std.MCS,
+        std.MCSdag,
+        std.MCSqrtX,
+        std.MCSqrtXdag,
+        std.MCSqrtY,
+        std.MCSqrtYdag,
+        std.MCT,
+        std.MCTdag,
+        std.MCU1,
+        std.MCX,
+        std.MCY,
+        std.MCZ,
         std.S,
         std.Sdag,
         std.SqrtX,
@@ -82,41 +98,58 @@ primitive_param_op_gate_mapping: Mapping[
     std.RX.base_id: gates.RX,
     std.RY.base_id: gates.RY,
     std.RZ.base_id: gates.RZ,
-    std.Phase.base_id: gates.RZ,
+    std.Phase.base_id: gates.U1,
+}
+
+mc_op_gate_mapping: Dict[BaseIdent, Callable[[int, list[int]], QuantumGate]] = {
+    std.MCX.base_id: gates.MCX,
+    std.MCY.base_id: gates.MCY,
+    std.MCZ.base_id: gates.MCZ,
+    std.MCS.base_id: gates.MCS,
+    std.MCSdag.base_id: gates.MCSdag,
+    std.MCT.base_id: gates.MCT,
+    std.MCTdag.base_id: gates.MCTdag,
+    std.MCSqrtX.base_id: gates.MCSqrtX,
+    std.MCSqrtXdag.base_id: gates.MCSqrtXdag,
+    std.MCSqrtY.base_id: gates.MCSqrtY,
+    std.MCSqrtYdag.base_id: gates.MCSqrtYdag,
+    std.MCH.base_id: gates.MCH,
+}
+
+mc_param_op_gate_mapping: Dict[
+    BaseIdent, Callable[[int, float, list[int]], QuantumGate]
+] = {
+    std.MCRX.base_id: gates.MCRX,
+    std.MCRY.base_id: gates.MCRY,
+    std.MCRZ.base_id: gates.MCRZ,
+    std.MCU1.base_id: gates.MCU1,
 }
 
 mc_primitive_op_gate_mapping: Mapping[
-    BaseIdent,
-    Callable[[int], QuantumGate]
-    | Callable[[int, int], QuantumGate]
-    | Callable[[int, int, int], QuantumGate],
+    BaseIdent, Callable[[int, list[int]], QuantumGate]
 ] = {
-    #     std.CNOT.base_id: gates.CNOT,
-    #     std.CZ.base_id: gates.CZ,
-    #     std.H.base_id: gates.H,
-    #     std.Identity.base_id: gates.Identity,
-    #     std.S.base_id: gates.S,
-    #     std.Sdag.base_id: gates.Sdag,
-    #     std.SqrtX.base_id: gates.SqrtX,
-    #     std.SqrtXdag.base_id: gates.SqrtXdag,
-    #     std.SqrtY.base_id: gates.SqrtY,
-    #     std.SqrtYdag.base_id: gates.SqrtYdag,
-    #     std.SWAP.base_id: gates.SWAP,
-    #     std.T.base_id: gates.T,
-    #     std.Tdag.base_id: gates.Tdag,
-    #     std.Toffoli.base_id: gates.TOFFOLI,
+    # TODO:
     std.X.base_id: gates.MCX,
-    #     std.Y.base_id: gates.Y,
-    #     std.Z.base_id: gates.Z,
+    std.Y.base_id: gates.MCY,
+    std.Z.base_id: gates.MCZ,
+    std.H.base_id: gates.MCH,
+    std.S.base_id: gates.MCS,
+    std.Sdag.base_id: gates.MCSdag,
+    std.T.base_id: gates.MCT,
+    std.Tdag.base_id: gates.MCTdag,
+    std.SqrtX.base_id: gates.MCSqrtX,
+    std.SqrtXdag.base_id: gates.MCSqrtXdag,
+    std.SqrtY.base_id: gates.MCSqrtY,
+    std.SqrtYdag.base_id: gates.MCSqrtYdag,
 }
 mc_primitive_param_op_gate_mapping: Mapping[
     BaseIdent,
-    Callable[[int, float], QuantumGate],
+    Callable[[int, float, list[int]], QuantumGate],
 ] = {
-    # std.RX.base_id: gates.RX,
-    # std.RY.base_id: gates.RY,
-    # std.RZ.base_id: gates.RZ,
-    # std.Phase.base_id: gates.RZ,
+    std.RX.base_id: gates.MCRX,
+    std.RY.base_id: gates.MCRY,
+    std.RZ.base_id: gates.MCRZ,
+    std.Phase.base_id: gates.MCU1,
 }
 
 
@@ -131,27 +164,21 @@ def _convert_op(
             *[qubit_map[q].uid for q in qubits]
         )
     elif mop.op.base_id in primitive_param_op_gate_mapping:
+        param_float = mop.op.id.params[0]
+        assert isinstance(param_float, float)
         return primitive_param_op_gate_mapping[mop.op.id.base](
-            qubit_map[qubits[0]].uid, cast(float, mop.op.id.params[0])
+            qubit_map[qubits[0]].uid, param_float
         )
-    elif mop.op.base_id == std.MultiControlledAllOne.base_id:
-        target_op = mop.op.id.params[0]
-        n_controls = mop.op.id.params[1]
-        if target_op.base_id in primitive_op_gate_mapping:
-            return mc_primitive_op_gate_mapping[target_op.base_id](
-                *[qubit_map[q].uid for q in qubits[n_controls:]],
-                control_indices=[qubit_map[q].uid for q in qubits[:n_controls]],
-            )
-        elif target_op.base_id in primitive_param_op_gate_mapping:
-            return mc_primitive_param_op_gate_mapping[mop.op.id.base](
-                qubit_map[qubits[0]].uid,
-                cast(float, mop.op.id.params[0]),
-                control_indices=qubit_map[qubits[:n_controls]],
-            )
-        else:
-            raise ValueError(
-                f"Op mapping to QuantumGate is not supported for {target_op}."
-            )
+    elif mop.op.base_id in mc_op_gate_mapping:
+        full_qubits = [qubit_map[q].uid for q in qubits]
+        return mc_op_gate_mapping[mop.op.base_id](full_qubits[-1], full_qubits[:-1])
+    elif mop.op.base_id in mc_param_op_gate_mapping:
+        full_qubits = [qubit_map[q].uid for q in qubits]
+        angle = mop.op.id.params[1]
+        assert isinstance(angle, float)
+        return mc_param_op_gate_mapping[mop.op.base_id](
+            full_qubits[-1], angle, full_qubits[:-1]
+        )
     else:
         raise ValueError(f"Op mapping to QuantumGate is not supported for {mop.op.id}.")
 

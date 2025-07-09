@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import logging
 from collections import defaultdict
 from collections.abc import Callable, Mapping
@@ -73,6 +74,11 @@ class SubRepository:
         condition: SubResolverCondition | None = None,
     ) -> None:
         self._mapping[_get_base_id(op)].append((resolver, condition))
+
+    def copy(self) -> "SubRepository":
+        ret = SubRepository()
+        ret._mapping = copy.copy(self._mapping)
+        return ret
 
 
 _DEFAULT = SubRepository()
