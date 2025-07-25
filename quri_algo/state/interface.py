@@ -25,7 +25,8 @@ class StateFactory(Protocol):
 
 @runtime_checkable
 class TimeEvolutionStateFactory(StateFactory, Protocol):
-    """Base class for state preparation that relies on Hamiltonian simulation."""
+    """Base class for state preparation that relies on Hamiltonian
+    simulation."""
 
     @abstractmethod
     def __call__(

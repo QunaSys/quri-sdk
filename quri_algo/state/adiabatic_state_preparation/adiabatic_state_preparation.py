@@ -31,14 +31,15 @@ def get_linear_hamiltonian_mapping(
 
     def hamiltonian_mapping(t: float) -> QubitHamiltonian:
         ratio = t / evolution_time
-        h = h_0.qubit_hamiltonian * (1 - ratio) + h_1 * ratio
+        h = h_0.qubit_hamiltonian * (1 - ratio) + h_1.qubit_hamiltonian * ratio
         return QubitHamiltonian(h_0.n_qubit, h)
 
     return hamiltonian_mapping
 
 
 class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase):
-    """Base class for state preparation that relies on Hamiltonian simulation."""
+    """Base class for state preparation that relies on Hamiltonian
+    simulation."""
 
     def verify_inputs(
         self, discretization: int, interp_function: Callable[[float], float]
@@ -59,7 +60,7 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         *args: Any,
         **kwargs: Any,
     ) -> CircuitQuantumState:
-        r"""Perform adiabatic time-evolution on the provided state
+        r"""Perform adiabatic time-evolution on the provided state.
 
         Perform time-evolution on the provided :class:`HamiltonianMapping`. Time-evolution intervals are inferred by the interpolation function. Variable and keyword arguments are passed to the time-evolution circuit factory constructor.
 
