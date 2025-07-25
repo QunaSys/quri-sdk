@@ -9,17 +9,27 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
+from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 
 
 @runtime_checkable
 class TimeEvolutionCircuitFactory(CircuitFactory, Protocol):
     """Encode a Hamiltonian to a time evolution circuit."""
+
+    @abstractmethod
+    def __init__(
+        self,
+        qubit_hamiltonian: QubitHamiltonian,
+        *args: Any,
+        **kwargs: Any,
+    ) -> None:
+        ...
 
     @apply_transpiler
     @abstractmethod
