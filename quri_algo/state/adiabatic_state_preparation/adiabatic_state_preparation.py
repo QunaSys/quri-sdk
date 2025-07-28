@@ -45,7 +45,7 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         self, discretization: int, interp_function: Callable[[float], float]
     ) -> None:
         if discretization < 2:
-            raise ValueError("Discretization should be greater than 2")
+            raise ValueError("Discretization should be greater than 1")
         if interp_function(0.0) != 0.0 or interp_function(1.0) != 1.0:
             raise ValueError(
                 "Interpolation function should map the range (0;1) to (0;1)"
@@ -57,6 +57,8 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         discretization: int,
         initial_state: Optional[CircuitQuantumState] = None,
         interp_function: Callable[[float], float] = lambda x: x,
+        stop_at_time: Optional[float] = None,
+        stop_at_iteration: Optional[int] = None,
         *args: Any,
         **kwargs: Any,
     ) -> CircuitQuantumState:
@@ -69,8 +71,12 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
             discretization: number of times the time-evolution circuit factory is called
             initial_state: initial state to perform time-evolution on, if provided
             interp_function: monotonically increasing function, which maps the range (0;1) to (0;1). Is applied to the time-interval
+            stop_at_time: stops the time-evolution at the provided time to obtain an intermediate state
+            stop_at_iteration: stops the time-evolution at the provided iteration to obtain an intermediate state
         """
         self.verify_inputs(discretization, interp_function)
+
+        assert (stop_at_time is None) or (stop_at_iteration is None), "Only one of stop_at_time or stop_at_iteration may be provided"
 
         times = [
             interp_function(t / evolution_time) * evolution_time
@@ -80,13 +86,17 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         if initial_state is None:
             initial_state = GeneralCircuitQuantumState(self.time_evolution.qubit_count)
 
-        for t0, t1 in zip(times[:-1], times[1:]):
+        for i, (t0, t1) in enumerate(zip(times[:-1], times[1:])):
+            if stop_at_iteration <= i:
+                break
+            if stop_at_time <= t0:
+                break
             s = (t0 - t1) / 2
             dt = t0 - t1
             h = self.hamiltonian_mapping(s)
             te_factory = self.time_evolution(h, *args, **kwargs)
             initial_state = initial_state.with_gates_applied(
                 te_factory(dt)
-            )  # should write a cache for this?
+            )
 
         return initial_state
