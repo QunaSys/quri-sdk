@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from abc import abstractmethod
-from typing import Any, Callable, Optional, Protocol, Type, runtime_checkable
+from typing import Any, Callable, Protocol, Type, runtime_checkable
 
 from quri_parts.core.state import CircuitQuantumState
 
@@ -25,12 +25,13 @@ class AdiabaticTimeEvolutionStateFactoryBase(TimeEvolutionStateFactory, Protocol
     """Base class for adiabatic state preparation."""
 
     hamiltonian_mapping: HamiltonianMapping
-    time_evolution: Type[TimeEvolutionCircuitFactory]
+    TECircuitFactory: Type[TimeEvolutionCircuitFactory]
 
+    @abstractmethod
     def __init__(
         self,
         hamiltonian_mapping: HamiltonianMapping,
-        time_evolution: Type[TimeEvolutionCircuitFactory],
+        TECircuitFactory: Type[TimeEvolutionCircuitFactory],
     ):
         ...
 
@@ -39,7 +40,7 @@ class AdiabaticTimeEvolutionStateFactoryBase(TimeEvolutionStateFactory, Protocol
         self,
         evolution_time: float,
         discretization: int,
-        initial_state: Optional[CircuitQuantumState] = None,
+        initial_state: CircuitQuantumState,
         *args: Any,
         **kwargs: Any
     ) -> CircuitQuantumState:

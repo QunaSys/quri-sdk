@@ -8,11 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Type
 
 import numpy as np
-from quri_parts.core.state import CircuitQuantumState, GeneralCircuitQuantumState
+from quri_parts.core.state import CircuitQuantumState
 
+from quri_algo.circuit.time_evolution.interface import TimeEvolutionCircuitFactory
 from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 from quri_algo.state.adiabatic_state_preparation.interface import (
     AdiabaticTimeEvolutionStateFactoryBase,
@@ -41,6 +42,14 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
     """Base class for state preparation that relies on Hamiltonian
     simulation."""
 
+    def __init__(
+        self,
+        hamiltonian_mapping: HamiltonianMapping,
+        TECircuitFactory: Type[TimeEvolutionCircuitFactory],
+    ) -> None:
+        self.hamiltonian_mapping = hamiltonian_mapping
+        self.TECircuitFactory = TECircuitFactory
+
     def verify_inputs(
         self, discretization: int, interp_function: Callable[[float], float]
     ) -> None:
@@ -55,7 +64,7 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         self,
         evolution_time: float,
         discretization: int,
-        initial_state: Optional[CircuitQuantumState] = None,
+        initial_state: CircuitQuantumState,
         interp_function: Callable[[float], float] = lambda x: x,
         stop_at_time: Optional[float] = None,
         stop_at_iteration: Optional[int] = None,
@@ -76,27 +85,26 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         """
         self.verify_inputs(discretization, interp_function)
 
-        assert (stop_at_time is None) or (stop_at_iteration is None), "Only one of stop_at_time or stop_at_iteration may be provided"
+        assert (stop_at_time is None) or (
+            stop_at_iteration is None
+        ), "Only one of stop_at_time or stop_at_iteration may be provided"
 
         times = [
             interp_function(t / evolution_time) * evolution_time
             for t in np.linspace(0.0, evolution_time, discretization)
         ]
 
-        if initial_state is None:
-            initial_state = GeneralCircuitQuantumState(self.time_evolution.qubit_count)
-
         for i, (t0, t1) in enumerate(zip(times[:-1], times[1:])):
-            if stop_at_iteration <= i:
-                break
-            if stop_at_time <= t0:
-                break
+            if stop_at_iteration is not None:
+                if stop_at_iteration <= i:
+                    break
+            if stop_at_time is not None:
+                if stop_at_time <= t0:
+                    break
             s = (t0 - t1) / 2
             dt = t0 - t1
             h = self.hamiltonian_mapping(s)
-            te_factory = self.time_evolution(h, *args, **kwargs)
-            initial_state = initial_state.with_gates_applied(
-                te_factory(dt)
-            )
+            te_factory = self.TECircuitFactory(h, *args, **kwargs)
+            initial_state = initial_state.with_gates_applied(te_factory(dt))
 
         return initial_state
