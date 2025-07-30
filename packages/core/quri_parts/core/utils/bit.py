@@ -42,4 +42,8 @@ def lowest_bit_index(x: int) -> int:
 
 def parity_sign_of_bits(bits: int) -> int:
     """Returns a sign corresponding to parity of bits (even=1, odd=-1)."""
-    return 1 - 2 * (bin(bits).count("1") % 2)
+    try:
+        # int.bit_count() is available on Python 3.10+
+        return 1 - 2 * (bits.bit_count() % 2)
+    except AttributeError:
+        return 1 - 2 * (bin(bits).count("1") % 2)
