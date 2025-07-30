@@ -101,8 +101,8 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
             if stop_at_time is not None:
                 if stop_at_time <= t0:
                     break
-            s = (t0 - t1) / 2
-            dt = t0 - t1
+            s = (t1 + t0) / 2
+            dt = t1 - t0
             h = self.hamiltonian_mapping(s)
             te_factory = self.TECircuitFactory(h, *args, **kwargs)
             initial_state = initial_state.with_gates_applied(te_factory(dt))
