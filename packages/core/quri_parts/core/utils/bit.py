@@ -33,11 +33,7 @@ def lowest_bit_index(x: int) -> int:
     """Returns the index of the lowest bit that is set."""
     if x == 0:
         raise ValueError("Given integer is zero.")
-    for i in range(64):
-        mask = 1 << i
-        if (x & mask) != 0:
-            return i
-    raise ValueError("Given integer is too large.")
+    return (x & -x).bit_length() - 1
 
 
 def parity_sign_of_bits(bits: int) -> int:
