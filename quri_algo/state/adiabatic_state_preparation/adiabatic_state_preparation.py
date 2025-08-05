@@ -8,18 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Optional, Type
+from typing import Any, Callable, Optional
 
 import numpy as np
 from quri_parts.core.state import CircuitQuantumState
 
-from quri_algo.circuit.time_evolution.interface import TimeEvolutionCircuitFactory
 from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 from quri_algo.state.adiabatic_state_preparation.interface import (
     AdiabaticTimeEvolutionStateFactoryBase,
+    HamiltonianMapping,
+    TECircuitFactoryConstructor,
 )
-
-HamiltonianMapping = Callable[[float], QubitHamiltonian]
 
 
 def get_linear_hamiltonian_mapping(
@@ -45,7 +44,7 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
     def __init__(
         self,
         hamiltonian_mapping: HamiltonianMapping,
-        TECircuitFactory: Type[TimeEvolutionCircuitFactory],
+        TECircuitFactory: TECircuitFactoryConstructor,
     ) -> None:
         self.hamiltonian_mapping = hamiltonian_mapping
         self.TECircuitFactory = TECircuitFactory
@@ -95,12 +94,10 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
         ]
 
         for i, (t0, t1) in enumerate(zip(times[:-1], times[1:])):
-            if stop_at_iteration is not None:
-                if stop_at_iteration <= i:
-                    break
-            if stop_at_time is not None:
-                if stop_at_time <= t0:
-                    break
+            if stop_at_iteration is not None and stop_at_iteration <= i:
+                break
+            if stop_at_time is not None and stop_at_time <= t0:
+                break
             s = (t1 + t0) / 2
             dt = t1 - t0
             h = self.hamiltonian_mapping(s)

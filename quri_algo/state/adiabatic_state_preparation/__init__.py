@@ -8,6 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .adiabatic_state_preparation import AdiabaticTimeEvolutionStateFactory
+from .adiabatic_state_preparation import (
+    AdiabaticTimeEvolutionStateFactory,
+    get_linear_hamiltonian_mapping,
+)
 
-__all__ = ["AdiabaticTimeEvolutionStateFactory"]
+__all__ = ["AdiabaticTimeEvolutionStateFactory", "get_linear_hamiltonian_mapping"]

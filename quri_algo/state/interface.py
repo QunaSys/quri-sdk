@@ -11,7 +11,7 @@
 from abc import abstractmethod
 from typing import Any, Protocol, runtime_checkable
 
-from quri_parts.core.state import CircuitQuantumState
+from quri_parts.core.state import QuantumState
 
 
 @runtime_checkable
@@ -19,7 +19,7 @@ class StateFactory(Protocol):
     """Base class for state preparation."""
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> CircuitQuantumState:
+    def __call__(self, *args: Any, **kwargs: Any) -> QuantumState:
         ...
 
 
@@ -31,5 +31,5 @@ class TimeEvolutionStateFactory(StateFactory, Protocol):
     @abstractmethod
     def __call__(
         self, evolution_time: float, *args: Any, **kwargs: Any
-    ) -> CircuitQuantumState:
+    ) -> QuantumState:
         ...
