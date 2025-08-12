@@ -1,0 +1,282 @@
+name: Package and release
+
+on:
+  push:
+    branches: [main, integrate_st_bundled]
+  release:
+    types: [published]
+
+jobs:
+  pre-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Necessary to get tags for correct versioning
+        fetch-depth: 0
+
+    - name: check manual versioning
+      shell: bash
+      run: |
+        GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
+
+        # process pyproject.toml files
+        for FILE in $(find . -name "pyproject.toml"); do
+          PYPROJECT_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #PYPROJECT_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+
+        # process Cargo.toml files
+        for FILE in $(find . -name "Cargo.toml"); do
+          CARGO_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ ! "v$CARGO_VERSION" = $GIT_VERSION_TAG ]]; then
+            echo "Version mismatch in $FILE; #CARGO_VERSION != $GIT_VERSION_TAG" 1>&2
+            false
+          fi
+        done
+
+        echo "Version check finished successfully." 1>&2
+
+  rust-sdist-package:
+    name: Rust sdist package
+    needs: [pre-check]
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: "3.11"
+
+      - run: python -m pip install --upgrade pip
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - uses: ./.github/actions/rust-install-cache
+        with:
+          os: ${{ runner.os }}
+          toolchain: "stable"
+          additional-key: "python"
+
+      - run: |
+          poetry env use 3.11
+          mkdir -p dist
+          poetry run pip install --upgrade build
+          source $VENV
+
+          # For sdist generation, only files under `packages/rust` or `rust` are needed.
+          # To prevent errors, we remove some files of `quri-parts` package.
+          rm -rf README.md pyproject.toml quri_parts docs
+          mv packages/rust/pyproject.toml .
+          mv packages/rust/quri_parts .
+          mv packages/rust/MANIFEST.in .
+          rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/tensornetwork
+          echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
+          poetry run python -m build --sdist
+
+      - run: |
+          git reset --hard
+          poetry install -v --only dev
+          poetry run pip uninstall -y quri-parts-rust
+          rm -rf quri_parts
+          poetry run pip install dist/*.tar.gz
+          poetry run pytest packages
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quri-parts-packages-rust-sdist
+          path: dist/*
+          if-no-files-found: error
+          overwrite: true
+
+  rust-wheel-package:
+    name: Rust wheel package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    needs: [pre-check]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "9", "10", "11", "12" ]
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Needed to avoid format error in Windows
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: 3.${{matrix.python-version}}
+
+      - run: python -m pip install --upgrade pip build
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - if: runner.os != 'Linux'
+        run: |
+          mkdir -p dist
+          pip install -v --upgrade pip build
+          for pkg in packages/*
+          do
+            if [[ -e "$pkg/Cargo.toml" ]]; then
+              cd "$pkg"
+              python -c "import sys; import platform; print('sys_platform =', sys.platform, ', platform_machine =', platform.machine())"
+              python -m pip wheel --no-deps -v -w ../../dist .
+              cd ../..
+            fi
+          done
+          ls dist
+
+      - name: Build wheels
+        if: runner.os == 'Linux'
+        uses: pypa/cibuildwheel@v2.23.2
+        env:
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_BUILD: "cp3${{ matrix.python-version }}-manylinux_i686 cp3${{ matrix.python-version }}-manylinux_x86_64"
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
+          CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
+          CIBW_ARCHS_LINUX: "auto"
+          CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
+        with:
+          package-dir: packages/rust
+          output-dir: dist
+
+      - name: Run test
+        shell: bash
+        run: |
+          poetry env use 3.${{ matrix.python-version }}
+          poetry run pip install pytest
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              sudo apt install -y libjpeg-dev
+          fi
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            poetry install -v --only main
+          else
+            poetry install -v --only dev
+          fi
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              poetry run pip install dist/quri_parts*.manylinux2014_x86_64.whl
+          else
+            for FILE in "$(find dist -name 'quri_parts*.whl')"; do
+              poetry run pip install -v $FILE
+            done
+          fi
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            # We cannot run tests on native Windows, since pyscf does not support it.
+            poetry install -v --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket --extras qsub --extras tensornetwork
+            poetry run pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+          else
+            poetry run pytest packages
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-3.${{matrix.python-version}}
+          path: dist/*
+          if-no-files-found: error
+          overwrite: true
+
+  python-package:
+    needs: [pre-check]
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Necessary to get tags for correct versioning
+        fetch-depth: 0
+
+    - uses: ./.github/actions/python-poetry-install
+      with:
+        poetry-version: '1.4.0'
+        python-version: '3.10'
+
+    - shell: bash
+      run: |
+        pip install setuptools
+        poetry env use 3.10
+        poetry self add setuptools
+        poetry self add "poetry-dynamic-versioning[plugin]"
+        mkdir -p dist
+        cp -f NOTICE quri_parts/
+        poetry build
+        cd packages
+        for pkg in *
+        do
+          cd $pkg
+          if [[ ! -e "Cargo.toml" ]]; then
+            cp -f NOTICE quri_parts/$pkg/
+            poetry build
+            mv dist/* ../../dist
+          fi
+          cd ..
+        done
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: quri-parts-packages-python
+        path: dist/*
+        if-no-files-found: error
+        overwrite: true
+
+  merge:
+    needs: [python-package, rust-wheel-package, rust-sdist-package]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge Artifacts
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: all-quri-parts-packages
+          pattern: quri-parts-packages-*
+
+  release:
+    needs: merge
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: all-quri-parts-packages
+
+      - name: Install Twine
+        run: python -m pip install twine==6.1.0 packaging==24.2
+
+      - name: Release to PyPI
+        run: |
+          COUNTER=0
+          for f in *; do
+            echo "Checking $f"
+            if ! python -m twine check $f; then
+              COUNTER=$((COUNTER + 1))
+            fi
+          done
+          [[ $COUNTER = 0 ]] && python -m twine upload *
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}

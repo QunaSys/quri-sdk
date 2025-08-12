@@ -1,0 +1,29 @@
+name: "Python & Poetry install and cache"
+description: "Python & Poetry install and cache"
+
+inputs:
+  poetry-version:
+    description: "Poetry version"
+    required: true
+  python-version:
+    description: "Python version"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Poetry
+      env:
+        POETRY_VERSION: ${{ inputs.poetry-version }}
+      shell: bash
+      run: |
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        pip install --user --upgrade pip
+        curl -sSL https://install.python-poetry.org | python3 -
+        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+

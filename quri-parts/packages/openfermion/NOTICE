@@ -1,0 +1,6 @@
+Copyright 2022 QURI Parts Authors
+
+Some code in quri_parts/openfermion/operator/fermion_operator.py is derived
+from OpenFermion (https://quantumai.google/openfermion), which is created by
+The OpenFermion Developers.
+Copyright 2017 The OpenFermion Developers.

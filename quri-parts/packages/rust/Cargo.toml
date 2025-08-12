@@ -1,0 +1,17 @@
+[package]
+name = "quri-parts-rust"
+version = "0.22.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+num-complex = "0.4.6"
+quri-parts = { path = "../../", version = "0.22.1", features = ["python"] }
+
+[dependencies.pyo3]
+version = "0.22.6"
+features = ["extension-module", "macros", "num-complex", "py-clone"]
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["rlib", "cdylib"]

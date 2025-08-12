@@ -1,0 +1,45 @@
+name: Type check
+
+on:
+  pull_request:
+    paths:
+      - packages/**/*.py
+      - poetry.lock
+      - mypy.ini
+      - .github/workflows/typecheck.yml
+  push:
+    branches: [main]
+
+jobs:
+  typecheck:
+
+    strategy:
+      matrix:
+        python_version:
+          - '3.10'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/python-poetry-install
+      with:
+        poetry-version: '1.4.0'
+        python-version: ${{ matrix.python_version }}
+
+    - run: |
+        poetry env use ${{ matrix.python_version }}
+        poetry run pip install -vvv -e packages/rust
+        poetry install -vvv --only main,dev,typecheck
+
+    - name: Cache mypy cache
+      uses: actions/cache@v3
+      with:
+        path: .mypy_cache
+        key: mypy-${{ runner.os }}-${{ matrix.python_version }}-${{ hashFiles('**/*.py') }}
+        restore-keys: |
+          mypy-${{ runner.os }}-${{ matrix.python_version }}-
+
+    - run: poetry run mypy .
+      if: success() || failure()

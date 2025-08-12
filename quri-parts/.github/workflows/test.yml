@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  pull_request:
+    paths:
+      - packages/**/*.py
+      - packages/**/*.rs
+      - ./**/Cargo.toml
+      - ./**/Cargo.lock
+      - rust/**/*.rs
+      - poetry.lock
+      - .github/workflows/test.yml
+      - .github/actions/python-poetry-install/action.yml
+      - .github/actions/rust-install-cache/action.yml
+      - ./**/*.jl
+  push:
+    branches: [main]
+
+jobs:
+  test:
+
+    strategy:
+      matrix:
+        python_version:
+          - '3.9'
+          - '3.10'
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/python-poetry-install
+      with:
+        poetry-version: '1.4.0'
+        python-version: ${{ matrix.python_version }}
+
+    - uses: ./.github/actions/rust-install-cache
+      with:
+        toolchain: "stable"
+        additional-key: "test"
+
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.julia/
+        key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+        restore-keys: ci-${{ runner.os }}-julia-
+
+    - run: cargo test --workspace
+
+    - run: |
+        poetry env use ${{ matrix.python_version }}
+        poetry run pip install -vvv -e packages/rust
+        poetry install -vvv --only main,dev
+
+    - run: poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
+      id: julia_project
+
+    - run: poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
+
+    - run: poetry run pytest

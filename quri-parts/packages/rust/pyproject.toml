@@ -1,0 +1,74 @@
+[build-system]
+requires = [
+  "setuptools>=64",
+  "setuptools-rust",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_x86_64.whl ; sys_platform=='linux' and platform_machine=='x86_64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-macosx_11_0_arm64.whl ; sys_platform=='darwin' and platform_machine== 'arm64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-macosx_10_12_x86_64.whl ; sys_platform=='darwin' and platform_machine== 'x86_64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-win_amd64.whl ; sys_platform=='win32' and platform_machine=='AMD64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_aarch64.whl ; sys_platform=='linux' and platform_machine=='aarch64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_armv7l.whl ; sys_platform=='linux' and platform_machine=='armv7l'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_i686.whl ; sys_platform=='linux' and platform_machine=='i686'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_ppc64le.whl ; sys_platform=='linux' and platform_machine=='ppc64le'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_riscv64.whl ; sys_platform=='linux' and platform_machine=='riscv64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_s390x.whl ; sys_platform=='linux' and platform_machine=='s390x'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-win_arm64.whl ; sys_platform=='win32' and platform_machine=='ARM64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-freebsd_14_2_release_amd64.whl ; sys_platform=='freebsd14' and platform_machine=='amd64'",
+  "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-netbsd_10_1_amd64.whl ; sys_platform=='netbsd10' and platform_machine=='amd64'",
+  "setuptools-rust-bundled==0.1.4",
+]
+build-backend = "setuptools_rust_bundled.setuptools"
+
+[project]
+dependencies = ["typing-extensions>=4.1.1,<5.0.0", "numpy>=1.22.0"]
+name = "quri-parts-rust"
+version = "0.22.1"
+description = "Platform-independent quantum circuit library"
+license = { text = "Apache-2.0" }
+
+authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
+requires-python = ">=3.9.8,<4.0.0"
+keywords = ["quantum", "quantum computing"]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
+
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-parts"
+Documentation = "https://quri-parts.qunasys.com"
+
+# The followings is needed for rust-sdist-package CI
+[tool.poetry]
+name = "quri-parts-rust"
+version = "0.22.1"
+description = "Platform-independent quantum circuit library"
+license = "Apache-2.0"
+authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+readme = "README.md"
+repository = "https://github.com/QunaSys/quri-parts"
+documentation = "https://quri-parts.qunasys.com"
+keywords = ["quantum", "quantum computing"]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
+packages = [{ include = "quri_parts" }]
+
+[tool.poetry.dependencies]
+python = "^3.9.8"
+typing-extensions = "^4.1.1"
+numpy = ">=1.22.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.1"
+flake8 = ">=4.0.1,<7.0.0"
+mypy = ">=0.950"
+docformatter = "^1.4"
+isort = "^5.10.1"
+black = "^23.1.0"
+setuptools = ">=64"
+setuptools-rust = "*"
+setuptools-rust-bundled = "0.1.4"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["quri_parts", "Cargo.toml", "packages/rust"]
+
+[[tool.setuptools-rust.ext-modules]]
+target = "quri_parts.rust.quri_parts_rust"
+# path = "..." is added in rust-sdist-package workflow

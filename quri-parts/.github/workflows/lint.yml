@@ -1,0 +1,56 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - packages/**/*.py
+      - packages/**/*.rs
+      - rust/**/*.rs
+      - pyproject.toml
+      - poetry.lock
+      - .flake8
+      - .github/workflows/lint.yml
+      - .github/actions/python-poetry-install/action.yml
+      - .github/actions/rust-install-cache/action.yml
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/python-poetry-install
+      with:
+        poetry-version: '1.4.0'
+        python-version: '3.10'
+
+    - uses: ./.github/actions/rust-install-cache
+      with:
+        toolchain: "nightly"
+        additional-key: "lint"
+
+    - name: Install fmt
+      run: rustup component add rustfmt
+
+    - name: Run format
+      run: cargo fmt --all -- --check
+      if: success() || failure()
+
+    - run: |
+        poetry env use 3.10
+        poetry install --only lint
+
+    - run: poetry run isort packages --check --diff
+      if: success() || failure()
+
+    - run: poetry run black packages --check
+      if: success() || failure()
+
+    - run: poetry run flake8 packages
+      if: success() || failure()
+
+    - run: poetry run docformatter -c -r packages
+      if: success() || failure()

@@ -1,0 +1,47 @@
+name: "Rust install and cache"
+description: "Rust install and cache"
+
+inputs:
+  toolchain:
+    description: "`stable` or `nightly`"
+    required: true
+  target:
+    description: "toolchain target"
+    required: false
+    default: ""
+  additional-key:
+    description: "cache additional key"
+    required: false
+    default: ""
+  shell:
+    description: "shell"
+    required: false
+    default: "bash"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+          Cargo.lock
+        key: ci-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-cargo-${{ inputs.additional-key }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ci-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-cargo-${{ inputs.additional-key }}-
+          ci-${{ runner.os }}-${{ runner.arch }}-${{ inputs.toolchain }}-cargo-
+
+    - name: Install ${{ inputs.toolchain }}
+      shell: ${{ inputs.shell }}
+      run: |
+        rustup install ${{ inputs.toolchain }} --profile minimal
+        rustup default ${{ inputs.toolchain }}
+
+    - name: set target
+      if: inputs.target != ''
+      shell: ${{ inputs.shell }}
+      run: rustup target add ${{ inputs.target }}

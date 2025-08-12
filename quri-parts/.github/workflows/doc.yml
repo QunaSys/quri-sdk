@@ -1,0 +1,61 @@
+name: Document
+
+on:
+  pull_request:
+    paths:
+      - packages/**/*.py
+      - docs
+      - poetry.lock
+      - .github/workflows/doc.yml
+  push:
+    branches: [main]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/python-poetry-install
+      with:
+        poetry-version: '1.4.0'
+        python-version: '3.9'
+
+    - uses: actions/cache@v3
+      with:
+        path: |
+          ~/.julia/
+        key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+        restore-keys: ci-${{ runner.os }}-julia-
+
+    - name: Download pandoc
+      if: steps.cache-pandoc.outputs.cache-hit != 'true'
+      run: |
+        wget https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
+
+    - name: Install pandoc
+      run: |
+        yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
+
+    - run: |
+        poetry env use 3.9
+        poetry run pip install -vvv -e packages/rust
+        poetry install -vvv --only main,dev,doc
+
+    - run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+  
+    - run: poetry run make html
+      working-directory: docs
+
+    - name: deploy to Netlify
+      uses: nwtgck/actions-netlify@v2.0
+      with:
+        publish-dir: './docs/_build'
+        production-branch: main
+        alias: deploy-preview-${{ github.event.number }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        enable-pull-request-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: c809dd00-1b20-41de-adc9-ad4c882d452d

@@ -1,0 +1,4 @@
+Copyright 2022 QURI Parts Authors
+
+Some code in quri_parts/circuit/noise/noise_instruction.py is derived from Qiskit (https://qiskit.org/), which is created by IBM.
+(C) Copyright IBM 2018, 2019, 2021.

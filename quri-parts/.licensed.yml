@@ -1,0 +1,22 @@
+sources:
+  pip: true
+
+python:
+  virtual_env_dir: "venv"
+
+allowed:
+  - mit
+  - apache-2.0
+  - bsd-2-clause
+  - bsd-3-clause
+  - cc0-1.0
+  - isc
+  - hpnd
+  - mpl-2.0
+  - psf-2.0
+  - unlicense
+
+ignored:
+  pip:
+    - quri-parts-*
+    - libquadmath

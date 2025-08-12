@@ -1,0 +1,4 @@
+Copyright 2022 QURI Parts Authors
+
+Mock backend functionality in tests/qiskit/backend/mock/ibm_runtime_service_mock.py is derived from Qiskit Runtime (https://www.ibm.com/quantum/qiskit-runtime), which is created by IBM.
+(C) Copyright IBM 2017, 2023.

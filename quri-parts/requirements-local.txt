@@ -1,0 +1,21 @@
+-e ./packages/core
+-e ./packages/circuit
+-e ./packages/algo
+-e ./packages/chem
+
+# Uncomment the following optional modules as necessary
+
+# -e ./packages/qulacs
+# -e ./packages/braket
+# -e ./packages/qiskit
+# -e ./packages/cirq
+# -e ./packages/openfermion
+# -e ./packages/stim
+# -e ./packages/openqasm
+# -e ./packages/quantinuum
+# -e ./packages/ionq
+# -e ./packages/pyscf
+# -e ./packages/itensor
+# -e ./packages/tket
+# -e ./packages/tensornetwork
+# -e ./packages/qsub

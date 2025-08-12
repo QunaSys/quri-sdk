@@ -1,0 +1,26 @@
+---
+name: cffi
+version: 1.17.1
+type: pip
+summary: Foreign Function Interface for Python calling C code.
+homepage: http://cffi.readthedocs.org
+license: mit
+licenses:
+- sources: LICENSE
+  text: "\nExcept when otherwise stated (look for LICENSE files in directories or\ninformation
+    at the beginning of each file) all software and\ndocumentation is licensed as
+    follows: \n\n    The MIT License\n\n    Permission is hereby granted, free of
+    charge, to any person \n    obtaining a copy of this software and associated documentation
+    \n    files (the \"Software\"), to deal in the Software without \n    restriction,
+    including without limitation the rights to use, \n    copy, modify, merge, publish,
+    distribute, sublicense, and/or \n    sell copies of the Software, and to permit
+    persons to whom the \n    Software is furnished to do so, subject to the following
+    conditions:\n\n    The above copyright notice and this permission notice shall
+    be included \n    in all copies or substantial portions of the Software.\n\n    THE
+    SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS \n    OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \n    FITNESS
+    FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL \n    THE AUTHORS
+    OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \n    LIABILITY,
+    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING \n    FROM, OUT OF
+    OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER \n    DEALINGS IN THE SOFTWARE.\n\n"
+notices: []

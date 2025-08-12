@@ -1,0 +1,55 @@
+name: Check licenses of dependencies
+
+on:
+  pull_request:
+    paths:
+      - .licenses/**
+      - packages/*/pyproject.toml
+  push:
+    branches: [main]
+    paths:
+      - packages/*/pyproject.toml
+  schedule:
+    - cron: '0 0 * * MON-FRI'
+  workflow_dispatch:
+
+jobs:
+  check-licenses:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        cache-dependency-path: 'packages/*/pyproject.toml'
+
+    - run: python -m venv venv
+    - run: |
+        . venv/bin/activate
+        pip install -e packages/*
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ruby
+
+    - uses: licensee/setup-licensed@v1.3.2
+      with:
+        version: '5.x'
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+
+    - run: licensed cache
+    - run: licensed status
+
+    - uses: slackapi/slack-github-action@v1.22.0
+      if: failure() && github.event_name == 'schedule'
+      with:
+        payload: |
+          {
+            "message": "License check for QURI Parts failed.",
+            "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
