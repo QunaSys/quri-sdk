@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "quri-vm"
+version = "0.1.0"
+description = ""
+authors = ["QunaSys"]
+readme = "README.md"
+packages = [{ include = "quri_vm" }]
+
+[tool.poetry.dependencies]
+python = "<4,>=3.10"
+quri-parts-circuit = ">=0.20.3"
+quri-parts-qulacs = ">=0.20.3"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.1.1"
+black = "^24.8.0"
+isort = "^5.13.2"
+mypy = "^1.11.2"
+pytest = "^8.3.3"
+
+[tool.poetry.group.doc.dependencies]
+sphinx = "^8.0.2"
+furo = "^2024.8.6"
+nbsphinx = "^0.9.5"
+notebook = "^7.2.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
