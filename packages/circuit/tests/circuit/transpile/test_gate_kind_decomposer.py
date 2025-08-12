@@ -63,6 +63,7 @@ from quri_parts.circuit.transpile import (
     SqrtYdag2RZSqrtXTranspiler,
     STARSetTranspiler,
     SWAP2CNOTTranspiler,
+    SWAPInsertionTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
@@ -689,6 +690,128 @@ class TestCliffordRZSetTranspile:
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+
+class TestSWAPInsertionTranspiler:
+    def test_ordered_connectivity_transpile(self) -> None:
+        qubit_count = 7
+        transpiler = SWAPInsertionTranspiler()
+        expected_gates = (
+            (CNOT(0, 1),),
+            (
+                SWAP(0, 1),
+                CNOT(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                CNOT(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                SWAP(2, 3),
+                CNOT(3, 4),
+                SWAP(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                SWAP(2, 3),
+                SWAP(3, 4),
+                CNOT(4, 5),
+                SWAP(3, 4),
+                SWAP(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                SWAP(2, 3),
+                SWAP(3, 4),
+                SWAP(4, 5),
+                CNOT(5, 6),
+                SWAP(4, 5),
+                SWAP(3, 4),
+                SWAP(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+        )
+        for j in range(1, qubit_count):
+            circuit = QuantumCircuit(qubit_count)
+            circuit.add_CNOT_gate(0, j)
+
+            target_circuit = QuantumCircuit(qubit_count, gates=expected_gates[j - 1])
+
+            transpiled = transpiler(circuit)
+            assert transpiled.gates == target_circuit.gates
+
+    def test_reverse_ordered_connectivity_transpile(self) -> None:
+        qubit_count = 7
+        transpiler = SWAPInsertionTranspiler()
+        expected_gates = (
+            (CNOT(1, 0),),
+            (
+                SWAP(0, 1),
+                CNOT(2, 1),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                CNOT(3, 2),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                SWAP(2, 3),
+                CNOT(4, 3),
+                SWAP(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                SWAP(2, 3),
+                SWAP(3, 4),
+                CNOT(5, 4),
+                SWAP(3, 4),
+                SWAP(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+            (
+                SWAP(0, 1),
+                SWAP(1, 2),
+                SWAP(2, 3),
+                SWAP(3, 4),
+                SWAP(4, 5),
+                CNOT(6, 5),
+                SWAP(4, 5),
+                SWAP(3, 4),
+                SWAP(2, 3),
+                SWAP(1, 2),
+                SWAP(0, 1),
+            ),
+        )
+        for j in range(1, qubit_count):
+            circuit = QuantumCircuit(qubit_count)
+            circuit.add_CNOT_gate(j, 0)
+
+            target_circuit = QuantumCircuit(qubit_count, gates=expected_gates[j - 1])
+
+            transpiled = transpiler(circuit)
+            assert transpiled.gates == target_circuit.gates
 
 
 class TestSTARSetTranspile:

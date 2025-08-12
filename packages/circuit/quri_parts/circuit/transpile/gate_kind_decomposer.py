@@ -309,6 +309,70 @@ class SWAP2CNOTTranspiler(GateKindDecomposer):
         ]
 
 
+class SWAPInsertionTranspiler(GateKindDecomposer):
+    """CircuitTranspiler which inserts SWAP gates any time a multi-qubit gate
+    is used assuming linear connectivity."""
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return list(gate_names.TWO_QUBIT_GATE_NAMES) + list(
+            gate_names.THREE_QUBIT_GATE_NAMES
+        )
+
+    def _decompose_two_qubit_gate(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        if gate.name == gate_names.SWAP:
+            index_0, index_1 = gate.target_indices
+        else:
+            index_0 = gate.control_indices[0]
+            index_1 = gate.target_indices[0]
+        index_order = index_1 > index_0
+        if index_order:
+            swap_sequence = [gates.SWAP(i, i + 1) for i in range(index_0, index_1 - 1)]
+            new_index_0 = index_1 - 1
+            new_index_1 = index_1
+        else:
+            swap_sequence = [gates.SWAP(i, i + 1) for i in range(index_1, index_0 - 1)]
+            new_index_0 = index_0
+            new_index_1 = index_0 - 1
+        if gate.name == gate_names.SWAP:
+            ti = [new_index_0, new_index_1]
+            ci = []
+        else:
+            ti = [new_index_1]
+            ci = [new_index_0]
+
+        gate_seq = []
+        gate_seq.extend(swap_sequence)
+        gate_seq.append(
+            QuantumGate(
+                gate.name,
+                ti,
+                ci,
+                gate.classical_indices,
+                gate.params,
+                gate.pauli_ids,
+                gate.unitary_matrix,
+            )
+        )
+        swap_sequence.reverse()
+        gate_seq.extend(swap_sequence)
+        return gate_seq
+
+    def _decompose_three_qubit_gate(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        raise NotImplementedError(
+            "SWAPInsertionTranspiler only supports two-qubit gates"
+        )
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        if gate.name in gate_names.TWO_QUBIT_GATE_NAMES:
+            return self._decompose_two_qubit_gate(gate)
+        if gate.name in gate_names.THREE_QUBIT_GATE_NAMES:
+            return self._decompose_three_qubit_gate(gate)
+        raise ValueError(
+            "SWAPInsertionTranspiler decompose method called with non-decomposable gate"
+        )
+
+
 class T2RZTranspiler(GateKindDecomposer):
     """CircuitTranspiler, which decomposes T gates into RZ gates."""
 
