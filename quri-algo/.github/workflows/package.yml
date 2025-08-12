@@ -1,0 +1,56 @@
+name: Package and release
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        # Necessary to get tags for correct versioning
+        fetch-depth: 0
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - uses: ./.github/actions/setup
+
+    - run: |
+        poetry self add "poetry-dynamic-versioning[plugin]"
+
+    - run: |
+        poetry env use python3.11
+        poetry build
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: QURI Algo packages
+        path: dist/*
+        if-no-files-found: error
+        overwrite: true
+
+  release:
+    needs: [package]
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        name: QURI Algo packages
+
+    - name: Install Twine
+      run: python -m pip install twine
+
+    - name: Release to PyPI
+      run: python -m twine upload *
+      env:
+        TWINE_USERNAME: "__token__"
+        TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}

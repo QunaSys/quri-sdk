@@ -1,0 +1,66 @@
+[tool.poetry]
+name = "quri-algo"
+version = "0.2.0"
+description = "Algorithm library based on QURI Parts"
+license = "MIT"
+authors = ["QunaSys"]
+readme = "README.md"
+repository = "https://github.com/QunaSys/quri-algo"
+documentation = "https://quri-sdk.qunasys.com"
+keywords = ["quantum", "quantum computing"]
+classifiers = [
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed"
+]
+packages = [
+    { include = "quri_algo" }
+]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+style = "pep440"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4"
+quri-parts-core = "^0.22.1"
+quri-parts-circuit = "^0.22.1"
+quri-parts-algo = "^0.22.1"
+quri-parts-chem = "^0.22.1"
+quri-parts-qulacs = "^0.22.1"
+quri-parts-pyscf = "^0.22.1"
+quri-parts-openfermion = "^0.22.1"
+quri-parts-qsub = "^0.22.1"
+quri-parts-rust = "^0.22.1"
+pytest = "^8.3.3"
+
+[tool.poetry.group.ipykernel.dependencies]
+ipykernel = "^6.29.5"
+
+[tool.poetry.group.lint.dependencies]
+black = { version = "^23.10.0", extras = ["jupyter"] }
+flake8 = "^6.0.0"
+# Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
+docformatter = "^1.4,<1.6.0"
+isort = "^5.12.0"
+
+[tool.poetry.group.typecheck.dependencies]
+mypy = ">=0.950"
+
+[tool.poetry.group.test.dependencies]
+pytest = ">=7.0.1,<9.0.0"
+
+[tool.poetry.group.doc.dependencies]
+Sphinx = ">=4.4,<8.0"
+furo = ">=2022.2.23,<2024.0.0"
+sphinx-autobuild = "^2021.3.14"
+nbsphinx = ">=0.8.9,<0.10.0"
+ipython = "^8.4.0"
+notebook = ">=6.4.12,<8.0.0"
+myst-parser = ">=0.18.1,<2.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"

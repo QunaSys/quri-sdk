@@ -1,0 +1,9 @@
+quri-parts-algo
+quri-parts-chem
+quri-parts-circuit
+quri-parts-core
+quri-parts-openfermion
+quri-parts-pyscf
+quri-parts-qulacs
+quri-parts-rust
+-e .

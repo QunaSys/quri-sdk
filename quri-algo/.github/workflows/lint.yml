@@ -1,0 +1,41 @@
+name: Lint
+
+on:
+  pull_request:
+    paths:
+      - pyproject.toml
+      - poetry.lock
+      - quri_algo/**.py
+      - .flake8
+      - .github/workflows/lint.yml
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/setup
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - run: |
+        poetry env use python3.11
+        poetry install --only lint
+
+    - run: poetry run isort quri_algo --check --diff
+      if: success() || failure()
+
+    - run: poetry run black quri_algo --check
+      if: success() || failure()
+
+    - run: poetry run flake8 quri_algo --show-source
+      if: success() || failure()
+
+    - run: poetry run docformatter -c -r quri_algo
+      if: success() || failure()
