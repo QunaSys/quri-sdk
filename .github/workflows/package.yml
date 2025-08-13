@@ -2,7 +2,7 @@ name: Package and release
 
 on:
   push:
-    branches: [main, integrate_st_bundled]
+    branches: [main, limited-api]
   release:
     types: [published]
 
@@ -41,10 +41,21 @@ jobs:
         echo "Version check finished successfully." 1>&2
 
   rust-sdist-package:
-    name: Rust sdist package
+    name: 🔨📦 Rust sdist
     needs: [pre-check]
     runs-on: "ubuntu-latest"
     steps:
+      - name: Cache Poetry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-cache-${{ runner.os }}-3.11
+      - name: Cache Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.local
+          key: poetry-local-${{ runner.os }}-3.11
+
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v5
@@ -59,12 +70,6 @@ jobs:
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
-
-      - uses: ./.github/actions/rust-install-cache
-        with:
-          os: ${{ runner.os }}
-          toolchain: "stable"
-          additional-key: "python"
 
       - run: |
           poetry env use 3.11
@@ -82,14 +87,6 @@ jobs:
           echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
           poetry run python -m build --sdist
 
-      - run: |
-          git reset --hard
-          poetry install -v --only dev
-          poetry run pip uninstall -y quri-parts-rust
-          rm -rf quri_parts
-          poetry run pip install dist/*.tar.gz
-          poetry run pytest packages
-
       - uses: actions/upload-artifact@v4
         with:
           name: quri-parts-packages-rust-sdist
@@ -97,9 +94,174 @@ jobs:
           if-no-files-found: error
           overwrite: true
 
+  test-rust-sdist-package:
+    name: ▶️📦 sdist-${{matrix.system.os}}-3${{matrix.python-version}}
+    needs: [rust-sdist-package, python-package]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "11" ]
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Needed to avoid format error in Windows
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-cache-${{ runner.os }}
+          
+      - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: quri-parts-packages-rust-sdist
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: quri-parts-packages-python
+          path: dist
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: 3.${{matrix.python-version}}
+
+      - name: Install packages
+        shell: bash
+        run: |
+          pip install pytest
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              sudo apt install -y libjpeg-dev
+          fi
+          for FILE in $(find dist -name '*.tar.gz'); do
+            if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+              if [[ "$FILE" = *"quri_parts_pyscf"* || "$FILE" = *"quri_parts_itensor"* ]]; then
+                # We cannot run tests on native Windows, since pyscf does not support it.
+                continue
+              fi
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_tket"* ]]; then
+              continue
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
+              continue
+            fi
+            pip install -v $FILE
+          done
+
+      - name: Run test
+        shell: bash
+        run: |
+          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+          else
+            pytest packages
+          fi
+
   rust-wheel-package:
-    name: Rust wheel package on ${{matrix.system.os}}-3.${{matrix.python-version}}
+    name: 🔨📦 Rust wheel (on ${{matrix.system.os}})
     needs: [pre-check]
+    runs-on: ${{matrix.system.os}}
+    strategy:
+      fail-fast: false
+      matrix:
+        system:
+          - os: "ubuntu-latest"
+            target: "x86_64-unknown-linux-gnu"
+          - os: "macos-13"
+            target: "x86_64-apple-darwin"
+          - os: "macos-latest"
+            target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+    defaults:
+      run:
+        shell: bash
+    env:
+      # Needed to avoid format error in Windows
+      PYTHONUTF8: "1"
+    steps:
+      - name: Cache Poetry cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry
+          key: poetry-cache-${{ runner.os }}-3.11
+      - name: Cache Packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.local
+          key: poetry-local-${{ runner.os }}-3.11
+
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-python@v5
+        id: setup-python
+        with:
+          python-version: 3.11
+
+      - run: python -m pip install --upgrade pip build
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - if: runner.os != 'Linux'
+        run: |
+          mkdir -p dist
+          pip install -v --upgrade pip build
+          for pkg in packages/*
+          do
+            if [[ -e "$pkg/Cargo.toml" ]]; then
+              cd "$pkg"
+              python -c "import sys; import platform; print('sys_platform =', sys.platform, ', platform_machine =', platform.machine())"
+              python -m pip wheel --config-settings=--build-option=--py-limited-api=cp39 --no-deps -v -w ../../dist .
+              cd ../..
+            fi
+          done
+          ls dist
+
+      - name: Build wheels
+        if: runner.os == 'Linux'
+        uses: pypa/cibuildwheel@v2.23.2
+        env:
+          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
+          CIBW_BUILD: "cp311-manylinux_i686 cp311-manylinux_x86_64"
+          CIBW_BUILD_VERBOSITY: 1
+          CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
+          CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
+          CIBW_ARCHS_LINUX: "auto"
+          CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
+        with:
+          package-dir: packages/rust
+          output-dir: dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-abi3
+          path: dist/*
+          if-no-files-found: error
+          overwrite: true
+
+  test-rust-wheel-package:
+    name: ▶️📦 wheel-${{matrix.system.os}}-3${{matrix.python-version}}
+    needs: [rust-wheel-package, python-package]
     runs-on: ${{matrix.system.os}}
     strategy:
       fail-fast: false
@@ -121,88 +283,71 @@ jobs:
       # Needed to avoid format error in Windows
       PYTHONUTF8: "1"
     steps:
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-cache-${{ runner.os }}
+
       - uses: actions/checkout@v3
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-abi3
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: quri-parts-packages-python
+          path: dist_py
 
       - uses: actions/setup-python@v5
         id: setup-python
         with:
           python-version: 3.${{matrix.python-version}}
 
-      - run: python -m pip install --upgrade pip build
+      - run: python --version
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - if: runner.os != 'Linux'
+      - name: Install packages
+        shell: bash
         run: |
-          mkdir -p dist
-          pip install -v --upgrade pip build
-          for pkg in packages/*
-          do
-            if [[ -e "$pkg/Cargo.toml" ]]; then
-              cd "$pkg"
-              python -c "import sys; import platform; print('sys_platform =', sys.platform, ', platform_machine =', platform.machine())"
-              python -m pip wheel --no-deps -v -w ../../dist .
-              cd ../..
+          pip install pytest
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              sudo apt install -y libjpeg-dev
+          fi
+          if [[ "${{ runner.os }}" = "Linux" ]]; then
+              pip install dist/quri_parts*.manylinux2014_x86_64.whl
+          else
+            for FILE in "$(find dist -name 'quri_parts*.whl')"; do
+              pip install -v $FILE
+            done
+          fi
+          for FILE in $(find dist_py -name '*.whl'); do
+            if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
+              if [[ "$FILE" = *"quri_parts_pyscf"* || "$FILE" = *"quri_parts_itensor"* ]]; then
+                # We cannot run tests on native Windows, since pyscf does not support it.
+                continue
+              fi
             fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_tket"* ]]; then
+              continue
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
+              continue
+            fi
+            pip install -v $FILE
           done
-          ls dist
-
-      - name: Build wheels
-        if: runner.os == 'Linux'
-        uses: pypa/cibuildwheel@v2.23.2
-        env:
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
-          CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_BUILD: "cp3${{ matrix.python-version }}-manylinux_i686 cp3${{ matrix.python-version }}-manylinux_x86_64"
-          CIBW_BUILD_VERBOSITY: 1
-          CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
-          CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
-          CIBW_ARCHS_LINUX: "auto"
-          CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
-        with:
-          package-dir: packages/rust
-          output-dir: dist
 
       - name: Run test
         shell: bash
         run: |
-          poetry env use 3.${{ matrix.python-version }}
-          poetry run pip install pytest
-          if [[ "${{ runner.os }}" = "Linux" ]]; then
-              sudo apt install -y libjpeg-dev
-          fi
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            poetry install -v --only main
+            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
           else
-            poetry install -v --only dev
+            pytest packages
           fi
-          if [[ "${{ runner.os }}" = "Linux" ]]; then
-              poetry run pip install dist/quri_parts*.manylinux2014_x86_64.whl
-          else
-            for FILE in "$(find dist -name 'quri_parts*.whl')"; do
-              poetry run pip install -v $FILE
-            done
-          fi
-          if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            # We cannot run tests on native Windows, since pyscf does not support it.
-            poetry install -v --only main --extras qulacs --extras braket --extras qiskit --extras cirq --extras openfermion --extras stim --extras openqasm --extras quantinuum --extras ionq --extras tket --extras qsub --extras tensornetwork
-            poetry run pytest packages --ignore=packages/pyscf --ignore=packages/itensor
-          else
-            poetry run pytest packages
-          fi
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: quri-parts-packages-rust-whl-${{matrix.system.target}}-3.${{matrix.python-version}}
-          path: dist/*
-          if-no-files-found: error
-          overwrite: true
 
   python-package:
+    name: 🔨📦 Python
     needs: [pre-check]
     runs-on: ubuntu-latest
 
@@ -246,7 +391,7 @@ jobs:
         overwrite: true
 
   merge:
-    needs: [python-package, rust-wheel-package, rust-sdist-package]
+    needs: [python-package, test-rust-wheel-package, test-rust-sdist-package]
     runs-on: ubuntu-latest
     steps:
       - name: Merge Artifacts

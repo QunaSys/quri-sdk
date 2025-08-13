@@ -65,6 +65,9 @@ setuptools = ">=64"
 setuptools-rust = "*"
 setuptools-rust-bundled = "0.1.4"
 
+[tool.distutils.bdist_wheel]
+py_limited_api = "cp39"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["quri_parts", "Cargo.toml", "packages/rust"]

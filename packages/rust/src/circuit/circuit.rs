@@ -60,7 +60,7 @@ impl ImmutableQuantumCircuit {
             args.extract::<(Bound<'py, PyString>, usize, usize, Vec<QuantumGate>)>()
         {
             // Called from pickle.load()
-            if stub.to_str()? == PICKLE_STUB_ARG {
+            if stub.to_string_lossy() == PICKLE_STUB_ARG {
                 return Py::new(
                     args.py(),
                     Self {
