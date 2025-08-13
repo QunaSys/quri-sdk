@@ -1,18 +1,17 @@
-name: Typecheck
+name: Test QURI Algo
 
 on:
   pull_request:
     paths:
       - quri-algo/pyproject.toml
       - quri-algo/poetry.lock
-      - quri-algo/quri_algo/**.py
-      - quri-algo/mypy.ini
-      - .github/workflows/quri-algo/typecheck.yml
+      - 'quri-algo/quri_algo/**.py'
+      - .github/workflows/quri_algo_test.yml
   push:
     branches: [main]
 
 jobs:
-  mypy:
+  pytest:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,8 +24,10 @@ jobs:
         python-version: '3.11'
 
     - run: |
-        cd quri-algo
+        cd quri-algo/
         poetry env use python3.11
-        poetry install --only main,typecheck
+        poetry install
 
-    - run: poetry run mypy tests/ quri_algo/
+    - run: |
+        cd quri-algo/
+        poetry run pytest tests/

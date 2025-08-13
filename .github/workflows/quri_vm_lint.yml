@@ -1,0 +1,53 @@
+name: Lint QURI VM
+
+on:
+  pull_request:
+    paths:
+      - 'quri-vm/**.py'
+      - quri-vm/pyproject.toml
+      - quri-vm/poetry.lock
+      - quri-vm/.flake8
+      - .github/workflows/quri_vm_lint.yml
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/quri-vm/setup
+      with:
+        poetry-version: '1.8.0'
+        python-version: '3.10'
+
+    - run: |
+        cd quri-vm
+        poetry env use 3.10
+        poetry install
+
+    - run: |
+        cd quri-vm
+        poetry run isort . --check --diff
+      if: success() || failure()
+
+    - run: |
+        cd quri-vm
+        poetry run black . --check
+      if: success() || failure()
+
+    - run: |
+        cd quri-vm
+        poetry run flake8 .
+      if: success() || failure()
+
+    - run: |
+        cd quri-vm
+        poetry run mypy .
+      if: success() || failure()

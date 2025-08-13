@@ -1,9 +1,10 @@
-name: Package and release
+name: Package and release QURI Algo
 
 on:
   pull_request:
     paths:
-      - quri-algo
+      - 'quri-algo/**'
+      - .github/workflows/quri_algo_package.yml
   push:
     branches: [main]
   release:
@@ -30,6 +31,7 @@ jobs:
         poetry self add "poetry-dynamic-versioning[plugin]"
 
     - run: |
+        cd quri-algo
         poetry env use python3.11
         poetry build
 
