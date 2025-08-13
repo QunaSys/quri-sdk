@@ -2,6 +2,9 @@ name: Package and release QURI VM
 
 on:
   pull_request:
+    paths:
+      - quri-vm
+      - .github/workflows/quri_vm_package.yml
   push:
     branches: [main]
   release:
@@ -34,7 +37,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: QURI VM packages
-        path: dist/*
+        path: quri-vm/dist/*
         if-no-files-found: error
 
   release:

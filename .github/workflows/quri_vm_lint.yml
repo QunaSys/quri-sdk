@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/quri-vm/setup
       with:
         poetry-version: '1.8.0'
         python-version: '3.10'
