@@ -3,11 +3,11 @@ name: Typecheck
 on:
   pull_request:
     paths:
-      - pyproject.toml
-      - poetry.lock
-      - quri_algo/**.py
-      - mypy.ini
-      - .github/workflows/typecheck.yml
+      - quri-algo/pyproject.toml
+      - quri-algo/poetry.lock
+      - quri-algo/quri_algo/**.py
+      - quri-algo/mypy.ini
+      - .github/workflows/quri-algo/typecheck.yml
   push:
     branches: [main]
 
@@ -18,13 +18,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/quri-algo/setup
 
     - uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
     - run: |
+        cd quri-algo
         poetry env use python3.11
         poetry install --only main,typecheck
 

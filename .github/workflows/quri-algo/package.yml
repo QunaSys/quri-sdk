@@ -2,6 +2,8 @@ name: Package and release
 
 on:
   pull_request:
+    paths:
+      - quri-algo
   push:
     branches: [main]
   release:
@@ -21,9 +23,10 @@ jobs:
       with:
         python-version: '3.11'
 
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/quri-algo/setup
 
     - run: |
+        cd quri-algo
         poetry self add "poetry-dynamic-versioning[plugin]"
 
     - run: |
@@ -33,7 +36,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: QURI Algo packages
-        path: dist/*
+        path: quri-algo/dist/*
         if-no-files-found: error
         overwrite: true
 
