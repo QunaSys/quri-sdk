@@ -1,4 +1,4 @@
-name: Lint
+name: Lint QURI Algo
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
       - quri-algo/poetry.lock
       - quri-algo/quri_algo/**.py
       - quri-algo/.flake8
-      - .github/workflows/quri-algo/lint.yml
+      - .github/workflows/quri_algo_lint.yml
   push:
     branches: [main]
 

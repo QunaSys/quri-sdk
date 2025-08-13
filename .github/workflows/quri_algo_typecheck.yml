@@ -1,4 +1,4 @@
-name: Typecheck
+name: Typecheck QURI Algo
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
       - quri-algo/poetry.lock
       - quri-algo/quri_algo/**.py
       - quri-algo/mypy.ini
-      - .github/workflows/quri-algo/typecheck.yml
+      - .github/workflows/quri_algo_typecheck.yml
   push:
     branches: [main]
 

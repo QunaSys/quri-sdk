@@ -1,13 +1,13 @@
-name: Lint
+name: Lint QURI VM
 
 on:
   pull_request:
     paths:
-      - '**.py'
-      - pyproject.toml
-      - poetry.lock
-      - .flake8
-      - .github/workflows/lint.yml
+      - 'quri-vm/**.py'
+      - quri-vm/pyproject.toml
+      - quri-vm/poetry.lock
+      - quri-vm/.flake8
+      - .github/workflows/quri_vm_lint.yml
   push:
     branches: [main]
 

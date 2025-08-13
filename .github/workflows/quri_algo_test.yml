@@ -1,4 +1,4 @@
-name: Test
+name: Test QURI Algo
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - quri-algo/pyproject.toml
       - quri-algo/poetry.lock
       - quri-algo/quri_algo/**.py
-      - .github/workflows/quri-algo/test.yml
+      - .github/workflows/quri_algo_test.yml
   push:
     branches: [main]
 
