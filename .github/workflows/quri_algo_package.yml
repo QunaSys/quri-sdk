@@ -3,7 +3,7 @@ name: Package and release QURI Algo
 on:
   pull_request:
     paths:
-      - quri-algo
+      - 'quri-algo/**'
       - .github/workflows/quri_algo_package.yml
   push:
     branches: [main]

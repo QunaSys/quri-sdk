@@ -3,7 +3,7 @@ name: Package and release QURI VM
 on:
   pull_request:
     paths:
-      - quri-vm
+      - 'quri-vm/**'
       - .github/workflows/quri_vm_package.yml
   push:
     branches: [main]

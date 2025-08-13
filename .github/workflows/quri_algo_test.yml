@@ -5,7 +5,7 @@ on:
     paths:
       - quri-algo/pyproject.toml
       - quri-algo/poetry.lock
-      - quri-algo/quri_algo/**.py
+      - 'quri-algo/quri_algo/**.py'
       - .github/workflows/quri_algo_test.yml
   push:
     branches: [main]
