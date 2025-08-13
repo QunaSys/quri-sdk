@@ -1,0 +1,118 @@
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
+build-backend = "poetry_dynamic_versioning.backend"
+
+[tool.poetry]
+name = "quri-parts"
+version = "0.0.0"
+description = "Platform-independent quantum computing library"
+license = "Apache-2.0"
+authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+readme = "README.md"
+repository = "https://github.com/QunaSys/quri-parts"
+documentation = "https://quri-parts.qunasys.com"
+keywords = ["quantum", "quantum computing"]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
+packages = [{ include = "quri_parts" }]
+
+[tool.poetry-dynamic-versioning]
+enable = true
+style = "pep440"
+
+[tool.poetry.dependencies]
+python = "^3.9.8,<3.13"
+
+quri-algo = "*"
+quri-vm = "*"
+
+quri-parts-rust = "*"
+quri-parts-core = "*"
+quri-parts-circuit = "*"
+quri-parts-algo = "*"
+quri-parts-chem = "*"
+
+quri-parts-qulacs = { version = "*", optional = true }
+quri-parts-braket = { version = "*", optional = true }
+quri-parts-qiskit = { version = "*", optional = true }
+quri-parts-cirq = { version = "*", optional = true }
+quri-parts-openfermion = { version = "*", optional = true }
+quri-parts-stim = { version = "*", optional = true }
+quri-parts-openqasm = { version = "*", optional = true }
+quri-parts-quantinuum = { version = "*", optional = true }
+quri-parts-ionq = { version = "*", optional = true }
+quri-parts-itensor = { version = "*", optional = true }
+quri-parts-pyscf = { version = "*", optional = true }
+quri-parts-tensornetwork = { version = "*", optional = true }
+quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
+quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
+
+[tool.poetry.extras]
+qulacs = ["quri-parts-qulacs"]
+braket = ["quri-parts-braket"]
+qiskit = ["quri-parts-qiskit"]
+cirq = ["quri-parts-cirq"]
+openfermion = ["quri-parts-openfermion"]
+stim = ["quri-parts-stim"]
+openqasm = ["quri-parts-openqasm"]
+quantinuum = ["quri-parts-quantinuum"]
+ionq = ["quri-parts-ionq"]
+itensor = ["quri-parts-itensor"]
+pyscf = ["quri-parts-pyscf"]
+tket = ["quri-parts-tket"]
+tensornetwork = ["quri-parts-tensornetwork"]
+qsub = ["quri-parts-qsub"]
+
+[tool.poetry.group.dev.dependencies]
+quri-algo = { path = "quri-algo", develop = true }
+quri-vm = { path = "quri-vm", develop = true }
+quri-parts-rust = { path = "quri-parts/packages/rust", develop = true }
+quri-parts-circuit = { path = "quri-parts/packages/circuit", develop = true }
+quri-parts-core = { path = "quri-parts/packages/core", develop = true }
+quri-parts-qulacs = { path = "quri-parts/packages/qulacs", develop = true }
+quri-parts-algo = { path = "quri-parts/packages/algo", develop = true }
+quri-parts-chem = { path = "quri-parts/packages/chem", develop = true }
+quri-parts-braket = { path = "quri-parts/packages/braket", develop = true }
+quri-parts-qiskit = { path = "quri-parts/packages/qiskit", develop = true }
+quri-parts-cirq = { path = "quri-parts/packages/cirq", develop = true }
+quri-parts-openfermion = { path = "quri-parts/packages/openfermion", develop = true }
+quri-parts-stim = { path = "quri-parts/packages/stim", develop = true }
+quri-parts-openqasm = { path = "quri-parts/packages/openqasm", develop = true }
+quri-parts-quantinuum = { path = "quri-parts/packages/quantinuum", develop = true }
+quri-parts-ionq = { path = "quri-parts/packages/ionq", develop = true }
+quri-parts-itensor = { path = "quri-parts/packages/itensor", develop = true }
+quri-parts-pyscf = { path = "quri-parts/packages/pyscf", develop = true }
+quri-parts-tensornetwork = { path = "quri-parts/packages/tensornetwork", develop = true }
+quri-parts-tket = { path = "quri-parts/packages/tket", develop = true, python = ">=3.10" }
+quri-parts-qsub = { path = "quri-parts/packages/qsub", develop = true, python = ">=3.10" }
+
+# To avoid poetry downloading hundreds versions of botocore
+# https://github.com/python-poetry/poetry/issues/7858
+botocore = ">=1.29.115"
+
+pytest = ">=7.0.1,<9.0.0"
+maturin = "^1.0"
+
+[tool.poetry.group.lint.dependencies]
+black = "^23.1.0"
+flake8 = ">=4.0.1,<8.0.0"
+# Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
+docformatter = "1.5.1"
+isort = "^5.10.1"
+
+[tool.poetry.group.typecheck.dependencies]
+mypy = "1.8.0"
+
+[tool.poetry.group.doc.dependencies]
+Sphinx = ">=4.4,<8.0"
+furo = ">=2022.2.23,<2024.0.0"
+sphinx-autobuild = "^2021.3.14"
+nbsphinx = ">=0.8.9,<0.10.0"
+ipython = "^8.4.0"
+notebook = ">=6.4.12,<8.0.0"
+myst-parser = ">=0.18.1,<2.1.0"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
