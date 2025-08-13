@@ -28,17 +28,26 @@ jobs:
         python-version: '3.10'
 
     - run: |
+        cd quri-vm
         poetry env use 3.10
         poetry install
 
-    - run: poetry run isort . --check --diff
+    - run: |
+        cd quri-vm
+        poetry run isort . --check --diff
       if: success() || failure()
 
-    - run: poetry run black . --check
+    - run: |
+        cd quri-vm
+        poetry run black . --check
       if: success() || failure()
 
-    - run: poetry run flake8 .
+    - run: |
+        cd quri-vm
+        poetry run flake8 .
       if: success() || failure()
 
-    - run: poetry run mypy .
+    - run: |
+        cd quri-vm
+        poetry run mypy .
       if: success() || failure()
