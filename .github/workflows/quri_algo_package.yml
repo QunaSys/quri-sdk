@@ -30,6 +30,7 @@ jobs:
         poetry self add "poetry-dynamic-versioning[plugin]"
 
     - run: |
+        cd quri-algo
         poetry env use python3.11
         poetry build
 

@@ -29,14 +29,22 @@ jobs:
         poetry env use python3.11
         poetry install --only lint
 
-    - run: poetry run isort quri_algo --check --diff
+    - run: |
+        cd quri-algo
+        poetry run isort quri_algo --check --diff
       if: success() || failure()
 
-    - run: poetry run black quri_algo --check
+    - run: |
+        cd quri-algo
+        poetry run black quri_algo --check
       if: success() || failure()
 
-    - run: poetry run flake8 quri_algo --show-source
+    - run: |
+        cd quri-algo
+        poetry run flake8 quri_algo --show-source
       if: success() || failure()
 
-    - run: poetry run docformatter -c -r quri_algo
+    - run: |
+        cd quri-algo
+        poetry run docformatter -c -r quri_algo
       if: success() || failure()

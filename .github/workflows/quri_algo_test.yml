@@ -28,4 +28,6 @@ jobs:
         poetry env use python3.11
         poetry install
 
-    - run: poetry run pytest tests/
+    - run: |
+        cd quri-algo/
+        poetry run pytest tests/
