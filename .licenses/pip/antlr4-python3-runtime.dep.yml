@@ -1,6 +1,6 @@
 ---
 name: antlr4-python3-runtime
-version: 4.9.2
+version: 4.13.2
 type: pip
 summary: ANTLR 4.9.2 runtime for Python 3.7
 homepage: http://www.antlr.org
