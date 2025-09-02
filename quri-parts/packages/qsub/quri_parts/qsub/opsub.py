@@ -38,7 +38,8 @@ class NonUnitarySubDef(OpSubDef, NonUnitaryDef):
 
 
 def opsub(
-    opsub_def: type[OpSubDef], repository: SubRepository | None = default_repository()
+    opsub_def: type[OpSubDef],
+    repository: SubRepository | None = default_repository(),
 ) -> tuple[Op, Sub]:
     _op = op(opsub_def)
     _sub = sub(opsub_def)

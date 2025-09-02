@@ -41,7 +41,7 @@ quri_parts_codegen = CodeGenerator(
         std.MCSqrtYdag,
         std.MCT,
         std.MCTdag,
-        std.MCU1,
+        std.MCPhase,
         std.MCX,
         std.MCY,
         std.MCZ,
@@ -122,7 +122,7 @@ mc_param_op_gate_mapping: Dict[
     std.MCRX.base_id: gates.MCRX,
     std.MCRY.base_id: gates.MCRY,
     std.MCRZ.base_id: gates.MCRZ,
-    std.MCU1.base_id: gates.MCU1,
+    std.MCPhase.base_id: gates.MCU1,
 }
 
 mc_primitive_op_gate_mapping: Mapping[

@@ -33,277 +33,101 @@ from .t import T, Tdag
 from .toffoli import Toffoli
 
 
-# Multi-controlled gates with variable control bits
-class _MCX(ParamUnitaryDef[int]):
+class _MCBase(ParamUnitaryDef[int]):
     ns = NS
+
+    def qubit_count_fn(self, control_bits: int) -> int:
+        return control_bits + 1
+
+    def reg_count_fn(self, control_bits: int) -> int:
+        return 0
+
+    def validate_params(self, control_bits: int) -> None:
+        if not control_bits >= 1:
+            raise ParameterValidationError(
+                f"control_bits should be a positive integer but {control_bits}"
+            )
+
+
+class _MCRotationBase(ParamUnitaryDef[int, float]):
+    ns = NS
+
+    def qubit_count_fn(self, control_bits: int, angle: float) -> int:
+        return control_bits + 1
+
+    def reg_count_fn(self, control_bits: int, angle: float) -> int:
+        return 0
+
+    def validate_params(self, control_bits: int, angle: float) -> None:
+        if not control_bits >= 1:
+            raise ParameterValidationError(
+                f"control_bits should be a positive integer but {control_bits}"
+            )
+
+
+# Multi-controlled gates with variable control bits
+class _MCX(_MCBase):
     name = "MCX"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCY(ParamUnitaryDef[int]):
-    ns = NS
+class _MCY(_MCBase):
     name = "MCY"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCZ(ParamUnitaryDef[int]):
-    ns = NS
+class _MCZ(_MCBase):
     name = "MCZ"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCS(ParamUnitaryDef[int]):
-    ns = NS
+class _MCS(_MCBase):
     name = "MCS"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCSdag(ParamUnitaryDef[int]):
-    ns = NS
+class _MCSdag(_MCBase):
     name = "MCSdag"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCT(ParamUnitaryDef[int]):
-    ns = NS
+class _MCT(_MCBase):
     name = "MCT"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCTdag(ParamUnitaryDef[int]):
-    ns = NS
+class _MCTdag(_MCBase):
     name = "MCTdag"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCSqrtX(ParamUnitaryDef[int]):
-    ns = NS
+class _MCSqrtX(_MCBase):
     name = "MCSqrtX"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCSqrtXdag(ParamUnitaryDef[int]):
-    ns = NS
+class _MCSqrtXdag(_MCBase):
     name = "MCSqrtXdag"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCSqrtY(ParamUnitaryDef[int]):
-    ns = NS
+class _MCSqrtY(_MCBase):
     name = "MCSqrtY"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCSqrtYdag(ParamUnitaryDef[int]):
-    ns = NS
+class _MCSqrtYdag(_MCBase):
     name = "MCSqrtYdag"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCH(ParamUnitaryDef[int]):
-    ns = NS
+class _MCH(_MCBase):
     name = "MCH"
 
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCRZ(ParamUnitaryDef[int, float]):
-    ns = NS
+class _MCRZ(_MCRotationBase):
     name = "MCRZ"
 
-    def qubit_count_fn(self, control_bits: int, angle: float) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int, angle: float) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int, angle: float) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCRX(ParamUnitaryDef[int, float]):
-    ns = NS
+class _MCRX(_MCRotationBase):
     name = "MCRX"
 
-    def qubit_count_fn(self, control_bits: int, angle: float) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int, angle: float) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int, angle: float) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCRY(ParamUnitaryDef[int, float]):
-    ns = NS
+class _MCRY(_MCRotationBase):
     name = "MCRY"
 
-    def qubit_count_fn(self, control_bits: int, angle: float) -> int:
-        return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int, angle: float) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int, angle: float) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-
-
-class _MCU1(ParamUnitaryDef[int, float]):
-    ns = NS
-    name = "MCU1"
-
-    def qubit_count_fn(self, control_bits: int, angle: float) -> int:
-        return control_bits + 1
-
-    def reg_count_fn(self, control_bits: int, angle: float) -> int:
-        return 0
-
-    def validate_params(self, control_bits: int, angle: float) -> None:
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
+class _MCPhase(_MCRotationBase):
+    name = "MCPhase"
 
 
 MCX: OpFactory[int] = param_op(_MCX)
@@ -321,7 +145,7 @@ MCH: OpFactory[int] = param_op(_MCH)
 MCRZ: OpFactory[int, float] = param_op(_MCRZ)
 MCRX: OpFactory[int, float] = param_op(_MCRX)
 MCRY: OpFactory[int, float] = param_op(_MCRY)
-MCU1: OpFactory[int, float] = param_op(_MCU1)
+MCPhase: OpFactory[int, float] = param_op(_MCPhase)
 
 
 # Sub resolver definitions
@@ -344,7 +168,7 @@ mc_gate_mapping_param: Dict[Tuple[NameSpace, str], OpFactory[[int, float]]] = {
     RX.base_id: MCRX,
     RY.base_id: MCRY,
     RZ.base_id: MCRZ,
-    Phase.base_id: MCU1,
+    Phase.base_id: MCPhase,
 }
 
 
@@ -371,7 +195,8 @@ def MultiControlled2MCSub(op: Op, control_bits: int, control_value: int) -> Sub 
         for i in neg_qubits:
             builder.add_op(X, (qubits[i],))
 
-    # Check if target_op is in mc_gate_mapping and use appropriate multi-controlled gate
+    # Check if target_op is in mc_gate_mapping and use appropriate
+    # multi-controlled gate
     if (
         target_op.base_id in mc_gate_mapping
         or target_op.base_id in mc_gate_mapping_param
@@ -456,7 +281,9 @@ def multicontrolled_sub_resolver(op: Op, repository: SubRepository) -> Sub | Non
     This resolver expands MultiControlled, expanding the given op at first.
 
     > new_repo = default_repository().copy()
-    > new_repo.register_sub_resolver(MultiControlled, multicontrolled_sub_resolver)
+    > new_repo.register_sub_resolver(
+    >     MultiControlled, multicontrolled_sub_resolver
+    > )
     """
     target_op, control_bits, control_value = op.id.params
     assert isinstance(target_op, Op)
@@ -499,7 +326,9 @@ def multicontrolled_sub_resolver(op: Op, repository: SubRepository) -> Sub | Non
             if o.base_id == CNOT.base_id:
                 builder.add_op(
                     MultiControlled(
-                        X, len(control_q) + 1, (1 << (len(control_q) + 1)) - 1
+                        X,
+                        len(control_q) + 1,
+                        (1 << (len(control_q) + 1)) - 1,
                     ),
                     (*control_q, *(qubit_map[q] for q in qs)),
                     tuple(reg_map[r] for r in rs),
@@ -507,7 +336,9 @@ def multicontrolled_sub_resolver(op: Op, repository: SubRepository) -> Sub | Non
             elif o.base_id == Toffoli.base_id:
                 builder.add_op(
                     MultiControlled(
-                        X, len(control_q) + 2, (1 << (len(control_q) + 2)) - 1
+                        X,
+                        len(control_q) + 2,
+                        (1 << (len(control_q) + 2)) - 1,
                     ),
                     (*control_q, *(qubit_map[q] for q in qs)),
                     tuple(reg_map[r] for r in rs),
@@ -539,7 +370,9 @@ def multicontrolled_sub_resolver(op: Op, repository: SubRepository) -> Sub | Non
         elif control_bits > 1:
             builder.add_op(
                 MultiControlled(
-                    Phase(phase), control_bits - 1, (1 << (control_bits - 1)) - 1
+                    Phase(phase),
+                    control_bits - 1,
+                    (1 << (control_bits - 1)) - 1,
                 ),
                 qubits=control_q,
             )
@@ -849,23 +682,6 @@ def mcry_resolver(op: Op, repository: SubRepository) -> Sub:
         return MultiControlledSub(RY(angle), control_bits)
 
 
-def mcu1_resolver(op: Op, repository: SubRepository) -> Sub:
-    from .control import Controlled
-    from .multi_control import MultiControlledSub
-
-    control_bits, angle = op.id.params
-    assert isinstance(control_bits, int)
-    assert isinstance(angle, float)
-
-    if control_bits == 1:
-        builder = SubBuilder(op.qubit_count, op.reg_count)
-        builder.add_op(Controlled(Phase(angle)), builder.qubits)
-        return builder.build()
-    else:
-        # General multi-controlled Phase using recursive decomposition
-        return MultiControlledSub(Phase(angle), control_bits)
-
-
 # Register sub resolvers
 _repo = default_repository()
 
@@ -892,4 +708,4 @@ _repo.register_sub_resolver(MCH, mch_resolver)
 _repo.register_sub_resolver(MCRZ, mcrz_resolver)
 _repo.register_sub_resolver(MCRX, mcrx_resolver)
 _repo.register_sub_resolver(MCRY, mcry_resolver)
-_repo.register_sub_resolver(MCU1, mcu1_resolver)
+_repo.register_sub_resolver(MCPhase, mcphase_resolver)

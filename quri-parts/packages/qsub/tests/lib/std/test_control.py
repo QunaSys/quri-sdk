@@ -39,9 +39,9 @@ from quri_parts.qsub.lib.std.multi_control import (
     MultiControlledCliffordTSub,
     MultiControlledSub,
 )
-from quri_parts.qsub.opsub import OpSubDef, opsub
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
+from quri_parts.qsub.opsub import OpSubDef, opsub
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
@@ -705,6 +705,7 @@ def test_inverse_optimized_controlled() -> None:
         (Inverse(Controlled(H)), (qs[0], qs[1]), ()),
     )
     assert tuple(ctrl_inv_sub.operations) == expected_resolved_sub
+
 
 def _clifford_t_and(
     q0: Qubit, q1: Qubit, a: Qubit

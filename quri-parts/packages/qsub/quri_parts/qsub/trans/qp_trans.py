@@ -77,7 +77,11 @@ def convert_from_qp(circuit: NonParametricQuantumCircuit) -> Operations:
         if gate.name in _op_gate_map_qp:
             qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
             ops.append(
-                (_op_gate_map_qp[gate.name], tuple(Qubit(i) for i in qubits), ())
+                (
+                    _op_gate_map_qp[gate.name],
+                    tuple(Qubit(i) for i in qubits),
+                    (),
+                )
             )
         elif gate.name in _param_op_gate_map_qp:
             op = _param_op_gate_map_qp[gate.name](gate.params[0])

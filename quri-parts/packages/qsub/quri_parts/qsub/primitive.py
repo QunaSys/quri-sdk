@@ -17,7 +17,6 @@ from quri_parts.qsub.lib.std import (
     MCRZ,
     MCS,
     MCT,
-    MCU1,
     MCX,
     MCY,
     MCZ,
@@ -27,6 +26,7 @@ from quri_parts.qsub.lib.std import (
     SWAP,
     H,
     Identity,
+    MCPhase,
     MCSdag,
     MCSqrtX,
     MCSqrtXdag,
@@ -48,7 +48,19 @@ from quri_parts.qsub.lib.std import (
     Z,
 )
 
-SingleQubitClifford = (Identity, H, X, Y, Z, SqrtX, SqrtXdag, SqrtY, SqrtYdag, S, Sdag)
+SingleQubitClifford = (
+    Identity,
+    H,
+    X,
+    Y,
+    Z,
+    SqrtX,
+    SqrtXdag,
+    SqrtY,
+    SqrtYdag,
+    S,
+    Sdag,
+)
 TwoQubitClifford = (CNOT, CZ, SWAP)
 Clifford = SingleQubitClifford + TwoQubitClifford
 Rotation = (RX, RY, RZ, Phase)
@@ -75,5 +87,5 @@ SimulatorBasicSet = AllBasicSet + (
     MCRZ,
     MCRX,
     MCRY,
-    MCU1,
+    MCPhase,
 )

@@ -43,7 +43,11 @@ def link(sub: MachineSub, calltable: CallTable) -> MachineSub:
         else:
             instrs.append((mop, qubits, regs))
     return MachineSub(
-        sub.qubits, sub.registers, sub.aux_qubits, sub.aux_registers, tuple(instrs)
+        sub.qubits,
+        sub.registers,
+        sub.aux_qubits,
+        sub.aux_registers,
+        tuple(instrs),
     )
 
 

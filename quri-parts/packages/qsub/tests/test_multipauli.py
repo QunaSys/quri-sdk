@@ -45,7 +45,8 @@ class TestMultiPauliOpSub:
 
         circ = Evaluator(QURIPartsEvaluatorHooks()).run(
             compile_sub(
-                sub, primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT)
+                sub,
+                primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT),
             )
         )
         assert list(circ.gates) == [
@@ -70,7 +71,8 @@ class TestMultiPauliOpSub:
 
         circ = Evaluator(QURIPartsEvaluatorHooks()).run(
             compile_sub(
-                sub, primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT)
+                sub,
+                primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT),
             )
         )
         assert list(circ.gates) == [

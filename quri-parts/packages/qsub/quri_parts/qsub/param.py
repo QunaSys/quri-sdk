@@ -21,8 +21,10 @@ T = TypeVar("T", np.int64, np.float64, np.complex128)
 class ArrayRef(Generic[T]):
     """An object that holds a reference to an array.
 
-    It is provided to avoid unnecessary copying when large numerical arrays are used
-    as the Param of Op. Equivalence between ArrayRef instances is determined by the
+    It is provided to avoid unnecessary copying when large numerical arrays
+    are used
+    as the Param of Op. Equivalence between ArrayRef instances is determined
+    by the
     instance ids of the internal arrays.
 
     Examples:

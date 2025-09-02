@@ -30,5 +30,9 @@ class CodeGenerator:
             else:
                 instrs.append((SubCall(op), qubits, regs))
         return MachineSub(
-            sub.qubits, sub.registers, sub.aux_qubits, sub.aux_registers, instrs
+            sub.qubits,
+            sub.registers,
+            sub.aux_qubits,
+            sub.aux_registers,
+            instrs,
         )

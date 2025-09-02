@@ -64,7 +64,8 @@ class TestSubRepository:
         assert repository.find_resolver(cy) == cy_resolver
         assert repository.find_resolver(mc21y) == mcy_resolver
 
-        # Resolve with Controlled<MultiControlled<>>, MultiControlled<Controlled<>>
+        # Resolve with Controlled<MultiControlled<>>,
+        # MultiControlled<Controlled<>>
         def cmc_resolver_cond(op_id: Ident) -> bool:
             assert op_id.base == cont.base_id
             target_op_id = op_id.params[0]
@@ -154,7 +155,8 @@ class TestCollectSubs:
 
         repository.register_sub(indexed_op1, indexed_op1_sub)
 
-        # indexed_op2 uses indexed_op(index/2) if index is even, X if index is odd
+        # indexed_op2 uses indexed_op(index/2) if index is even,
+        # X if index is odd
         def indexed_op2_sub(index: int) -> Sub:
             builder = SubBuilder(1)
             (q,) = builder.qubits

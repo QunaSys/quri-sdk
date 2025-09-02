@@ -74,7 +74,10 @@ class Evaluator(Generic[T]):
         return self.hooks.result()
 
     def _call_sub(
-        self, sub: MachineSub, qubits: Sequence[Qubit], regs: Sequence[Register]
+        self,
+        sub: MachineSub,
+        qubits: Sequence[Qubit],
+        regs: Sequence[Register],
     ) -> None:
         sub_id = sub.sub_id
         if sub_id in self._call_stack:

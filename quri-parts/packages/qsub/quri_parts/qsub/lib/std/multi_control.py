@@ -68,8 +68,6 @@ def _multi_controlled_sub(
     control_value: Optional[int],
     s_and: Callable[[SubBuilder, Qubit, Qubit], AbstractContextManager[Qubit]],
 ) -> Sub:
-    from .control import Controlled
-
     builder = SubBuilder(op.qubit_count + control_bits)
     qubits = builder.qubits
 
@@ -78,7 +76,8 @@ def _multi_controlled_sub(
 
     if not control_bits >= 1:
         raise ValueError(
-            f"control_bits should be a positive integer but specified: {control_bits}"
+            f"control_bits should be a positive integer but specified: "
+            f"{control_bits}"
         )
 
     neg_qubits = [i for i in range(control_bits) if ((control_value >> i) & 1) == 0]

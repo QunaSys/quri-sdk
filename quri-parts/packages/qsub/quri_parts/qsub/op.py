@@ -15,7 +15,8 @@ from .namespace import DEFAULT, NameSpace
 from .param import ArrayRef
 
 BaseIdent: TypeAlias = tuple[NameSpace, str]
-# Param should contain str but adding it makes mypy fail with segmentation fault
+# Param should contain str but adding it makes mypy fail with segmentation
+# fault
 Param: TypeAlias = "int | float | Ident | Op | ArrayRef[Any] | tuple[Param, ...]"
 Params = ParamSpec("Params")
 
@@ -74,7 +75,9 @@ class Op:
         return self.id.base
 
     def __str__(self) -> str:
-        return f"{str(self.id)}(qubits={self.qubit_count}, registers={self.reg_count})"
+        return (
+            f"{str(self.id)}(qubits={self.qubit_count}, " f"registers={self.reg_count})"
+        )
 
 
 class OpFactory(Protocol[Params]):
