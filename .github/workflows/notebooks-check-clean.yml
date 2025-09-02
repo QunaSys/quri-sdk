@@ -1,0 +1,25 @@
+name: Check notebook diff
+
+on:
+  pull_request:
+    paths:
+      - 'notebooks/quri_sdk_notebooks/**.ipynb'
+
+defaults:
+  run:
+    working-directory: notebooks
+
+jobs:
+  check-clean:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - uses: ./.github/actions/notebooks/setup
+
+    - run: |
+        make -s clean-nb
+        
+    - run: |
+        git diff --exit-code

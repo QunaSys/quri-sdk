@@ -1,0 +1,40 @@
+name: Check all notebooks
+
+on:
+  pull_request:
+    paths:
+      - notebooks/poetry.lock
+      - notebooks/pyproject.toml
+
+defaults:
+  run:
+    working-directory: notebooks
+
+jobs:
+  execute-all:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/notebooks/setup
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - run: |
+        poetry install
+
+    - run: |
+        for f in $(find quri_sdk_notebooks -mindepth 1 -type f -name *.ipynb)
+        do
+          if grep -Fxq $f .exclude
+          then
+            echo "Skipping execution of $f"
+          else
+            echo "Executing $f"
+            poetry run jupyter execute --inplace --JupyterApp.log_level=50 $f
+          fi
+        done
+    

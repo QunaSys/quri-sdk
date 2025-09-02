@@ -1,0 +1,43 @@
+name: Check modified notebooks
+
+on:
+  pull_request:
+    paths:
+      - 'notebooks/quri_sdk_notebooks/**.ipynb'
+
+defaults:
+  run:
+    working-directory: notebooks
+    
+
+jobs:
+  execute:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/notebooks/setup
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - run: |
+        git fetch
+
+    - run: |
+        poetry install
+
+    - run: |
+        for f in $(git diff --name-only origin/main quri_sdk_notebooks/ | grep .ipynb)
+        do
+          if grep -Fxq "${f#notebooks/}" .exclude
+          then
+            echo "Skipping execution of ${f#notebooks/}"
+          else
+            echo "Executing ${f#notebooks/}"
+            poetry run jupyter execute --inplace --JupyterApp.log_level=50 "${f#notebooks/}"
+          fi
+        done
+        

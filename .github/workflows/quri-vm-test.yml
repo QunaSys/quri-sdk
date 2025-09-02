@@ -1,0 +1,32 @@
+name: QURI VM Test
+
+on:
+  pull_request:
+    paths:
+      - 'quri-vm/**.py'
+      - quri-vm/poetry.lock
+      - .github/workflows/quri-vm-test.yml
+  push:
+    branches: [main]
+
+defaults:
+  run:
+    working-directory: quri-vm
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: ./.github/actions/quri-vm/setup
+      with:
+        poetry-version: '1.4.0'
+        python-version: '3.10'
+
+    - run: |
+        poetry env use 3.10
+        poetry install
+
+    - run: poetry run pytest
