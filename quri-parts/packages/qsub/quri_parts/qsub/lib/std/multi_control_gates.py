@@ -9,24 +9,27 @@
 # limitations under the License.
 
 import math
-from typing import Dict, Tuple
+from contextlib import AbstractContextManager
+from typing import Callable
 
-from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import (
+    BaseIdent,
     Op,
     OpFactory,
     ParameterValidationError,
     ParamUnitaryDef,
     param_op,
 )
-from quri_parts.qsub.resolve import SubRepository, default_repository
+from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.resolve import SubRepository, SubResolver, default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 from . import NS
 from .cnot import CNOT
 from .control import Controlled
 from .cz import CZ
-from .multi_control import MultiControlled, MultiControlledSub
+from .logic import scoped_and
+from .multi_control import MultiControlled, _multi_controlled_sub
 from .rotation import RX, RY, RZ, Phase
 from .single_clifford import H, S, Sdag, SqrtX, SqrtXdag, SqrtY, SqrtYdag, X, Y, Z
 from .t import T, Tdag
@@ -39,7 +42,7 @@ class _MCBase(ParamUnitaryDef[int]):
     def qubit_count_fn(self, control_bits: int) -> int:
         return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int) -> int:
+    def reg_count_fn(self, _control_bits: int) -> int:
         return 0
 
     def validate_params(self, control_bits: int) -> None:
@@ -52,13 +55,13 @@ class _MCBase(ParamUnitaryDef[int]):
 class _MCRotationBase(ParamUnitaryDef[int, float]):
     ns = NS
 
-    def qubit_count_fn(self, control_bits: int, angle: float) -> int:
+    def qubit_count_fn(self, control_bits: int, _angle: float) -> int:
         return control_bits + 1
 
-    def reg_count_fn(self, control_bits: int, angle: float) -> int:
+    def reg_count_fn(self, _control_bits: int, _angle: float) -> int:
         return 0
 
-    def validate_params(self, control_bits: int, angle: float) -> None:
+    def validate_params(self, control_bits: int, _: float) -> None:
         if not control_bits >= 1:
             raise ParameterValidationError(
                 f"control_bits should be a positive integer but {control_bits}"
@@ -149,7 +152,7 @@ MCPhase: OpFactory[int, float] = param_op(_MCPhase)
 
 
 # Sub resolver definitions
-mc_gate_mapping: Dict[Tuple[NameSpace, str], OpFactory[[int]]] = {
+mc_gate_mapping: dict[BaseIdent, OpFactory[[int]]] = {
     X.base_id: MCX,
     Y.base_id: MCY,
     Z.base_id: MCZ,
@@ -164,7 +167,7 @@ mc_gate_mapping: Dict[Tuple[NameSpace, str], OpFactory[[int]]] = {
     SqrtYdag.base_id: MCSqrtYdag,
 }
 
-mc_gate_mapping_param: Dict[Tuple[NameSpace, str], OpFactory[[int, float]]] = {
+mc_gate_mapping_param: dict[BaseIdent, OpFactory[[int, float]]] = {
     RX.base_id: MCRX,
     RY.base_id: MCRY,
     RZ.base_id: MCRZ,
@@ -172,20 +175,23 @@ mc_gate_mapping_param: Dict[Tuple[NameSpace, str], OpFactory[[int, float]]] = {
 }
 
 
-def MultiControlled2MCSub(op: Op, control_bits: int, control_value: int) -> Sub | None:
+def MultiControlledNamedMCGatesSub(
+    target_op: Op, control_bits: int, control_value: int
+) -> Sub | None:
     """
-    This sub expands MultiControlled op, with obvious reolacement table.
-    It will not work when it holds unknown Op.
+    This sub expands MultiControlled operations using named multi-controlled gates.
+    It maps known target operations to their corresponding named MC gate variants
+    (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, it returns
+    None, allowing the system to fall back to the standard MultiControlledSub resolver.
+
+    From the end-user perspective, all MultiControlled operations work - known
+    operations use optimized named gates, while unknown operations use the standard
+    decomposition.
 
     > new_repo = default_repository().copy()
-    > new_repo.register_sub(MultiControlled, MultiControlledSub)
+    > new_repo.register_sub(MultiControlled, MultiControlledNamedMCGatesSub)
     """
-    target_op, control_bits, control_value = op.id.params  # type: ignore
-    assert isinstance(target_op, Op)
-    assert isinstance(control_bits, int)
-    assert isinstance(control_value, int)
-
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(target_op.qubit_count, target_op.reg_count)
     qubits = builder.qubits
 
     # Handle negation using add_neg pattern
@@ -217,34 +223,26 @@ def MultiControlled2MCSub(op: Op, control_bits: int, control_value: int) -> Sub 
             builder.add_op(mc_gate_factory2(control_bits), qubits)
 
         add_neg()
-        return builder.build()
     elif target_op.base_id == Toffoli.base_id:
-        add_neg()
         builder.add_op(
-            MultiControlled(X, control_bits + 2, (1 << (control_bits + 2)) - 1),
+            MultiControlled(X, control_bits + 2, control_value << 2 + 2 + 1),
             qubits,
         )
-        add_neg()
-        return builder.build()
     elif target_op.base_id == CNOT.base_id:
-        add_neg()
         if control_bits == 1:
+            add_neg()
             builder.add_op(Toffoli, qubits)
+            add_neg()
         else:
             builder.add_op(
-                MultiControlled(X, control_bits + 1, (1 << (control_bits + 1)) - 1),
+                MultiControlled(X, control_bits + 1, control_value << 1 + 1),
                 qubits,
             )
-        add_neg()
-        return builder.build()
     elif target_op.base_id == CZ.base_id:
-        add_neg()
         builder.add_op(
-            MultiControlled(Z, control_bits + 1, (1 << (control_bits + 1)) - 1),
+            MultiControlled(Z, control_bits + 1, control_value << 1 + 1),
             qubits,
         )
-        add_neg()
-        return builder.build()
     elif target_op.base_id == MultiControlled.base_id:
         mc_target_op, mc_control_bits, mc_control_value = target_op.id.params
         assert isinstance(mc_target_op, Op)
@@ -258,7 +256,6 @@ def MultiControlled2MCSub(op: Op, control_bits: int, control_value: int) -> Sub 
             ),
             qubits,
         )
-        return builder.build()
     elif target_op.base_id == Controlled.base_id:
         assert len(target_op.id.params) == 1
         c_op = target_op.id.params[0]
@@ -267,120 +264,121 @@ def MultiControlled2MCSub(op: Op, control_bits: int, control_value: int) -> Sub 
             MultiControlled(
                 c_op,
                 control_bits + 1,
-                control_value * 2 + 1,
+                control_value << 1 + 1,
             ),
             qubits,
         )
-        return builder.build()
     else:
         return None
+    return builder.build()
 
 
-def multicontrolled_sub_resolver(op: Op, repository: SubRepository) -> Sub | None:
+def generate_multicontrolled_sub_resolver(
+    s_and: Callable[
+        [SubBuilder, Qubit, Qubit], AbstractContextManager[Qubit]
+    ] = scoped_and  # type: ignore
+) -> SubResolver:
     """
-    This resolver expands MultiControlled, expanding the given op at first.
+    This resolver expands MultiControlled to named MC ops if possible.
+    It is useful when you expect named MC gates as final primitives, especially
+    converting the circuit to SimulatorBasicSet. In other cases, it will emit
+    redundant Toffoli (or s_and) chain along the compile process.
+
+    The algorithm is:
+
+    1. Evaluate MultiControlledNamedMCGatesSub to try to convert the MultiControlled
+       to an named MC gate.
+    2. If it fails, then try to resolve the target op. If succeed, wrap each Ops in the
+       sub with MultiControlled.
+    3. If it fails, it try to decompose the MultiControlled with Toffoli or s_and.
+       (default)
+
+    Along the expansion, it adds MultiControlled Phase gate according to the global
+    phase of `Op`.
 
     > new_repo = default_repository().copy()
     > new_repo.register_sub_resolver(
-    >     MultiControlled, multicontrolled_sub_resolver
+    >     MultiControlled, generate_multicontrolled_sub_resolver()
     > )
     """
-    target_op, control_bits, control_value = op.id.params
-    assert isinstance(target_op, Op)
-    assert isinstance(control_bits, int)
-    assert isinstance(control_value, int)
 
-    builder = SubBuilder(op.qubit_count, op.reg_count)
-    qubits = builder.qubits
+    def resolver(op: Op, repository: SubRepository) -> Sub | None:
+        target_op, control_bits, control_value = op.id.params
+        assert isinstance(target_op, Op)
+        assert isinstance(control_bits, int)
+        assert isinstance(control_value, int)
 
-    # Handle negation using add_neg pattern
-    neg_qubits = [i for i in range(control_bits) if ((control_value >> i) & 1) == 0]
+        named_sub = MultiControlledNamedMCGatesSub(
+            target_op, control_bits, control_value
+        )
+        if named_sub is not None:
+            return named_sub
 
-    def add_neg() -> None:
-        for i in neg_qubits:
-            builder.add_op(X, (qubits[i],))
+        target_sub_resolver = repository.find_resolver(target_op)
+        target_sub = None
+        if target_sub_resolver is not None:
+            target_sub = target_sub_resolver(target_op, repository)
 
-    target_sub_resolver = repository.find_resolver(target_op)
-    if not target_sub_resolver:
-        return MultiControlledSub(target_op, control_bits, control_value)
-    target_sub = target_sub_resolver(target_op, repository)
-    if not target_sub:
-        return MultiControlledSub(target_op, control_bits, control_value)
+        if target_sub is None:
+            return _multi_controlled_sub(target_op, control_bits, control_value, s_and)
 
-    control_q = builder.qubits[:control_bits]
-    target_q = builder.qubits[control_bits:]
+        builder = SubBuilder(control_bits + op.qubit_count, op.reg_count)
+        control_q = builder.qubits[:control_bits]
+        target_q = builder.qubits[control_bits:]
 
-    target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
-    qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
-        zip(target_sub.aux_qubits, target_aq)
-    )
+        target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
+        qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
+            zip(target_sub.aux_qubits, target_aq)
+        )
 
-    target_ar = tuple(builder.add_aux_register() for _ in target_sub.aux_registers)
-    reg_map = dict(zip(target_sub.registers, builder.registers)) | dict(
-        zip(target_sub.aux_registers, target_ar)
-    )
+        target_ar = tuple(builder.add_aux_register() for _ in target_sub.aux_registers)
+        reg_map = dict(zip(target_sub.registers, builder.registers)) | dict(
+            zip(target_sub.aux_registers, target_ar)
+        )
 
-    add_neg()
-    for o, qs, rs in target_sub.operations:
-        if o.unitary:
-            if o.base_id == CNOT.base_id:
+        for o, qs, rs in target_sub.operations:
+            if not o.unitary:
+                raise ValueError(f"Unsupported operation, {o} in multi-controlled sub")
+
+            builder.add_op(
+                MultiControlled(o, control_bits, control_value),
+                (*control_q, *(qubit_map[q] for q in qs)),
+                tuple(reg_map[r] for r in rs),
+            )
+
+        phase = target_sub.phase % (2 * math.pi)
+        eps = 1e-13
+        if phase > eps:
+            if (control_value & (1 << (control_bits - 1))) == 0:
+                # use diag(e^i(phase), 1)  instead of diag(1, e^(phase))
+                phase = (-phase) % (2 * math.pi)
+                builder.add_phase(phase)
+            if abs(phase - math.pi) < eps:
+                phase_op = Z
+            elif abs(phase - math.pi / 2) < eps:
+                phase_op = S
+            elif abs(phase - 3 * math.pi / 2) < eps:
+                phase_op = Sdag
+            else:
+                phase_op = Phase(phase)
+
+            if control_bits == 1:
+                builder.add_op(phase_op, qubits=control_q)
+            elif control_bits > 1:
                 builder.add_op(
                     MultiControlled(
-                        X,
-                        len(control_q) + 1,
-                        (1 << (len(control_q) + 1)) - 1,
+                        phase_op,
+                        control_bits - 1,
+                        control_value & ((1 << control_bits) - 1),
                     ),
-                    (*control_q, *(qubit_map[q] for q in qs)),
-                    tuple(reg_map[r] for r in rs),
-                )
-            elif o.base_id == Toffoli.base_id:
-                builder.add_op(
-                    MultiControlled(
-                        X,
-                        len(control_q) + 2,
-                        (1 << (len(control_q) + 2)) - 1,
-                    ),
-                    (*control_q, *(qubit_map[q] for q in qs)),
-                    tuple(reg_map[r] for r in rs),
-                )
-            elif o.base_id == MultiControlled.base_id:
-                c_len, c_val = o.id.params[1:3]
-                assert isinstance(c_len, int)
-                assert isinstance(c_val, int)
-                total_c_bits = c_len + len(control_q)
-                control_value = (c_val << len(control_q)) + (1 << len(control_q)) - 1
-                builder.add_op(
-                    MultiControlled(o.id.params[0], total_c_bits, control_value),
-                    (*control_q, *(qubit_map[q] for q in qs)),
-                    tuple(reg_map[r] for r in rs),
+                    qubits=control_q,
                 )
             else:
-                builder.add_op(
-                    MultiControlled(o, control_bits, (1 << control_bits) - 1),
-                    (*control_q, *(qubit_map[q] for q in qs)),
-                    tuple(reg_map[r] for r in rs),
-                )
-        else:
-            raise ValueError(f"Unsupported operation, {o} in multi-controlled sub")
+                raise ValueError("unreachable")
 
-    phase = target_sub.phase % (2 * math.pi)
-    if phase > 1e-13:
-        if control_bits == 1:
-            builder.add_op(Phase(phase), qubits=control_q)
-        elif control_bits > 1:
-            builder.add_op(
-                MultiControlled(
-                    Phase(phase),
-                    control_bits - 1,
-                    (1 << (control_bits - 1)) - 1,
-                ),
-                qubits=control_q,
-            )
-        else:
-            raise ValueError("unreachable")
+        return builder.build()
 
-    add_neg()
-    return builder.build()
+    return resolver
 
 
 # MCX, MCY, MCZ resolvers using recursive decomposition
@@ -684,8 +682,6 @@ def mcry_resolver(op: Op, repository: SubRepository) -> Sub:
 
 # Register sub resolvers
 _repo = default_repository()
-
-_repo.register_sub_resolver(MultiControlled, multicontrolled_sub_resolver)
 
 # Register MCX, MCY, MCZ resolvers
 _repo.register_sub_resolver(MCX, mcx_resolver)
