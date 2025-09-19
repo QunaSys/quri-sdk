@@ -133,26 +133,58 @@ class _MCPhase(_MCRotationBase):
     name = "MCPhase"
 
 
+#: Multi-controlled X gate. Applies X gate to target qubit when all control
+#: qubits are in |1⟩ state.
 MCX: OpFactory[int] = param_op(_MCX)
+#: Multi-controlled Y gate. Applies Y gate to target qubit when all control
+#: qubits are in |1⟩ state.
 MCY: OpFactory[int] = param_op(_MCY)
+#: Multi-controlled Z gate. Applies Z gate to target qubit when all control
+#: qubits are in |1⟩ state.
 MCZ: OpFactory[int] = param_op(_MCZ)
+#: Multi-controlled S gate. Applies S gate to target qubit when all control
+#: qubits are in |1⟩ state.
 MCS: OpFactory[int] = param_op(_MCS)
+#: Multi-controlled S† gate. Applies S† gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCSdag: OpFactory[int] = param_op(_MCSdag)
+#: Multi-controlled T gate. Applies T gate to target qubit when all control
+#: qubits are in |1⟩ state.
 MCT: OpFactory[int] = param_op(_MCT)
+#: Multi-controlled T† gate. Applies T† gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCTdag: OpFactory[int] = param_op(_MCTdag)
+#: Multi-controlled √X gate. Applies √X gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCSqrtX: OpFactory[int] = param_op(_MCSqrtX)
+#: Multi-controlled √X† gate. Applies √X† gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCSqrtXdag: OpFactory[int] = param_op(_MCSqrtXdag)
+#: Multi-controlled √Y gate. Applies √Y gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCSqrtY: OpFactory[int] = param_op(_MCSqrtY)
+#: Multi-controlled √Y† gate. Applies √Y† gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCSqrtYdag: OpFactory[int] = param_op(_MCSqrtYdag)
+#: Multi-controlled Hadamard gate. Applies H gate to target qubit when all
+#: control qubits are in |1⟩ state.
 MCH: OpFactory[int] = param_op(_MCH)
+#: Multi-controlled RZ rotation gate. Applies RZ(angle) to target qubit when
+#: all control qubits are in |1⟩ state.
 MCRZ: OpFactory[int, float] = param_op(_MCRZ)
+#: Multi-controlled RX rotation gate. Applies RX(angle) to target qubit when
+#: all control qubits are in |1⟩ state.
 MCRX: OpFactory[int, float] = param_op(_MCRX)
+#: Multi-controlled RY rotation gate. Applies RY(angle) to target qubit when
+#: all control qubits are in |1⟩ state.
 MCRY: OpFactory[int, float] = param_op(_MCRY)
+#: Multi-controlled Phase gate. Applies Phase(angle) to target qubit when
+#: all control qubits are in |1⟩ state.
 MCPhase: OpFactory[int, float] = param_op(_MCPhase)
 
 
 # Sub resolver definitions
-mc_gate_mapping: dict[BaseIdent, OpFactory[[int]]] = {
+_mc_gate_mapping: dict[BaseIdent, OpFactory[[int]]] = {
     X.base_id: MCX,
     Y.base_id: MCY,
     Z.base_id: MCZ,
@@ -167,7 +199,7 @@ mc_gate_mapping: dict[BaseIdent, OpFactory[[int]]] = {
     SqrtYdag.base_id: MCSqrtYdag,
 }
 
-mc_gate_mapping_param: dict[BaseIdent, OpFactory[[int, float]]] = {
+_mc_gate_mapping_param: dict[BaseIdent, OpFactory[[int, float]]] = {
     RX.base_id: MCRX,
     RY.base_id: MCRY,
     RZ.base_id: MCRZ,
@@ -179,17 +211,19 @@ def MultiControlledNamedMCGatesSub(
     target_op: Op, control_bits: int, control_value: int
 ) -> Sub | None:
     """
-    This sub expands MultiControlled operations using named multi-controlled gates.
-    It maps known target operations to their corresponding named MC gate variants
-    (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, it returns
-    None, allowing the system to fall back to the standard MultiControlledSub resolver.
+    Expands MultiControlled operations using named multi-controlled gates.
 
-    From the end-user perspective, all MultiControlled operations work - known
+    Maps known target operations to their corresponding named MC gate variants
+    (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, returns
+    None to allow the system to fall back to the standard MultiControlledSub resolver.
+
+    From the end-user perspective, all MultiControlled operations work: known
     operations use optimized named gates, while unknown operations use the standard
     decomposition.
 
-    > new_repo = default_repository().copy()
-    > new_repo.register_sub(MultiControlled, MultiControlledNamedMCGatesSub)
+    Example:
+        >>> new_repo = default_repository().copy()
+        >>> new_repo.register_sub(MultiControlled, MultiControlledNamedMCGatesSub)
     """
     builder = SubBuilder(target_op.qubit_count, target_op.reg_count)
     qubits = builder.qubits
@@ -204,28 +238,28 @@ def MultiControlledNamedMCGatesSub(
     # Check if target_op is in mc_gate_mapping and use appropriate
     # multi-controlled gate
     if (
-        target_op.base_id in mc_gate_mapping
-        or target_op.base_id in mc_gate_mapping_param
+        target_op.base_id in _mc_gate_mapping
+        or target_op.base_id in _mc_gate_mapping_param
     ):
         # First apply negations if needed
         add_neg()
 
         # Handle parametrized gates (Phase, RX, RY, RZ)
-        if target_op.base_id in mc_gate_mapping_param:
+        if target_op.base_id in _mc_gate_mapping_param:
             # Extract angle parameter from target_op
-            mc_gate_factory = mc_gate_mapping_param[target_op.base_id]
+            mc_gate_factory = _mc_gate_mapping_param[target_op.base_id]
             angle = target_op.id.params[0]
             assert isinstance(angle, float)
             builder.add_op(mc_gate_factory(control_bits, angle), qubits)
         else:
             # Non-parametrized gates
-            mc_gate_factory2 = mc_gate_mapping[target_op.base_id]
+            mc_gate_factory2 = _mc_gate_mapping[target_op.base_id]
             builder.add_op(mc_gate_factory2(control_bits), qubits)
 
         add_neg()
     elif target_op.base_id == Toffoli.base_id:
         builder.add_op(
-            MultiControlled(X, control_bits + 2, control_value << 2 + 2 + 1),
+            MultiControlled(X, control_bits + 2, (control_value << 2) + 2 + 1),
             qubits,
         )
     elif target_op.base_id == CNOT.base_id:
@@ -235,12 +269,12 @@ def MultiControlledNamedMCGatesSub(
             add_neg()
         else:
             builder.add_op(
-                MultiControlled(X, control_bits + 1, control_value << 1 + 1),
+                MultiControlled(X, control_bits + 1, (control_value << 1) + 1),
                 qubits,
             )
     elif target_op.base_id == CZ.base_id:
         builder.add_op(
-            MultiControlled(Z, control_bits + 1, control_value << 1 + 1),
+            MultiControlled(Z, control_bits + 1, (control_value << 1) + 1),
             qubits,
         )
     elif target_op.base_id == MultiControlled.base_id:
@@ -252,7 +286,7 @@ def MultiControlledNamedMCGatesSub(
             MultiControlled(
                 mc_target_op,
                 control_bits + mc_control_bits,
-                control_value << mc_control_bits + mc_control_value,
+                (control_value << mc_control_bits) + mc_control_value,
             ),
             qubits,
         )
@@ -264,7 +298,7 @@ def MultiControlledNamedMCGatesSub(
             MultiControlled(
                 c_op,
                 control_bits + 1,
-                control_value << 1 + 1,
+                (control_value << 1) + 1,
             ),
             qubits,
         )
@@ -279,27 +313,30 @@ def generate_multicontrolled_sub_resolver(
     ] = scoped_and  # type: ignore
 ) -> SubResolver:
     """
-    This resolver expands MultiControlled to named MC ops if possible.
-    It is useful when you expect named MC gates as final primitives, especially
-    converting the circuit to SimulatorBasicSet. In other cases, it will emit
-    redundant Toffoli (or s_and) chain along the compile process.
+    Generates a resolver that expands MultiControlled to named MC operations
+    when possible.
 
-    The algorithm is:
+    This resolver is useful when you expect named MC gates as final
+    primitives, especially
+    when converting circuits to SimulatorBasicSet. In other cases, it may emit
+    redundant Toffoli (or s_and) chains during the compilation process.
 
-    1. Evaluate MultiControlledNamedMCGatesSub to try to convert the MultiControlled
-       to an named MC gate.
-    2. If it fails, then try to resolve the target op. If succeed, wrap each Ops in the
-       sub with MultiControlled.
-    3. If it fails, it try to decompose the MultiControlled with Toffoli or s_and.
-       (default)
+    Algorithm:
+    1. Evaluate MultiControlledNamedMCGatesSub to try converting the MultiControlled
+       operation to a named MC gate.
+    2. If that fails, try to resolve the target operation. If successful, wrap each
+       operation in the sub with MultiControlled.
+    3. If that also fails, decompose the MultiControlled using Toffoli or s_and
+       (default behavior).
 
-    Along the expansion, it adds MultiControlled Phase gate according to the global
-    phase of `Op`.
+    During expansion, adds MultiControlled Phase gates according to the global
+    phase of the operation.
 
-    > new_repo = default_repository().copy()
-    > new_repo.register_sub_resolver(
-    >     MultiControlled, generate_multicontrolled_sub_resolver()
-    > )
+    Example:
+        >>> new_repo = default_repository().copy()
+        >>> new_repo.register_sub_resolver(
+        ...     MultiControlled, generate_multicontrolled_sub_resolver()
+        ... )
     """
 
     def resolver(op: Op, repository: SubRepository) -> Sub | None:

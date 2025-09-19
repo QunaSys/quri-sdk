@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import copy
 import logging
 from collections import defaultdict
 from collections.abc import Callable, Mapping
@@ -77,7 +76,8 @@ class SubRepository:
 
     def copy(self) -> "SubRepository":
         ret = SubRepository()
-        ret._mapping = copy.copy(self._mapping)
+        for k, v in self._mapping.items():
+            ret._mapping[k] = [item for item in v]
         return ret
 
 

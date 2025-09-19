@@ -28,8 +28,8 @@ share/python-wheels/
 MANIFEST
 
 # Allow lib for qsub
-!/packages/qsub/quri_parts/qsub/lib/
-!/packages/qsub/tests/lib/
+!/quri-parts/packages/qsub/quri_parts/qsub/lib/
+!/quri-parts/quri-parts/packages/qsub/tests/lib/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
