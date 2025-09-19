@@ -188,7 +188,8 @@ def test_fixed_interval_trotter() -> None:
     evolution_time = 0.43
     with pytest.raises(
         ValueError,
-        match=f"Evolution time {evolution_time} is not an integer multiple of time step {time_step}.",
+        match=f"Evolution time {evolution_time} is not an integer multiple of "
+        f"time step {time_step}.",
     ):
         circuit_factory(evolution_time)
 
@@ -238,7 +239,8 @@ def test_fixed_interval_controlled_trotter() -> None:
     evolution_time = 0.43
     with pytest.raises(
         ValueError,
-        match=f"Evolution time {evolution_time} is not an integer multiple of time step {time_step}.",
+        match=f"Evolution time {evolution_time} is not an integer multiple of "
+        f"time step {time_step}.",
     ):
         circuit_factory(evolution_time)
 

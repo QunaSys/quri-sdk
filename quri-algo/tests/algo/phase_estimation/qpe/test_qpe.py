@@ -133,7 +133,8 @@ class QPETests(TestCase):
 
         t = (
             -1 / 16
-        )  # if we expect a negative eigenvalue, we need this to prevent an int overflow in the ancilla register
+        )  # if we expect a negative eigenvalue, we need this to prevent an int
+        # overflow in the ancilla register
 
         state = GeneralCircuitQuantumState(qubit_count)
         circuit = QuantumCircuit(qubit_count)

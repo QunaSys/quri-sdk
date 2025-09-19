@@ -97,7 +97,8 @@ class Analysis(ABC):
         circuit_latency: latency of each circuit,
         circuit_execution_count: execution count of each circuit,
         circuit_fidelities: fidelity of each circuit,
-        circuit_physical_qubit_count: required number of physical qubits for each circuit.,
+        circuit_physical_qubit_count: required number of physical qubits for each
+            circuit.,
     """
 
     def __init__(

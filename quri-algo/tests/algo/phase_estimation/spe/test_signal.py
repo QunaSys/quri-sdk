@@ -111,7 +111,8 @@ class TestStepFunctionSignalGenerator(unittest.TestCase):
         ], cast(float, norm)
 
     @patch(
-        "quri_algo.algo.phase_estimation.spe.utils.fourier.step_func_coefficient.np.random"
+        "quri_algo.algo.phase_estimation.spe.utils.fourier."
+        "step_func_coefficient.np.random"
     )
     def test_step_function_signal_generator(self, mock_numpy) -> None:  # type: ignore
         rng = Mock()
@@ -195,7 +196,8 @@ class TestGaussianSignalGenerator(unittest.TestCase):
         ], cast(float, 2 * cutoff_T * norm / n_discretize)
 
     @patch(
-        "quri_algo.algo.phase_estimation.spe.utils.fourier.gaussian_coefficient.np.random"
+        "quri_algo.algo.phase_estimation.spe.utils.fourier."
+        "gaussian_coefficient.np.random"
     )
     def test_gaussian_signal_generator(self, mock_numpy) -> None:  # type: ignore
         rng = Mock()

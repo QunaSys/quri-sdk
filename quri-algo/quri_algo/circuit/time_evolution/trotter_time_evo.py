@@ -160,10 +160,14 @@ def get_trotter_controlled_time_evolution_operator(
     r"""This part uses the following formulae:
 
     .. math::
-        P_0 \otimes I + P_1 \otimes e^{i\theta P} &= e^{-i \frac{\theta}{2} Z \otimes P} e^{i \frac{\theta}{2} I \otimes P}\\
-        P_0 \otimes I + P_1 \otimes e^{i\theta P} &= \text{PauliRotation}(Z \otimes P, \theta) \text{PauliRotation}(I \otimes P, -\theta)\\
+        P_0 \otimes I + P_1 \otimes e^{i\theta P} &= e^{-i \frac{\theta}{2} Z \otimes P}
+            e^{i \frac{\theta}{2} I \otimes P}\\
+        P_0 \otimes I + P_1 \otimes e^{i\theta P} &=
+            \text{PauliRotation}(Z \otimes P, \theta)
+            \text{PauliRotation}(I \otimes P, -\theta)\\
         P_0 \otimes I + P_1 \otimes e^{-i \frac{c}{T} P}
-        &= \text{PauliRotation}(Z \otimes P, -\frac{c}{T}) \text{PauliRotation}(I \otimes P, \frac{c}{T})
+        &= \text{PauliRotation}(Z \otimes P, -\frac{c}{T})
+            \text{PauliRotation}(I \otimes P, \frac{c}{T})
     """
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_state_qubits + 1)
     t = circuit.add_parameter("t")

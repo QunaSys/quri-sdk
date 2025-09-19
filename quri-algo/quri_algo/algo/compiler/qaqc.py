@@ -91,7 +91,8 @@ class QAQC(QuantumCompiler):
         def gradient(params: Params) -> Params:
             """Parameter shift gradient function.
 
-            This calculates the gradient based on the parameter shift rule, as in (https://quri-parts.qunasys.com/docs/tutorials/advanced/parametric/gradient_estimators/#parameter-shift-gradient-estimator)
+            This calculates the gradient based on the parameter shift rule, as in
+            (https://quri-parts.qunasys.com/docs/tutorials/advanced/parametric/gradient_estimators/#parameter-shift-gradient-estimator)
             """
 
             param_mapping = ansatz.param_mapping
@@ -165,8 +166,10 @@ class QAQC(QuantumCompiler):
         """This function initiates the variational optimization.
 
         Arguments:
-        circuit_factory - Circuit factory which generates the target circuit for the compilation
-        ansatz - Parametric ansatz circuit that is used to approximate the target circuit
+        circuit_factory - Circuit factory which generates the target circuit for the
+            compilation
+        ansatz - Parametric ansatz circuit that is used to approximate the target
+            circuit
         init_params - initial variational parameters for the optimization
 
         variable arguments if any are passed to the circuit_factory's __call__ method
@@ -199,10 +202,13 @@ class QAQC(QuantumCompiler):
         quantum compilation.
 
         Arguments:
-        circuit_factory - Circuit factory which generates the target circuit for the compilation
-        ansatz - Parametric ansatz circuit that is used to approximate the target circuit
+        circuit_factory - Circuit factory which generates the target circuit for the
+            compilation
+        ansatz - Parametric ansatz circuit that is used to approximate the target
+            circuit
         optimizer_state - state of the optimizer after the optimization
-        circuit_execution_multiplier - multiplier for the number of circuit executions, e.g. number of samples for each estimate
+        circuit_execution_multiplier - multiplier for the number of circuit
+            executions, e.g. number of samples for each estimate
 
         variable arguments if any are passed to the circuit_factory's __call__ method
 

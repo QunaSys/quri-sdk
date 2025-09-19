@@ -48,8 +48,10 @@ class HilbertSchmidtTest(NonLocalCostFunction):
         Arguments:
         target_circuit - The target circuit for the Hilbert-Schmidt test
         trial_circuit - The trial circuit for the Hilbert-Schmidt test
-        alpha - Provides an optional override to the alpha that was set at class instantiation
-        Note that the cost function is invariant to swapping of target and trial circuits
+        alpha - Provides an optional override to the alpha that was set at class
+            instantiation
+        Note that the cost function is invariant to swapping of target and trial
+            circuits
 
         Return value:
         Hilbert-Schmidt test estimate
