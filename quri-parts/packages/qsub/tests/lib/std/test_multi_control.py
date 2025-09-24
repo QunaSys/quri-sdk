@@ -1,14 +1,18 @@
 from typing import Sequence
+import math
 
 from quri_parts.qsub.compile import compile
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
     Cbz,
+    S,
+    RY,
     Controlled,
     H,
     Label,
     M,
+    MCY,
     MultiControlled,
     Sdag,
     T,
@@ -26,11 +30,7 @@ from quri_parts.qsub.lib.std.multi_control_gates import (  # type: ignore
 )
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import OpSubDef, opsub
-from quri_parts.qsub.primitive import AllBasicSet
-try:
-    from quri_parts.qsub.primitive import SimulatorBasicSet  # type: ignore
-except ImportError:
-    SimulatorBasicSet = AllBasicSet  # fallback
+from quri_parts.qsub.primitive import AllBasicSet, SimulatorBasicSet
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import default_repository
@@ -272,28 +272,36 @@ class TestMultiControlledCliffordT:
 def test_multi_control_with_resolver() -> None:
     mcy = MultiControlled(Y, 2, 0b11)
 
-    default_compiled_basic = compile(mcy, AllBasicSet)
-    default_compiled_sim = compile(mcy, SimulatorBasicSet)
 
     new_repo = default_repository().copy()  # type: ignore
     new_repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_sub_resolver()
     )
 
-    compiled_basic = compile(mcy, AllBasicSet, new_repo)
-    compiled_sim = compile(mcy, SimulatorBasicSet, new_repo)
 
-    assert [
-        inst[0].op.id.local_name for inst in default_compiled_basic.instructions
-    ] == ["Toffoli", "Controlled", "Toffoli"]
-    assert [inst[0].op.id.local_name for inst in default_compiled_sim.instructions] == [
-        "Toffoli",
-        "Controlled",
-        "Toffoli",
+    default_compiled_basic = compile(mcy, AllBasicSet)
+    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions] == [
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
+        (Controlled(Y), [Qubit(3), Qubit(2)]),
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
+    ]
+    
+    default_compiled_sim = compile(mcy, SimulatorBasicSet)
+    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions] == [
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
+        (Controlled(Y), [Qubit(3), Qubit(2)]),
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
     ]
 
-    assert [inst[0].op.id.local_name for inst in compiled_basic.instructions] == ["MCY"]
-    assert [inst[0].op.id.local_name for inst in compiled_sim.instructions] == ["MCY"]
+    compiled_basic = compile(mcy, AllBasicSet, new_repo)
+    assert [(inst[0].op, list(inst[1])) for inst in compiled_basic.instructions] == [
+        (MCY(2), [Qubit(0)])
+    ]
+
+    compiled_sim = compile(mcy, SimulatorBasicSet, new_repo)
+    assert [(inst[0].op, list(inst[1])) for inst in compiled_sim.instructions] == [
+        (MCY(2), [Qubit(0)])
+    ]
 
 
 def test_multi_control_with_resolver_complex() -> None:
@@ -311,6 +319,7 @@ def test_multi_control_with_resolver_complex() -> None:
     # Create Op and Sub from the definition and register in repositories
     default_repo = default_repository().copy()  # type: ignore
     complex_op, complex_sub = opsub(ComplexOpSubDef, default_repo)
+    print(f"{default_repo._mapping=}")
 
     # Initialize MultiControlled op with the complex_op and compile it with compile()
     mcy_with_complex_sub = MultiControlled(complex_op, 3, 0b111)
@@ -325,29 +334,37 @@ def test_multi_control_with_resolver_complex() -> None:
     new_repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_sub_resolver()
     )
+    print(f"{new_repo._mapping=}")
 
     compiled_basic = compile(mcy_with_complex_sub, AllBasicSet, new_repo)
     compiled_sim = compile(mcy_with_complex_sub, SimulatorBasicSet, new_repo)
 
     # Verify the compiled results contain expected operations
-    assert [
-        inst[0].op.id.local_name for inst in default_compiled_basic.instructions
-    ] == ["Toffoli", "Toffoli", "Controlled", "Toffoli", "Toffoli"]
-    assert [inst[0].op.id.local_name for inst in default_compiled_sim.instructions] == [
-        "Toffoli",
-        "Toffoli",
-        "Controlled",
-        "Toffoli",
-        "Toffoli",
+    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions] == [
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
+        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
+        (Controlled(complex_op), [Qubit(7), Qubit(3), Qubit(4), Qubit(5)]),
+        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
+    ]
+    
+    # This does not generate MC* gates, because MultiControlled op will be expanded
+    # from the internal in default approach.
+    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions] == [
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
+        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
+        (Controlled(complex_op), [Qubit(7), Qubit(3), Qubit(4), Qubit(5)]),
+        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
+        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
     ]
 
-    assert [inst[0].op.id.local_name for inst in compiled_basic.instructions] == [
-        "MultiControlled",
-        "MultiControlled",
-        "MultiControlled",
+    assert [(inst[0].op, list(inst[1])) for inst in compiled_basic.instructions] == [
+        (MultiControlled(H, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3)]),
+        (MultiControlled(CNOT, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)]),
+        (MultiControlled(Y, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(5)]),
     ]
-    assert [inst[0].op.id.local_name for inst in compiled_sim.instructions] == [
-        "MultiControlled",
-        "MultiControlled",
-        "MultiControlled",
+    assert [(inst[0].op, list(inst[1])) for inst in compiled_sim.instructions] == [
+        (MultiControlled(H, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3)]),
+        (MultiControlled(CNOT, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)]),
+        (MultiControlled(Y, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(5)]),
     ]

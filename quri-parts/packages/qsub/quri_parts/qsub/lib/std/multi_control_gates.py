@@ -340,6 +340,7 @@ def generate_multicontrolled_sub_resolver(
     """
 
     def resolver(op: Op, repository: SubRepository) -> Sub | None:
+        print(f"in generate_multicontrolled_sub_resolver, {op=}")
         target_op, control_bits, control_value = op.id.params
         assert isinstance(target_op, Op)
         assert isinstance(control_bits, int)
@@ -348,6 +349,7 @@ def generate_multicontrolled_sub_resolver(
         named_sub = MultiControlledNamedMCGatesSub(
             target_op, control_bits, control_value
         )
+        print(f"{named_sub=}")
         if named_sub is not None:
             return named_sub
 
@@ -356,6 +358,7 @@ def generate_multicontrolled_sub_resolver(
         if target_sub_resolver is not None:
             target_sub = target_sub_resolver(target_op, repository)
 
+        print(f"{target_sub=}")
         if target_sub is None:
             return _multi_controlled_sub(target_op, control_bits, control_value, s_and)
 
