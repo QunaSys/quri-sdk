@@ -12,6 +12,7 @@ jupyterlab_server==2.27.3
 notebook==7.3.1
 notebook_shim==0.2.4
 qulacs==0.6.10
+qulacsvis==0.7.5
 quri-algo==0.1.1
 quri-parts==0.21.0
 quri-parts-algo==0.21.0

@@ -7,30 +7,63 @@ readme = "README.md"
 package-mode = false
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git"}
-quri-algo = "^0.1.2"
-quri-vm = "^0.1"
-quri-parts-algo = "0.22.0"
-quri-parts-braket = "0.22.0"
-quri-parts-chem = "0.22.0"
-quri-parts-circuit = "0.22.0"
-quri-parts-cirq = "0.22.0"
-quri-parts-core = "0.22.0"
-quri-parts-openfermion = "0.22.0"
-quri-parts-pyscf = "0.22.0"
-quri-parts-qiskit = "0.22.0"
-quri-parts-qsub = "0.22.0"
-quri-parts-qulacs = "0.22.0"
-quri-parts-rust = "0.22.0"
-quri-parts-tket = "0.22.0"
+python = ">=3.10, <3.13"
+
 tabulate = "^0.9"
 pylatexenc = "^2.10"
 seaborn = "^0.13.2"
 
+quri-parts-qsci = { git = "https://github.com/QunaSys/quri-parts-qsci.git", branch = "main"}
+
+quri-algo = { version = "*", python = ">=3.10" }
+quri-vm = { version = "*", python = ">=3.10" }
+
+quri-parts-rust = "*"
+quri-parts-core = "*"
+quri-parts-circuit = "*"
+quri-parts-algo = "*"
+quri-parts-chem = "*"
+
+quri-parts-qulacs = { version = "*", optional = true }
+quri-parts-braket = { version = "*", optional = true }
+quri-parts-qiskit = { version = "*", optional = true }
+quri-parts-cirq = { version = "*", optional = true }
+quri-parts-openfermion = { version = "*", optional = true }
+quri-parts-stim = { version = "*", optional = true }
+quri-parts-openqasm = { version = "*", optional = true }
+quri-parts-quantinuum = { version = "*", optional = true }
+quri-parts-ionq = { version = "*", optional = true }
+quri-parts-itensor = { version = "*", optional = true }
+quri-parts-pyscf = { version = "*", optional = true }
+quri-parts-tensornetwork = { version = "*", optional = true }
+quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
+quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
+
 [tool.poetry.group.dev.dependencies]
 notebook = "^7.2.2"
 nbconvert = "^7.16.4"
+
+quri-algo = { path = "../quri-algo", develop = true, python = ">=3.10" }
+quri-vm = { path = "../quri-vm", develop = true, python = ">=3.10" }
+quri-parts-rust = { path = "../quri-parts/packages/rust", develop = true }
+quri-parts-circuit = { path = "../quri-parts/packages/circuit", develop = true }
+quri-parts-core = { path = "../quri-parts/packages/core", develop = true }
+quri-parts-qulacs = { path = "../quri-parts/packages/qulacs", develop = true }
+quri-parts-algo = { path = "../quri-parts/packages/algo", develop = true }
+quri-parts-chem = { path = "../quri-parts/packages/chem", develop = true }
+quri-parts-braket = { path = "../quri-parts/packages/braket", develop = true }
+quri-parts-qiskit = { path = "../quri-parts/packages/qiskit", develop = true }
+quri-parts-cirq = { path = "../quri-parts/packages/cirq", develop = true }
+quri-parts-openfermion = { path = "../quri-parts/packages/openfermion", develop = true }
+quri-parts-stim = { path = "../quri-parts/packages/stim", develop = true }
+quri-parts-openqasm = { path = "../quri-parts/packages/openqasm", develop = true }
+quri-parts-quantinuum = { path = "../quri-parts/packages/quantinuum", develop = true }
+quri-parts-ionq = { path = "../quri-parts/packages/ionq", develop = true }
+quri-parts-itensor = { path = "../quri-parts/packages/itensor", develop = true }
+quri-parts-pyscf = { path = "../quri-parts/packages/pyscf", develop = true }
+quri-parts-tensornetwork = { path = "../quri-parts/packages/tensornetwork", develop = true }
+quri-parts-tket = { path = "../quri-parts/packages/tket", develop = true, python = ">=3.10" }
+quri-parts-qsub = { path = "../quri-parts/packages/qsub", develop = true, python = ">=3.10" }
 
 [build-system]
 requires = ["poetry-core"]
