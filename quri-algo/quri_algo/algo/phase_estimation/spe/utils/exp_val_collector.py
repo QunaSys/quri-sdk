@@ -10,10 +10,10 @@
 
 from typing import Callable, Generic, NamedTuple, Optional, Sequence
 
-from quri_parts.core.estimator import Estimate
+from quri_algo.core.estimator import StateT
 from typing_extensions import TypeAlias
 
-from quri_algo.core.estimator import StateT
+from quri_parts.core.estimator import Estimate
 
 from .fourier.coefficient import SPEFourierCoefficient
 

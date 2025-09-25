@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Literal, Optional, Sequence
 
-from quri_parts.chem.mol import ActiveSpace
-from typing_extensions import TypeAlias
-
 from quri_algo.problem.operators.hamiltonian import (
     FermionicHamiltonian,
     QubitHamiltonian,
 )
+from typing_extensions import TypeAlias
+
+from quri_parts.chem.mol import ActiveSpace
 
 from .interface import HamiltonianMixin
 

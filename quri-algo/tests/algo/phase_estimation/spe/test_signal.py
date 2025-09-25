@@ -15,8 +15,6 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import numpy.typing as npt
-from quri_parts.core.state import CircuitQuantumState, quantum_state
-
 import quri_algo.algo.phase_estimation.spe.utils.fourier as fourier
 from quri_algo.algo.phase_estimation.spe.utils.exp_val_collector import (
     ExpectationValueCollector,
@@ -29,6 +27,8 @@ from quri_algo.algo.phase_estimation.spe.utils.signal import (
     StepFunctionSignalGenerator,
 )
 from quri_algo.core.estimator import State
+
+from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 
 class _Estimate(NamedTuple):

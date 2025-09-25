@@ -38,7 +38,8 @@ class LogicalCircuitSimulator(ABC):
         circuit: NonParametricQuantumCircuit,
         shots: int,
         noise_model: NoiseModel | None = None,
-    ) -> MeasurementCounts: ...
+    ) -> MeasurementCounts:
+        ...
 
     @abstractmethod
     def estimate(
@@ -46,7 +47,8 @@ class LogicalCircuitSimulator(ABC):
         estimatable: Estimatable,
         state: _StateT,
         noise_model: NoiseModel | None = None,
-    ) -> Estimate[complex]: ...
+    ) -> Estimate[complex]:
+        ...
 
 
 class QulacsSimulator(LogicalCircuitSimulator):

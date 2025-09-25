@@ -11,6 +11,9 @@
 from typing import Iterable
 
 import numpy as np
+from quri_algo.circuit.utils.transpile import apply_transpiler
+from quri_algo.problem import QubitHamiltonian
+
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
@@ -27,9 +30,6 @@ from quri_parts.core.operator import (
     pauli_label,
     trotter_suzuki_decomposition,
 )
-
-from quri_algo.circuit.utils.transpile import apply_transpiler
-from quri_algo.problem import QubitHamiltonian
 
 from .interface import (
     ControlledTimeEvolutionCircuitFactory,
@@ -161,13 +161,14 @@ def get_trotter_controlled_time_evolution_operator(
 
     .. math::
         P_0 \otimes I + P_1 \otimes e^{i\theta P} &= e^{-i \frac{\theta}{2} Z \otimes P}
-            e^{i \frac{\theta}{2} I \otimes P}\\
+                                                       e^{i \frac{\theta}{2}
+                                                         I \otimes P}\\
         P_0 \otimes I + P_1 \otimes e^{i\theta P} &=
             \text{PauliRotation}(Z \otimes P, \theta)
             \text{PauliRotation}(I \otimes P, -\theta)\\
         P_0 \otimes I + P_1 \otimes e^{-i \frac{c}{T} P}
         &= \text{PauliRotation}(Z \otimes P, -\frac{c}{T})
-            \text{PauliRotation}(I \otimes P, \frac{c}{T})
+           \text{PauliRotation}(I \otimes P, \frac{c}{T})
     """
     circuit = LinearMappedUnboundParametricQuantumCircuit(n_state_qubits + 1)
     t = circuit.add_parameter("t")

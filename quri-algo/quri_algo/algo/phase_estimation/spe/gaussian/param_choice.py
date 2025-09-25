@@ -11,7 +11,6 @@
 from typing import Optional
 
 import numpy as np
-
 from quri_algo.algo.phase_estimation.spe.utils.fourier.gaussian_coefficient import (
     GaussianParam,
 )
@@ -98,25 +97,25 @@ def get_recommended_gaussian_parameter(
         Quantum 7, 1167 (2023).
 
     Args:
-        gap: The (approximate) energy gap between the ground state the 1st excited
-            state.
+        gap: The (approximate) energy gap between the ground state the 1st
+             excited state.
         eps: The target accuracy one wants to reach with Gaussian SPE.
-        overlap: The (approximate) overlap of the input state and the exact ground
-            state.
+        overlap: The (approximate) overlap of the input state and the exact
+                 ground state.
         delta: The tolerable failure probability of the Gaussian SPE.
-        n_discretize: Number of discretization steps one wants to use to perform
-            the convolution integration. This also corresponds to the number of
-            evolution time
-            steps one can sample from.
+        n_discretize: Number of discretization steps one wants to use to
+                      perform the convolution integration. This also
+                      corresponds to the number of evolution time steps one
+                      can sample from.
         tau: normalization factor of the spectrum
-        n_sample_const: An overall coefficient :math:`C` for determining the
-            number of samples.
+        n_sample_const: An overall coefficient :math:`C` for
+                        determining the number of samples.
             :math:`C \sigma^4 ||\\tilde{f}_T||_1 / \epsion^2 \\times \log`
         max_shot_limit: the maximal number of shots.
 
     Returns:
         GaussianParam: A :class:`GaussianParam` that specifies the Gaussian
-            distribution function.
+                       distribution function.
         int: The number of points to search for the eigenvalue.
     """
 

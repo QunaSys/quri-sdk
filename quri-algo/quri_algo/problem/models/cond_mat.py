@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 
 from openfermion import fermi_hubbard
-from quri_parts.openfermion.transforms import OpenFermionQubitMapping
-
 from quri_algo.problem.operators.hamiltonian import (
     FermionicHamiltonian,
     QubitHamiltonian,
 )
+
+from quri_parts.openfermion.transforms import OpenFermionQubitMapping
 
 from .interface import HamiltonianMixin
 

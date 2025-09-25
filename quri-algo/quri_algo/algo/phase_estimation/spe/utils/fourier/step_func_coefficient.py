@@ -30,8 +30,9 @@ class StepFunctionParam:
         delta: The parameter that controls the precision:
 
             .. math::
-                |F_{d, \delta}(x) - H(x)| \leq \epsilon \quad \forall x \in
-                [-\pi + \delta, - \delta] \cup [\delta, \pi - \delta]
+                |F_{d, \delta}(x) - H(x)| \leq \epsilon \quad
+                \\forall x \in [-\pi + \delta, - \delta] \cup
+                [\delta, \pi - \delta]
 
         n_sample:
             Number of samples to construct the step function.
@@ -116,7 +117,7 @@ def get_F_tilde(d: int, delta: float) -> npt.NDArray[np.complex128]:
         return _f_tilde_cache[(d, delta)].copy()
 
     M_fourier = get_M_tilde(d, delta)
-    M_fourier = M_fourier[0: d + 1]
+    M_fourier = M_fourier[0 : d + 1]  # noqa: E203
     H_fourier = np.array([get_H_tilde(k) for k in range(d + 1)])
 
     normalized_coeff = M_fourier * H_fourier

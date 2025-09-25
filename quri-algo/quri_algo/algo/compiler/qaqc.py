@@ -12,15 +12,6 @@ from typing import Any, Final, Optional, Sequence
 
 import numpy as np
 from numpy.random import default_rng
-from quri_parts.algo.optimizer import CostFunction as QPCostFunction
-from quri_parts.algo.optimizer import GradientFunction, OptimizerState, Params
-from quri_parts.circuit import (
-    ImmutableQuantumCircuit,
-    LinearMappedUnboundParametricQuantumCircuit,
-    NonParametricQuantumCircuit,
-)
-from quri_parts.circuit.parameter_shift import ShiftedParameters
-
 from quri_algo.algo.compiler.base_classes import (
     CompilationAnalysis,
     CompilationResult,
@@ -38,6 +29,15 @@ from quri_algo.core.cost_functions.hilbert_schmidt_test import (
     create_default_hilbert_schmidt_test,
 )
 from quri_algo.core.cost_functions.utils import prepare_circuit_hilbert_schmidt_test
+
+from quri_parts.algo.optimizer import CostFunction as QPCostFunction
+from quri_parts.algo.optimizer import GradientFunction, OptimizerState, Params
+from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
+    LinearMappedUnboundParametricQuantumCircuit,
+    NonParametricQuantumCircuit,
+)
+from quri_parts.circuit.parameter_shift import ShiftedParameters
 
 
 class QAQC(QuantumCompiler):
@@ -166,10 +166,10 @@ class QAQC(QuantumCompiler):
         """This function initiates the variational optimization.
 
         Arguments:
-        circuit_factory - Circuit factory which generates the target circuit for the
-            compilation
-        ansatz - Parametric ansatz circuit that is used to approximate the target
-            circuit
+        circuit_factory - Circuit factory which generates the target circuit for
+                          the compilation
+        ansatz - Parametric ansatz circuit that is used to approximate the
+                 target circuit
         init_params - initial variational parameters for the optimization
 
         variable arguments if any are passed to the circuit_factory's __call__ method
@@ -202,13 +202,14 @@ class QAQC(QuantumCompiler):
         quantum compilation.
 
         Arguments:
-        circuit_factory - Circuit factory which generates the target circuit for the
-            compilation
-        ansatz - Parametric ansatz circuit that is used to approximate the target
-            circuit
+        circuit_factory - Circuit factory which generates the target circuit for
+                          the compilation
+        ansatz - Parametric ansatz circuit that is used to approximate the
+                 target circuit
         optimizer_state - state of the optimizer after the optimization
         circuit_execution_multiplier - multiplier for the number of circuit
-            executions, e.g. number of samples for each estimate
+                                        executions, e.g. number of samples for
+                                        each estimate
 
         variable arguments if any are passed to the circuit_factory's __call__ method
 

@@ -8,9 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.operator import Operator, pauli_label
-
 from quri_algo.circuit.hadamard_test import (
     HadamardTestCircuitFactory,
     construct_hadamard_circuit,
@@ -20,6 +17,9 @@ from quri_algo.circuit.time_evolution.trotter_time_evo import (
     get_shifted_hamiltonian,
 )
 from quri_algo.problem import QubitHamiltonian
+
+from quri_parts.circuit import QuantumCircuit
+from quri_parts.core.operator import Operator, pauli_label
 
 
 def test_get_shifted_hamiltonian() -> None:

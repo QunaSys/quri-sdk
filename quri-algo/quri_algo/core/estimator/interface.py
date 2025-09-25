@@ -11,9 +11,10 @@
 from abc import abstractmethod
 from typing import Any, Protocol, TypeVar, Union
 
+from typing_extensions import TypeAlias
+
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
-from typing_extensions import TypeAlias
 
 State: TypeAlias = Union[CircuitQuantumState, QuantumStateVector]
 StateT = TypeVar("StateT", bound=State, contravariant=True)

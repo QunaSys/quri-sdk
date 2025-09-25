@@ -14,12 +14,11 @@ from typing import Callable, Generic, Sequence, cast, overload
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import TypeAlias
-
 from quri_algo.algo.phase_estimation.spe.utils.fourier.coefficient import (
     SPEFourierCoefficient,
 )
 from quri_algo.core.estimator import StateT
+from typing_extensions import TypeAlias
 
 from .exp_val_collector import (
     ExpectationValueCollector,

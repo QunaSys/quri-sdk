@@ -10,13 +10,13 @@
 
 from unittest.mock import Mock
 
-from quri_parts.circuit import QuantumCircuit
-
 from quri_algo.core.cost_functions import HilbertSchmidtTest
 from quri_algo.core.cost_functions.utils import (
     get_hs_operator,
     prepare_circuit_hilbert_schmidt_test,
 )
+
+from quri_parts.circuit import QuantumCircuit
 
 
 def test_hilbert_schmidt_test() -> None:

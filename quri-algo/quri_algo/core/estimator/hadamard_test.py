@@ -13,6 +13,9 @@ from functools import reduce
 from typing import Any, NamedTuple, Union, cast
 
 import numpy as np
+from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
+from quri_algo.circuit.interface import CircuitFactory
+
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, QubitRemappingTranspiler
 from quri_parts.core.estimator import Estimate
@@ -22,9 +25,6 @@ from quri_parts.core.state import (
     QuantumStateT,
     QuantumStateVector,
 )
-
-from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
-from quri_algo.circuit.interface import CircuitFactory
 
 from .interface import ExpectationValueEstimator, State, StateT
 
@@ -101,8 +101,12 @@ class HadamardTest(ExpectationValueEstimator[StateT]):
         )
 
         # TODO: Fix after GeneralSampler is available in QURI Parts
-        real_cnt = _general_sample_on_state(self.sampler, real_hadamard_state, n_shots)
-        imag_cnt = _general_sample_on_state(self.sampler, imag_hadamard_state, n_shots)
+        real_cnt = _general_sample_on_state(
+            self.sampler, real_hadamard_state, n_shots  # type: ignore
+        )
+        imag_cnt = _general_sample_on_state(
+            self.sampler, imag_hadamard_state, n_shots  # type: ignore
+        )
 
         real_cnt = get_hadamard_test_ancilla_qubit_counter(real_cnt)
         imag_cnt = get_hadamard_test_ancilla_qubit_counter(imag_cnt)

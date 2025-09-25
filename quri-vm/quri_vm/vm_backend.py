@@ -74,29 +74,34 @@ class VMBackend(ABC):
         circuit: NonParametricQuantumCircuit,
         shots: int,
         lowering_level: LoweringLevel | None = None,
-    ) -> MeasurementCounts: ...
+    ) -> MeasurementCounts:
+        ...
 
     @abstractmethod
     def analyze(
         self,
         circuit: NonParametricQuantumCircuit,
         lowering_level: LoweringLevel | None = None,
-    ) -> AnalyzeResult: ...
+    ) -> AnalyzeResult:
+        ...
 
     @abstractmethod
     def transpile(
         self,
         circuit: NonParametricQuantumCircuit,
         lowering_level: LoweringLevel | None = None,
-    ) -> NonParametricQuantumCircuit: ...
+    ) -> NonParametricQuantumCircuit:
+        ...
 
     @property
     @abstractmethod
-    def noise_model(self) -> NoiseModel | None: ...
+    def noise_model(self) -> NoiseModel | None:
+        ...
 
     @property
     @abstractmethod
-    def lowering_levels(self) -> Sequence[LoweringLevel]: ...
+    def lowering_levels(self) -> Sequence[LoweringLevel]:
+        ...
 
     def _check_select_lowering_level(
         self, lowering_level: LoweringLevel | None

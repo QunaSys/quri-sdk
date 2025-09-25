@@ -15,6 +15,7 @@ from typing import Any, TypeVar
 import numpy as np
 import numpy.typing as npt
 from openfermion import FermionOperator
+
 from quri_parts.core.operator import Operator
 
 

@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from typing import Any, NamedTuple, Protocol
 
 import numpy as np
+
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.state import CircuitQuantumState
