@@ -23,7 +23,7 @@ jobs:
 
     - uses: ./.github/actions/quri-parts/python-poetry-install
       with:
-        poetry-version: '1.4.0'
+        poetry-version: '2.2.1'
         python-version: '3.9'
 
     - uses: actions/cache@v3
@@ -44,8 +44,8 @@ jobs:
 
     - run: |
         poetry env use 3.9
-        poetry run pip install -vvv -e packages/rust
-        poetry install -vvv --only main,dev,doc
+        poetry run pip install -vvv -e quri-parts/packages/rust
+        poetry install -vvv --only main,dev,doc --extras parts
 
     - run: |
         poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'

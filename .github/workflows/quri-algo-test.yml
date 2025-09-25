@@ -4,8 +4,9 @@ on:
   pull_request:
     paths:
       - quri-algo/pyproject.toml
-      - quri-algo/poetry.lock
-      - quri-algo/quri_algo/**.py
+      - poetry.lock
+      - quri-algo/**.py
+      - pyproject.toml
       - .github/workflows/quri-algo-pytest.yml
   push:
     branches: [main]
@@ -29,6 +30,6 @@ jobs:
 
     - run: |
         poetry env use python3.11
-        poetry install
+        poetry install -vvv --only dev --extras algo
 
-    - run: poetry run pytest tests/
+    - run: poetry run pytest quri-algo

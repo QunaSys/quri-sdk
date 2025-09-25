@@ -6486,12 +6486,14 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more_it
 type = ["pytest-mypy"]
 
 [extras]
+algo = ["quri-algo"]
 braket = ["quri-parts-braket"]
 cirq = ["quri-parts-cirq"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 openfermion = ["quri-parts-openfermion"]
 openqasm = ["quri-parts-openqasm"]
+parts = ["quri-parts-braket", "quri-parts-cirq", "quri-parts-ionq", "quri-parts-itensor", "quri-parts-openfermion", "quri-parts-openqasm", "quri-parts-pyscf", "quri-parts-qiskit", "quri-parts-qsub", "quri-parts-quantinuum", "quri-parts-qulacs", "quri-parts-stim", "quri-parts-tensornetwork", "quri-parts-tket"]
 pyscf = ["quri-parts-pyscf"]
 qiskit = ["quri-parts-qiskit"]
 qsub = ["quri-parts-qsub"]
@@ -6500,8 +6502,9 @@ qulacs = ["quri-parts-qulacs"]
 stim = ["quri-parts-stim"]
 tensornetwork = ["quri-parts-tensornetwork"]
 tket = ["quri-parts-tket"]
+vm = ["quri-vm"]
 
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.8"
-content-hash = "bab462bcb318c9c2ffd266a39a2a0c647ee44900ead183dbb34a216c3eadd7fb"
+content-hash = "0e63ebfcf1d4acb16bf36e1542edfd0c327ffb395ebf00d0637edf86cc0201c5"

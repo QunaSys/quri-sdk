@@ -11,6 +11,7 @@
 from typing import Optional
 
 import numpy as np
+
 from quri_algo.algo.phase_estimation.spe.utils.fourier.gaussian_coefficient import (
     GaussianParam,
 )

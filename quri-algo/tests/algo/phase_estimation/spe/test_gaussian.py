@@ -13,6 +13,8 @@ import unittest.mock
 from typing import NamedTuple
 
 import numpy as np
+from quri_parts.core.state import CircuitQuantumState, quantum_state
+
 import quri_algo.algo.phase_estimation.spe as spe
 from quri_algo.algo.phase_estimation.spe.gaussian import (
     get_recommended_gaussian_parameter,
@@ -21,8 +23,6 @@ from quri_algo.core.estimator import OperatorPowerEstimatorBase
 from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
 )
-
-from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 
 class _Estimate(NamedTuple):

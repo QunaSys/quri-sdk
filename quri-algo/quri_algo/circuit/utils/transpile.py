@@ -11,9 +11,8 @@
 from functools import wraps
 from typing import TYPE_CHECKING, Callable, cast
 
-from typing_extensions import Concatenate, ParamSpec
-
 from quri_parts.circuit import NonParametricQuantumCircuit
+from typing_extensions import Concatenate, ParamSpec
 
 if TYPE_CHECKING:
     from quri_algo.circuit.interface import CircuitFactory

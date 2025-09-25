@@ -3,17 +3,14 @@ name: QURI Algo Lint
 on:
   pull_request:
     paths:
+      - .flake8
       - quri-algo/pyproject.toml
-      - quri-algo/poetry.lock
+      - pyproject.toml
+      - poetry.lock
       - quri_algo/**.py
-      - quri-algo/.flake8
       - .github/workflows/quri-algo-lint.yml
   push:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: quri-algo
 
 jobs:
   lint:
@@ -30,16 +27,16 @@ jobs:
 
     - run: |
         poetry env use python3.11
-        poetry install --only lint
+        poetry install --only lint --extras algo
 
-    - run: poetry run isort quri_algo --check --diff
+    - run: poetry run isort quri-algo --check --diff
       if: success() || failure()
 
-    - run: poetry run black quri_algo --check
+    - run: poetry run black quri-algo --check
       if: success() || failure()
 
-    - run: poetry run flake8 quri_algo --show-source
+    - run: poetry run flake8 quri-algo --show-source
       if: success() || failure()
 
-    - run: poetry run docformatter -c -r quri_algo
+    - run: poetry run docformatter -c -r quri-algo
       if: success() || failure()

@@ -13,9 +13,9 @@ from dataclasses import dataclass
 from typing import Any, Generic, Optional, Sequence
 
 import numpy as np
-from quri_algo.core.estimator import StateT
-
 from quri_parts.core.estimator import Estimate, Estimates
+
+from quri_algo.core.estimator import StateT
 
 
 @dataclass

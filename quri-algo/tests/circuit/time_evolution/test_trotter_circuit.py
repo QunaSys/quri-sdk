@@ -12,6 +12,9 @@ import unittest
 
 import numpy as np
 import pytest
+from quri_parts.circuit import QuantumCircuit, inverse_circuit
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel, pauli_label
+
 from quri_algo.circuit.time_evolution.trotter_time_evo import (
     FixedIntervalTrotterControlledTimeEvolutionCircuitFactory,
     FixedIntervalTrotterTimeEvolutionCircuitFactory,
@@ -22,9 +25,6 @@ from quri_algo.circuit.time_evolution.trotter_time_evo import (
     get_trotter_time_evolution_operator,
 )
 from quri_algo.problem import QubitHamiltonian
-
-from quri_parts.circuit import QuantumCircuit, inverse_circuit
-from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel, pauli_label
 
 
 def test_get_trotter_time_evolution_operator() -> None:

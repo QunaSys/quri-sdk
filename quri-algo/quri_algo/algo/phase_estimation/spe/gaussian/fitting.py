@@ -12,12 +12,13 @@ from typing import TYPE_CHECKING, Callable, Optional
 
 import numpy as np
 import numpy.typing as npt
+from scipy import optimize
+
 from quri_algo.core.estimator import StateT
 from quri_algo.core.estimator.time_evolution import (
     TimeEvolutionExpectationValueEstimator,
     TimeEvolutionPowerEstimator,
 )
-from scipy import optimize
 
 from ..interface import SPEResult, StatisticalPhaseEstimation
 from ..utils.exp_val_collector import UnitaryOpPowerSamplingEstimator

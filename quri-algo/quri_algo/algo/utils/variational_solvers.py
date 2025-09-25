@@ -11,8 +11,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Sequence
 
-from scipy.optimize import OptimizeResult, minimize
-
 from quri_parts.algo.optimizer import (
     CostFunction,
     GradientFunction,
@@ -22,6 +20,7 @@ from quri_parts.algo.optimizer import (
     Params,
 )
 from quri_parts.algo.optimizer.lbfgs import LBFGS
+from scipy.optimize import OptimizeResult, minimize
 
 
 class VariationalSolver(ABC):

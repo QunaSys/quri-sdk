@@ -16,10 +16,6 @@ on:
   push:
     branches: [main]
 
-defaults:
-  run:
-    working-directory: quri-parts
-
 jobs:
   test:
 
@@ -36,7 +32,7 @@ jobs:
 
     - uses: ./.github/actions/quri-parts/python-poetry-install
       with:
-        poetry-version: '1.4.0'
+        poetry-version: '2.2.1'
         python-version: ${{ matrix.python_version }}
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
@@ -51,13 +47,14 @@ jobs:
         key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
 
-    - run: |
-        cargo test --workspace
+    - working-directory: quri-parts
+      run: |
+        cargo test --workspace --manifest-path Cargo.toml
 
     - run: |
         poetry env use ${{ matrix.python_version }}
-        poetry run pip install -vvv -e packages/rust
-        poetry install -vvv --only main,dev
+        poetry run pip install -vvv -e quri-parts/packages/rust
+        poetry install -vvv --only main,dev --extras parts
 
     - run: |
         poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"

@@ -10,9 +10,6 @@
 
 from math import pi
 
-from quri_vm import VM, AnalyzeResult, VMBackend
-from quri_vm.vm_backend import _DevicePropertyBackend
-
 # from quri_vm.backend.devices import (
 from quri_parts.backend.devices import (
     clifford_t_device,
@@ -32,6 +29,9 @@ from quri_parts.core.estimator import Estimate
 from quri_parts.core.operator import pauli_label
 from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import quantum_state
+
+from quri_vm import VM, AnalyzeResult, VMBackend
+from quri_vm.vm_backend import _DevicePropertyBackend
 
 
 def _my_algorithm(

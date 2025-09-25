@@ -5,15 +5,13 @@ on:
     paths:
       - 'quri-vm/**.py'
       - quri-vm/pyproject.toml
-      - quri-vm/poetry.lock
-      - quri-vm/.flake8
+      - poetry.lock
+      - .flake8
+      - mypy.ini
+      - pyproject.toml
       - .github/workflows/quri-vm-lint.yml
   push:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: quri-vm
 
 jobs:
   lint:
@@ -24,21 +22,21 @@ jobs:
 
     - uses: ./.github/actions/quri-vm/setup
       with:
-        poetry-version: '1.8.0'
+        poetry-version: '2.2.1'
         python-version: '3.10'
 
     - run: |
         poetry env use 3.10
-        poetry install
+        poetry install -vvv --only dev,typecheck --extras vm
 
-    - run: poetry run isort . --check --diff
+    - run: poetry run isort quri-vm --check --diff
       if: success() || failure()
 
-    - run: poetry run black . --check
+    - run: poetry run black quri-vm --check
       if: success() || failure()
 
-    - run: poetry run flake8 .
+    - run: poetry run flake8 quri-vm
       if: success() || failure()
 
-    - run: poetry run mypy .
+    - run: poetry run mypy quri-vm
       if: success() || failure()

@@ -4,16 +4,13 @@ on:
   pull_request:
     paths:
       - quri-algo/pyproject.toml
-      - quri-algo/poetry.lock
-      - quri-algo/quri_algo/**.py
-      - quri-algo/mypy.ini
+      - quri-algo/**.py
+      - pyproject.toml
+      - poetry.lock
+      - mypy.ini
       - .github/workflows/quri-algo-typecheck.yml
   push:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: quri-algo
 
 jobs:
   mypy:
@@ -30,6 +27,6 @@ jobs:
 
     - run: |
         poetry env use python3.11
-        poetry install --only main,typecheck
+        poetry install --only main,typecheck --extras algo
 
-    - run: poetry run mypy tests/ quri_algo/
+    - run: poetry run mypy quri-algo/tests quri-algo/quri_algo

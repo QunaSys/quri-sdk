@@ -28,7 +28,7 @@ jobs:
 
     - uses: ./.github/actions/quri-parts/python-poetry-install
       with:
-        poetry-version: '1.4.0'
+        poetry-version: '2.2.1'
         python-version: '3.10'
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
@@ -46,7 +46,7 @@ jobs:
 
     - run: |
         poetry env use 3.10
-        poetry install --only lint
+        poetry install --only lint --extras parts
 
     - run: |
         poetry run isort packages --check --diff
