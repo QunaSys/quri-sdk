@@ -210,8 +210,7 @@ _mc_gate_mapping_param: dict[BaseIdent, OpFactory[[int, float]]] = {
 def MultiControlledNamedMCGatesSub(
     target_op: Op, control_bits: int, control_value: int
 ) -> Sub | None:
-    """
-    Expands MultiControlled operations using named multi-controlled gates.
+    """Expands MultiControlled operations using named multi-controlled gates.
 
     Maps known target operations to their corresponding named MC gate variants
     (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, returns
@@ -312,8 +311,7 @@ def generate_multicontrolled_sub_resolver(
         [SubBuilder, Qubit, Qubit], AbstractContextManager[Qubit]
     ] = scoped_and  # type: ignore
 ) -> SubResolver:
-    """
-    Generates a resolver that expands MultiControlled to named MC operations
+    """Generates a resolver that expands MultiControlled to named MC operations
     when possible.
 
     This resolver is useful when you expect named MC gates as final

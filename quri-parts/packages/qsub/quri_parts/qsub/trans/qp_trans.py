@@ -13,7 +13,6 @@ from typing import cast
 
 import quri_parts.circuit.transpile as qt
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit, gate_names
-
 from quri_parts.qsub.eval.quriparts import (
     primitive_op_gate_mapping,
     primitive_param_op_gate_mapping,

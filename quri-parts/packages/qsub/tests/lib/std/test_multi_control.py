@@ -1,18 +1,15 @@
 from typing import Sequence
-import math
 
 from quri_parts.qsub.compile import compile
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
+    MCY,
     Cbz,
-    S,
-    RY,
     Controlled,
     H,
     Label,
     M,
-    MCY,
     MultiControlled,
     Sdag,
     T,
@@ -21,11 +18,11 @@ from quri_parts.qsub.lib.std import (
     X,
     Y,
 )
-from quri_parts.qsub.lib.std.multi_control import (  # type: ignore
+from quri_parts.qsub.lib.std.multi_control import (
     MultiControlledCliffordTSub,
     MultiControlledSub,
 )
-from quri_parts.qsub.lib.std.multi_control_gates import (  # type: ignore
+from quri_parts.qsub.lib.std.multi_control_gates import (
     generate_multicontrolled_sub_resolver,
 )
 from quri_parts.qsub.op import Op
@@ -272,22 +269,24 @@ class TestMultiControlledCliffordT:
 def test_multi_control_with_resolver() -> None:
     mcy = MultiControlled(Y, 2, 0b11)
 
-
-    new_repo = default_repository().copy()  # type: ignore
+    new_repo = default_repository().copy()
     new_repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_sub_resolver()
     )
 
-
     default_compiled_basic = compile(mcy, AllBasicSet)
-    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions] == [
+    assert [
+        (inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions
+    ] == [
         (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
         (Controlled(Y), [Qubit(3), Qubit(2)]),
         (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
     ]
-    
+
     default_compiled_sim = compile(mcy, SimulatorBasicSet)
-    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions] == [
+    assert [
+        (inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions
+    ] == [
         (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
         (Controlled(Y), [Qubit(3), Qubit(2)]),
         (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
@@ -317,7 +316,7 @@ def test_multi_control_with_resolver_complex() -> None:
             builder.add_op(Y, (q2,))
 
     # Create Op and Sub from the definition and register in repositories
-    default_repo = default_repository().copy()  # type: ignore
+    default_repo = default_repository().copy()
     complex_op, complex_sub = opsub(ComplexOpSubDef, default_repo)
     print(f"{default_repo._mapping=}")
 
@@ -329,7 +328,7 @@ def test_multi_control_with_resolver_complex() -> None:
         mcy_with_complex_sub, SimulatorBasicSet, default_repo
     )
 
-    new_repo = default_repository().copy()  # type: ignore
+    new_repo = default_repository().copy()
     new_repo.register_sub(complex_op, complex_sub)
     new_repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_sub_resolver()
@@ -340,17 +339,21 @@ def test_multi_control_with_resolver_complex() -> None:
     compiled_sim = compile(mcy_with_complex_sub, SimulatorBasicSet, new_repo)
 
     # Verify the compiled results contain expected operations
-    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions] == [
+    assert [
+        (inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions
+    ] == [
         (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
         (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
         (Controlled(complex_op), [Qubit(7), Qubit(3), Qubit(4), Qubit(5)]),
         (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
         (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
     ]
-    
+
     # This does not generate MC* gates, because MultiControlled op will be expanded
     # from the internal in default approach.
-    assert [(inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions] == [
+    assert [
+        (inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions
+    ] == [
         (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
         (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
         (Controlled(complex_op), [Qubit(7), Qubit(3), Qubit(4), Qubit(5)]),
@@ -360,11 +363,17 @@ def test_multi_control_with_resolver_complex() -> None:
 
     assert [(inst[0].op, list(inst[1])) for inst in compiled_basic.instructions] == [
         (MultiControlled(H, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3)]),
-        (MultiControlled(CNOT, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)]),
+        (
+            MultiControlled(CNOT, 3, 0b111),
+            [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)],
+        ),
         (MultiControlled(Y, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(5)]),
     ]
     assert [(inst[0].op, list(inst[1])) for inst in compiled_sim.instructions] == [
         (MultiControlled(H, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3)]),
-        (MultiControlled(CNOT, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)]),
+        (
+            MultiControlled(CNOT, 3, 0b111),
+            [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)],
+        ),
         (MultiControlled(Y, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(5)]),
     ]
