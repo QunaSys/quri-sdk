@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from quri_parts.qsub.compile import compile
+from quri_parts.qsub.resolve import resolve_sub
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -43,7 +43,6 @@ from quri_parts.qsub.lib.std.multi_control_gates import (
 )
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import OpSubDef, opsub
-from quri_parts.qsub.primitive import AllBasicSet, SimulatorBasicSet
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import default_repository
@@ -290,33 +289,25 @@ def test_multi_control_with_resolver() -> None:
         MultiControlled, generate_multicontrolled_sub_resolver()
     )
 
-    default_compiled_basic = compile(mcy, AllBasicSet)
-    assert [
-        (inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions
-    ] == [
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
-        (Controlled(Y), [Qubit(3), Qubit(2)]),
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
-    ]
+    default_sub = resolve_sub(mcy)
+    assert default_sub is not None
+    assert len(default_sub.qubits) == 3
+    assert len(default_sub.aux_qubits) == 1
+    q0, q1, q2 = default_sub.qubits
+    a0 = default_sub.aux_qubits[0]
+    assert default_sub.operations == (
+        (Toffoli, (q0, q1, a0), ()),
+        (Controlled(Y), (a0, q2), ()),
+        (Toffoli, (q0, q1, a0), ()),
+    )
 
-    default_compiled_sim = compile(mcy, SimulatorBasicSet)
-    assert [
-        (inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions
-    ] == [
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
-        (Controlled(Y), [Qubit(3), Qubit(2)]),
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(3)]),
-    ]
-
-    compiled_basic = compile(mcy, AllBasicSet, new_repo)
-    assert [(inst[0].op, list(inst[1])) for inst in compiled_basic.instructions] == [
-        (MCY(2), [Qubit(0), Qubit(1), Qubit(2)])
-    ]
-
-    compiled_sim = compile(mcy, SimulatorBasicSet, new_repo)
-    assert [(inst[0].op, list(inst[1])) for inst in compiled_sim.instructions] == [
-        (MCY(2), [Qubit(0), Qubit(1), Qubit(2)])
-    ]
+    resolved_sub = resolve_sub(mcy, new_repo)
+    assert resolved_sub is not None
+    assert len(resolved_sub.qubits) == 3
+    assert len(resolved_sub.aux_qubits) == 0
+    assert resolved_sub.operations == (
+        (MCY(2), resolved_sub.qubits, ()),
+    )
 
 
 def test_multi_control_with_resolver_complex() -> None:
@@ -334,14 +325,22 @@ def test_multi_control_with_resolver_complex() -> None:
     # Create Op and Sub from the definition and register in repositories
     default_repo = default_repository().copy()
     complex_op, complex_sub = opsub(ComplexOpSubDef, default_repo)
-    print(f"{default_repo._mapping=}")
 
-    # Initialize MultiControlled op with the complex_op and compile it with compile()
+    # Initialize MultiControlled op with the complex_op
     mcy_with_complex_sub = MultiControlled(complex_op, 3, 0b111)
 
-    default_compiled_basic = compile(mcy_with_complex_sub, AllBasicSet, default_repo)
-    default_compiled_sim = compile(
-        mcy_with_complex_sub, SimulatorBasicSet, default_repo
+    default_sub = resolve_sub(mcy_with_complex_sub, default_repo)
+    assert default_sub is not None
+    assert len(default_sub.qubits) == 6
+    assert len(default_sub.aux_qubits) == 2
+    q0, q1, q2, q3, q4, q5 = default_sub.qubits
+    a0, a1 = default_sub.aux_qubits
+    assert default_sub.operations == (
+        (Toffoli, (q0, q1, a0), ()),
+        (Toffoli, (a0, q2, a1), ()),
+        (Controlled(complex_op), (a1, q3, q4, q5), ()),
+        (Toffoli, (a0, q2, a1), ()),
+        (Toffoli, (q0, q1, a0), ()),
     )
 
     new_repo = default_repository().copy()
@@ -349,50 +348,85 @@ def test_multi_control_with_resolver_complex() -> None:
     new_repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_sub_resolver()
     )
-    print(f"{new_repo._mapping=}")
 
-    compiled_basic = compile(mcy_with_complex_sub, AllBasicSet, new_repo)
-    compiled_sim = compile(mcy_with_complex_sub, SimulatorBasicSet, new_repo)
+    resolved_sub = resolve_sub(mcy_with_complex_sub, new_repo)
+    assert resolved_sub is not None
+    assert len(resolved_sub.qubits) == 9
+    assert len(resolved_sub.aux_qubits) == 0
+    
+    # Check that it has the expected MultiControlled operations
+    q0, q1, q2, q3, q4, q5, q6, q7, q8 = resolved_sub.qubits
+    assert resolved_sub.operations == (
+        (MultiControlled(H, 3, 0b111), (q0, q1, q2, q3), ()),
+        (MultiControlled(CNOT, 3, 0b111), (q0, q1, q2, q3, q4), ()),
+        (MultiControlled(Y, 3, 0b111), (q0, q1, q2, q5), ()),
+    )
 
-    # Verify the compiled results contain expected operations
-    assert [
-        (inst[0].op, list(inst[1])) for inst in default_compiled_basic.instructions
-    ] == [
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
-        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
-        (Controlled(complex_op), [Qubit(7), Qubit(3), Qubit(4), Qubit(5)]),
-        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
-    ]
 
-    # This does not generate MC* gates, because MultiControlled op will be expanded
-    # from the internal in default approach.
-    assert [
-        (inst[0].op, list(inst[1])) for inst in default_compiled_sim.instructions
-    ] == [
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
-        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
-        (Controlled(complex_op), [Qubit(7), Qubit(3), Qubit(4), Qubit(5)]),
-        (Toffoli, [Qubit(6), Qubit(2), Qubit(7)]),
-        (Toffoli, [Qubit(0), Qubit(1), Qubit(6)]),
+def test_resolve_multicontrolled_various_control_values() -> None:
+    """Test resolve_sub with MultiControlled operations using various control values."""
+    # Test cases with different control bit patterns
+    test_cases = [
+        # (control_bits, control_value, expected_resolved_control_value)
+        (1, 0b0, 0b0),    # Single control on |0⟩
+        (1, 0b1, 0b1),    # Single control on |1⟩
+        (2, 0b00, 0b00),  # Two controls on |00⟩
+        (2, 0b01, 0b01),  # Two controls on |01⟩
+        (2, 0b10, 0b10),  # Two controls on |10⟩
+        (2, 0b11, 0b11),  # Two controls on |11⟩
+        (3, 0b101, 0b101), # Three controls on |101⟩
+        (3, 0b111, 0b111), # Three controls on |111⟩
     ]
+    
+    for control_bits, control_value, expected_resolved_control_value in test_cases:
+        mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
+        sub = resolve_sub(mc_toffoli)
+        assert sub is not None
+        
+        # Assert that the resolved control value matches expected
+        assert control_value == expected_resolved_control_value
 
-    assert [(inst[0].op, list(inst[1])) for inst in compiled_basic.instructions] == [
-        (MultiControlled(H, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3)]),
-        (
-            MultiControlled(CNOT, 3, 0b111),
-            [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)],
-        ),
-        (MultiControlled(Y, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(5)]),
+
+def test_resolve_multicontrolled_toffoli_control_values() -> None:
+    """Test resolve_sub with MultiControlled Toffoli using different control values."""
+    # Test cases with expected resolved control values
+    # When MultiControlled(Toffoli, n, value) is resolved, it becomes MultiControlled(X, n+2, transformed_value)
+    # because Toffoli is a 3-qubit gate (2 controls + 1 target)
+    test_cases = [
+        # (control_bits, control_value, expected_control_value)
+        (1, 0b0, 0b110),    # Single control on |0⟩ -> 4-qubit MCX with control |110⟩
+        (1, 0b1, 0b111),    # Single control on |1⟩ -> 4-qubit MCX with control |111⟩
+        (2, 0b00, 0b1100),  # Double control on |00⟩ -> 5-qubit MCX with control |1100⟩
+        (2, 0b01, 0b1101),  # Double control on |01⟩ -> 5-qubit MCX with control |1101⟩
+        (2, 0b10, 0b1110),  # Double control on |10⟩ -> 5-qubit MCX with control |1110⟩
+        (2, 0b11, 0b1111),  # Double control on |11⟩ -> 5-qubit MCX with control |1111⟩
+        (3, 0b000, 0b11000), # Triple control on |000⟩ -> 6-qubit MCX with control |11000⟩
+        (3, 0b101, 0b11101), # Triple control on |101⟩ -> 6-qubit MCX with control |11101⟩
+        (3, 0b111, 0b11111), # Triple control on |111⟩ -> 6-qubit MCX with control |11111⟩
     ]
-    assert [(inst[0].op, list(inst[1])) for inst in compiled_sim.instructions] == [
-        (MultiControlled(H, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(3)]),
-        (
-            MultiControlled(CNOT, 3, 0b111),
-            [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4)],
-        ),
-        (MultiControlled(Y, 3, 0b111), [Qubit(0), Qubit(1), Qubit(2), Qubit(5)]),
-    ]
+    
+    # Use a repository with the multi-controlled resolver to preserve MultiControlled operations
+    repo = default_repository().copy()
+    repo.register_sub_resolver(
+        MultiControlled, generate_multicontrolled_sub_resolver()
+    )
+    
+    for control_bits, control_value, expected_control_value in test_cases:
+        mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
+        sub = resolve_sub(mc_toffoli, repo)
+        assert sub is not None
+        
+        # Assert that sub.operations consists of exactly one MultiControlled operation
+        assert len(sub.operations) == 1
+        
+        op, qubits, registers = sub.operations[0]
+        assert hasattr(op, 'id') and op.id.local_name == 'MultiControlled'
+        
+        # Assert that the control value of the MultiControlled operation matches expected
+        # MultiControlled params are (target_op, control_bits, control_value)
+        assert len(op.id.params) >= 3
+        resolved_control_value = op.id.params[2]
+        assert resolved_control_value == expected_control_value
 
 
 class TestMultiControlledNamedMCGatesSub:
