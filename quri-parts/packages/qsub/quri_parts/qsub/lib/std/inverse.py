@@ -123,9 +123,7 @@ def inverse_target_condition(op: AbstractOp) -> SubResolverCondition:
     return cond
 
 
-def _inverse_rotation_resolver_gen(
-    op_factory: OpFactory[float],
-) -> SubResolver:
+def _inverse_rotation_resolver_gen(op_factory: OpFactory[float]) -> SubResolver:
     def resolver(op: Op, repository: SubRepository) -> Sub:
         target = op.id.params[0]
         assert isinstance(target, Op)
@@ -168,8 +166,7 @@ def inverse_multicontrolled_resolver(op: Op, repository: SubRepository) -> Sub:
     assert isinstance(inner_op, Op)
     builder = SubBuilder(op.qubit_count, op.reg_count)
     builder.add_op(
-        MultiControlled(Inverse(inner_op), control_bits, control_value),
-        builder.qubits,
+        MultiControlled(Inverse(inner_op), control_bits, control_value), builder.qubits
     )
     return builder.build()
 

@@ -12,10 +12,7 @@ def test_link() -> None:
             (),
             (),
             (),
-            (
-                (SubCall(S, None), (Qubit(0),), ()),
-                (SubCall(S, None), (Qubit(0),), ()),
-            ),
+            ((SubCall(S, None), (Qubit(0),), ()), (SubCall(S, None), (Qubit(0),), ())),
         ),
         S: MachineSub(
             (Qubit(0),),

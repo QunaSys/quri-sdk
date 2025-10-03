@@ -419,9 +419,7 @@ def test_resolve_multicontrolled_toffoli_control_values() -> None:
     # Use a repository with the multi-controlled resolver
     # to preserve MultiControlled operations
     repo = default_repository().copy()
-    repo.register_sub_resolver(
-        MultiControlled, generate_multicontrolled_sub_resolver()
-    )
+    repo.register_sub_resolver(MultiControlled, generate_multicontrolled_sub_resolver())
 
     for control_bits, control_value, expected_control_value in test_cases:
         mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)

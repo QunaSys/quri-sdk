@@ -31,8 +31,7 @@ class _QFTdag(ParamUnitarySubDef[int]):
         for k in range(bits):
             for i in range(k):
                 builder.add_op(
-                    Controlled(Phase(-pi / (2 ** (k - i)))),
-                    (qubits[i], qubits[k]),
+                    Controlled(Phase(-pi / (2 ** (k - i)))), (qubits[i], qubits[k])
                 )
             builder.add_op(H, (qubits[k],))
 

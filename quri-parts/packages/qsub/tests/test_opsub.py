@@ -87,10 +87,7 @@ class TestOpSubDef:
 
         Foo, FooSub = opsub(_D, None)
         assert Foo == Op(
-            Ident(namespace, "Foo", (1, 2)),
-            qubit_count=3,
-            reg_count=2,
-            unitary=False,
+            Ident(namespace, "Foo", (1, 2)), qubit_count=3, reg_count=2, unitary=False
         )
         assert isinstance(FooSub, Sub)
         assert len(FooSub.qubits) == 3
@@ -201,10 +198,7 @@ class TestParamOpSubDef:
         assert Foo.base_id == (namespace, "Foo")
 
         assert Foo(2) == Op(
-            Ident(namespace, "Foo", (2,)),
-            qubit_count=4,
-            reg_count=6,
-            unitary=False,
+            Ident(namespace, "Foo", (2,)), qubit_count=4, reg_count=6, unitary=False
         )
 
         sub = FooSub(2)

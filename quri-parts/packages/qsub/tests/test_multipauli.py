@@ -1,6 +1,6 @@
 import numpy as np
-from quri_parts.circuit import gates
 
+from quri_parts.circuit import gates
 from quri_parts.qsub.compile import compile_sub
 from quri_parts.qsub.eval.quriparts import QURIPartsEvaluatorHooks
 from quri_parts.qsub.evaluate import Evaluator
@@ -45,8 +45,7 @@ class TestMultiPauliOpSub:
 
         circ = Evaluator(QURIPartsEvaluatorHooks()).run(
             compile_sub(
-                sub,
-                primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT),
+                sub, primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT)
             )
         )
         assert list(circ.gates) == [
@@ -71,8 +70,7 @@ class TestMultiPauliOpSub:
 
         circ = Evaluator(QURIPartsEvaluatorHooks()).run(
             compile_sub(
-                sub,
-                primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT),
+                sub, primitives=(std.H, std.SqrtX, std.SqrtXdag, std.RZ, std.CNOT)
             )
         )
         assert list(circ.gates) == [
