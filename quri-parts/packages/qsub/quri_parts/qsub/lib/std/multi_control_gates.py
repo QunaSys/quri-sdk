@@ -210,7 +210,7 @@ _mc_gate_mapping_param: dict[BaseIdent, OpFactory[[int, float]]] = {
 def MultiControlledNamedMCGatesSub(
     target_op: Op, control_bits: int, control_value: int
 ) -> Sub | None:
-    """Expands MultiControlled operations using named multi-controlled gates.
+    """Resolves MultiControlled operations using named multi-controlled gates.
 
     Maps known target operations to their corresponding named MC gate variants
     (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, returns
