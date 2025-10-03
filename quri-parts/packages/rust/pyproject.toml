@@ -32,7 +32,7 @@ keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
 
 [project.urls]
-Repository = "https://github.com/QunaSys/quri-parts"
+Repository = "https://github.com/QunaSys/quri-sdk"
 Documentation = "https://quri-parts.qunasys.com"
 
 # The followings is needed for rust-sdist-package CI
