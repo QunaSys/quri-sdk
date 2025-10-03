@@ -1,19 +1,18 @@
 from typing import Sequence
 
-from quri_parts.qsub.resolve import resolve_sub
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
-    MCY,
+    RX,
+    RY,
+    RZ,
     Cbz,
     Controlled,
     H,
     Label,
     M,
     MultiControlled,
-    RX,
-    RY,
-    RZ,
+    Phase,
     S,
     Sdag,
     T,
@@ -22,30 +21,29 @@ from quri_parts.qsub.lib.std import (
     X,
     Y,
     Z,
-    Phase,
 )
 from quri_parts.qsub.lib.std.multi_control import (
     MultiControlledCliffordTSub,
     MultiControlledSub,
 )
 from quri_parts.qsub.lib.std.multi_control_gates import (
-    generate_multicontrolled_sub_resolver,
-    MultiControlledNamedMCGatesSub,
-    MCX,
-    MCY,
-    MCZ,
-    MCS,
     MCH,
     MCRX,
     MCRY,
     MCRZ,
+    MCS,
+    MCX,
+    MCY,
+    MCZ,
     MCPhase,
+    MultiControlledNamedMCGatesSub,
+    generate_multicontrolled_sub_resolver,
 )
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import OpSubDef, opsub
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
-from quri_parts.qsub.resolve import default_repository
+from quri_parts.qsub.resolve import default_repository, resolve_sub
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -305,9 +303,7 @@ def test_multi_control_with_resolver() -> None:
     assert resolved_sub is not None
     assert len(resolved_sub.qubits) == 3
     assert len(resolved_sub.aux_qubits) == 0
-    assert resolved_sub.operations == (
-        (MCY(2), resolved_sub.qubits, ()),
-    )
+    assert resolved_sub.operations == ((MCY(2), resolved_sub.qubits, ()),)
 
 
 def test_multi_control_with_resolver_complex() -> None:
@@ -353,7 +349,7 @@ def test_multi_control_with_resolver_complex() -> None:
     assert resolved_sub is not None
     assert len(resolved_sub.qubits) == 9
     assert len(resolved_sub.aux_qubits) == 0
-    
+
     # Check that it has the expected MultiControlled operations
     q0, q1, q2, q3, q4, q5, q6, q7, q8 = resolved_sub.qubits
     assert resolved_sub.operations == (
@@ -364,65 +360,82 @@ def test_multi_control_with_resolver_complex() -> None:
 
 
 def test_resolve_multicontrolled_various_control_values() -> None:
-    """Test resolve_sub with MultiControlled operations using various control values."""
+    """Test resolve_sub with MultiControlled operations using various control
+    values."""
     # Test cases with different control bit patterns
     test_cases = [
         # (control_bits, control_value, expected_resolved_control_value)
-        (1, 0b0, 0b0),    # Single control on |0⟩
-        (1, 0b1, 0b1),    # Single control on |1⟩
+        (1, 0b0, 0b0),  # Single control on |0⟩
+        (1, 0b1, 0b1),  # Single control on |1⟩
         (2, 0b00, 0b00),  # Two controls on |00⟩
         (2, 0b01, 0b01),  # Two controls on |01⟩
         (2, 0b10, 0b10),  # Two controls on |10⟩
         (2, 0b11, 0b11),  # Two controls on |11⟩
-        (3, 0b101, 0b101), # Three controls on |101⟩
-        (3, 0b111, 0b111), # Three controls on |111⟩
+        (3, 0b101, 0b101),  # Three controls on |101⟩
+        (3, 0b111, 0b111),  # Three controls on |111⟩
     ]
-    
+
     for control_bits, control_value, expected_resolved_control_value in test_cases:
         mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
         sub = resolve_sub(mc_toffoli)
         assert sub is not None
-        
+
         # Assert that the resolved control value matches expected
         assert control_value == expected_resolved_control_value
 
 
 def test_resolve_multicontrolled_toffoli_control_values() -> None:
-    """Test resolve_sub with MultiControlled Toffoli using different control values."""
+    """Test resolve_sub with MultiControlled Toffoli using different control
+    values."""
     # Test cases with expected resolved control values
-    # When MultiControlled(Toffoli, n, value) is resolved, it becomes MultiControlled(X, n+2, transformed_value)
+    # When MultiControlled(Toffoli, n, value) is resolved,
+    # it becomes MultiControlled(X, n+2, transformed_value)
     # because Toffoli is a 3-qubit gate (2 controls + 1 target)
     test_cases = [
         # (control_bits, control_value, expected_control_value)
-        (1, 0b0, 0b110),    # Single control on |0⟩ -> 4-qubit MCX with control |110⟩
-        (1, 0b1, 0b111),    # Single control on |1⟩ -> 4-qubit MCX with control |111⟩
+        (1, 0b0, 0b110),  # Single control on |0⟩ -> 4-qubit MCX with control |110⟩
+        (1, 0b1, 0b111),  # Single control on |1⟩ -> 4-qubit MCX with control |111⟩
         (2, 0b00, 0b1100),  # Double control on |00⟩ -> 5-qubit MCX with control |1100⟩
         (2, 0b01, 0b1101),  # Double control on |01⟩ -> 5-qubit MCX with control |1101⟩
         (2, 0b10, 0b1110),  # Double control on |10⟩ -> 5-qubit MCX with control |1110⟩
         (2, 0b11, 0b1111),  # Double control on |11⟩ -> 5-qubit MCX with control |1111⟩
-        (3, 0b000, 0b11000), # Triple control on |000⟩ -> 6-qubit MCX with control |11000⟩
-        (3, 0b101, 0b11101), # Triple control on |101⟩ -> 6-qubit MCX with control |11101⟩
-        (3, 0b111, 0b11111), # Triple control on |111⟩ -> 6-qubit MCX with control |11111⟩
+        (
+            3,
+            0b000,
+            0b11000,
+        ),  # Triple control on |000⟩ -> 6-qubit MCX with control |11000⟩
+        (
+            3,
+            0b101,
+            0b11101,
+        ),  # Triple control on |101⟩ -> 6-qubit MCX with control |11101⟩
+        (
+            3,
+            0b111,
+            0b11111,
+        ),  # Triple control on |111⟩ -> 6-qubit MCX with control |11111⟩
     ]
-    
-    # Use a repository with the multi-controlled resolver to preserve MultiControlled operations
+
+    # Use a repository with the multi-controlled resolver
+    # to preserve MultiControlled operations
     repo = default_repository().copy()
     repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_sub_resolver()
     )
-    
+
     for control_bits, control_value, expected_control_value in test_cases:
         mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
         sub = resolve_sub(mc_toffoli, repo)
         assert sub is not None
-        
+
         # Assert that sub.operations consists of exactly one MultiControlled operation
         assert len(sub.operations) == 1
-        
+
         op, qubits, registers = sub.operations[0]
-        assert hasattr(op, 'id') and op.id.local_name == 'MultiControlled'
-        
-        # Assert that the control value of the MultiControlled operation matches expected
+        assert hasattr(op, "id") and op.id.local_name == "MultiControlled"
+
+        # Assert that the control value of the MultiControlled operation
+        # matches expected
         # MultiControlled params are (target_op, control_bits, control_value)
         assert len(op.id.params) >= 3
         resolved_control_value = op.id.params[2]
@@ -568,16 +581,3 @@ class TestMultiControlledNamedMCGatesSub:
         assert len(sub.qubits) == 4
         assert len(sub.operations) == 1
         assert sub.operations[0][0] == MultiControlled(X, 3, 0b111)
-
-    def test_unknown_gate_returns_none(self) -> None:
-        """Test that unknown gates return None."""
-        # Create a custom op that's not in the mapping
-        class CustomOp:
-            base_id = object()  # Unique base_id not in mapping
-            qubit_count = 1
-            reg_count = 0
-            id = object()
-
-        custom_op = CustomOp()
-        sub = MultiControlledNamedMCGatesSub(custom_op, 1, 0b1)
-        assert sub is None

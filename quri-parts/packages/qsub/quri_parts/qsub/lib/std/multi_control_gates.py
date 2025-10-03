@@ -220,10 +220,7 @@ def MultiControlledNamedMCGatesSub(
     also resolves MultiControlled gates, generating known MC? gates and fallback
     with unknown ops.
     """
-    builder = SubBuilder(
-        target_op.qubit_count + control_bits,
-        target_op.reg_count
-    )
+    builder = SubBuilder(target_op.qubit_count + control_bits, target_op.reg_count)
     qubits = builder.qubits
 
     # Handle negation using add_neg pattern
@@ -257,7 +254,9 @@ def MultiControlledNamedMCGatesSub(
         add_neg()
     elif target_op.base_id == Toffoli.base_id:
         builder.add_op(
-            MultiControlled(X, control_bits + 2, control_value + ((2 + 1) << control_bits)),
+            MultiControlled(
+                X, control_bits + 2, control_value + ((2 + 1) << control_bits)
+            ),
             qubits,
         )
     elif target_op.base_id == CNOT.base_id:
@@ -267,7 +266,9 @@ def MultiControlledNamedMCGatesSub(
             add_neg()
         else:
             builder.add_op(
-                MultiControlled(X, control_bits + 1, control_value + (1 << control_bits)),
+                MultiControlled(
+                    X, control_bits + 1, control_value + (1 << control_bits)
+                ),
                 qubits,
             )
     elif target_op.base_id == CZ.base_id:
