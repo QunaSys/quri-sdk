@@ -257,7 +257,7 @@ def MultiControlledNamedMCGatesSub(
         add_neg()
     elif target_op.base_id == Toffoli.base_id:
         builder.add_op(
-            MultiControlled(X, control_bits + 2, (control_value << 2) + 2 + 1),
+            MultiControlled(X, control_bits + 2, control_value + ((2 + 1) << control_bits)),
             qubits,
         )
     elif target_op.base_id == CNOT.base_id:
@@ -267,12 +267,12 @@ def MultiControlledNamedMCGatesSub(
             add_neg()
         else:
             builder.add_op(
-                MultiControlled(X, control_bits + 1, (control_value << 1) + 1),
+                MultiControlled(X, control_bits + 1, control_value + (1 << control_bits)),
                 qubits,
             )
     elif target_op.base_id == CZ.base_id:
         builder.add_op(
-            MultiControlled(Z, control_bits + 1, (control_value << 1) + 1),
+            MultiControlled(Z, control_bits + 1, control_value + (1 << control_bits)),
             qubits,
         )
     elif target_op.base_id == MultiControlled.base_id:
@@ -284,7 +284,7 @@ def MultiControlledNamedMCGatesSub(
             MultiControlled(
                 mc_target_op,
                 control_bits + mc_control_bits,
-                (control_value << mc_control_bits) + mc_control_value,
+                control_value + (mc_control_value << control_bits),
             ),
             qubits,
         )
@@ -296,7 +296,7 @@ def MultiControlledNamedMCGatesSub(
             MultiControlled(
                 c_op,
                 control_bits + 1,
-                (control_value << 1) + 1,
+                control_value + (1 << control_bits),
             ),
             qubits,
         )
@@ -388,7 +388,7 @@ def generate_multicontrolled_sub_resolver(
         eps = 1e-13
         if phase > eps:
             if (control_value & (1 << (control_bits - 1))) == 0:
-                # use diag(e^i(phase), 1)  instead of diag(1, e^(phase))
+                # use diag(e^i(phase), 1)  instead of diag(1, e^i(phase))
                 phase = (-phase) % (2 * math.pi)
                 builder.add_phase(phase)
             if abs(phase - math.pi) < eps:
@@ -407,7 +407,7 @@ def generate_multicontrolled_sub_resolver(
                     MultiControlled(
                         phase_op,
                         control_bits - 1,
-                        control_value & ((1 << control_bits) - 1),
+                        control_value & ((1 << (control_bits - 1)) - 1),
                     ),
                     qubits=control_q,
                 )
