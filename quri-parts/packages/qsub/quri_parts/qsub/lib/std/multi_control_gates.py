@@ -216,15 +216,14 @@ def MultiControlledNamedMCGatesSub(
     (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, returns
     None to allow the system to fall back to the standard MultiControlledSub resolver.
 
-    From the end-user perspective, all MultiControlled operations work: known
-    operations use optimized named gates, while unknown operations use the standard
-    decomposition.
-
-    Example:
-        >>> new_repo = default_repository().copy()
-        >>> new_repo.register_sub(MultiControlled, MultiControlledNamedMCGatesSub)
+    Please use :func:`generate_multicontrolled_sub_resolver()` instead, which
+    also resolves MultiControlled gates, generating known MC? gates and fallback
+    with unknown ops.
     """
-    builder = SubBuilder(target_op.qubit_count, target_op.reg_count)
+    builder = SubBuilder(
+        target_op.qubit_count + control_bits,
+        target_op.reg_count
+    )
     qubits = builder.qubits
 
     # Handle negation using add_neg pattern
@@ -319,6 +318,10 @@ def generate_multicontrolled_sub_resolver(
     when converting circuits to SimulatorBasicSet. In other cases, it may emit
     redundant Toffoli (or s_and) chains during the compilation process.
 
+    From the end-user perspective, all MultiControlled operations work: known
+    operations use optimized named gates, while unknown operations use the standard
+    decomposition.
+
     Algorithm:
     1. Evaluate MultiControlledNamedMCGatesSub to try converting the MultiControlled
        operation to a named MC gate.
@@ -338,7 +341,6 @@ def generate_multicontrolled_sub_resolver(
     """
 
     def resolver(op: Op, repository: SubRepository) -> Sub | None:
-        print(f"in generate_multicontrolled_sub_resolver, {op=}")
         target_op, control_bits, control_value = op.id.params
         assert isinstance(target_op, Op)
         assert isinstance(control_bits, int)
@@ -347,7 +349,6 @@ def generate_multicontrolled_sub_resolver(
         named_sub = MultiControlledNamedMCGatesSub(
             target_op, control_bits, control_value
         )
-        print(f"{named_sub=}")
         if named_sub is not None:
             return named_sub
 
@@ -356,7 +357,6 @@ def generate_multicontrolled_sub_resolver(
         if target_sub_resolver is not None:
             target_sub = target_sub_resolver(target_op, repository)
 
-        print(f"{target_sub=}")
         if target_sub is None:
             return _multi_controlled_sub(target_op, control_bits, control_value, s_and)
 
