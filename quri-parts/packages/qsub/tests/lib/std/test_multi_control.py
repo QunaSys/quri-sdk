@@ -1,3 +1,4 @@
+import math
 from typing import Sequence
 
 from quri_parts.qsub.lib.std import (
@@ -37,7 +38,7 @@ from quri_parts.qsub.lib.std.multi_control_gates import (
     MCZ,
     MCPhase,
     MultiControlledNamedMCGatesSub,
-    generate_multicontrolled_sub_resolver,
+    generate_multicontrolled_to_mc_sub_resolver,
 )
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import OpSubDef, opsub
@@ -284,7 +285,7 @@ def test_multi_control_with_resolver() -> None:
 
     new_repo = default_repository().copy()
     new_repo.register_sub_resolver(
-        MultiControlled, generate_multicontrolled_sub_resolver()
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
     )
 
     default_sub = resolve_sub(mcy)
@@ -342,7 +343,7 @@ def test_multi_control_with_resolver_complex() -> None:
     new_repo = default_repository().copy()
     new_repo.register_sub(complex_op, complex_sub)
     new_repo.register_sub_resolver(
-        MultiControlled, generate_multicontrolled_sub_resolver()
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
     )
 
     resolved_sub = resolve_sub(mcy_with_complex_sub, new_repo)
@@ -419,7 +420,9 @@ def test_resolve_multicontrolled_toffoli_control_values() -> None:
     # Use a repository with the multi-controlled resolver
     # to preserve MultiControlled operations
     repo = default_repository().copy()
-    repo.register_sub_resolver(MultiControlled, generate_multicontrolled_sub_resolver())
+    repo.register_sub_resolver(
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+    )
 
     for control_bits, control_value, expected_control_value in test_cases:
         mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
@@ -579,3 +582,608 @@ class TestMultiControlledNamedMCGatesSub:
         assert len(sub.qubits) == 4
         assert len(sub.operations) == 1
         assert sub.operations[0][0] == MultiControlled(X, 3, 0b111)
+
+    def test_mcx_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping X to MCX with 4-bit control value (all ones)."""
+        sub = MultiControlledNamedMCGatesSub(X, 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCX(4), sub.qubits, ())
+
+    def test_mcx_gate_4bit_control_mixed_pattern(self) -> None:
+        """Test mapping X to MCX with 4-bit control value (mixed 0s and 1s)."""
+        sub = MultiControlledNamedMCGatesSub(X, 4, 0b1010)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 0 and 2 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[1] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[2] == (MCX(4), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[4] == (X, (sub.qubits[2],), ())  # Negate bit 2
+
+    def test_mcx_gate_5bit_control_alternating_pattern(self) -> None:
+        """Test mapping X to MCX with 5-bit control value (alternating
+        pattern)."""
+        sub = MultiControlledNamedMCGatesSub(X, 5, 0b10101)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 1 and 3 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[2] == (MCX(5), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[4] == (X, (sub.qubits[3],), ())  # Negate bit 3
+
+    def test_mcx_gate_6bit_control_sparse_pattern(self) -> None:
+        """Test mapping X to MCX with 6-bit control value (sparse pattern)."""
+        sub = MultiControlledNamedMCGatesSub(X, 6, 0b100001)
+        assert sub is not None
+        assert len(sub.qubits) == 7
+        assert len(sub.operations) == 9
+        # Should have X gates for negation (bits 1,2,3,4 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[2] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[3] == (X, (sub.qubits[4],), ())  # Negate bit 4
+        assert sub.operations[4] == (MCX(6), sub.qubits, ())  # All qubits used
+        assert sub.operations[5] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[6] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[7] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[8] == (X, (sub.qubits[4],), ())  # Negate bit 4
+
+    def test_mcy_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping Y to MCY with 4-bit control value (all ones)."""
+        sub = MultiControlledNamedMCGatesSub(Y, 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCY(4), sub.qubits, ())
+
+    def test_mcy_gate_4bit_control_mixed_pattern(self) -> None:
+        """Test mapping Y to MCY with 4-bit control value (mixed 0s and 1s)."""
+        sub = MultiControlledNamedMCGatesSub(Y, 4, 0b0110)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 0 and 3 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[1] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[2] == (MCY(4), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[4] == (X, (sub.qubits[3],), ())  # Negate bit 3
+
+    def test_mcy_gate_5bit_control_complex_pattern(self) -> None:
+        """Test mapping Y to MCY with 5-bit control value (complex pattern)."""
+        sub = MultiControlledNamedMCGatesSub(Y, 5, 0b11001)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 1 and 2 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[2] == (MCY(5), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[4] == (X, (sub.qubits[2],), ())  # Negate bit 2
+
+    def test_mcz_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping Z to MCZ with 4-bit control value (all ones)."""
+        sub = MultiControlledNamedMCGatesSub(Z, 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCZ(4), sub.qubits, ())
+
+    def test_mcz_gate_4bit_control_checkboard_pattern(self) -> None:
+        """Test mapping Z to MCZ with 4-bit control value (checkerboard
+        pattern)."""
+        sub = MultiControlledNamedMCGatesSub(Z, 4, 0b0101)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 1 and 3 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[2] == (MCZ(4), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[4] == (X, (sub.qubits[3],), ())  # Negate bit 3
+
+    def test_mcz_gate_6bit_control_edge_pattern(self) -> None:
+        """Test mapping Z to MCZ with 6-bit control value (edge pattern)."""
+        sub = MultiControlledNamedMCGatesSub(Z, 6, 0b100001)
+        assert sub is not None
+        assert len(sub.qubits) == 7
+        assert len(sub.operations) == 9
+        # Should have X gates for negation (bits 1,2,3,4 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[2] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[3] == (X, (sub.qubits[4],), ())  # Negate bit 4
+        assert sub.operations[4] == (MCZ(6), sub.qubits, ())  # All qubits used
+        assert sub.operations[5] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[6] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[7] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[8] == (X, (sub.qubits[4],), ())  # Negate bit 4
+
+    def test_mcs_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping S to MCS with 4-bit control value (all ones)."""
+        sub = MultiControlledNamedMCGatesSub(S, 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCS(4), sub.qubits, ())
+
+    def test_mcs_gate_5bit_control_mixed_pattern(self) -> None:
+        """Test mapping S to MCS with 5-bit control value (mixed pattern)."""
+        sub = MultiControlledNamedMCGatesSub(S, 5, 0b10110)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 0 and 3 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[1] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[2] == (MCS(5), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[4] == (X, (sub.qubits[3],), ())  # Negate bit 3
+
+    def test_mch_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping H to MCH with 4-bit control value (all ones)."""
+        sub = MultiControlledNamedMCGatesSub(H, 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCH(4), sub.qubits, ())
+
+    def test_mch_gate_5bit_control_diagonal_pattern(self) -> None:
+        """Test mapping H to MCH with 5-bit control value (diagonal
+        pattern)."""
+        sub = MultiControlledNamedMCGatesSub(H, 5, 0b10001)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 7
+        # Should have X gates for negation (bits 1,2,3 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[2] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[3] == (MCH(5), sub.qubits, ())  # All qubits used
+        assert sub.operations[4] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[5] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[6] == (X, (sub.qubits[3],), ())  # Negate bit 3
+
+    def test_mcrx_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping RX to MCRX with 4-bit control value (all ones)."""
+        angle = 2.1
+        sub = MultiControlledNamedMCGatesSub(RX(angle), 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCRX(4, angle), sub.qubits, ())
+
+    def test_mcrx_gate_5bit_control_mixed_pattern(self) -> None:
+        """Test mapping RX to MCRX with 5-bit control value (mixed pattern)."""
+        angle = 1.8
+        sub = MultiControlledNamedMCGatesSub(RX(angle), 5, 0b01101)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 1 and 4 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[1] == (X, (sub.qubits[4],), ())  # Negate bit 4
+        assert sub.operations[2] == (MCRX(5, angle), sub.qubits, ())  # All qubits used
+        assert sub.operations[3] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[4] == (X, (sub.qubits[4],), ())  # Negate bit 4
+
+    def test_mcry_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping RY to MCRY with 4-bit control value (all ones)."""
+        angle = 0.75
+        sub = MultiControlledNamedMCGatesSub(RY(angle), 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCRY(4, angle), sub.qubits, ())
+
+    def test_mcry_gate_6bit_control_sparse_pattern(self) -> None:
+        """Test mapping RY to MCRY with 6-bit control value (sparse
+        pattern)."""
+        angle = 3.14
+        sub = MultiControlledNamedMCGatesSub(RY(angle), 6, 0b100100)
+        assert sub is not None
+        assert len(sub.qubits) == 7
+        assert len(sub.operations) == 9
+        # Should have X gates for negation (bits 0,1,3,4 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[1] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[2] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[3] == (X, (sub.qubits[4],), ())  # Negate bit 4
+        assert sub.operations[4] == (MCRY(6, angle), sub.qubits, ())  # All qubits used
+        assert sub.operations[5] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[6] == (X, (sub.qubits[1],), ())  # Negate bit 1
+        assert sub.operations[7] == (X, (sub.qubits[3],), ())  # Negate bit 3
+        assert sub.operations[8] == (X, (sub.qubits[4],), ())  # Negate bit 4
+
+    def test_mcrz_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping RZ to MCRZ with 4-bit control value (all ones)."""
+        angle = 1.57
+        sub = MultiControlledNamedMCGatesSub(RZ(angle), 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCRZ(4, angle), sub.qubits, ())
+
+    def test_mcrz_gate_5bit_control_alternating_pattern(self) -> None:
+        """Test mapping RZ to MCRZ with 5-bit control value (alternating
+        pattern)."""
+        angle = 2.5
+        sub = MultiControlledNamedMCGatesSub(RZ(angle), 5, 0b01010)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 7
+        # Should have X gates for negation (bits 0,2,4 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[1] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[2] == (X, (sub.qubits[4],), ())  # Negate bit 4
+        assert sub.operations[3] == (MCRZ(5, angle), sub.qubits, ())  # All qubits used
+        assert sub.operations[4] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[5] == (X, (sub.qubits[2],), ())  # Negate bit 2
+        assert sub.operations[6] == (X, (sub.qubits[4],), ())  # Negate bit 4
+
+    def test_mcphase_gate_4bit_control_all_ones(self) -> None:
+        """Test mapping Phase to MCPhase with 4-bit control value (all
+        ones)."""
+        angle = 0.95
+        sub = MultiControlledNamedMCGatesSub(Phase(angle), 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 1
+        assert sub.operations[0] == (MCPhase(4, angle), sub.qubits, ())
+
+    def test_mcphase_gate_6bit_control_center_pattern(self) -> None:
+        """Test mapping Phase to MCPhase with 6-bit control value (center
+        pattern)."""
+        angle = 1.23
+        sub = MultiControlledNamedMCGatesSub(Phase(angle), 6, 0b011110)
+        assert sub is not None
+        assert len(sub.qubits) == 7
+        assert len(sub.operations) == 5
+        # Should have X gates for negation (bits 0 and 5 are 0)
+        assert sub.operations[0] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[1] == (X, (sub.qubits[5],), ())  # Negate bit 5
+        # All qubits used
+        assert sub.operations[2] == (MCPhase(6, angle), sub.qubits, ())
+        assert sub.operations[3] == (X, (sub.qubits[0],), ())  # Negate bit 0
+        assert sub.operations[4] == (X, (sub.qubits[5],), ())  # Negate bit 5
+
+
+class TestPhaseHandlingInResolver:
+    """Test phase handling in generate_multicontrolled_to_mc_sub_resolver."""
+
+    def test_phase_pi_with_msb_set(self) -> None:
+        """Test phase π handling when MSB is set in control_value."""
+
+        # Create a custom operation with phase π
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(math.pi)  # Add π phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set (control_value = 0b11, MSB is bit 1)
+        mc_phase_op = MultiControlled(phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Z (for π phase)
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(Z, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1
+
+    def test_phase_pi_with_msb_unset(self) -> None:
+        """Test phase π handling when MSB is unset in control_value."""
+
+        # Create a custom operation with phase π
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(math.pi)  # Add π phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB unset (control_value = 0b01, MSB is bit 1)
+        mc_phase_op = MultiControlled(phase_op, 2, 0b01)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Z (for -π phase)
+        # When MSB is unset, phase is negated, so -π % 2π = π
+        # The control value for phase is control_value & ((1 << (control_bits - 1)) - 1)
+        # = 0b01 & 0b01 = 0b01 = 1
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b01), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(Z, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1
+        # Global phase π is added
+        assert resolved_sub.phase == math.pi
+
+    def test_phase_pi_half_with_msb_set(self) -> None:
+        """Test phase π/2 handling when MSB is set in control_value."""
+
+        # Create a custom operation with phase π/2
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(math.pi / 2)  # Add π/2 phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set (control_value = 0b11, MSB is bit 1)
+        mc_phase_op = MultiControlled(phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled S (for π/2 phase)
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(S, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1
+
+    def test_phase_3pi_half_with_msb_set(self) -> None:
+        """Test phase 3π/2 handling when MSB is set in control_value."""
+
+        # Create a custom operation with phase 3π/2
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(3 * math.pi / 2)  # Add 3π/2 phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set (control_value = 0b11, MSB is bit 1)
+        mc_phase_op = MultiControlled(phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Sdag (for 3π/2 phase)
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(Sdag, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1
+
+    def test_arbitrary_phase_with_msb_set(self) -> None:
+        """Test arbitrary phase handling when MSB is set in control_value."""
+        # Create a custom operation with arbitrary phase
+        arbitrary_phase = 1.23
+
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(arbitrary_phase)  # Add arbitrary phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set (control_value = 0b11, MSB is bit 1)
+        mc_phase_op = MultiControlled(phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Phase (for arbitrary phase)
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        expected_phase_op = MultiControlled(Phase(arbitrary_phase), 1, 0b1)
+        op_1 = (expected_phase_op, resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1
+
+    def test_single_control_phase_handling(self) -> None:
+        """Test phase handling with single control bit."""
+
+        # Create a custom operation with phase π/2
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(math.pi / 2)  # Add π/2 phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with single control bit set
+        mc_phase_op = MultiControlled(phase_op, 1, 0b1)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and S gate on control qubit
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[0] == op_0
+        assert resolved_sub.operations[1] == (S, resolved_sub.qubits[:1], ())
+
+    def test_three_control_phase_handling(self) -> None:
+        """Test phase handling with three control bits."""
+
+        # Create a custom operation with phase π
+        class PhaseOpSubDef(OpSubDef):
+            name = "PhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(math.pi)  # Add π phase
+
+        repo = default_repository().copy()
+        phase_op, phase_sub = opsub(PhaseOpSubDef, repo)
+        repo.register_sub(phase_op, phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with 3 control bits (control_value = 0b111, MSB is bit 2)
+        mc_phase_op = MultiControlled(phase_op, 3, 0b111)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Z with 2 controls
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 3, 0b111), resolved_sub.qubits[:4], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(Z, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[1] == op_1
+
+    def test_zero_phase_handling(self) -> None:
+        """Test that operations with zero phase don't add phase operations."""
+
+        # Create a custom operation with zero phase
+        class ZeroPhaseOpSubDef(OpSubDef):
+            name = "ZeroPhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                # No phase added (default is 0)
+
+        repo = default_repository().copy()
+        zero_phase_op, zero_phase_sub = opsub(ZeroPhaseOpSubDef, repo)
+        repo.register_sub(zero_phase_op, zero_phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with 2 control bits
+        mc_zero_phase_op = MultiControlled(zero_phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_zero_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should only have MultiControlled X, no phase operation
+        assert len(resolved_sub.operations) == 1
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        assert resolved_sub.phase == 0
+
+    def test_phase_modulo_2pi_handling(self) -> None:
+        """Test phase handling with values greater than 2π."""
+        # Create a custom operation with phase > 2π
+        large_phase = 3 * math.pi  # Should be equivalent to π after modulo
+
+        class LargePhaseOpSubDef(OpSubDef):
+            name = "LargePhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(large_phase)
+
+        repo = default_repository().copy()
+        large_phase_op, large_phase_sub = opsub(LargePhaseOpSubDef, repo)
+        repo.register_sub(large_phase_op, large_phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set
+        mc_large_phase_op = MultiControlled(large_phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_large_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Z (since 3π % 2π = π)
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(Z, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1
+
+    def test_negative_phase_handling(self) -> None:
+        """Test phase handling with negative phase values."""
+        # Create a custom operation with negative phase
+        negative_phase = -math.pi / 2  # Should be equivalent to 3π/2 after modulo
+
+        class NegativePhaseOpSubDef(OpSubDef):
+            name = "NegativePhaseOp"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                builder.add_phase(negative_phase)
+
+        repo = default_repository().copy()
+        negative_phase_op, negative_phase_sub = opsub(NegativePhaseOpSubDef, repo)
+        repo.register_sub(negative_phase_op, negative_phase_sub)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set
+        mc_negative_phase_op = MultiControlled(negative_phase_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_negative_phase_op, repo)
+        assert resolved_sub is not None
+
+        # Should have MultiControlled X and MultiControlled Sdag
+        # (since -π/2 % 2π = 3π/2)
+        assert len(resolved_sub.operations) == 2
+        op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
+        assert resolved_sub.operations[0] == op_0
+        op_1 = (MultiControlled(Sdag, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[1] == op_1

@@ -216,7 +216,7 @@ def MultiControlledNamedMCGatesSub(
     (MCX, MCY, MCZ, MCS, etc.) when available. For unknown operations, returns
     None to allow the system to fall back to the standard MultiControlledSub resolver.
 
-    Please use :func:`generate_multicontrolled_sub_resolver()` instead, which
+    Please use :func:`generate_multicontrolled_to_mc_sub_resolver()` instead, which
     also resolves MultiControlled gates, generating known MC? gates and fallback
     with unknown ops.
     """
@@ -306,7 +306,7 @@ def MultiControlledNamedMCGatesSub(
     return builder.build()
 
 
-def generate_multicontrolled_sub_resolver(
+def generate_multicontrolled_to_mc_sub_resolver(
     s_and: Callable[
         [SubBuilder, Qubit, Qubit], AbstractContextManager[Qubit]
     ] = scoped_and  # type: ignore
@@ -337,7 +337,7 @@ def generate_multicontrolled_sub_resolver(
     Example:
         >>> new_repo = default_repository().copy()
         >>> new_repo.register_sub_resolver(
-        ...     MultiControlled, generate_multicontrolled_sub_resolver()
+        ...     MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
         ... )
     """
 
