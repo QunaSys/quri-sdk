@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quri-algo"
-version = "0.23.0"
+version = "0.24.0"
 description = "Algorithm library based on QURI Parts"
 license = "MIT"
 authors = ["QunaSys"]
@@ -8,13 +8,8 @@ readme = "README.md"
 repository = "https://github.com/QunaSys/quri-algo"
 documentation = "https://quri-sdk.qunasys.com"
 keywords = ["quantum", "quantum computing"]
-classifiers = [
-    "Topic :: Scientific/Engineering :: Physics",
-    "Typing :: Typed"
-]
-packages = [
-    { include = "quri_algo" }
-]
+classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
+packages = [{ include = "quri_algo" }]
 
 [tool.poetry-dynamic-versioning]
 enable = true
@@ -34,15 +29,15 @@ quri-parts-rust = "*"
 pytest = "^8.3.3"
 
 [tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../quri-parts/packages/circuit", develop = true}
-quri-parts-core = {path = "../quri-parts/packages/core", develop = true}
-quri-parts-algo = {path = "../quri-parts/packages/algo", develop = true}
-quri-parts-chem = {path = "../quri-parts/packages/chem", develop = true}
-quri-parts-qulacs = {path = "../quri-parts/packages/qulacs", develop = true}
-quri-parts-pyscf = {path = "../quri-parts/packages/pyscf", develop = true}
-quri-parts-openfermion = {path = "../quri-parts/packages/openfermion", develop = true}
-quri-parts-qsub = {path = "../quri-parts/packages/qsub", develop = true}
-quri-parts-rust = {path = "../quri-parts/packages/rust", develop = true}
+quri-parts-circuit = { path = "../quri-parts/packages/circuit", develop = true }
+quri-parts-core = { path = "../quri-parts/packages/core", develop = true }
+quri-parts-algo = { path = "../quri-parts/packages/algo", develop = true }
+quri-parts-chem = { path = "../quri-parts/packages/chem", develop = true }
+quri-parts-qulacs = { path = "../quri-parts/packages/qulacs", develop = true }
+quri-parts-pyscf = { path = "../quri-parts/packages/pyscf", develop = true }
+quri-parts-openfermion = { path = "../quri-parts/packages/openfermion", develop = true }
+quri-parts-qsub = { path = "../quri-parts/packages/qsub", develop = true }
+quri-parts-rust = { path = "../quri-parts/packages/rust", develop = true }
 
 [tool.poetry.group.ipykernel.dependencies]
 ipykernel = "^6.29.5"
