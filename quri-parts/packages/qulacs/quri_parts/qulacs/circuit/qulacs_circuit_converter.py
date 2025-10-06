@@ -24,6 +24,7 @@ from quri_parts.circuit import (
     gate_names,
 )
 from quri_parts.circuit.gate_names import (
+    MCGateNameType,
     MultiQubitGateNameType,
     SingleQubitGateNameType,
     TwoQubitGateNameType,
@@ -61,6 +62,8 @@ _multi_qubits_gate_qulacs_quri_parts: Mapping[str, MultiQubitGateNameType] = {
     "Pauli": gate_names.Pauli,
     "Pauli-rotation": gate_names.PauliRotation,
 }
+
+_mc_gate_qulacs_quri_parts: Mapping[str, MCGateNameType] = {}
 
 
 def circuit_from_qulacs(qulacs_circuit: QulacsQuantumCircuit) -> NPQC:

@@ -9,10 +9,12 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Callable, cast
+from typing import Any, Callable, cast
 
 import numpy as np
+import pytest
 import qulacs
+from qulacs.gate import to_matrix_gate
 
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
@@ -38,11 +40,12 @@ from quri_parts.qulacs.simulator import evaluate_state_to_vector
 def gates_equal(g1: qulacs.QuantumGateBase, g2: qulacs.QuantumGateBase) -> bool:
     def gate_info(
         g: qulacs.QuantumGateBase,
-    ) -> tuple[str, list[int], list[int]]:
+    ) -> tuple[str, list[int], list[int], list[int]]:
         return (
             g.get_name(),
             g.get_target_index_list(),
             g.get_control_index_list(),
+            g.get_control_value_list(),
         )
 
     return (gate_info(g1) == gate_info(g2)) and cast(
@@ -189,6 +192,59 @@ def test_convert_pauli_rotation_gate() -> None:
         ).get_matrix(),  # noqa: E501
         [[c, -s * 1j], [-s * 1j, c]],
     )
+
+
+@pytest.mark.parametrize(
+    "gate_factory, qulacs_factory",
+    [
+        (gates.MCX, qulacs.gate.X),
+        (gates.MCY, qulacs.gate.Y),
+        (gates.MCZ, qulacs.gate.Z),
+        (gates.MCH, qulacs.gate.H),
+        (gates.MCS, qulacs.gate.S),
+        (gates.MCSdag, qulacs.gate.Sdag),
+        (gates.MCT, qulacs.gate.T),
+        (gates.MCTdag, qulacs.gate.Tdag),
+        (gates.MCSqrtX, qulacs.gate.sqrtX),
+        (gates.MCSqrtXdag, qulacs.gate.sqrtXdag),
+        (gates.MCSqrtY, qulacs.gate.sqrtY),
+        (gates.MCSqrtYdag, qulacs.gate.sqrtYdag),
+    ],
+)
+def test_convert_mc_single_qubit_gate(gate_factory: Any, qulacs_factory: Any) -> None:
+    g = gate_factory(control_indices=(0, 1), target_index=2)
+    converted = convert_gate(g)
+    expected = to_matrix_gate(qulacs_factory(2))
+    expected.add_control_qubit(0, 1)
+    expected.add_control_qubit(1, 1)
+    assert gates_equal(converted, expected)
+
+
+@pytest.mark.parametrize(
+    "gate_factory, qulacs_factory",
+    [
+        (gates.MCRX, qulacs.gate.RX),
+        (gates.MCRY, qulacs.gate.RY),
+        (gates.MCRZ, qulacs.gate.RZ),
+    ],
+)
+def test_convert_mc_rotation_gate(gate_factory: Any, qulacs_factory: Any) -> None:
+    angle = 0.5
+    g = gate_factory(control_indices=(1,), target_index=3, angle=angle)
+    converted = convert_gate(g)
+    expected = to_matrix_gate(qulacs_factory(3, -angle))
+    expected.add_control_qubit(1, 1)
+    assert gates_equal(converted, expected)
+
+
+def test_convert_mcu1_gate() -> None:
+    angle = 0.25
+    g = gates.MCU1(control_indices=[0, 2], target_index=1, angle=angle)
+    converted = convert_gate(g)
+    expected = to_matrix_gate(qulacs.gate.U1(1, angle))
+    expected.add_control_qubit(0, 1)
+    expected.add_control_qubit(2, 1)
+    assert gates_equal(converted, expected)
 
 
 def test_convert_circuit() -> None:

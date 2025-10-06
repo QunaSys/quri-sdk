@@ -13,21 +13,27 @@ from typing import Callable, Union, cast
 
 import qulacs
 from numpy.typing import ArrayLike
+from qulacs.gate import to_matrix_gate
+
+# from quri_parts.rust.qulacs import convert_circuit
 from typing_extensions import assert_never
 
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,
+    NonParametricQuantumCircuit,
     ParametricQuantumCircuitProtocol,
     QuantumGate,
     gate_names,
 )
 from quri_parts.circuit.gate_names import (
+    MCGateNameType,
     MultiQubitGateNameType,
     SingleQubitGateNameType,
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
     is_gate_name,
+    is_mc_gate_name,
     is_multi_qubit_gate_name,
     is_parametric_gate_name,
     is_single_qubit_gate_name,
@@ -35,7 +41,6 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
-from quri_parts.rust.qulacs import convert_circuit
 
 from ..utils import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
@@ -124,6 +129,31 @@ _parametric_gate_qulacs = {
     gate_names.ParametricPauliRotation: qulacs.gate.ParametricPauliRotation,
 }
 
+_mc_single_qubit_gate_qulacs: Mapping[
+    MCGateNameType, Callable[[int], qulacs.QuantumGateBase]
+] = {
+    gate_names.MCX: qulacs.gate.X,
+    gate_names.MCY: qulacs.gate.Y,
+    gate_names.MCZ: qulacs.gate.Z,
+    gate_names.MCH: qulacs.gate.H,
+    gate_names.MCS: qulacs.gate.S,
+    gate_names.MCSdag: qulacs.gate.Sdag,
+    gate_names.MCT: qulacs.gate.T,
+    gate_names.MCTdag: qulacs.gate.Tdag,
+    gate_names.MCSqrtX: qulacs.gate.sqrtX,
+    gate_names.MCSqrtXdag: qulacs.gate.sqrtXdag,
+    gate_names.MCSqrtY: qulacs.gate.sqrtY,
+    gate_names.MCSqrtYdag: qulacs.gate.sqrtYdag,
+}
+
+_mc_single_qubit_reverse_rotation_gate_qulacs: Mapping[
+    MCGateNameType, Callable[[int, float], qulacs.QuantumGateBase]
+] = {
+    gate_names.MCRX: qulacs.gate.RX,
+    gate_names.MCRY: qulacs.gate.RY,
+    gate_names.MCRZ: qulacs.gate.RZ,
+}
+
 
 def _dense_matrix_gate_qulacs(
     t: Union[int, Sequence[int]], unitary_matrix: ArrayLike
@@ -142,7 +172,33 @@ def convert_gate(
     if not is_gate_name(gate.name):
         raise ValueError(f"Unknown gate name: {gate.name}")
 
-    if is_single_qubit_gate_name(gate.name):
+    if is_mc_gate_name(gate.name):
+        if gate.name in _mc_single_qubit_gate_qulacs:
+            base_gate = _mc_single_qubit_gate_qulacs[gate.name](gate.target_indices[0])
+            base_gate = to_matrix_gate(base_gate)
+            for ctrl in gate.control_indices:
+                assert isinstance(ctrl, int), f"ctrl should be int. actual={ctrl}"
+                base_gate.add_control_qubit(ctrl, 1)  # type: ignore
+            return base_gate
+        elif gate.name in _mc_single_qubit_reverse_rotation_gate_qulacs:
+            base_gate = _mc_single_qubit_reverse_rotation_gate_qulacs[gate.name](
+                gate.target_indices[0], -gate.params[0]
+            )
+            base_gate = to_matrix_gate(base_gate)
+            for ctrl in gate.control_indices:
+                assert isinstance(ctrl, int), f"ctrl should be int. actual={ctrl}"
+                base_gate.add_control_qubit(ctrl, 1)  # type: ignore
+            return base_gate
+        elif gate.name == gate_names.MCU1:
+            base_gate = qulacs.gate.U1(*gate.target_indices, *gate.params)
+            base_gate = to_matrix_gate(base_gate)
+            for ctrl in gate.control_indices:
+                assert isinstance(ctrl, int), f"ctrl should be int. actual={ctrl}"
+                base_gate.add_control_qubit(ctrl, 1)  # type: ignore
+            return base_gate
+        else:
+            raise ValueError(f"Unimplemented gate: {gate.name}")
+    elif is_single_qubit_gate_name(gate.name):
         if gate.name in _single_qubit_gate_qulacs:
             return _single_qubit_gate_qulacs[gate.name](
                 *gate.target_indices, *gate.params
@@ -189,6 +245,13 @@ def convert_gate(
         # It seems that currently assert_never does not work here
         # assert_never(gate.name)
         assert False, "Unreachable"
+
+
+def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
+    qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
+    for gate in circuit.gates:
+        qulacs_circuit.add_gate(convert_gate(gate))
+    return qulacs_circuit
 
 
 def convert_parametric_circuit(

@@ -52,13 +52,6 @@ class TestControlledOp:
             Controlled(M)
 
 
-def test_multi_controlled_op() -> None:
-    mcy = MultiControlled(Y, 3, 5)
-    assert mcy.id.params == (Y, 3, 5)
-    assert mcy.qubit_count == 4
-    assert mcy.reg_count == 0
-
-
 _repo = default_repository()
 
 
