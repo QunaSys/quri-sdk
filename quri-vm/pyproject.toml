@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quri-vm"
-version = "0.23.0"
+version = "0.24.0"
 description = ""
 authors = ["QunaSys"]
 readme = "README.md"
@@ -12,8 +12,8 @@ quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
 
 [tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../quri-parts/packages/circuit", develop = true}
-quri-parts-qulacs = {path = "../quri-parts/packages/qulacs", develop = true}
+quri-parts-circuit = { path = "../quri-parts/packages/circuit", develop = true }
+quri-parts-qulacs = { path = "../quri-parts/packages/qulacs", develop = true }
 flake8 = "^7.1.1"
 black = "^24.8.0"
 isort = "^5.13.2"

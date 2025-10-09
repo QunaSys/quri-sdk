@@ -74,6 +74,12 @@ class SubRepository:
     ) -> None:
         self._mapping[_get_base_id(op)].append((resolver, condition))
 
+    def copy(self) -> "SubRepository":
+        ret = SubRepository()
+        for k, v in self._mapping.items():
+            ret._mapping[k] = [item for item in v]
+        return ret
+
 
 _DEFAULT = SubRepository()
 

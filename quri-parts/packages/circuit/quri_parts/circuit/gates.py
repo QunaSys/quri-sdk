@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Literal
+from typing import Any, Literal, Sequence
 
 from typing_extensions import deprecated
 
@@ -173,6 +173,334 @@ Y = Y
 #: Pauli X gate represented by matrix
 #: :math:`\begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix}`
 X = X
+
+
+class MCXFactory:
+    name: Literal["MCX"] = gate_names.MCX
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCX = MCXFactory()
+
+
+class MCYFactory:
+    name: Literal["MCY"] = gate_names.MCY
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCY = MCYFactory()
+
+
+class MCZFactory:
+    name: Literal["MCZ"] = gate_names.MCZ
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCZ = MCZFactory()
+
+
+class MCHFactory:
+    name: Literal["MCH"] = gate_names.MCH
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCH = MCHFactory()
+
+
+class MCSFactory:
+    name: Literal["MCS"] = gate_names.MCS
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCS = MCSFactory()
+
+
+class MCSdagFactory:
+    name: Literal["MCSdag"] = gate_names.MCSdag
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCSdag = MCSdagFactory()
+
+
+class MCTFactory:
+    name: Literal["MCT"] = gate_names.MCT
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCT = MCTFactory()
+
+
+class MCTdagFactory:
+    name: Literal["MCTdag"] = gate_names.MCTdag
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCTdag = MCTdagFactory()
+
+
+class MCSqrtXFactory:
+    name: Literal["MCSqrtX"] = gate_names.MCSqrtX
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCSqrtX = MCSqrtXFactory()
+
+
+class MCSqrtXdagFactory:
+    name: Literal["MCSqrtXdag"] = gate_names.MCSqrtXdag
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCSqrtXdag = MCSqrtXdagFactory()
+
+
+class MCSqrtYFactory:
+    name: Literal["MCSqrtY"] = gate_names.MCSqrtY
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCSqrtY = MCSqrtYFactory()
+
+
+class MCSqrtYdagFactory:
+    name: Literal["MCSqrtYdag"] = gate_names.MCSqrtYdag
+
+    def __call__(
+        self, target_index: int, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        if len(control_indices) == 0:
+            return QuantumGate(name=self.name, target_indices=(target_index,))
+        else:
+            return QuantumGate(
+                name=self.name,
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCSqrtYdag = MCSqrtYdagFactory()
+
+
+class MCRXFactory:
+    name: Literal["MCRX"] = gate_names.MCRX
+
+    def __call__(
+        self, target_index: int, angle: float, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        assert (
+            type(angle) is float
+        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
+        if len(control_indices) == 0:
+            return QuantumGate(
+                name=self.name, params=(angle,), target_indices=(target_index,)
+            )
+        else:
+            return QuantumGate(
+                name=self.name,
+                params=(angle,),
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCRX = MCRXFactory()
+
+
+class MCRYFactory:
+    name: Literal["MCRY"] = gate_names.MCRY
+
+    def __call__(
+        self, target_index: int, angle: float, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        assert (
+            type(angle) is float
+        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
+        if len(control_indices) == 0:
+            return QuantumGate(
+                name=self.name, params=(angle,), target_indices=(target_index,)
+            )
+        else:
+            return QuantumGate(
+                name=self.name,
+                params=(angle,),
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCRY = MCRYFactory()
+
+
+class MCRZFactory:
+    name: Literal["MCRZ"] = gate_names.MCRZ
+
+    def __call__(
+        self, target_index: int, angle: float, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        assert (
+            type(angle) is float
+        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
+        if len(control_indices) == 0:
+            return QuantumGate(
+                name=self.name, params=(angle,), target_indices=(target_index,)
+            )
+        else:
+            return QuantumGate(
+                name=self.name,
+                params=(angle,),
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCRZ = MCRZFactory()
+
+
+class MCU1Factory:
+    name: Literal["MCU1"] = gate_names.MCU1
+
+    def __call__(
+        self, target_index: int, angle: float, control_indices: Sequence[int] = []
+    ) -> QuantumGate:
+        assert (
+            type(angle) is float
+        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
+        if len(control_indices) == 0:
+            return QuantumGate(
+                name=self.name, params=(angle,), target_indices=(target_index,)
+            )
+        else:
+            return QuantumGate(
+                name=self.name,
+                params=(angle,),
+                target_indices=(target_index,),
+                control_indices=list(control_indices),
+            )
+
+
+MCU1 = MCU1Factory()
 
 
 @deprecated("Factory class is deprecated")
@@ -506,4 +834,36 @@ __all__ = [
     "Sdag",
     "S",
     "H",
+    "MCX",
+    "MCY",
+    "MCZ",
+    "MCH",
+    "MCS",
+    "MCSdag",
+    "MCT",
+    "MCTdag",
+    "MCSqrtX",
+    "MCSqrtXdag",
+    "MCSqrtY",
+    "MCSqrtYdag",
+    "MCRX",
+    "MCRY",
+    "MCRZ",
+    "MCU1",
+    "MCXFactory",
+    "MCYFactory",
+    "MCZFactory",
+    "MCHFactory",
+    "MCSFactory",
+    "MCSdagFactory",
+    "MCTFactory",
+    "MCTdagFactory",
+    "MCSqrtXFactory",
+    "MCSqrtXdagFactory",
+    "MCSqrtYFactory",
+    "MCSqrtYdagFactory",
+    "MCRXFactory",
+    "MCRYFactory",
+    "MCRZFactory",
+    "MCU1Factory",
 ]

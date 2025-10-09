@@ -11,12 +11,28 @@
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
+    MCH,
+    MCRX,
+    MCRY,
+    MCRZ,
+    MCS,
+    MCT,
+    MCX,
+    MCY,
+    MCZ,
     RX,
     RY,
     RZ,
     SWAP,
     H,
     Identity,
+    MCPhase,
+    MCSdag,
+    MCSqrtX,
+    MCSqrtXdag,
+    MCSqrtY,
+    MCSqrtYdag,
+    MCTdag,
     Phase,
     S,
     Sdag,
@@ -32,7 +48,19 @@ from quri_parts.qsub.lib.std import (
     Z,
 )
 
-SingleQubitClifford = (Identity, H, X, Y, Z, SqrtX, SqrtXdag, SqrtY, SqrtYdag, S, Sdag)
+SingleQubitClifford = (
+    Identity,
+    H,
+    X,
+    Y,
+    Z,
+    SqrtX,
+    SqrtXdag,
+    SqrtY,
+    SqrtYdag,
+    S,
+    Sdag,
+)
 TwoQubitClifford = (CNOT, CZ, SWAP)
 Clifford = SingleQubitClifford + TwoQubitClifford
 Rotation = (RX, RY, RZ, Phase)
@@ -43,3 +71,21 @@ RotationSet = Rotation + TwoQubitClifford
 RZSet = (X, SqrtX, RZ, CNOT)
 FTQCBasicSet = (H, S, T, CNOT)
 AllBasicSet = CliffordT + Rotation + (Toffoli,)
+SimulatorBasicSet = AllBasicSet + (
+    MCX,
+    MCY,
+    MCZ,
+    MCS,
+    MCSdag,
+    MCT,
+    MCTdag,
+    MCSqrtX,
+    MCSqrtXdag,
+    MCSqrtY,
+    MCSqrtYdag,
+    MCH,
+    MCRZ,
+    MCRX,
+    MCRY,
+    MCPhase,
+)

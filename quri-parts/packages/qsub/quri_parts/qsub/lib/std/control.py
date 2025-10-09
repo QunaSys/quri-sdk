@@ -61,37 +61,6 @@ class _Controlled(ParamUnitaryDef[Op]):
 Controlled: OpFactory[Op] = param_op(_Controlled)
 
 
-class _MultiControlled(ParamUnitaryDef[Op, int, int]):
-    ns = NS
-    name = "MultiControlled"
-
-    def qubit_count_fn(
-        self, target_op: Op, control_bits: int, control_value: int
-    ) -> int:
-        return target_op.qubit_count + control_bits
-
-    def reg_count_fn(self, target_op: Op, control_bits: int, control_value: int) -> int:
-        return target_op.reg_count
-
-    def validate_params(
-        self, target_op: Op, control_bits: int, control_value: int
-    ) -> None:
-        if not target_op.unitary:
-            raise ParameterValidationError(f"target_op {target_op} is not unitary")
-        if not control_bits >= 1:
-            raise ParameterValidationError(
-                f"control_bits should be a positive integer but {control_bits}"
-            )
-        if not (control_value >= 0 and control_value < 2**control_bits):
-            raise ParameterValidationError(
-                f"control_value should be a {control_bits}-bits integer but"
-                f"{control_value}"
-            )
-
-
-MultiControlled: OpFactory[Op, int, int] = param_op(_MultiControlled)
-
-
 # Sub resolver definitions
 
 
@@ -335,6 +304,8 @@ def controlled_cnot_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_cz_resolver(op: Op, repository: SubRepository) -> Sub:
+    from .multi_control import MultiControlled
+
     builder = SubBuilder(op.qubit_count, op.reg_count)
     builder.add_op(MultiControlled(Z, 2, 0b11), builder.qubits)
     return builder.build()
@@ -350,24 +321,10 @@ def controlled_swap_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_toffoli_resolver(op: Op, repository: SubRepository) -> Sub:
+    from .multi_control import MultiControlled
+
     builder = SubBuilder(op.qubit_count, op.reg_count)
     builder.add_op(MultiControlled(X, 3, 0b111), builder.qubits)
-    return builder.build()
-
-
-def controlled_multicontrolled_resolver(op: Op, repository: SubRepository) -> Sub:
-    target_op = op.id.params[0]
-    assert isinstance(target_op, Op)
-    inner_op, control_bits, control_value = target_op.id.params
-    assert isinstance(inner_op, Op)
-    assert isinstance(control_bits, int)
-    assert isinstance(control_value, int)
-    control_bits += 1
-    control_value = (control_value << 1) + 1
-    builder = SubBuilder(op.qubit_count, op.reg_count)
-    builder.add_op(
-        MultiControlled(inner_op, control_bits, control_value), builder.qubits
-    )
     return builder.build()
 
 
@@ -454,7 +411,6 @@ _resolvers: Collection[tuple[AbstractOp, SubResolver]] = [
     (CZ, controlled_cz_resolver),
     (SWAP, controlled_swap_resolver),
     (Toffoli, controlled_toffoli_resolver),
-    (MultiControlled, controlled_multicontrolled_resolver),
 ]
 
 for target, resolver in _resolvers:
