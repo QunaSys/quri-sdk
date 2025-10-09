@@ -51,6 +51,7 @@ MCGateNameType: TypeAlias = Literal[
     "MCSqrtXdag",
     "MCSqrtY",
     "MCSqrtYdag",
+    "MCSWAP",
 ]
 
 MCX: Literal["MCX"] = "MCX"
@@ -69,6 +70,7 @@ MCSqrtXdag: Literal["MCSqrtXdag"] = "MCSqrtXdag"
 MCSqrtY: Literal["MCSqrtY"] = "MCSqrtY"
 MCSqrtYdag: Literal["MCSqrtYdag"] = "MCSqrtYdag"
 MCU1: Literal["MCU1"] = "MCU1"
+MCSWAP: Literal["MCSWAP"] = "MCSWAP"
 
 Identity: Literal["Identity"] = "Identity"
 X: Literal["X"] = "X"
@@ -107,6 +109,7 @@ MC_GATE_NAMES: set[MCGateNameType] = {
     MCRY,
     MCRZ,
     MCU1,
+    MCSWAP,
 }
 
 
