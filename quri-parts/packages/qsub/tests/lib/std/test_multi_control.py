@@ -11,12 +11,17 @@ from quri_parts.qsub.lib.std import (
     Cbz,
     Controlled,
     H,
+    Identity,
     Label,
     M,
     MultiControlled,
     Phase,
     S,
     Sdag,
+    SqrtX,
+    SqrtXdag,
+    SqrtY,
+    SqrtYdag,
     T,
     Tdag,
     Toffoli,
@@ -857,6 +862,107 @@ class TestMultiControlledNamedMCGatesSub:
         assert sub.operations[3] == (X, (sub.qubits[0],), ())  # Negate bit 0
         assert sub.operations[4] == (X, (sub.qubits[5],), ())  # Negate bit 5
 
+    def test_identity_gate(self) -> None:
+        """Test mapping Identity to MCIdentity."""
+        sub = MultiControlledNamedMCGatesSub(Identity, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have Identity operations on all qubits
+        for i, (op, qubits, regs) in enumerate(sub.operations):
+            assert op.id.local_name == "Identity"
+            assert qubits == (sub.qubits[i],)
+            assert regs == ()
+
+    def test_sdag_gate(self) -> None:
+        """Test mapping Sdag to MCSdag."""
+        sub = MultiControlledNamedMCGatesSub(Sdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MCS")
+
+    def test_t_gate(self) -> None:
+        """Test mapping T to MCT."""
+        sub = MultiControlledNamedMCGatesSub(T, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_tdag_gate(self) -> None:
+        """Test mapping Tdag to MCTdag."""
+        sub = MultiControlledNamedMCGatesSub(Tdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrtx_gate(self) -> None:
+        """Test mapping SqrtX to MCSqrtX."""
+        sub = MultiControlledNamedMCGatesSub(SqrtX, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrtxdag_gate(self) -> None:
+        """Test mapping SqrtXdag to MCSqrtXdag."""
+        sub = MultiControlledNamedMCGatesSub(SqrtXdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrty_gate(self) -> None:
+        """Test mapping SqrtY to MCSqrtY."""
+        sub = MultiControlledNamedMCGatesSub(SqrtY, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrtydag_gate(self) -> None:
+        """Test mapping SqrtYdag to MCSqrtYdag."""
+        sub = MultiControlledNamedMCGatesSub(SqrtYdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sdag_gate_with_negation(self) -> None:
+        """Test mapping Sdag with control negation."""
+        sub = MultiControlledNamedMCGatesSub(Sdag, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have X gates for negation plus MCSdag
+        assert sub.operations[0][0].id.local_name == "X"  # Negation
+        assert sub.operations[1][0].id.local_name.startswith("MCS")  # MCSdag
+        assert sub.operations[2][0].id.local_name == "X"  # Negation
+
+    def test_t_gate_with_negation(self) -> None:
+        """Test mapping T with control negation."""
+        sub = MultiControlledNamedMCGatesSub(T, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have X gates for negation plus MCT
+        assert sub.operations[0][0].id.local_name == "X"  # Negation
+        assert sub.operations[1][0].id.local_name.startswith("MC")  # MCT
+        assert sub.operations[2][0].id.local_name == "X"  # Negation
+
+    def test_tdag_gate_with_negation(self) -> None:
+        """Test mapping Tdag with control negation."""
+        sub = MultiControlledNamedMCGatesSub(Tdag, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have X gates for negation plus MCTdag
+        assert sub.operations[0][0].id.local_name == "X"  # Negation
+        assert sub.operations[1][0].id.local_name.startswith("MC")  # MCTdag
+        assert sub.operations[2][0].id.local_name == "X"  # Negation
+
 
 class TestPhaseHandlingInResolver:
     """Test phase handling in generate_multicontrolled_to_mc_sub_resolver."""
@@ -1286,7 +1392,8 @@ class TestPhaseHandlingInResolver:
         assert regs2 == ()
 
     def test_mcswap_gate_single_control_negation(self) -> None:
-        """Test mapping SWAP to controlled CNOT with single control negation."""
+        """Test mapping SWAP to controlled CNOT with single control
+        negation."""
         sub = MultiControlledNamedMCGatesSub(SWAP, 1, 0b0)
         assert sub is not None
         assert len(sub.qubits) == 3
@@ -1350,7 +1457,8 @@ class TestPhaseHandlingInResolver:
         assert regs2 == ()
 
     def test_mcswap_gate_three_controls_mixed_pattern(self) -> None:
-        """Test mapping SWAP to controlled CNOT with three controls (mixed pattern)."""
+        """Test mapping SWAP to controlled CNOT with three controls (mixed
+        pattern)."""
         sub = MultiControlledNamedMCGatesSub(SWAP, 3, 0b101)
         assert sub is not None
         assert len(sub.qubits) == 5
@@ -1382,7 +1490,8 @@ class TestPhaseHandlingInResolver:
         assert regs2 == ()
 
     def test_mcswap_gate_four_controls_all_ones(self) -> None:
-        """Test mapping SWAP to controlled CNOT with four controls (all ones)."""
+        """Test mapping SWAP to controlled CNOT with four controls (all
+        ones)."""
         sub = MultiControlledNamedMCGatesSub(SWAP, 4, 0b1111)
         assert sub is not None
         assert len(sub.qubits) == 6
@@ -1414,8 +1523,8 @@ class TestPhaseHandlingInResolver:
         assert regs2 == ()
 
     def test_mcswap_gate_four_controls_checkerboard_pattern(self) -> None:
-        """Test mapping SWAP to controlled CNOT with four controls (checkerboard
-        pattern)."""
+        """Test mapping SWAP to controlled CNOT with four controls
+        (checkerboard pattern)."""
         sub = MultiControlledNamedMCGatesSub(SWAP, 4, 0b1010)
         assert sub is not None
         assert len(sub.qubits) == 6
@@ -1447,7 +1556,8 @@ class TestPhaseHandlingInResolver:
         assert regs2 == ()
 
     def test_mcswap_gate_five_controls_sparse_pattern(self) -> None:
-        """Test mapping SWAP to controlled CNOT with five controls (sparse pattern)."""
+        """Test mapping SWAP to controlled CNOT with five controls (sparse
+        pattern)."""
         sub = MultiControlledNamedMCGatesSub(SWAP, 5, 0b10001)
         assert sub is not None
         assert len(sub.qubits) == 7
