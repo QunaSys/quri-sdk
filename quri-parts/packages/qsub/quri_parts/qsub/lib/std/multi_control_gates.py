@@ -31,7 +31,19 @@ from .cz import CZ
 from .logic import scoped_and
 from .multi_control import MultiControlled, _multi_controlled_sub
 from .rotation import RX, RY, RZ, Phase
-from .single_clifford import H, S, Sdag, SqrtX, SqrtXdag, SqrtY, SqrtYdag, X, Y, Z
+from .single_clifford import (
+    H,
+    Identity,
+    S,
+    Sdag,
+    SqrtX,
+    SqrtXdag,
+    SqrtY,
+    SqrtYdag,
+    X,
+    Y,
+    Z,
+)
 from .swap import SWAP
 from .t import T, Tdag
 from .toffoli import Toffoli
@@ -134,13 +146,6 @@ class _MCPhase(_MCRotationBase):
     name = "MCPhase"
 
 
-class _MCSWAP(_MCBase):
-    name = "MCSWAP"
-
-    def qubit_count_fn(self, control_bits: int) -> int:
-        return control_bits + 2
-
-
 #: Multi-controlled X gate. Applies X gate to target qubit when all control
 #: qubits are in |1⟩ state.
 MCX: OpFactory[int] = param_op(_MCX)
@@ -189,9 +194,6 @@ MCRY: OpFactory[int, float] = param_op(_MCRY)
 #: Multi-controlled Phase gate. Applies Phase(angle) to target qubit when
 #: all control qubits are in |1⟩ state.
 MCPhase: OpFactory[int, float] = param_op(_MCPhase)
-#: Multi-controlled SWAP gate. Applies SWAP gate to target qubits when all
-#: control qubits are in |1⟩ state.
-MCSWAP: OpFactory[int] = param_op(_MCSWAP)
 
 
 # Sub resolver definitions
@@ -208,7 +210,6 @@ _mc_gate_mapping: dict[BaseIdent, OpFactory[[int]]] = {
     SqrtXdag.base_id: MCSqrtXdag,
     SqrtY.base_id: MCSqrtY,
     SqrtYdag.base_id: MCSqrtYdag,
-    SWAP.base_id: MCSWAP,
 }
 
 _mc_gate_mapping_param: dict[BaseIdent, OpFactory[[int, float]]] = {
@@ -313,6 +314,21 @@ def MultiControlledNamedMCGatesSub(
             ),
             qubits,
         )
+    elif target_op.base_id == SWAP.base_id:
+        assert len(qubits) == control_bits + 2
+        builder.add_op(CNOT, [qubits[-1], qubits[-2]])
+        builder.add_op(
+            MultiControlled(
+                CNOT,
+                control_bits,
+                control_value,
+            ),
+            qubits[:-1],
+        )
+        builder.add_op(CNOT, [qubits[-1], qubits[-2]])
+    elif target_op.base_id == Identity.base_id:
+        for q in qubits:
+            builder.add_op(Identity, [q])
     else:
         return None
     return builder.build()
@@ -730,25 +746,6 @@ def mcry_resolver(op: Op, repository: SubRepository) -> Sub:
         return MultiControlledSub(RY(angle), control_bits)
 
 
-def mcswap_resolver(op: Op, repository: SubRepository) -> Sub:
-    from .multi_control import MultiControlledSub
-
-    control_bits = op.id.params[0]
-    assert isinstance(control_bits, int)
-
-    if control_bits == 1:
-        # Single controlled SWAP (Fredkin gate)
-        builder = SubBuilder(op.qubit_count, op.reg_count)
-        q0, q1, q2 = builder.qubits
-        builder.add_op(CNOT, (q2, q1))
-        builder.add_op(Toffoli, (q0, q1, q2))
-        builder.add_op(CNOT, (q2, q1))
-        return builder.build()
-    else:
-        # General multi-controlled SWAP using recursive decomposition
-        return MultiControlledSub(SWAP, control_bits)
-
-
 # Register sub resolvers
 _repo = default_repository()
 
@@ -768,7 +765,6 @@ _repo.register_sub_resolver(MCSqrtXdag, mcsqrtxdag_resolver)
 _repo.register_sub_resolver(MCSqrtY, mcsqrty_resolver)
 _repo.register_sub_resolver(MCSqrtYdag, mcsqrtydag_resolver)
 _repo.register_sub_resolver(MCH, mch_resolver)
-_repo.register_sub_resolver(MCSWAP, mcswap_resolver)
 
 # Register MCPhase, MCRZ, MCRX, MCRY, MCU1 resolvers
 _repo.register_sub_resolver(MCRZ, mcrz_resolver)
