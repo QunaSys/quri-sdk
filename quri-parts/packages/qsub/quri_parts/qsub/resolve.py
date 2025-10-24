@@ -104,8 +104,8 @@ class SubCollector:
         return resolve_sub(op, self._repository)
 
     def collect_subs(self, op: Op | Sub) -> Mapping[Op, Sub]:
-        subs: list[Sub] = []
         sub_map: dict[Op, Optional[Sub]] = {}
+        subs_set: set[str] = set()
 
         def _collect(op: Op | Sub) -> None:
             if isinstance(op, Op):
@@ -120,8 +120,8 @@ class SubCollector:
                 logger.debug("Resolved: %s", sub)
                 if isinstance(op, Op):
                     sub_map[op] = sub
-                if sub not in subs:
-                    subs.append(sub)
+                if str(sub) not in subs_set:
+                    subs_set.add(str(sub))
                     for o, _, _ in sub.operations:
                         _collect(o)
             elif isinstance(op, Op):
