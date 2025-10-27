@@ -67,6 +67,8 @@ class SubBuilder:
         ur = set(regs) - set(self.registers) - set(self.aux_registers)
         if ur:
             raise ValueError(f"undefined registers: {ur}")
+        if len(qubits) != len(set(qubits)):
+            raise ValueError(f"duplicated qubits: {qubits}")
 
         self._operations.append((op, tuple(qubits), tuple(regs)))
 
