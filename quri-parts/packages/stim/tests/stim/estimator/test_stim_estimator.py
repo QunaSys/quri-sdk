@@ -11,7 +11,6 @@
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
 from quri_parts.circuit import H, S
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState

@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from typing import Optional, TypeVar, Union, cast
 
 import numpy as np
-
 from quri_parts.circuit.parameter_mapping import LinearParameterMapping
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core.estimator import (

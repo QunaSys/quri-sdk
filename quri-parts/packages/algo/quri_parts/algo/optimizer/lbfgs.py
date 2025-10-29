@@ -17,13 +17,12 @@ import numpy as np
 if TYPE_CHECKING:
     import numpy.typing as npt  # noqa: F401
 
+from quri_parts.core.utils.array import readonly_array
 from scipy.optimize._linesearch import (
     LineSearchWarning,
     line_search_wolfe1,
     line_search_wolfe2,
 )
-
-from quri_parts.core.utils.array import readonly_array
 
 from .interface import (
     CostFunction,

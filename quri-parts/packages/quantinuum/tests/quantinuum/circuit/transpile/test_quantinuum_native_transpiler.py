@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.circuit import CNOT, RZ, H, QuantumCircuit
 from quri_parts.quantinuum.circuit import RZZ, ZZ, U1q
 from quri_parts.quantinuum.circuit.transpile import (

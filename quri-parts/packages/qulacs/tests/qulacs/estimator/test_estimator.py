@@ -14,7 +14,6 @@ from typing import Union
 
 import numpy as np
 import pytest
-
 from quri_parts.circuit import ParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.noise import BitFlipNoise, NoiseModel
 from quri_parts.core.estimator import GeneralQuantumEstimator

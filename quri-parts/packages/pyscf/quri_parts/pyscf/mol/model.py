@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, cast
 
 import numpy as np
 from pyscf.gto import Mole
-
 from quri_parts.chem.mol import MolecularOrbitals
 
 if TYPE_CHECKING:

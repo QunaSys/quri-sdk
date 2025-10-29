@@ -11,7 +11,6 @@
 from collections.abc import Sequence
 
 import numpy as np
-
 import quri_parts.quantinuum.circuit.gate_names as native_gate_names
 from quri_parts.circuit import (
     RZ,

@@ -1,5 +1,4 @@
 import qulacs
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.rust.circuit.noise import NoiseModel
 

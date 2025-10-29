@@ -13,7 +13,6 @@ from typing import Sequence, Union
 import numpy as np
 import numpy.typing as npt
 from numpy.testing import assert_almost_equal
-
 from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.tensornetwork.operator import operator_to_tensor
 

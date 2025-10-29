@@ -12,7 +12,6 @@ from collections import Counter
 from typing import TYPE_CHECKING, Any, Iterable, Optional
 
 import numpy as np
-
 from quri_parts.circuit.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
 from quri_parts.core.utils.concurrent import execute_concurrently

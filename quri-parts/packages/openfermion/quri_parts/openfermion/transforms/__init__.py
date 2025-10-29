@@ -20,8 +20,6 @@ from openfermion.transforms import reorder
 from openfermion.transforms.opconversions import edit_hamiltonian_for_spin
 from openfermion.transforms.opconversions.remove_symmetry_qubits import remove_indices
 from openfermion.utils import up_then_down
-from typing_extensions import TypeAlias
-
 from quri_parts.chem.transforms import (
     BravyiKitaev,
     BravyiKitaevMapperFactory,
@@ -42,6 +40,7 @@ from quri_parts.openfermion.operator import (
     has_particle_number_symmetry,
     operator_from_openfermion_op,
 )
+from typing_extensions import TypeAlias
 
 #: Interface for a function that maps a :class:`openfermion.ops.FermionOperator`,
 #: :class:`openfermion.ops.InteractionOperator` or

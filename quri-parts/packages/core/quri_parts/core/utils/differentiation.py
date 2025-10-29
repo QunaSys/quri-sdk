@@ -11,9 +11,8 @@
 from abc import abstractmethod
 from typing import Callable, Protocol, Sequence, TypeVar, Union
 
-from typing_extensions import TypeAlias
-
 from quri_parts.core.operator import Operator, truncate
+from typing_extensions import TypeAlias
 
 #: Represents a function that generates :class:`Operator` from given
 #: parameters, e.g. generates molecular Hamiltonian from coordinates

@@ -1,7 +1,6 @@
 from typing import Any
 
 import pytest
-
 from quri_parts.circuit import ParametricQuantumCircuit, QuantumCircuit, X
 
 

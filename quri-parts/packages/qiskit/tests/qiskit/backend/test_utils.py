@@ -14,7 +14,6 @@ import pytest
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
 from qiskit.providers.models import QasmBackendConfiguration
 from qiskit_ibm_runtime import IBMBackend
-
 from quri_parts.backend import BackendError
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.qiskit.backend import (

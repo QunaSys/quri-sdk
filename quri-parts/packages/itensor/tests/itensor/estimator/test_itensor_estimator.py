@@ -15,7 +15,6 @@ from typing import Any, Union
 
 import numpy as np
 import pytest
-
 from quri_parts.circuit import (
     ParametricQuantumCircuit,
     ParametricQuantumCircuitProtocol,

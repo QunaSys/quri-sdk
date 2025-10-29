@@ -1,7 +1,6 @@
 from typing import Callable, Sequence
 
 import numpy as np
-
 from quri_parts.algo.ansatz import Z2SymmetryPreservingReal
 from quri_parts.circuit import (
     RZ,

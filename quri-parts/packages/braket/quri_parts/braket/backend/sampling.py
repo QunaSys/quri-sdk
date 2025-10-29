@@ -16,7 +16,6 @@ import numpy as np
 from braket.aws import AwsDevice
 from braket.devices import Device
 from braket.tasks import GateModelQuantumTaskResult, QuantumTask
-
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,

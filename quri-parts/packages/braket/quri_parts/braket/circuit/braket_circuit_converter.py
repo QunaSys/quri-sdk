@@ -13,7 +13,6 @@ from typing import Callable, Mapping
 import numpy as np
 from braket.circuits import Circuit as BraketCircuit
 from braket.circuits import Instruction as BraketInstruction
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 
 _single_qubit_gate_braket_quri_parts: Mapping[str, Callable[[int], QuantumGate]] = {

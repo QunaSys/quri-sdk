@@ -13,7 +13,6 @@ from typing import Union
 
 import juliacall
 from juliacall import Main as jl
-
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name
 
 

@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.core.utils.bit import (
     bit_length,
     different_bit_index,

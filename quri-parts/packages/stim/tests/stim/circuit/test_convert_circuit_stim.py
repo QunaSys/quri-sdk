@@ -10,8 +10,6 @@
 
 import numpy as np
 import pytest
-from stim import Circuit as StimCircuit
-
 from quri_parts.circuit import (
     CNOT,
     CZ,
@@ -37,6 +35,7 @@ from quri_parts.circuit import (
     Z,
 )
 from quri_parts.stim.circuit import convert_circuit, convert_gate
+from stim import Circuit as StimCircuit
 
 
 def test_convert_gate() -> None:

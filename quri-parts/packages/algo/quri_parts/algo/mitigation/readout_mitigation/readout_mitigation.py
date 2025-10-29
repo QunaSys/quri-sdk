@@ -12,8 +12,6 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, cast
 
 import numpy as np
-from scipy import linalg
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import (
     ConcurrentSampler,
@@ -22,6 +20,7 @@ from quri_parts.core.sampling import (
     create_sampler_from_concurrent_sampler,
 )
 from quri_parts.core.state import ComputationalBasisState
+from scipy import linalg
 
 if TYPE_CHECKING:
     import numpy.typing as npt  # noqa: F401

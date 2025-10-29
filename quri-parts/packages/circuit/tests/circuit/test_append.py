@@ -1,7 +1,6 @@
 from typing import Any, Sequence
 
 import pytest
-
 from quri_parts.circuit import (
     ImmutableLinearMappedUnboundParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,

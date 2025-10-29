@@ -14,10 +14,6 @@ from typing import Callable, Union, cast
 import qulacs
 from numpy.typing import ArrayLike
 from qulacs.gate import to_matrix_gate
-
-# from quri_parts.rust.qulacs import convert_circuit
-from typing_extensions import assert_never
-
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,
@@ -41,6 +37,9 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
+
+# from quri_parts.rust.qulacs import convert_circuit
+from typing_extensions import assert_never
 
 from ..utils import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit

@@ -11,7 +11,6 @@
 from typing import Optional, Union
 
 from openfermion import FermionOperator, InteractionOperator, MajoranaOperator
-
 from quri_parts.chem.mol import ActiveSpace, SpinMOeIntSet
 from quri_parts.core.operator import Operator
 from quri_parts.openfermion.transforms import (

@@ -10,7 +10,6 @@
 
 import numpy as np
 import pytest
-
 from quri_parts.algo.mitigation.zne.zne import (  # noqa: E501
     _get_residual_n_gates,
     create_exp_extrapolate,

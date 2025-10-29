@@ -2,7 +2,6 @@ import copy
 from typing import cast
 
 import numpy as np
-
 from quri_parts.qsub.lib.std import CNOT, H
 from quri_parts.qsub.op import ParamOpDef, param_op
 from quri_parts.qsub.opsub import ParamOpSubDef, param_opsub

@@ -18,7 +18,6 @@ from cirq.ops.raw_types import Gate
 from cirq.ops.swap_gates import SWAP
 from cirq.ops.three_qubit_gates import CCX
 from cirq.protocols.unitary_protocol import unitary
-
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     QuantumCircuit,

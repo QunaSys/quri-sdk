@@ -10,7 +10,6 @@
 
 import numpy as np
 import pytest
-
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,

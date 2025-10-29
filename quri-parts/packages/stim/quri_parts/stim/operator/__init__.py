@@ -10,10 +10,9 @@
 
 from typing import Iterable, Sequence, Union
 
+from quri_parts.core.operator import Operator, PauliLabel
 from stim import PauliString
 from typing_extensions import TypeAlias
-
-from quri_parts.core.operator import Operator, PauliLabel
 
 
 def _pauli_indices(pauli_label: PauliLabel, qubit_count: int) -> Sequence[int]:

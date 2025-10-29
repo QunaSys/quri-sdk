@@ -14,7 +14,6 @@ from typing import Optional, Union, cast
 import numpy as np
 import numpy.typing as npt
 from pyscf import ao2mo, gto, mcscf, scf
-
 from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,

@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING, Any, NamedTuple, Optional, Union, cast
 
 from qulacs import QuantumState
 from qulacs.state import inner_product
-
 from quri_parts.core.estimator import (
     Estimate,
     OverlapEstimator,

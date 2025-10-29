@@ -10,9 +10,6 @@
 
 from typing import Literal, Mapping, Sequence
 
-from stim import Circuit as StimCircuit
-from typing_extensions import TypeAlias, TypeGuard
-
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     QuantumGate,
@@ -40,6 +37,8 @@ from quri_parts.circuit.transpile import (
     CliffordApproximationTranspiler,
     PauliDecomposeTranspiler,
 )
+from stim import Circuit as StimCircuit
+from typing_extensions import TypeAlias, TypeGuard
 
 _StimGateNameType: TypeAlias = Literal[
     "Identity",

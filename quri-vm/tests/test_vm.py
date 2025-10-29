@@ -29,7 +29,6 @@ from quri_parts.core.estimator import Estimate
 from quri_parts.core.operator import pauli_label
 from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import quantum_state
-
 from quri_vm import VM, AnalyzeResult, VMBackend
 from quri_vm.vm_backend import _DevicePropertyBackend
 

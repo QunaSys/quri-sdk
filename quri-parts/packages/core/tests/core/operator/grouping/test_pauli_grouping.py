@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     CommutablePauliSet,

@@ -12,7 +12,6 @@ from typing import Any, Union
 
 from cirq.ops.linear_combinations import PauliSum
 from cirq.ops.pauli_string import PauliString
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 

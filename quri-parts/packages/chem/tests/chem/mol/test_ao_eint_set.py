@@ -13,7 +13,6 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt
 from numpy import array
-
 from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
     AO1eIntArray,

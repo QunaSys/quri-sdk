@@ -15,7 +15,6 @@ from unittest import TestCase, mock
 
 import numpy as np
 import pytest
-
 from quri_parts.circuit import (
     CONST,
     LinearMappedUnboundParametricQuantumCircuit,

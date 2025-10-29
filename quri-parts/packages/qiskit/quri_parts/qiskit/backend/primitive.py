@@ -23,7 +23,6 @@ from qiskit_ibm_runtime import RuntimeJobV2 as RuntimeJob
 from qiskit_ibm_runtime import SamplerOptions
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from qiskit_ibm_runtime import Session
-
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,

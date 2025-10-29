@@ -13,7 +13,6 @@ from typing import Optional, Union
 
 from qiskit import transpile
 from qiskit.providers import Backend
-
 from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol

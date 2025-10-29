@@ -13,7 +13,6 @@ from multiprocessing import get_context
 from typing import Any
 
 import pytest
-
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.itensor.sampler import (
     create_itensor_mps_concurrent_sampler,

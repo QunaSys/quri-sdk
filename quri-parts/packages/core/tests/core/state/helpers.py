@@ -15,7 +15,6 @@ from quri_parts.core.state import CircuitQuantumState, StateVectorType
 
 def raw_vector(state: CircuitQuantumState) -> StateVectorType:
     from qulacs import QuantumState as QulacsQuantumState
-
     from quri_parts.qulacs.circuit import convert_circuit
 
     circuit = state.circuit

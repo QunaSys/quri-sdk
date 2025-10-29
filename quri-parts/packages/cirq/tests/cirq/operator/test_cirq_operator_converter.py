@@ -15,7 +15,6 @@ from cirq.ops.identity import I
 from cirq.ops.linear_combinations import PauliSum
 from cirq.ops.pauli_gates import X, Y, Z
 from cirq.ops.pauli_string import PauliString
-
 from quri_parts.cirq.operator import operator_from_cirq_op
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 

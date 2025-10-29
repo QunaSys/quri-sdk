@@ -16,7 +16,6 @@ from cirq.ops.matrix_gates import MatrixGate
 from cirq.ops.pauli_gates import X
 from cirq.ops.swap_gates import SWAP
 from cirq.ops.three_qubit_gates import TOFFOLI
-
 from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.cirq.circuit.cirq_circuit_converter import circuit_from_cirq
 

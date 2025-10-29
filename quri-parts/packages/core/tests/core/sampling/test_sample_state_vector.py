@@ -12,7 +12,6 @@ from collections import Counter
 
 import numpy as np
 import pytest
-
 from quri_parts.core.sampling import (
     ideal_sample_from_state_vector,
     sample_from_state_vector,

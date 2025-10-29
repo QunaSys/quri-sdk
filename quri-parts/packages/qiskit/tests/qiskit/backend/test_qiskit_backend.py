@@ -17,7 +17,6 @@ import qiskit
 from pydantic.json import pydantic_encoder
 from qiskit import qasm3
 from qiskit.providers.basic_provider import BasicProvider
-
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler

@@ -17,7 +17,6 @@ from qulacsvis.models.circuit import (  # type: ignore
     GateData,
 )
 from qulacsvis.visualization import MPLCircuitlDrawer  # type: ignore
-
 from quri_parts.qsub.lib.std import CNOT, CZ, Controlled, MultiControlled, Toffoli
 from quri_parts.qsub.machineinst import MachineSub
 from quri_parts.qsub.op import Op

@@ -11,7 +11,6 @@
 from typing import Sequence
 
 import numpy as np
-
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,

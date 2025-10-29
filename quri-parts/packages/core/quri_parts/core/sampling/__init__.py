@@ -28,8 +28,6 @@ from typing import (
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import TypeAlias, Unpack
-
 from quri_parts.backend import SamplingBackend
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
@@ -42,6 +40,7 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
+from typing_extensions import TypeAlias, Unpack
 
 #: A type variable represents *any* non-parametric quantum state classes.
 #: This is different from :class:`quri_parts.core.state.QuantumStateT`;

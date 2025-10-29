@@ -11,7 +11,6 @@
 import numpy as np
 import tensornetwork as tn
 from numpy.testing import assert_almost_equal
-
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.gates import CNOT, TOFFOLI, H, S, Y
 from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState

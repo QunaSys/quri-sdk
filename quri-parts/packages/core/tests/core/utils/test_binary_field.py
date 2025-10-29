@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.core.utils.binary_field import (
     BinaryArray,
     BinaryMatrix,

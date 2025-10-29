@@ -12,7 +12,6 @@ from typing import cast
 
 import numpy as np
 import pytest
-
 from quri_parts.algo.optimizer import SPSA, OptimizerStatus, Params
 
 

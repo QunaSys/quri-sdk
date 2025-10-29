@@ -10,14 +10,13 @@
 
 from typing import Sequence, cast
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
     Parameter,
     ParameterOrLinearFunction,
 )
 from quri_parts.circuit.utils.controlled_rotations import add_controlled_RY_gate
+from typing_extensions import TypeAlias
 
 #: Alias of ``tuple[int, int]`` which represents the set of orbital indices involved in
 #: excitation. The first element is the index of an occupied orbital and the second

@@ -11,10 +11,9 @@
 from collections.abc import Collection, Mapping, Sequence
 from typing import Callable, Optional
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import QuantumGate, gate_names, gates
 from quri_parts.circuit.transpile import GateDecomposer
+from typing_extensions import TypeAlias
 
 Coordinate: TypeAlias = tuple[int, int]
 CoordToQubitMap: TypeAlias = Mapping[Coordinate, int]

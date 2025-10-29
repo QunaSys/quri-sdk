@@ -12,7 +12,6 @@ from typing import cast
 
 import numpy as np
 import qulacs
-
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
     ParametricQuantumCircuit,

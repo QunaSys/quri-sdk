@@ -16,7 +16,6 @@ import pytest
 from braket.circuits import Circuit
 from braket.devices import LocalSimulator
 from braket.tasks import GateModelQuantumTaskResult
-
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.braket.backend import (
     BraketSamplingBackend,

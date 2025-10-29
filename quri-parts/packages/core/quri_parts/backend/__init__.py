@@ -14,9 +14,8 @@ from collections.abc import Collection, Mapping
 from dataclasses import dataclass
 from typing import Protocol, Union
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import ImmutableQuantumCircuit
+from typing_extensions import TypeAlias
 
 #: SamplingCounts represents count statistics of repeated sampling or the
 #: measurement probabilities of a quantum circuit. Keys are observed bit

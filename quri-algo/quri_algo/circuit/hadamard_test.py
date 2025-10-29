@@ -10,11 +10,10 @@
 
 from typing import Any, Optional
 
-from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
-from quri_parts.circuit.transpile import CircuitTranspiler
-
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
+from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit
+from quri_parts.circuit.transpile import CircuitTranspiler
 
 
 class HadamardTestCircuitFactory(CircuitFactory):

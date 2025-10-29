@@ -11,7 +11,6 @@
 from collections.abc import Sequence
 
 import numpy as np
-
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
     LinearParameterMapping,

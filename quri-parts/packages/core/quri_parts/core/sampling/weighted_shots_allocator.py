@@ -13,7 +13,6 @@ from collections.abc import Sequence
 from typing import Union
 
 from numpy.random import default_rng
-
 from quri_parts.core.sampling import WeightedSamplingShotsAllocator
 
 

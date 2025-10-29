@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.circuit.gate import QuantumGate
 from quri_parts.circuit.gate_names import CLIFFORD_GATE_NAMES
 

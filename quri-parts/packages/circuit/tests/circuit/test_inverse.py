@@ -2,9 +2,6 @@ from typing import Callable, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
-from scipy.stats import unitary_group
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import (
     CNOT,
     RX,
@@ -30,6 +27,8 @@ from quri_parts.circuit import (
     inverse_gate,
 )
 from quri_parts.circuit.gates import RXFactory, RYFactory, RZFactory, U1Factory
+from scipy.stats import unitary_group
+from typing_extensions import TypeAlias
 
 GateFactory: TypeAlias = Union[RXFactory, RYFactory, RZFactory, U1Factory]
 

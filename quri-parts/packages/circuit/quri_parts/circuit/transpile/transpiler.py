@@ -12,8 +12,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Callable, Protocol
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     LinearMappedParametricQuantumCircuit,
@@ -23,6 +21,7 @@ from quri_parts.circuit import (
     QuantumGate,
     gate_names,
 )
+from typing_extensions import TypeAlias
 
 #: CircuitTranspiler Interface. A function or callable object that can map
 #: ImmutableQuantumCircuit to ImmutableQuantumCircuit.

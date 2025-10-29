@@ -17,8 +17,6 @@ from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
 from qiskit import qasm3
 from qiskit.providers.backend import Backend
-from typing_extensions import TypeAlias
-
 from quri_parts.backend import (
     CompositeSamplingJob,
     SamplingBackend,
@@ -29,6 +27,7 @@ from quri_parts.backend import (
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
+from typing_extensions import TypeAlias
 
 from .utils import (
     convert_qiskit_sampling_count_to_qp_sampling_count,

@@ -15,7 +15,6 @@ from typing import cast
 
 import numpy as np
 import numpy.typing as npt
-
 from quri_parts.circuit import QuantumGate, gate_names, gates
 
 from .transpiler import GateDecomposer

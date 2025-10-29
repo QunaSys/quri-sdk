@@ -12,7 +12,6 @@ from typing import Sequence
 
 import pytest
 from numpy.testing import assert_almost_equal
-
 from quri_parts.circuit import QuantumGate
 from quri_parts.circuit.gates import CNOT, H
 from quri_parts.core.state import ComputationalBasisState

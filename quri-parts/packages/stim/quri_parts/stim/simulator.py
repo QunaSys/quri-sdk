@@ -13,7 +13,6 @@ from typing import Union
 import stim
 from numpy import complex128, zeros
 from numpy.typing import NDArray
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumStateVector
 

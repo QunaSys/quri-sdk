@@ -13,7 +13,6 @@ from typing import Callable, Optional
 
 import juliacall
 from juliacall import Main as jl
-
 from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,

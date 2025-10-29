@@ -12,7 +12,6 @@ from unittest.mock import Mock, patch
 
 import numpy as np
 import pytest
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.sampling import PauliSamplingSetting
 from quri_parts.core.sampling.shots_allocator import (

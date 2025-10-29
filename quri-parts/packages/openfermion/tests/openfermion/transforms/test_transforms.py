@@ -13,7 +13,6 @@ from openfermion import FermionOperator as OpenFermionFermionOperator
 from openfermion import (
     symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
 )
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.operator import (

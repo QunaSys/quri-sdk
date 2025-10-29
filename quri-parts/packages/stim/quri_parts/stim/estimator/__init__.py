@@ -11,7 +11,6 @@
 from typing import TYPE_CHECKING, Any, NamedTuple, Optional, Sequence
 
 import stim
-
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,

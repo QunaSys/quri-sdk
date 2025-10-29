@@ -11,7 +11,6 @@
 
 from numpy import array, isclose
 from openfermion import FermionOperator
-
 from quri_parts.chem.mol import SpinMO1eIntArray, SpinMO2eIntArray, SpinMOeIntSet, cas
 from quri_parts.core.operator import (
     PAULI_IDENTITY,

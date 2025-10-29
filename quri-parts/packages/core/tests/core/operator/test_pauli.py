@@ -12,7 +12,6 @@ from unittest.mock import patch
 from weakref import WeakValueDictionary
 
 import pytest
-
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     PauliLabel,

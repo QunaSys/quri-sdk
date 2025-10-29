@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from numpy.testing import assert_almost_equal
-
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState

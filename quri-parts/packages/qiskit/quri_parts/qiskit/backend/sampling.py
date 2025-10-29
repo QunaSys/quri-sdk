@@ -16,7 +16,6 @@ from qiskit import qasm3
 from qiskit.providers import Job
 from qiskit.providers.backend import Backend
 from qiskit.result import Result
-
 from quri_parts.backend import (
     BackendError,
     CompositeSamplingJob,

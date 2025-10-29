@@ -11,10 +11,9 @@
 from copy import copy
 from typing import Callable, Sequence, Union, overload
 
+import quri_parts.qulacs.circuit as qlc
 from qulacs import ParametricQuantumCircuit as QulacsParametricQuantumCircuit
 from qulacs import QuantumCircuit as QulacsQuantumCircuit
-
-import quri_parts.qulacs.circuit as qlc
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     ImmutableParametricQuantumCircuit,

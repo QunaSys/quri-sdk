@@ -12,10 +12,9 @@ from abc import abstractmethod
 from collections.abc import Iterable, Sequence
 from typing import Callable, NamedTuple, Protocol, Union
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import QuantumGate
 from quri_parts.core.operator import CommutablePauliSet, Operator, PauliLabel
+from typing_extensions import TypeAlias
 
 #: PauliMeasurementCircuitGeneration represents a function that generates a circuit
 #: (a gate list) for measuring mutually commuting Pauli operators.

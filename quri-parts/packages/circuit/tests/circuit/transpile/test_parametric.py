@@ -11,7 +11,6 @@
 from typing import Union, cast
 
 import numpy as np
-
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
     LinearParameterFunction,

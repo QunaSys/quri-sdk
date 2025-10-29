@@ -12,7 +12,6 @@ from dataclasses import dataclass
 from typing import Optional, Sequence, TypeVar, Union, cast
 
 import numpy as np
-
 from quri_parts.circuit import LinearParameterMapping
 from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core.estimator import (

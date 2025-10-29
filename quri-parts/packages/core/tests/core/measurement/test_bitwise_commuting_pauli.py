@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.circuit import H, Sdag
 from quri_parts.core.measurement import (
     bitwise_commuting_pauli_measurement_circuit,

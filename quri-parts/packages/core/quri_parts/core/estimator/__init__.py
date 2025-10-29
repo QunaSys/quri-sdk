@@ -13,8 +13,6 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Callable, Generic, Optional, Protocol, TypeVar, Union, cast, overload
 
-from typing_extensions import TypeAlias
-
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.core.state import (
     CircuitQuantumState,
@@ -22,6 +20,7 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
+from typing_extensions import TypeAlias
 
 EstimateValue = TypeVar("EstimateValue", float, complex, covariant=True)
 

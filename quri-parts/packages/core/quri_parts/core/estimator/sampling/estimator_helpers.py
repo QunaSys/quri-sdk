@@ -11,13 +11,12 @@
 from collections.abc import Iterable
 from typing import Callable
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.measurement import CommutablePauliSetMeasurement
 from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.sampling import PauliSamplingShotsAllocator
 from quri_parts.core.state import CircuitQuantumState
+from typing_extensions import TypeAlias
 
 #: A function that returns the sequence of (circuit, shot) pairs for performing
 #: sampling estimation on the given state. The default operation is that

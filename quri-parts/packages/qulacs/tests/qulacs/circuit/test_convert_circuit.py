@@ -15,7 +15,6 @@ import numpy as np
 import pytest
 import qulacs
 from qulacs.gate import to_matrix_gate
-
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
     ParametricQuantumCircuit,

@@ -3,7 +3,6 @@ from typing import Callable
 
 import numpy as np
 import pytest
-
 from quri_parts.circuit import (
     CNOT,
     CZ,

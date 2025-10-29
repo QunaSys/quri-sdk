@@ -11,7 +11,6 @@
 import numpy as np
 from numpy.random import default_rng
 from numpy.testing import assert_almost_equal
-
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.gates import CNOT, H, S
 from quri_parts.tensornetwork.sampler import (

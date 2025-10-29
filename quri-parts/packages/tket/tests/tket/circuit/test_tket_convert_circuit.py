@@ -14,10 +14,9 @@ from typing import Callable, Sequence
 import numpy as np
 from pytket import Circuit, OpType, Qubit
 from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox
-from scipy.stats import unitary_group
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.tket.circuit import convert_circuit
+from scipy.stats import unitary_group
 
 
 def circuit_equal(c1: Circuit, c2: Circuit) -> bool:

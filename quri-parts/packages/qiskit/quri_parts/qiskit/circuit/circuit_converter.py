@@ -17,8 +17,6 @@ import qiskit.quantum_info as qi
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.library import UnitaryGate
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     MCGateNameType,
@@ -39,6 +37,7 @@ from quri_parts.circuit.gate_names import (
 )
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
+from typing_extensions import TypeAlias
 
 QiskitCircuitConverter: TypeAlias = Callable[
     [ImmutableQuantumCircuit, Optional[CircuitTranspiler]], QuantumCircuit

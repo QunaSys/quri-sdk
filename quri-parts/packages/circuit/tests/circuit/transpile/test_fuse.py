@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import (
     CNOTHCNOTFusingTranspiler,

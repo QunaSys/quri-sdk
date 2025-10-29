@@ -14,7 +14,6 @@ from unittest.mock import MagicMock
 
 import pytest
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
-
 from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
 from quri_parts.qiskit.backend.tracker import Tracker
 

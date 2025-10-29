@@ -12,9 +12,8 @@ from abc import ABC
 from typing import TYPE_CHECKING, Optional, Union, cast
 
 import numpy as np
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit.circuit import GateSequence, ImmutableQuantumCircuit
+from typing_extensions import TypeAlias
 
 from ..utils.array import readonly_array
 from .state import CircuitQuantumStateMixin, QuantumState

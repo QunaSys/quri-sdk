@@ -12,9 +12,8 @@ from collections.abc import Iterable
 from typing import Union
 
 from qulacs import GeneralQuantumOperator
-from typing_extensions import TypeAlias
-
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name
+from typing_extensions import TypeAlias
 
 
 def _qulacs_pauli_str(pauli_label: PauliLabel) -> str:

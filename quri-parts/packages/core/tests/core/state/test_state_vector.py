@@ -10,7 +10,6 @@
 
 import numpy as np
 import pytest
-
 from quri_parts.circuit import H, ImmutableQuantumCircuit, QuantumCircuit, Z
 from quri_parts.core.state import QuantumStateVector
 

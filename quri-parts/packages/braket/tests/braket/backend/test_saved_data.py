@@ -15,7 +15,6 @@ from typing import Any, Optional
 import pytest
 from braket.circuits import Circuit
 from braket.devices import LocalSimulator
-
 from quri_parts.backend import CompositeSamplingJob
 from quri_parts.braket.backend.saved_sampling import (
     BraketSavedDataSamplingBackend,

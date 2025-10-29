@@ -13,7 +13,6 @@ from typing import cast
 import numpy as np
 import numpy.typing as npt
 import qulacs
-
 from quri_parts.circuit import (
     CNOT,
     RX,

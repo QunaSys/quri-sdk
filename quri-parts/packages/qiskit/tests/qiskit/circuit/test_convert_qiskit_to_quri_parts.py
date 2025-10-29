@@ -10,7 +10,6 @@
 
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.circuit.library import UnitaryGate
-
 from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.qiskit.circuit import circuit_from_qiskit
 

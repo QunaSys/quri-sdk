@@ -1,7 +1,6 @@
 import math
 
 import numpy as np
-
 from quri_parts.backend.cost_estimator import (
     estimate_circuit_fidelity,
     estimate_circuit_latency,

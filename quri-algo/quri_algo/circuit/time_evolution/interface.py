@@ -11,10 +11,9 @@
 from abc import abstractmethod
 from typing import Protocol, runtime_checkable
 
-from quri_parts.circuit import NonParametricQuantumCircuit
-
 from quri_algo.circuit.interface import CircuitFactory
 from quri_algo.circuit.utils.transpile import apply_transpiler
+from quri_parts.circuit import NonParametricQuantumCircuit
 
 
 @runtime_checkable

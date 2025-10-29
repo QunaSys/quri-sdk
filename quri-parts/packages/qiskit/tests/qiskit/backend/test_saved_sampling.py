@@ -17,7 +17,6 @@ from qiskit import qasm3, transpile
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit.providers.basic_provider import BasicProvider
 from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
-
 from quri_parts.backend import CompositeSamplingResult
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import (

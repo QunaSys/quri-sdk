@@ -10,7 +10,6 @@
 
 from pyscf import gto, scf
 from pyscf.gto import Mole
-
 from quri_parts.pyscf.mol.model import PySCFMolecularOrbitals, get_nuc_energy
 
 mol = gto.M(atom="H 0 0 0; H 0 0 1", basis="sto-3g", verbose=0)

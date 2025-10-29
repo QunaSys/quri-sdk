@@ -13,7 +13,6 @@ from collections.abc import Collection
 from typing import Optional, cast
 
 import networkx as nx
-
 from quri_parts.backend.device import DeviceProperty, GateProperty, QubitProperty
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import gate_names, noise

@@ -12,7 +12,6 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
 import numpy as np
-
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     QuantumCircuit,

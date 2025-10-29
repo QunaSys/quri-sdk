@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.openfermion.ansatz.kupccgsd import (
     KUpCCGSD,

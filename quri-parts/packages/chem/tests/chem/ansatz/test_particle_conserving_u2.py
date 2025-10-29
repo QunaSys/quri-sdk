@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.chem.ansatz.particle_conserving_u2 import (
     ParticleConservingU2,
     _u2_ex_gate,

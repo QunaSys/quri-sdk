@@ -12,7 +12,6 @@ from collections import defaultdict
 from collections.abc import MutableMapping, Sequence
 
 import numpy as np
-
 import quri_parts.ionq.circuit.gate_names as ionq_gate_names
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,

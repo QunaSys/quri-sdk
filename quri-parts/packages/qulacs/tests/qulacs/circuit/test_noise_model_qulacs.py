@@ -14,7 +14,6 @@ from typing import Union, cast
 import numpy as np
 import numpy.typing as npt
 import qulacs
-
 import quri_parts.circuit.gate_names as names
 import quri_parts.circuit.gates as gates
 from quri_parts.circuit import QuantumCircuit

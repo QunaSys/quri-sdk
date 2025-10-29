@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from pytest import approx
-
 from quri_parts.core.utils.statistics import count_mean, count_var
 
 

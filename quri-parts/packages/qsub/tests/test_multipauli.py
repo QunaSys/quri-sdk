@@ -1,5 +1,4 @@
 import numpy as np
-
 from quri_parts.circuit import gates
 from quri_parts.qsub.compile import compile_sub
 from quri_parts.qsub.eval.quriparts import QURIPartsEvaluatorHooks

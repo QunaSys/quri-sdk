@@ -11,7 +11,6 @@
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.stim.sampler import (
     create_stim_clifford_concurrent_sampler,

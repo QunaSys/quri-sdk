@@ -11,7 +11,6 @@
 import warnings
 
 import pytest
-
 from quri_parts.circuit import (
     CNOT,
     RX,

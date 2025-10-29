@@ -1,5 +1,4 @@
 from qulacsvis.models.circuit import ControlQubitInfo, GateData  # type: ignore
-
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,

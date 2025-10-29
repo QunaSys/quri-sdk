@@ -13,10 +13,9 @@ from typing import Callable, Mapping, Type
 import numpy as np
 import pytest
 from braket.circuits import Circuit, Gate, Instruction
-from scipy.stats import unitary_group
-
 from quri_parts.braket.circuit import circuit_from_braket, gate_from_braket
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from scipy.stats import unitary_group
 
 single_qubit_gate_mapping: Mapping[Callable[[int], QuantumGate], Gate] = {
     gates.Identity: Gate.I(),

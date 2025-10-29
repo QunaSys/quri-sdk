@@ -1,5 +1,4 @@
 import pytest
-
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.eval.gatecount import GateCountEvaluatorHooks
 from quri_parts.qsub.eval.qubitcount import AuxQubitCountEvaluatorHooks

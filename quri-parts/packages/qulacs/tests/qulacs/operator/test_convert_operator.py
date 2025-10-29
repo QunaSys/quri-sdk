@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from qulacs import GeneralQuantumOperator
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, SinglePauli, pauli_label
 from quri_parts.qulacs.operator import convert_operator
 

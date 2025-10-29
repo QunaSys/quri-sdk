@@ -10,7 +10,6 @@
 
 import numpy as np
 from numpy import array
-
 from quri_parts.chem.mol import (
     AO1eIntArray,
     AO2eIntArray,

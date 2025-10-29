@@ -10,10 +10,9 @@
 
 from typing import Callable
 
-from typing_extensions import TypeAlias
-
 from quri_parts.core.operator import PauliLabel
 from quri_parts.core.sampling import MeasurementCounts
+from typing_extensions import TypeAlias
 
 from .estimator import (
     concurrent_sampling_estimate,

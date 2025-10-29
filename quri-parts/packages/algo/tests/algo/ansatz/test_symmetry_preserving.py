@@ -11,7 +11,6 @@
 from typing import Callable, Sequence
 
 import numpy as np
-
 from quri_parts.algo.ansatz import SymmetryPreserving, SymmetryPreservingReal
 from quri_parts.circuit import (
     CNOT,

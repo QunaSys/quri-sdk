@@ -16,7 +16,6 @@ import juliacall
 import numpy
 import pytest
 from juliacall import Main as jl
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import (
     IdentityInsertionTranspiler,

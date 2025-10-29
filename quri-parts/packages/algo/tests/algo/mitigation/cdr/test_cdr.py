@@ -10,7 +10,6 @@
 
 import numpy as np
 import pytest
-
 from quri_parts.algo.mitigation.cdr import (  # noqa: E501
     cdr,
     create_cdr_estimator,

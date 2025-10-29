@@ -11,8 +11,6 @@
 from typing import Callable, Mapping, Optional, Sequence, Union
 
 import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, NodeCollection
-
 from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
@@ -38,6 +36,7 @@ from quri_parts.tensornetwork.circuit.gates import (
     ThreeQubitGate,
     TwoQubitGate,
 )
+from tensornetwork import AbstractNode, Edge, NodeCollection
 
 _single_qubit_gate_tensornetwork: Mapping[
     SingleQubitGateNameType, type[SingleQubitGate]
@@ -156,7 +155,9 @@ def connect_gate(
 
 
 def add_disconnected_qubits(
-    in_out_map: Sequence[dict[str, Optional[Edge]]], node_collection: NodeCollection
+    in_out_map: Sequence[dict[str, Optional[Edge]]],
+    node_collection: NodeCollection,
+    tensor_map: list[dict[int, TensorNetworkQuantumGate]],
 ) -> None:
     for q, m in enumerate(in_out_map):
         if m["in"] is None or m["out"] is None:
@@ -165,6 +166,12 @@ def add_disconnected_qubits(
             m["in"] = node[0]
             m["out"] = node[1]
             node_collection.add(node)
+            if not tensor_map:
+                tensor_map.append(
+                    {q: node}
+                )
+            else:
+                tensor_map[0][q] = node
 
 
 def convert_circuit(
@@ -253,7 +260,7 @@ def convert_circuit(
         else:
             raise ValueError(f"Unknown gate name: {gate.name}")
 
-    add_disconnected_qubits(in_out_map, node_collection)
+    add_disconnected_qubits(in_out_map, node_collection, tensor_map)
 
     input_edges = [m["in"] for m in in_out_map]
     output_edges = [m["out"] for m in in_out_map]

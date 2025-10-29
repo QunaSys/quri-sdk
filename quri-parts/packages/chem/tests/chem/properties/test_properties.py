@@ -12,8 +12,6 @@ from typing import Callable, Sequence, Union
 
 import numpy as np
 import pytest
-from typing_extensions import TypeAlias
-
 from quri_parts.chem.properties import create_energy_gradient_estimator
 from quri_parts.circuit import ParametricQuantumCircuit
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
@@ -23,6 +21,7 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
 )
 from quri_parts.qulacs.estimator import create_qulacs_vector_concurrent_estimator
+from typing_extensions import TypeAlias
 
 ParamState: TypeAlias = Union[
     ParametricCircuitQuantumState, ParametricQuantumStateVector

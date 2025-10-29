@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.chem.ansatz.gate_fabric import GateFabric, _q_gate
 from quri_parts.chem.utils.excitations import add_double_excitation_circuit
 from quri_parts.chem.utils.orbital_rotation import add_orbital_rotation_gate

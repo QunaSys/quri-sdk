@@ -8,10 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from stim import PauliString
-
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.stim.operator import _pauli_indices, convert_operator
+from stim import PauliString
 
 P_LABELS = [
     pauli_label("X0"),

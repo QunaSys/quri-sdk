@@ -13,7 +13,6 @@ from collections.abc import Mapping
 from typing import Union, cast
 
 import numpy as np
-
 from quri_parts.core.measurement import (
     PauliReconstructorFactory,
     bitwise_pauli_reconstructor_factory,

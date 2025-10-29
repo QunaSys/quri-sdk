@@ -16,7 +16,6 @@ from unittest.mock import Mock
 
 import numpy as np
 import pytest
-
 from quri_parts.circuit import (
     H,
     ImmutableQuantumCircuit,

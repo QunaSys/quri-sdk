@@ -17,7 +17,6 @@ from typing import TYPE_CHECKING, Optional, cast
 import numpy as np
 import numpy.testing as npt
 import pytest
-
 from quri_parts.circuit import (
     LinearMappedUnboundParametricQuantumCircuit,
     QuantumCircuit,

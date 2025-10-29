@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label, zero
 from quri_parts.core.operator.representation import (
     transition_amp_comp_basis,

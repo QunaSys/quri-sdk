@@ -12,8 +12,6 @@ from functools import cached_property
 from typing import Literal, Mapping, Union
 
 import numpy as np
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import (
     GateSequence,
     ImmutableQuantumCircuit,
@@ -23,6 +21,7 @@ from quri_parts.circuit import (
     gate_names,
 )
 from quri_parts.circuit.gate_names import is_pauli_name
+from typing_extensions import TypeAlias
 
 from ..utils.bit import different_bit_index, get_bit
 from .state import CircuitQuantumState, GeneralCircuitQuantumState

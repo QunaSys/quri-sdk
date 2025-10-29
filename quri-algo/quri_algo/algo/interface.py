@@ -21,11 +21,10 @@ from typing import (
     TypeVar,
 )
 
+from quri_algo.algo.utils.timer import timer
 from quri_parts.algo.optimizer import OptimizerState
 from quri_parts.backend.units import TimeValue
 from quri_parts.circuit import NonParametricQuantumCircuit
-
-from quri_algo.algo.utils.timer import timer
 
 LoweringLevel = Enum(
     "LoweringLevel",

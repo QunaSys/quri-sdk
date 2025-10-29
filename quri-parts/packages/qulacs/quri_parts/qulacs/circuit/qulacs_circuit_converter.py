@@ -14,7 +14,6 @@ from collections.abc import Mapping
 
 import numpy as np
 from qulacs import QuantumCircuit as QulacsQuantumCircuit
-
 from quri_parts.circuit import ImmutableQuantumCircuit as NPQC
 from quri_parts.circuit import (
     PauliRotation,

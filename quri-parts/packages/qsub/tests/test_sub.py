@@ -1,5 +1,4 @@
 import pytest
-
 from quri_parts.qsub.op import OpDef, op
 from quri_parts.qsub.sub import ParamSubDef, Sub, SubBuilder, SubDef, param_sub, sub
 

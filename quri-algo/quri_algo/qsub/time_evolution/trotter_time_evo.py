@@ -1,13 +1,12 @@
 from typing import Any, Sequence
 
+from quri_algo.problem import QubitHamiltonian
 from quri_parts.core.operator import PAULI_IDENTITY, trotter_suzuki_decomposition
 from quri_parts.qsub.lib.std import PauliRotation
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.sub import SubBuilder
-
-from quri_algo.problem import QubitHamiltonian
 
 
 class _TrotterTimeEvo(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):

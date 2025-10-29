@@ -16,8 +16,6 @@ from braket.aws import AwsDevice
 from braket.devices import Device
 from pydantic.dataclasses import dataclass
 from pydantic.json import pydantic_encoder
-from typing_extensions import TypeAlias
-
 from quri_parts.backend import (
     CompositeSamplingJob,
     SamplingBackend,
@@ -33,6 +31,7 @@ from quri_parts.braket.circuit import (
 )
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from typing_extensions import TypeAlias
 
 from .transpiler import AwsDeviceTranspiler
 

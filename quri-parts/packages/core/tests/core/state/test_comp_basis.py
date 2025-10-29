@@ -13,8 +13,6 @@ from typing import Iterable, cast
 
 import numpy as np
 import pytest
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import H, ImmutableQuantumCircuit, Pauli, QuantumGate, X, Y, Z
 from quri_parts.core.state import (
     ComputationalBasisState,
@@ -22,6 +20,7 @@ from quri_parts.core.state import (
     comp_basis_superposition,
 )
 from quri_parts.core.state.state import GeneralCircuitQuantumState
+from typing_extensions import TypeAlias
 
 from .helpers import raw_vector
 

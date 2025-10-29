@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.chem.mol import (
     convert_to_spin_orbital_indices,
     get_core_and_active_orbital_indices,

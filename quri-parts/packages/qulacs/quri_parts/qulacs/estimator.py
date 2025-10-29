@@ -12,7 +12,6 @@ from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Any, Callable, NamedTuple, Optional, Union
 
 import qulacs
-
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,

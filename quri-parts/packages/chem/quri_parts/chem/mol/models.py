@@ -15,7 +15,6 @@ from typing import NamedTuple, Optional, Protocol, Sequence
 
 import numpy as np
 import numpy.typing as npt  # noqa: F401
-
 from quri_parts.chem.mol import get_core_and_active_orbital_indices
 
 

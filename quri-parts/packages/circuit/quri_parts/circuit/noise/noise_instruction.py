@@ -17,8 +17,6 @@ from typing import Union, cast
 import numpy as np
 import numpy.linalg as la
 import numpy.typing as npt
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit.gate_names import NonParametricGateNameType
 from quri_parts.rust.circuit.noise import (
     DepthIntervalNoise,
@@ -26,6 +24,7 @@ from quri_parts.rust.circuit.noise import (
     GateNoiseInstruction,
     MeasurementNoise,
 )
+from typing_extensions import TypeAlias
 
 #: Represents a backend-independent noise instruction to be added to NoiseModel.
 NoiseInstruction: TypeAlias = Union[

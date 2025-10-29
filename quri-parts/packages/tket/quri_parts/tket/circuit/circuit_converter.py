@@ -13,7 +13,6 @@ from typing import Sequence
 
 from numpy import array, pi
 from pytket.circuit import Circuit, Op, OpType, Unitary1qBox, Unitary2qBox, Unitary3qBox
-
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumGate, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,

@@ -12,7 +12,6 @@ import numpy as np
 from numpy import array
 from pyscf.gto import Mole
 from pyscf.scf import ROHF
-
 from quri_parts.chem.mol import (
     ActiveSpaceMolecularOrbitals,
     SpatialMO1eIntArray,

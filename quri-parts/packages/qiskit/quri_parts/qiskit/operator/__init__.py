@@ -10,7 +10,6 @@
 
 from qiskit.circuit import ParameterExpression
 from qiskit.quantum_info import SparsePauliOp
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 
 

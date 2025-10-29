@@ -13,7 +13,6 @@ import unittest
 from numpy import allclose, array, complex128, isclose
 from numpy.typing import NDArray
 from pyscf import gto, scf
-
 from quri_parts.chem.mol import ActiveSpace, ActiveSpaceMolecularOrbitals, cas
 from quri_parts.pyscf.mol import (
     PySCFAO1eInt,

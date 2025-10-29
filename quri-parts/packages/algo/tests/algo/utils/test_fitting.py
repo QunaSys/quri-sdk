@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.algo.utils import (
     exp_fitting,
     exp_fitting_with_const,

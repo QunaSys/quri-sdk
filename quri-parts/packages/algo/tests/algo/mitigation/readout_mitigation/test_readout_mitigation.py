@@ -12,7 +12,6 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 import numpy as np
-
 from quri_parts.algo.mitigation.readout_mitigation import (
     create_filter_matrix,
     create_readout_mitigation_concurrent_sampler,

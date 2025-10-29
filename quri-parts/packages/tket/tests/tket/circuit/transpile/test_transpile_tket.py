@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.circuit import QuantumCircuit, gate_names, gates
 from quri_parts.tket.circuit.transpile import TketTranspiler
 

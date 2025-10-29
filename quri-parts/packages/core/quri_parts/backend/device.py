@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from typing import Optional
 
 import networkx as nx
-
 from quri_parts.circuit import QuantumGate
 from quri_parts.circuit.gate_names import is_parametric_gate_name
 from quri_parts.circuit.noise import NoiseModel

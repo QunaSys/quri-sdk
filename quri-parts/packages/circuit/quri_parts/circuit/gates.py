@@ -10,8 +10,6 @@
 
 from typing import Any, Literal, Sequence
 
-from typing_extensions import deprecated
-
 from quri_parts.circuit import gate_names
 from quri_parts.rust.circuit.gates import (
     CNOT,
@@ -48,6 +46,7 @@ from quri_parts.rust.circuit.gates import (
     Y,
     Z,
 )
+from typing_extensions import deprecated
 
 from .gate import ParametricQuantumGate, QuantumGate
 

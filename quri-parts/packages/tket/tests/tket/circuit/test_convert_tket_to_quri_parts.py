@@ -10,10 +10,9 @@
 
 import numpy as np
 from pytket.circuit import Circuit, OpType, Unitary1qBox, Unitary2qBox, Unitary3qBox
-from scipy.stats import unitary_group
-
 from quri_parts.circuit import QuantumGate, gates
 from quri_parts.tket.circuit.tket_circuit_converter import circuit_from_tket
+from scipy.stats import unitary_group
 
 
 def gate_equal(gate_1: QuantumGate, gate_2: QuantumGate) -> None:

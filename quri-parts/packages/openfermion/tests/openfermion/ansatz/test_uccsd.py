@@ -12,7 +12,6 @@ from typing import Sequence
 
 import pytest
 from openfermion import FermionOperator
-
 from quri_parts.chem.utils.excitations import excitations
 from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate

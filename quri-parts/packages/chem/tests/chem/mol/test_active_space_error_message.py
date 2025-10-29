@@ -13,7 +13,6 @@ from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt  # noqa: F401
 import pytest
-
 from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,

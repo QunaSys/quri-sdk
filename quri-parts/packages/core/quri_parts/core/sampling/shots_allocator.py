@@ -12,7 +12,6 @@ import math
 from collections.abc import Collection
 
 from numpy.random import default_rng
-
 from quri_parts.core.operator import CommutablePauliSet, Operator
 from quri_parts.core.sampling import PauliSamplingSetting, PauliSamplingShotsAllocator
 

@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from openfermion.ops import QubitOperator
-
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.openfermion.operator import operator_from_openfermion_op
 

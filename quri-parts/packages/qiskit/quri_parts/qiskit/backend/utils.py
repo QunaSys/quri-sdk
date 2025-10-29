@@ -12,7 +12,6 @@ import warnings
 from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 
 from qiskit.providers.backend import Backend, BackendV1, BackendV2
-
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler

@@ -12,7 +12,6 @@ from collections.abc import Sequence
 from typing import Callable
 
 import numpy as np
-
 import quri_parts.circuit.gate_names as names
 from quri_parts.circuit import QuantumGate, gates
 from quri_parts.circuit.noise import (

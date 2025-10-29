@@ -19,7 +19,6 @@ from qiskit import qasm3
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit.circuit.gate import Gate as QiskitGate
 from qiskit.circuit.library import UnitaryGate
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
 from quri_parts.qiskit.circuit import convert_circuit, convert_gate

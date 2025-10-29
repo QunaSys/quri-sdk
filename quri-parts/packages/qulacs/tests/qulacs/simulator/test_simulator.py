@@ -13,8 +13,6 @@ from collections import Counter
 
 import pytest
 from numpy import allclose, array, isclose, pi
-from scipy.stats import unitary_group
-
 from quri_parts.circuit import QuantumCircuit, X
 from quri_parts.core.state import (
     ComputationalBasisState,
@@ -30,6 +28,7 @@ from quri_parts.qulacs.simulator import (
     get_marginal_probability,
     run_circuit,
 )
+from scipy.stats import unitary_group
 
 
 def test_evaluate_state_to_vector_general_circuit_state_to_vec() -> None:

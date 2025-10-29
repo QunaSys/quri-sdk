@@ -10,10 +10,9 @@
 
 from typing import Callable, Iterable
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import ConcurrentSampler, MeasurementCounts, Sampler
+from typing_extensions import TypeAlias
 
 #: Represents a filter function for post-selection.
 PostSelectionFilterFunction: TypeAlias = Callable[[int], bool]

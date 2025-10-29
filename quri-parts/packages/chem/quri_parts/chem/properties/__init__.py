@@ -10,8 +10,6 @@
 
 from typing import Callable, Sequence, TypeVar, Union
 
-from typing_extensions import TypeAlias
-
 from quri_parts.core.estimator import ConcurrentQuantumEstimator
 from quri_parts.core.operator import Operator, is_hermitian
 from quri_parts.core.state import (
@@ -24,6 +22,7 @@ from quri_parts.core.utils.differentiation import (
     OperatorGradientCalculator,
     numerical_operator_gradient,
 )
+from typing_extensions import TypeAlias
 
 #: A type variable represents *any* parametric quantum state classes.
 #: This is different from :class:`quri_parts.core.state.ParametricQuantumStateT`;

@@ -12,7 +12,6 @@ from collections.abc import Mapping
 from typing import Callable, Union
 
 import numpy as np
-
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     QuantumCircuit,

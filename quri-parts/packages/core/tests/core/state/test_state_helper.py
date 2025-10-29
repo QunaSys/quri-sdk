@@ -11,7 +11,6 @@
 from unittest.mock import Mock, patch
 
 import pytest
-
 from quri_parts.circuit import ParametricQuantumCircuit, QuantumCircuit
 from quri_parts.core.state import (
     ComputationalBasisState,

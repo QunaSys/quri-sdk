@@ -1,7 +1,6 @@
 import math
 
 import pytest
-
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,

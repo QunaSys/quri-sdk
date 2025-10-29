@@ -11,8 +11,6 @@
 from typing import Callable, Iterable, NamedTuple, Optional
 
 import numpy as np
-from typing_extensions import TypeAlias
-
 from quri_parts.algo.utils import (
     exp_fitting,
     exp_fitting_with_const,
@@ -34,6 +32,7 @@ from quri_parts.core.estimator import (
 )
 from quri_parts.core.operator import Operator, is_hermitian
 from quri_parts.core.state import GeneralCircuitQuantumState
+from typing_extensions import TypeAlias
 
 
 class _Estimate(NamedTuple):

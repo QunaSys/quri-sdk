@@ -21,7 +21,6 @@ from cirq.ops.raw_types import Gate, Operation, Qid
 from cirq.ops.swap_gates import SWAP
 from cirq.ops.three_qubit_gates import TOFFOLI
 from cirq.protocols.unitary_protocol import unitary
-
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.transpile import TwoQubitUnitaryMatrixKAKTranspiler
 from quri_parts.cirq.circuit.circuit_converter import (

@@ -13,7 +13,6 @@ from typing import Optional
 import networkx as nx
 import pytest
 from qiskit.providers import BackendV1, BackendV2
-
 from quri_parts.qiskit.backend import device_connectivity_graph
 
 

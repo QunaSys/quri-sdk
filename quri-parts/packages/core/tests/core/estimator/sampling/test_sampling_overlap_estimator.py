@@ -15,7 +15,6 @@ from unittest.mock import Mock
 
 import pytest
 from numpy.testing import assert_almost_equal
-
 from quri_parts.circuit import (
     H,
     ImmutableQuantumCircuit,

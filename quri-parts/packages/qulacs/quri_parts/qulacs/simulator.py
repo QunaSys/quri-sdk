@@ -15,7 +15,6 @@ import numpy as np
 import qulacs as ql
 from numpy import complex128, zeros
 from numpy.typing import NDArray
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.sampling import (

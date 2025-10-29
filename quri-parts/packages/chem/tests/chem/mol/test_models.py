@@ -11,7 +11,6 @@
 from typing import TYPE_CHECKING
 
 import numpy as np
-
 from quri_parts.chem.mol import (
     ActiveSpace,
     ActiveSpaceMolecularOrbitals,

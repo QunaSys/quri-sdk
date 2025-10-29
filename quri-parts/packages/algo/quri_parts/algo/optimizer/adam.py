@@ -13,7 +13,6 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 import numpy as np
-
 from quri_parts.core.utils.array import readonly_array
 
 from .interface import (

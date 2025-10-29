@@ -13,7 +13,6 @@ from collections.abc import Callable, Iterable
 from typing import TYPE_CHECKING, Any, Optional
 
 import qulacs
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.noise import NoiseModel
 from quri_parts.core.sampling import (

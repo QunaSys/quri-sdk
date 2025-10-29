@@ -12,7 +12,6 @@ from typing import TYPE_CHECKING, Any, Iterable, Optional
 
 import numpy as np
 import numpy.typing as npt
-
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import (
     ConcurrentSampler,

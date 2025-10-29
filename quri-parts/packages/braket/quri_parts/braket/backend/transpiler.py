@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from braket.aws import AwsDevice
-
 from quri_parts.circuit.transpile import (
     CircuitTranspiler,
     CZ2CNOTHTranspiler,

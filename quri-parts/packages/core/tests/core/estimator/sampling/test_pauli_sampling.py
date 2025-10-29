@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import pytest
-
 from quri_parts.core.estimator.sampling import (
     general_pauli_sum_expectation_estimator,
     general_pauli_sum_sample_variance,

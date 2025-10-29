@@ -12,9 +12,8 @@ from abc import ABC, abstractmethod, abstractproperty
 from collections.abc import Collection, Sequence
 from typing import Callable, Optional, Protocol
 
-from typing_extensions import TypeAlias
-
 from quri_parts.core.state import ComputationalBasisState
+from typing_extensions import TypeAlias
 
 #: Interface for a function that maps a collection of occupied spin orbital indices to
 #: a computational basis state of qubits.

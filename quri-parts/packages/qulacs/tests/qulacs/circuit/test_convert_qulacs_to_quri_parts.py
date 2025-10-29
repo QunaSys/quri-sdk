@@ -27,7 +27,6 @@ from qulacs.gate import (
     Pauli,
     PauliRotation,
 )
-
 from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.qulacs.circuit import circuit_from_qulacs
 

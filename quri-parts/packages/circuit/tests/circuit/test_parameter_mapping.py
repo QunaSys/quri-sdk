@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from typing import Callable
 
 import pytest
-
 from quri_parts.circuit import CONST, Parameter
 from quri_parts.circuit.parameter_mapping import (
     LinearParameterMapping,

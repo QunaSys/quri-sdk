@@ -13,12 +13,11 @@ from collections.abc import Sequence
 from enum import Enum, auto
 from typing import Callable, NamedTuple
 
-from typing_extensions import TypeAlias
-
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     LinearMappedParametricQuantumCircuit,
 )
+from typing_extensions import TypeAlias
 
 
 class EntanglementPatternType(Enum):

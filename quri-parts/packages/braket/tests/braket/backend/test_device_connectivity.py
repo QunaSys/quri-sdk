@@ -10,7 +10,6 @@
 
 import networkx as nx
 import pytest
-
 from quri_parts.braket.backend import device_connectivity_graph
 
 

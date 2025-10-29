@@ -9,7 +9,6 @@
 # limitations under the License.
 
 import numpy as np
-
 from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.circuit.utils.controlled_rotations import (
     add_controlled_RX_gate,

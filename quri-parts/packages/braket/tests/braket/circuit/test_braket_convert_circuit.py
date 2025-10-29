@@ -13,7 +13,6 @@ from typing import Callable, Type, cast
 
 import numpy as np
 from braket.circuits import Circuit, Gate, Instruction
-
 from quri_parts.braket.circuit import convert_circuit, convert_gate
 from quri_parts.circuit import (
     LinearMappedParametricQuantumCircuit,
