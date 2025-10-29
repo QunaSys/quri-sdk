@@ -156,7 +156,9 @@ def connect_gate(
 
 
 def add_disconnected_qubits(
-    in_out_map: Sequence[dict[str, Optional[Edge]]], node_collection: NodeCollection
+    in_out_map: Sequence[dict[str, Optional[Edge]]],
+    node_collection: NodeCollection,
+    tensor_map: list[dict[int, TensorNetworkQuantumGate]],
 ) -> None:
     for q, m in enumerate(in_out_map):
         if m["in"] is None or m["out"] is None:
@@ -165,6 +167,12 @@ def add_disconnected_qubits(
             m["in"] = node[0]
             m["out"] = node[1]
             node_collection.add(node)
+            if not tensor_map:
+                tensor_map.append(
+                    {q: node}
+                )
+            else:
+                tensor_map[0][q] = node
 
 
 def convert_circuit(
