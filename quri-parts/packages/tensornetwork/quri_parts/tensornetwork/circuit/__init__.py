@@ -168,9 +168,7 @@ def add_disconnected_qubits(
             m["out"] = node[1]
             node_collection.add(node)
             if not tensor_map:
-                tensor_map.append(
-                    {q: node}
-                )
+                tensor_map.append({q: node})
             else:
                 tensor_map[0][q] = node
 
@@ -261,7 +259,7 @@ def convert_circuit(
         else:
             raise ValueError(f"Unknown gate name: {gate.name}")
 
-    add_disconnected_qubits(in_out_map, node_collection)
+    add_disconnected_qubits(in_out_map, node_collection, tensor_map)
 
     input_edges = [m["in"] for m in in_out_map]
     output_edges = [m["out"] for m in in_out_map]
