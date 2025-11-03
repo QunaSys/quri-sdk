@@ -74,4 +74,5 @@ include = ["quri_parts", "Cargo.toml", "packages/rust"]
 
 [[tool.setuptools-rust.ext-modules]]
 target = "quri_parts.rust.quri_parts_rust"
+debug = false
 # path = "..." is added in rust-sdist-package workflow
