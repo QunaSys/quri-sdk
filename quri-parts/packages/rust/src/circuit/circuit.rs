@@ -120,10 +120,11 @@ impl ImmutableQuantumCircuit {
     fn combine(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<Py<QuantumCircuit>> {
         if let Ok(other) = gates.downcast::<ImmutableQuantumCircuit>() {
             let other_qubit_count = other.borrow().qubit_count;
-            if other_qubit_count != slf.borrow().qubit_count {
-                return Err(pyo3::exceptions::PyValueError::new_err(
-                    "Cannot combine circuits with different qubit counts",
-                ));
+            let self_qubit_count = { slf.borrow().qubit_count };
+            if other_qubit_count != self_qubit_count {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Cannot combine circuits with different qubit counts ({self_qubit_count} and {other_qubit_count})",
+                )));
             }
         }
         let ret = Self::get_mutable_copy(slf)?;
