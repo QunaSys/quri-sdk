@@ -118,16 +118,34 @@ impl ImmutableQuantumCircuit {
 
     #[pyo3(text_signature = "(gates: ImmutableQuantumCircuit | Sequence[QuantumGate])")]
     fn combine(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<Py<QuantumCircuit>> {
+        if let Ok(other) = gates.downcast::<ImmutableQuantumCircuit>() {
+            let other_qubit_count = other.borrow().qubit_count;
+            if other_qubit_count != slf.borrow().qubit_count {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Cannot combine circuits with different qubit counts",
+                ));
+            }
+        }
         let ret = Self::get_mutable_copy(slf)?;
         QuantumCircuit::extend(ret.bind(slf.py()), gates)?;
         Ok(ret)
     }
 
     #[pyo3(name = "__add__")]
-    fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyObject {
-        Self::combine(slf, gates)
-            .map(|c| c.into_py(slf.py()))
-            .unwrap_or(slf.py().NotImplemented())
+    fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<PyObject> {
+        match Self::combine(slf, gates) {
+        Ok(circuit) => Ok(circuit.into_py(slf.py())),
+        Err(err) => {
+            // propagate mismatched qubit error (or any other specific ones)
+            if err.is_instance_of::<pyo3::exceptions::PyValueError>(slf.py()) {
+                Err(err)
+            } else {
+                Err(pyo3::exceptions::PyNotImplementedError::new_err(
+                    err.to_string(),
+                ))
+            }
+        }
+    }
     }
 
     fn freeze(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
