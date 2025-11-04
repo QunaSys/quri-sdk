@@ -1,6 +1,7 @@
 use crate::circuit::gate::{ParametricQuantumGate, QuantumGate};
 use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
+use ndarray::Array2;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
 
@@ -260,31 +261,43 @@ pub fn unitary_matrix(
     unitary_matrix: Vec<Vec<Complex64>>,
 ) -> PyResult<QuantumGate> {
     let dim = 2usize.pow(target_indices.len() as u32);
-    if unitary_matrix.len() == dim && unitary_matrix.iter().all(|v| v.len() == dim) {
-        if (0..dim).all(|i| {
-            (0..dim).all(|j| {
-                ((0..dim)
-                    .map(|k| unitary_matrix[i][k] * unitary_matrix[j][k].conj())
-                    .sum::<Complex64>()
-                    - Complex64::new(Into::<u8>::into(i == j) as f64, 0f64))
-                .abs()
-                    < 1e-5
-            })
-        }) {
-            Ok(QuantumGate::UnitaryMatrix(
-                target_indices.into(),
-                unitary_matrix.into_iter().map(Into::into).collect(),
-            ))
-        } else {
-            Err(pyo3::exceptions::PyValueError::new_err(
-                "The given matrix is not unitary.",
-            ))
-        }
-    } else {
-        Err(pyo3::exceptions::PyValueError::new_err(
+    if unitary_matrix.len() != dim || unitary_matrix.iter().any(|row| row.len() != dim) {
+        return Err(pyo3::exceptions::PyValueError::new_err(
             "The number of qubits does not match the size of the unitary matrix.",
-        ))
+        ));
     }
+
+    let flat: Vec<Complex64> = unitary_matrix
+        .iter()
+        .flat_map(|row| row.iter().cloned())
+        .collect();
+    let mat = Array2::from_shape_vec((dim, dim), flat)
+        .expect("validated shape ensures allocation succeeds");
+    let adjoint = mat.mapv(|c| c.conj()).reversed_axes();
+    let gram = adjoint.dot(&mat);
+    let tolerance = 1e-5f64;
+
+    let is_unitary = gram.iter().enumerate().all(|(idx, value)| {
+        let row = idx / dim;
+        let col = idx % dim;
+        let expected = if row == col {
+            Complex64::new(1.0, 0.0)
+        } else {
+            Complex64::new(0.0, 0.0)
+        };
+        (*value - expected).abs() < tolerance
+    });
+
+    if !is_unitary {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "The given matrix is not unitary.",
+        ));
+    }
+
+    Ok(QuantumGate::UnitaryMatrix(
+        target_indices.into(),
+        unitary_matrix.into_iter().map(Into::into).collect(),
+    ))
 }
 
 #[pyfunction(
