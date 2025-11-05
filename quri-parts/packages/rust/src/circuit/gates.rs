@@ -267,10 +267,7 @@ pub fn unitary_matrix(
         ));
     }
 
-    let flat: Vec<Complex64> = unitary_matrix
-        .iter()
-        .flatten().cloned()
-        .collect();
+    let flat: Vec<Complex64> = unitary_matrix.iter().flatten().cloned().collect();
     let mat = Array2::from_shape_vec((dim, dim), flat)
         .expect("validated shape ensures allocation succeeds");
     let adjoint = mat.mapv(|c| c.conj()).reversed_axes();
