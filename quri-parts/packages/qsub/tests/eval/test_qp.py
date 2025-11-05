@@ -9,7 +9,8 @@ from quri_parts.qsub.evaluate import Evaluator
 from quri_parts.qsub.expand import full_expand
 from quri_parts.qsub.lib.std import CNOT, CZ, RZ, H, S, T, Toffoli, X
 from quri_parts.qsub.opsub import OpSubDef, opsub
-from quri_parts.qsub.sub import SubBuilder
+from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.sub import Sub, SubBuilder
 
 
 def test_execute_to_qp_circuit() -> None:
@@ -103,3 +104,56 @@ def test_reuse_evaluator() -> None:
     qp_circuit_1 = qp_generator.run(compiled)
 
     assert qp_circuit_0.gates == qp_circuit_1.gates
+
+
+def test_duplicate_qubit_error() -> None:
+    """
+    Each sub has the following internal qubits and aux_qubits:
+    sub: qubits=(Qubit(0), Qubit(2))
+         <- Intentional out-of-range index (2 >= len(qubits)).
+            This doesn't happen as long as a Sub is created via SubBuilder.
+    ASub: qubits=(Qubit(0), Qubit(1)), aux_qubits=(Qubit(2))
+
+    QURIPartsEvaluator first allocates 2 qubits (Qubit(0), Qubit(1)) for the qp circuit and maps sub.qubits to them as:
+    1) sub.Qubit(0) -> qp.Qubit(0), sub.Qubit(2) -> qp.Qubit(1)
+
+    When entering ASub, it allocates 1 qubits (Qubit(2)) for the qp circuit and maps ASub.aux_qubits to it as:
+    2) ASub.Qubit(2) -> qp.Qubit(2)
+
+    ASub is called from sub as A(sub.Qubit(0), sub.Qubit(2)), so it corresponds to a mapping:
+    3) ASub.Qubit(0) -> sub.Qubit(0), ASub.Qubit(1) -> sub.Qubit(2)
+
+    Combining 1)-3) mappings, the ASub qubits should be mapped to qp qubits as:
+    ASub.Qubit(0) -> sub.Qubit(0) -> qp.Qubit(0)
+    ASub.Qubit(1) -> sub.Qubit(2) -> qp.Qubit(1)
+    ASub.Qubit(2) -> qp.Qubit(2)
+
+    However, the mapping logic at 645359febc1ebce9f176dba4037a5fa2615772b9 doesn't distinguish sub.Qubit(2) and qp.Qubit(2), so it maps ASub.Qubit(2) incorrectly as:
+    ASub.Qubit(2) -> qp.Qubit(2) = sub.Qubit(2) -> qp.Qubit(1)
+    """
+
+    class ADef(OpSubDef):
+        name = "A"
+        qubit_count = 2
+
+        def sub(self, builder: SubBuilder) -> None:
+            builder.add_op(Toffoli, (builder.add_aux_qubit(), *builder.qubits))
+
+    A, ASub = opsub(ADef)
+
+    qs = (Qubit(0), Qubit(2))
+    sub = Sub(qs, (), (), (), [(A, qs, ())])
+
+    primitives = (Toffoli,)
+    compiled = compile_sub(sub, primitives)
+
+    qp_generator = Evaluator(QURIPartsEvaluatorHooks())
+    qp_circuit = qp_generator.run(compiled)
+
+    gates = qp_circuit.gates
+    assert len(gates) == 1
+    g = gates[0]
+    indices = g.target_indices + g.control_indices
+    assert len(set(indices)) == len(
+        indices
+    ), f"Duplicate qubits. {g.target_indices=}, {g.control_indices=}"
