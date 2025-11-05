@@ -348,11 +348,11 @@ def test_multi_control_with_resolver_complex() -> None:
 
     resolved_sub = resolve_sub(mcy_with_complex_sub, new_repo)
     assert resolved_sub is not None
-    assert len(resolved_sub.qubits) == 9
+    assert len(resolved_sub.qubits) == 6
     assert len(resolved_sub.aux_qubits) == 0
 
     # Check that it has the expected MultiControlled operations
-    q0, q1, q2, q3, q4, q5, q6, q7, q8 = resolved_sub.qubits
+    q0, q1, q2, q3, q4, q5 = resolved_sub.qubits
     assert resolved_sub.operations == (
         (MultiControlled(H, 3, 0b111), (q0, q1, q2, q3), ()),
         (MultiControlled(CNOT, 3, 0b111), (q0, q1, q2, q3, q4), ()),
