@@ -18,6 +18,8 @@ from typing import Any, Generic, Protocol, TypeAlias, cast
 from typing_extensions import Self
 
 from quri_parts.qsub.op import BaseIdent, Ident, Op, OpFactory, Params
+from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.register import Register
 from quri_parts.qsub.sub import Sub, SubFactory
 
 logger = logging.getLogger(__name__)
@@ -145,6 +147,12 @@ class CompositeSubRepository(SubRepository):
 def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub | None:
     resolver = repository.find_resolver(op)
     if resolver:
-        return resolver(op, repository)
+        result = resolver(op, repository)
+        if result is not None:
+            assert set(result.qubits) == set(Qubit(i) for i in range(op.qubit_count))
+            assert set(result.registers) == set(
+                Register(i) for i in range(op.reg_count)
+            )
+        return result
     else:
         return None
