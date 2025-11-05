@@ -269,7 +269,7 @@ pub fn unitary_matrix(
 
     let flat: Vec<Complex64> = unitary_matrix
         .iter()
-        .flat_map(|row| row.iter().cloned())
+        .flatten().cloned()
         .collect();
     let mat = Array2::from_shape_vec((dim, dim), flat)
         .expect("validated shape ensures allocation succeeds");
@@ -277,9 +277,7 @@ pub fn unitary_matrix(
     let gram = adjoint.dot(&mat);
     let tolerance = 1e-5f64;
 
-    let is_unitary = gram.iter().enumerate().all(|(idx, value)| {
-        let row = idx / dim;
-        let col = idx % dim;
+    let is_unitary = gram.indexed_iter().all(|((row, col), value)| {
         let expected = if row == col {
             Complex64::new(1.0, 0.0)
         } else {
@@ -296,7 +294,7 @@ pub fn unitary_matrix(
 
     Ok(QuantumGate::UnitaryMatrix(
         target_indices.into(),
-        unitary_matrix.into_iter().map(Into::into).collect(),
+        unitary_matrix,
     ))
 }
 
