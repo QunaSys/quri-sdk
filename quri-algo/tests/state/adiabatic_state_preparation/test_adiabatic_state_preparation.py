@@ -203,7 +203,7 @@ def test_stop_at_iteration() -> None:
         for i in range(DISCRETIZATION)
     ]
     expected_circuit = QuantumCircuit(1)
-    for s0, s1 in zip(times[:STOP_AT], times[1 : STOP_AT + 1]):
+    for s0, s1 in zip(times[:STOP_AT], times[1 : STOP_AT + 1]):  # noqa: E203
         ds = s1 - s0
         s = (s0 + s1) / 2
         trotter_factory = TrotterTimeEvolutionCircuitFactory(

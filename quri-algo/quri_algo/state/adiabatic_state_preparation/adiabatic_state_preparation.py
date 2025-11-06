@@ -26,7 +26,8 @@ def get_linear_hamiltonian_mapping(
 ) -> HamiltonianMapping:
     if not h_0.n_qubit == h_1.n_qubit:
         raise ValueError(
-            f"Provided QubitHamiltonian qubit counts, {h_0.n_qubit} and {h_1.n_qubit}, do not match"
+            "Provided QubitHamiltonian qubit counts, "
+            + f"{h_0.n_qubit} and {h_1.n_qubit}, do not match"
         )
 
     def hamiltonian_mapping(t: float) -> QubitHamiltonian:
@@ -72,15 +73,21 @@ class AdiabaticTimeEvolutionStateFactory(AdiabaticTimeEvolutionStateFactoryBase)
     ) -> CircuitQuantumState:
         r"""Perform adiabatic time-evolution on the provided state.
 
-        Perform time-evolution on the provided :class:`HamiltonianMapping`. Time-evolution intervals are inferred by the interpolation function. Variable and keyword arguments are passed to the time-evolution circuit factory constructor.
+        Perform time-evolution on the provided :class:`HamiltonianMapping`.
+        Time-evolution intervals are inferred by the interpolation function. Variable
+        and keyword arguments are passed to the time-evolution circuit factory
+        constructor.
 
         Arguments:
             evolution_time: total time-evolution
             discretization: number of times the time-evolution circuit factory is called
             initial_state: initial state to perform time-evolution on, if provided
-            interp_function: monotonically increasing function, which maps the range (0;1) to (0;1). Is applied to the time-interval
-            stop_at_time: stops the time-evolution at the provided time to obtain an intermediate state
-            stop_at_iteration: stops the time-evolution at the provided iteration to obtain an intermediate state
+            interp_function: monotonically increasing function, which maps the range
+            (0;1) to (0;1). Is applied to the time-interval
+            stop_at_time: stops the time-evolution at the provided time to obtain an
+            intermediate state
+            stop_at_iteration: stops the time-evolution at the provided iteration to
+            obtain an intermediate state
         """
         self.verify_inputs(discretization, interp_function)
 

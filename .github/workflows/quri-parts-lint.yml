@@ -46,7 +46,7 @@ jobs:
 
     - run: |
         poetry env use 3.10
-        poetry install --only lint --extras parts
+        poetry install --only lint
 
     - run: |
         poetry run isort packages --check --diff

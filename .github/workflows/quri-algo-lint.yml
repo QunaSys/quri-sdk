@@ -27,7 +27,7 @@ jobs:
 
     - run: |
         poetry env use python3.11
-        poetry install --only lint --extras algo
+        poetry install --only lint
 
     - run: poetry run isort quri-algo --check --diff
       if: success() || failure()

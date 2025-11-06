@@ -28,8 +28,8 @@ from quri_parts.qulacs.sampler import (
 class LogicalCircuitSimulator(ABC):
     """Abstract base class for logical circuit simulator.
 
-    The primary objective is to define the interfaces to give VMs the ability
-    to execute logical circuits.
+    The primary objective is to define the interfaces to give VMs the
+    ability to execute logical circuits.
     """
 
     @abstractmethod

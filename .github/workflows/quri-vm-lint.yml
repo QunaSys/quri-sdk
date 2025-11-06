@@ -27,7 +27,7 @@ jobs:
 
     - run: |
         poetry env use 3.10
-        poetry install -vvv --only dev,typecheck --extras vm
+        poetry install -vvv --only typecheck,lint --extras vm
 
     - run: poetry run isort quri-vm --check --diff
       if: success() || failure()

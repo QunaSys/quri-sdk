@@ -22,8 +22,8 @@ from quri_parts.core.sampling import MeasurementCounts
 
 
 class LoweringLevel(IntEnum):
-    """Expresses to which layer of detail the VM will lower the quantum program in cost
-    evaluation and execution.
+    """Expresses to which layer of detail the VM will lower the quantum program
+    in cost evaluation and execution.
 
     All levels are listed below, but if you want to specify processing in a certain
     level, VMBackend must support that level.
@@ -64,9 +64,8 @@ class AnalyzeResult:
 
 
 class VMBackend(ABC):
-    """Abstract base class of VM backend with the ability to lower and refine quantum
-    programs according to the specific architecuture and device.
-    """
+    """Abstract base class of VM backend with the ability to lower and refine
+    quantum programs according to the specific architecuture and device."""
 
     @abstractmethod
     def sample(

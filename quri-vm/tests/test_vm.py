@@ -29,7 +29,6 @@ from quri_parts.core.estimator import Estimate
 from quri_parts.core.operator import pauli_label
 from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import quantum_state
-
 from quri_vm import VM, AnalyzeResult, VMBackend
 from quri_vm.vm_backend import _DevicePropertyBackend
 
@@ -204,10 +203,12 @@ class TestVMBackend:
         backend = _DevicePropertyBackend(
             nisq_iontrap_device.generate_device_property(
                 qubit_count=16,
-                native_gates={
+                native_gates_1q={
                     gate_names.RX,
                     gate_names.RY,
                     gate_names.RZ,
+                },
+                native_gates_2q={
                     gate_names.CZ,
                 },
                 gate_error_1q=1.0e-5,
@@ -230,10 +231,12 @@ class TestVMBackend:
         backend = _DevicePropertyBackend(
             nisq_spcond_lattice.generate_device_property(
                 lattice=SquareLattice(4, 4),
-                native_gates={
+                native_gates_1q={
                     gate_names.RX,
                     gate_names.RY,
                     gate_names.RZ,
+                },
+                native_gates_2q={
                     gate_names.CZ,
                 },
                 gate_error_1q=1.0e-4,
