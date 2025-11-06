@@ -8,8 +8,7 @@ publish = false
 num-complex = "0.4.6"
 quri-parts = { path = "../../", version = "0.24.0", features = ["python"] }
 ndarray = { version = "0.15", default-features = false, features = ["std", "blas"] }
-blas-src = { version = "0.10", features = ["openblas"] }
-openblas-src = { version = "0.10", features = ["cblas", "system"] }
+blas-src = { version = "0.10", features = ["r"] }
 
 [dependencies.pyo3]
 version = "0.22.6"
