@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          path: quri-sdk
       
       - name: Get current branch name
         id: branch
@@ -48,17 +49,11 @@ jobs:
           repository: ${{ secrets.PRIVATE_REPO_URL }}
           token: ${{ steps.quri-fetcher-token.outputs.token }}
           path: downstream-repo
-          submodules: recursive
       
-      - name: Update submodule to current branch
-        working-directory: downstream-repo
+      - name: Replace submodule with checked out branch
         run: |
-          # Update the submodule to point to the current PR branch
-          git submodule update --init --recursive
-          cd quri-sdk
-          git fetch origin
-          git checkout ${{ steps.branch.outputs.name }} || git checkout -b ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
-          cd ..
+          rm -rf downstream-repo/quri-sdk
+          mv -f quri-sdk downstream-repo/
       
       - name: Set up Python
         uses: actions/setup-python@v4
