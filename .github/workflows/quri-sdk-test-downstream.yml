@@ -55,7 +55,7 @@ jobs:
         run: |
           # Update the submodule to point to the current PR branch
           git submodule update --init --recursive
-          cd path/to/submodule  # Replace with actual submodule path
+          cd quri-sdk
           git fetch origin
           git checkout ${{ steps.branch.outputs.name }} || git checkout -b ${{ steps.branch.outputs.name }} origin/${{ steps.branch.outputs.name }}
           cd ..
