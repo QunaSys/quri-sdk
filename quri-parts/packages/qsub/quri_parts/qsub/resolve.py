@@ -9,10 +9,12 @@
 # limitations under the License.
 
 import logging
+from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Any, Generic, Optional, Protocol, TypeAlias, cast
+from types import TracebackType
+from typing import Any, Generic, Optional, Protocol, Sequence, Type, TypeAlias, cast
 
 from quri_parts.qsub.op import BaseIdent, Ident, Op, OpFactory, Params
 from quri_parts.qsub.sub import Sub, SubFactory
@@ -46,7 +48,36 @@ def _get_base_id(op: Op | OpFactory[Params] | BaseIdent) -> BaseIdent:
 SubResolverCondition: TypeAlias = Callable[[Ident], bool]
 
 
-class SubRepository:
+class SubRepositoryProtocol(Protocol):
+    @abstractmethod
+    def find_resolver(self, op: Op) -> SubResolver | None:
+        ...
+
+    @abstractmethod
+    def register_sub(
+        self, op: Op | OpFactory[Any] | BaseIdent, sub: Sub | SubFactory[Any]
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def register_sub_resolver(
+        self,
+        op: Op | OpFactory[Any] | BaseIdent,
+        resolver: SubResolver,
+        condition: SubResolverCondition | None = None,
+    ) -> None:
+        ...
+
+    @abstractmethod
+    def copy(self) -> "SubRepositoryProtocol":
+        ...
+
+    @abstractmethod
+    def chain(self, repo: "SubRepositoryProtocol") -> "SubRepositoryProtocol":
+        ...
+
+
+class SubRepository(SubRepositoryProtocol):
     def __init__(self) -> None:
         self._mapping: dict[
             BaseIdent, list[tuple[SubResolver, SubResolverCondition | None]]
@@ -79,6 +110,12 @@ class SubRepository:
         for k, v in self._mapping.items():
             ret._mapping[k] = [item for item in v]
         return ret
+
+    def chain(self, repo: "SubRepository") -> "SubRepository":
+        new_repo = self.copy()
+        for base_id, res_list in repo._mapping.items():
+            new_repo._mapping[base_id].extend(res_list)
+        return new_repo
 
 
 _DEFAULT = SubRepository()
@@ -131,3 +168,68 @@ class SubCollector:
 
         _collect(op)
         return {op: sub for op, sub in sub_map.items() if sub is not None}
+
+
+class AdditionSubRepository(SubRepositoryProtocol):
+    def __init__(
+        self,
+        additions: Sequence[SubRepository],
+        root_repo: SubRepository = default_repository(),
+    ):
+        self.root_repo = root_repo
+        self.additions = additions
+        self._dynamic_repo: SubRepository | None = None
+        self._is_live = False
+
+    def __enter__(self):
+        logger.debug("__enter__")
+        self._is_live = True
+        self._dynamic_repo = self.root_repo.copy()
+        for repo in self.additions:
+            self._dynamic_repo = self._dynamic_repo.chain(repo)
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ):
+        logger.debug("__exit__")
+        self._is_live = False
+        self._dynamic_repo = None
+
+    def find_resolver(self, op: Op) -> SubResolver | None:
+        if self._is_live:
+            assert self._dynamic_repo is not None
+            return self._dynamic_repo.find_resolver(op)
+        with self:
+            assert self._dynamic_repo is not None
+            return self._dynamic_repo.find_resolver(op)
+
+    def register_sub(
+        self, op: Op | OpFactory[Any] | BaseIdent, sub: Sub | SubFactory[Any]
+    ) -> None:
+        raise ValueError("Registration is not allowed for AdditionSubRepository.")
+
+    def register_sub_resolver(
+        self,
+        op: Op | OpFactory[Any] | BaseIdent,
+        resolver: SubResolver,
+        condition: SubResolverCondition | None = None,
+    ) -> None:
+        raise ValueError("Registration is not allowed for AdditionSubRepository.")
+
+    def copy(self) -> "AdditionSubRepository":
+        return AdditionSubRepository(
+            [a.copy() for a in self.additions], self.root_repo.copy()
+        )
+
+    def chain(self, repo: SubRepositoryProtocol) -> "AdditionSubRepository":
+        if isinstance(repo, SubResolver):
+            return AdditionSubRepository(self.additions + [repo], self.root_repo.copy())
+        elif isinstance(repo, AdditionSubRepository):
+            return AdditionSubRepository(
+                self.additions + repo.additions, self.root_repo.copy()
+            )
+        else:
+            raise TypeError(f"Sub repository of type{type(repo)} cannot be chained.")
