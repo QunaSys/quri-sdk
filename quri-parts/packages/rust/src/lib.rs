@@ -1,7 +1,5 @@
 use pyo3::prelude::*;
 
-extern crate blas_src;
-
 mod circuit;
 mod qulacs;
 
