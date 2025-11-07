@@ -20,6 +20,7 @@ import numpy.testing as npt
 import pytest
 
 from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
     LinearMappedUnboundParametricQuantumCircuit,
     QuantumCircuit,
     UnboundParametricQuantumCircuit,
@@ -178,7 +179,7 @@ def test_concurrent_sampler_assigns_unique_random_seeds() -> None:
     def fake_sampler_creator(_: NoiseModel, seed: int) -> Sampler:
         used_seeds.append(seed)
 
-        def _sampler(circuit: QuantumCircuit, shots: int) -> MeasurementCounts:
+        def _sampler(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
             return Counter({0: shots})
 
         return _sampler
