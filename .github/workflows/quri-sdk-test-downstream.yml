@@ -88,13 +88,3 @@ jobs:
           poetry run pytest quri-algo-plus -v --tb=short
           poetry run pytest quri-parts-plus -v --tb=short
           poetry run pytest quri-vm-plus -v --tb=short
-      
-      - name: Report test results
-        if: always()
-        run: |
-          if [ $? -eq 0 ]; then
-            echo "✅ All tests passed!"
-          else
-            echo "❌ Some tests failed!"
-            exit 1
-          fi
