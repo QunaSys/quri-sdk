@@ -85,9 +85,9 @@ jobs:
       - name: Run tests with pytest
         working-directory: downstream-repo
         run: |
-          poetry run pytest quri-algo -v --tb=short
-          poetry run pytest quri-parts -v --tb=short
-          poetry run pytest quri-vm -v --tb=short
+          poetry run pytest quri-algo-plus -v --tb=short
+          poetry run pytest quri-parts-plus -v --tb=short
+          poetry run pytest quri-vm-plus -v --tb=short
       
       - name: Report test results
         if: always()
