@@ -10,6 +10,7 @@
 
 import unittest
 import unittest.mock
+from collections import Counter
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, Optional, cast
@@ -33,6 +34,7 @@ from quri_parts.core.sampling import (
 from quri_parts.core.state import quantum_state
 from quri_parts.qulacs.circuit.compiled_circuit import compile_circuit
 from quri_parts.qulacs.sampler import (
+    _create_qulacs_concurrent_sampler_with_noise_model,
     create_qulacs_density_matrix_concurrent_sampler,
     create_qulacs_density_matrix_general_sampler,
     create_qulacs_density_matrix_ideal_sampler,
@@ -49,7 +51,10 @@ from quri_parts.qulacs.sampler import (
     create_qulacs_vector_ideal_sampler,
     create_qulacs_vector_sampler,
 )
-from quri_parts.qulacs.simulator import evaluate_state_to_vector
+from quri_parts.qulacs.simulator import (
+    create_qulacs_noisesimulator_state_sampler,
+    evaluate_state_to_vector,
+)
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor
@@ -158,6 +163,42 @@ class TestQulacsVectorConcurrentSampler:
         assert set(results_with_compiled_circuit[1]) == {0b0001, 0b0011}
         assert all(c >= 0 for c in results_with_compiled_circuit[1].values())
         assert sum(results_with_compiled_circuit[1].values()) == 2000
+
+
+def test_noisesimulator_state_sampler_warns_on_random_seed() -> None:
+    model = NoiseModel()
+    with pytest.warns(RuntimeWarning, match="does not support seeding"):
+        create_qulacs_noisesimulator_state_sampler(model, random_seed=1)
+
+
+def test_concurrent_sampler_assigns_unique_random_seeds() -> None:
+    model = NoiseModel()
+    used_seeds: list[int] = []
+
+    def fake_sampler_creator(_: NoiseModel, seed: int) -> Sampler:
+        used_seeds.append(seed)
+
+        def _sampler(circuit: QuantumCircuit, shots: int) -> MeasurementCounts:
+            return Counter({0: shots})
+
+        return _sampler
+
+    circuits = [QuantumCircuit(1) for _ in range(3)]
+    for circuit in circuits:
+        circuit.add_X_gate(0)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        sampler = _create_qulacs_concurrent_sampler_with_noise_model(
+            fake_sampler_creator,
+            model,
+            random_seed=11,
+            executor=executor,
+            concurrency=2,
+        )
+        list(sampler([(circuit, 10) for circuit in circuits]))
+
+    assert len(used_seeds) == 2
+    assert set(used_seeds) == {11, 12}
 
 
 class TestQulacsVectorGeneralSampler(unittest.TestCase):
@@ -522,6 +563,7 @@ class TestQulacsVectorIdealGeneralSampler(unittest.TestCase):
             assert count == expected_count
 
 
+@pytest.mark.filterwarnings("ignore:Qulacs NoiseSimulator does not support seeding")
 class TestSamplerWithNoiseModel:
     # (2**4)**2/10 = 25.6, (2**7)**2)/10 = 1638.4
     @pytest.mark.parametrize("qubits", [4, 7])
@@ -626,11 +668,12 @@ class TestSamplerWithNoiseModel:
             create_qulacs_noisesimulator_general_sampler,
         ],
     )
-    @pytest.mark.parametrize("random_seed", [0, 1]
+    @pytest.mark.parametrize("random_seed", [0, 1])
     def test_sampler_with_bitflip_noise(
         self,
         qubits: int,
-        shots: int,        sampler_creator: Callable[[NoiseModel, int], Sampler],
+        shots: int,
+        sampler_creator: Callable[[NoiseModel, int], Sampler],
         random_seed: int,
     ) -> None:
         circuit = QuantumCircuit(qubits)
@@ -658,7 +701,9 @@ class TestSamplerWithNoiseModel:
         ],
     )
     def test_sampler_with_bitflip_noise_with_noisesimulator(
-        self, qubits: int, shots: int, sampler_creator: Callable[[NoiseModel], Sampler]
+        self,
+        qubits: int,
+        shots: int,
         sampler_creator: Callable[[NoiseModel], Sampler],
     ) -> None:
         circuit = QuantumCircuit(qubits)
@@ -722,6 +767,7 @@ class TestSamplerWithNoiseModel:
         assert all(np.isclose(mean_val, x) for x in probs)
 
 
+@pytest.mark.filterwarnings("ignore:Qulacs NoiseSimulator does not support seeding")
 class TestConcurrentSamplerWithNoiseModel:
     @pytest.mark.parametrize(
         "sampler_creator",
@@ -736,7 +782,7 @@ class TestConcurrentSamplerWithNoiseModel:
     def test_sampler_with_empty_noise(
         self,
         sampler_creator: Callable[
-            [NoiseModel, Optional["Executor"], int], ConcurrentSampler
+            [NoiseModel, int, Optional["Executor"], int], ConcurrentSampler
         ],
     ) -> None:
         model = NoiseModel()
@@ -746,7 +792,7 @@ class TestConcurrentSamplerWithNoiseModel:
         circuit2.add_X_gate(3)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            sampler = sampler_creator(model, executor, 2)
+            sampler = sampler_creator(model, 0, executor, 2)
             results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
 
         assert set(results[0]) == {0b1001, 0b1011}
@@ -770,7 +816,7 @@ class TestConcurrentSamplerWithNoiseModel:
     def test_sampler_with_bitflip_noise(
         self,
         sampler_creator: Callable[
-            [NoiseModel, Optional["Executor"], int], ConcurrentSampler
+            [NoiseModel, int, Optional["Executor"], int], ConcurrentSampler
         ],
     ) -> None:
         model = NoiseModel([BitFlipNoise(1.0)])
@@ -780,7 +826,7 @@ class TestConcurrentSamplerWithNoiseModel:
         circuit2.add_CNOT_gate(1, 3)
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            sampler = sampler_creator(model, executor, 2)
+            sampler = sampler_creator(model, 0, executor, 2)
             results = list(sampler([(circuit1, 1000), (circuit2, 2000)]))
 
         assert set(results[0]) == {0b0110, 0b0100}

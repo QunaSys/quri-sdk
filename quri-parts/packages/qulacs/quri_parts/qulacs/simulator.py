@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from collections import Counter
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
 
@@ -183,12 +184,12 @@ def get_marginal_probability(
     return qulacs_state.get_marginal_probability(measured)
 
 
-def create_qulacs_vector_state_sampler() -> StateSampler[QulacsStateT]:
+def create_qulacs_vector_state_sampler(
+    random_seed: int = 0,
+) -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
 
-    def state_sampler(
-        state: QulacsStateT, n_shots: int, random_seed: int
-    ) -> MeasurementCounts:
+    def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
         if n_shots > 2 ** max(state.qubit_count, 10):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state).vector
@@ -270,16 +271,26 @@ def create_qulacs_ideal_density_matrix_state_sampler(
 
 def create_qulacs_noisesimulator_state_sampler(
     model: NoiseModel,
+    random_seed: int = 0,
 ) -> StateSampler[QulacsStateT]:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs
     NoiseSimulator."""
+    if random_seed is not None:
+        warnings.warn(
+            "Qulacs NoiseSimulator does not support seeding. "
+            "The provided random_seed is ignored.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     def _noise_simulator_state_sampler(
         state: QulacsStateT, shots: int
     ) -> MeasurementCounts:
         init_vec = _get_init_vector_from_state(state)
         noise_simulator = _get_noise_simulator_from_vector(
-            state.circuit, init_vec, model
+            state.circuit,
+            init_vec,
+            model,
         )
         return Counter(noise_simulator.execute(shots))
 
