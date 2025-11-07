@@ -3,6 +3,7 @@ name: Test Downstream with PR Branch
 on:
   pull_request:
     paths:
+      - .github/workflows/quri-sdk-test-downstream
       - quri-algo/**/*.py
       - quri-algo/pyproject.toml
       - quri-vm/**/*.py
@@ -32,12 +33,20 @@ jobs:
           else
             echo "name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
           fi
+          
+      - name: Get Internal QURI repo fetcher access token
+        id: quri-fetcher-token
+        uses: getsentry/action-github-app-token@v2.0.0
+        with:
+            app_id: ${{ secrets.QURI_FETCHER_APP_ID }}
+            private_key: ${{ secrets.QURI_FETCHER_PRIVATE_KEY }}
+        
       
       - name: Checkout private repository
         uses: actions/checkout@v4
         with:
           repository: ${{ secrets.PRIVATE_REPO_URL }}
-          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          token: ${{ steps.quri-fetcher-token.outputs.token }}
           path: downstream-repo
           submodules: recursive
       
