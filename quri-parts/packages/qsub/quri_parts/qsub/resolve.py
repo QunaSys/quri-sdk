@@ -120,7 +120,9 @@ class SubCollector:
                 if isinstance(op, Op):
                     sub_map[op] = sub
 
-                not_computed = set(o for o, _, _ in sub.operations) - set(sub_map.keys())
+                not_computed = set(o for o, _, _ in sub.operations) - set(
+                    sub_map.keys()
+                )
                 for o in not_computed:
                     _collect(o)
             elif isinstance(op, Op):
