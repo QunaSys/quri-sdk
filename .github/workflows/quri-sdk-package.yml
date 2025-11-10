@@ -162,7 +162,7 @@ jobs:
         run: |
           pip install pytest setuptools==75.1.0
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-              sudo apt install -y libjpeg-dev libopenblas-dev
+              sudo apt install -y libjpeg-dev libopenblas-dev libblas-dev
           fi
           for FILE in $(find dist -name '*.tar.gz'); do
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
