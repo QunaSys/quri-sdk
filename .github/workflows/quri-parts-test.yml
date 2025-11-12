@@ -34,7 +34,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - run: |
+    - name: Install BLAS dependencies
+      run: |
         sudo apt install -y libopenblas-dev libblas-dev
 
     - uses: ./.github/actions/quri-parts/python-poetry-install

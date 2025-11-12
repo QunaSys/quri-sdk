@@ -70,6 +70,10 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install BLAS dependencies
+        run: |
+          sudo apt-get install -y libopenblas-dev libblas-dev
+
       - run: python -m pip install --upgrade pip
 
       - name: Install Poetry
@@ -133,6 +137,11 @@ jobs:
           
       - uses: actions/checkout@v3
 
+      - name: Install BLAS dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y libopenblas-dev libblas-dev
+
       - uses: actions/download-artifact@v4
         with:
           name: quri-parts-packages-rust-sdist
@@ -162,7 +171,7 @@ jobs:
         run: |
           pip install pytest setuptools==75.1.0
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-              sudo apt install -y libjpeg-dev libopenblas-dev libblas-dev
+              sudo apt install -y libjpeg-dev
           fi
           for FILE in $(find dist -name '*.tar.gz'); do
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
@@ -262,7 +271,7 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
           CIBW_BUILD: "cp311-manylinux_i686 cp311-manylinux_x86_64"
           CIBW_BUILD_VERBOSITY: 1
-          CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
+          CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel openblas-devel"
           CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
           CIBW_ARCHS_LINUX: "auto"
           CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
@@ -308,6 +317,11 @@ jobs:
           key: pip-cache-${{ runner.os }}
 
       - uses: actions/checkout@v3
+
+      - name: Install BLAS dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y libopenblas-dev libblas-dev
 
       - uses: actions/download-artifact@v4
         with:
@@ -635,4 +649,3 @@ jobs:
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
-
