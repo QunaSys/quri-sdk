@@ -1,13 +1,21 @@
-from .resolve import SubResolver, CompositeSubRepository, default_repository, resolve_sub, SubRepository, SimpleSubResolver, SubResolverCondition
+from .resolve import (
+    CompositeSubRepository,
+    SimpleSubResolver,
+    SubRepository,
+    SubResolver,
+    SubResolverCondition,
+    default_repository,
+    resolve_sub,
+)
 from .subcollector import SubCollector
 
 __all__ = [
-    "SubResolver", 
+    "SubResolver",
     "SubRepository",
-    "CompositeSubRepository", 
+    "CompositeSubRepository",
     "default_repository",
     "SubCollector",
     "resolve_sub",
     "SimpleSubResolver",
-    "SubResolverCondition"
+    "SubResolverCondition",
 ]

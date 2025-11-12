@@ -8,14 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import functools
+import logging
 from abc import abstractmethod
 from collections import defaultdict
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
 from types import TracebackType
 from typing import Any, Generic, Optional, Protocol, Sequence, Type, TypeAlias, cast
+
 from typing_extensions import Self
 
 from quri_parts.qsub.op import BaseIdent, Ident, Op, OpFactory, Params
@@ -168,7 +169,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
         exc_type: Optional[Type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
-    ):
+    ) -> None:
         logger.debug("__exit__")
         self._is_live = False
         self._scoped_repo = None
@@ -196,7 +197,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
 
     def copy(self) -> "CompositeSubRepository":
         return CompositeSubRepository(
-            [a.copy() for a in self.additions], self.root_repo.copy()
+            [a.copy() for a in self._additions], self.root_repo.copy()
         )
 
     @property
@@ -209,7 +210,9 @@ class CompositeSubRepository(SubRepositoryProtocol):
         return functools.reduce(lambda a, b: a + b, [self.root_repo, *self.additions])
 
     def chain(self, repos: Sequence[SubRepository]) -> "CompositeSubRepository":
-        return CompositeSubRepository(additions=self._additions + repos, root_repo=self.root_repo)
+        return CompositeSubRepository(
+            additions=[*self._additions, *repos], root_repo=self.root_repo
+        )
 
 
 def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub | None:

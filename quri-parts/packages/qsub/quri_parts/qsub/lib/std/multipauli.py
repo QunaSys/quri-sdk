@@ -11,11 +11,11 @@
 # from quri_parts.qsub.lib import std
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
-from .single_clifford import X, Y, Z, H, SqrtX, SqrtXdag
-from .cnot import CNOT
-from .rotation import RZ
 
 from . import NS
+from .cnot import CNOT
+from .rotation import RZ
+from .single_clifford import H, SqrtX, SqrtXdag, X, Y, Z
 
 
 class _Pauli(ParamUnitarySubDef[tuple[int, ...]]):

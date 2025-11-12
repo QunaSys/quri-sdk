@@ -10,15 +10,20 @@
 
 from .resolve import CompositeSubRepository, SubRepository, default_repository
 
-def _make_simulator_repo()  -> CompositeSubRepository:
+
+def _make_simulator_repo() -> CompositeSubRepository:
     from quri_parts.qsub.lib import std
-    addition_resolver = std.multi_control_gates.generate_multicontrolled_to_mc_sub_resolver()
+
+    addition_resolver = (
+        std.multi_control_gates.generate_multicontrolled_to_mc_sub_resolver()
+    )
     addition_repo = SubRepository()
     addition_repo.register_sub_resolver(std.MultiControlled, addition_resolver)
     return CompositeSubRepository([addition_repo], default_repository())
 
 
 _SIMULATOR_REPO = _make_simulator_repo()
+
 
 def simulator_repository() -> CompositeSubRepository:
     return _SIMULATOR_REPO
