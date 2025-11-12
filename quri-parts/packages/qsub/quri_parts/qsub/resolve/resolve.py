@@ -209,7 +209,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
         return functools.reduce(lambda a, b: a + b, [self.root_repo, *self.additions])
 
     def chain(self, repos: Sequence[SubRepository]) -> "CompositeSubRepository":
-        return CompositeSubRepository(additions=self._additions + repos, root_repo=self)
+        return CompositeSubRepository(additions=self._additions + repos, root_repo=self.root_repo)
 
 
 def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub | None:
