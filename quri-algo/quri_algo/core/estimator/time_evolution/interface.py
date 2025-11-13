@@ -36,7 +36,8 @@ class TimeEvolutionExpectationValueEstimator(
     @abstractmethod
     def __call__(
         self, state: StateT, evolution_time: float, n_shots: Optional[int] = None
-    ) -> Estimate[complex]: ...
+    ) -> Estimate[complex]:
+        ...
 
 
 class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):

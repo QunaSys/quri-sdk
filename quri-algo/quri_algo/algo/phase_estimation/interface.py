@@ -50,4 +50,5 @@ class PhaseEstimationBase(Generic[StateT], ABC):
     @abstractmethod
     def __call__(
         self, state: StateT, *args: Any, **kwds: Any
-    ) -> PhaseEstimationResult | MultiplePhaseEstimationResult: ...
+    ) -> PhaseEstimationResult | MultiplePhaseEstimationResult:
+        ...

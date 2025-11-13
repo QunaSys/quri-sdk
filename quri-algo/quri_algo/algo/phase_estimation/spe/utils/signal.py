@@ -80,12 +80,14 @@ class SPEDiscreteSignalFunction:
         )
 
     @overload
-    def __call__(self, x: float, derivative_order: int = 0) -> complex: ...
+    def __call__(self, x: float, derivative_order: int = 0) -> complex:
+        ...
 
     @overload
     def __call__(
         self, x: npt.NDArray[np.float64], derivative_order: int = 0
-    ) -> npt.NDArray[np.complex128]: ...
+    ) -> npt.NDArray[np.complex128]:
+        ...
 
     def __call__(
         self, x: float | npt.NDArray[np.float64], derivative_order: int = 0

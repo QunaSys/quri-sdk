@@ -23,7 +23,8 @@ class TimeEvolutionCircuitFactory(CircuitFactory, Protocol):
 
     @apply_transpiler
     @abstractmethod
-    def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit: ...
+    def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
+        ...
 
 
 @runtime_checkable
@@ -32,4 +33,5 @@ class ControlledTimeEvolutionCircuitFactory(CircuitFactory, Protocol):
 
     @apply_transpiler
     @abstractmethod
-    def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit: ...
+    def __call__(self, evolution_time: float) -> NonParametricQuantumCircuit:
+        ...

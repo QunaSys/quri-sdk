@@ -48,9 +48,9 @@ class MolecularSystem(HamiltonianMixin):
     charge: int = 0
     spin: int = 0
     frozen: Optional[list[int]] = None
-    backend: Literal["pyscf_mem_efficient", "pyscf_density_fitting"] = (
-        "pyscf_mem_efficient"
-    )
+    backend: Literal[
+        "pyscf_mem_efficient", "pyscf_density_fitting"
+    ] = "pyscf_mem_efficient"
 
     @cached_property
     def pyscf_mol(self) -> gto.Mole:
