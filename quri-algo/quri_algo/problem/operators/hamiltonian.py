@@ -22,8 +22,7 @@ class Hamiltonian(ABC):
     """Represents an encoded Hamiltonian."""
 
     @abstractmethod
-    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]:
-        ...
+    def get_matrix_representation(self, *args: Any) -> npt.NDArray[np.complex128]: ...
 
 
 HamiltonianT = TypeVar("HamiltonianT", bound="Hamiltonian")
