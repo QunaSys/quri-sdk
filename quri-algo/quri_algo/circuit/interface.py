@@ -24,5 +24,4 @@ class CircuitFactory(Protocol):
 
     @apply_transpiler  # type: ignore
     @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> NonParametricQuantumCircuit:
-        ...
+    def __call__(self, *args: Any, **kwargs: Any) -> NonParametricQuantumCircuit: ...

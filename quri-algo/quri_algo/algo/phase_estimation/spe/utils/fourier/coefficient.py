@@ -57,5 +57,4 @@ class FourierCoefficientSampler(ABC):
         """Get phase of the k-th Fourier coefficient."""
 
     @abstractmethod
-    def __call__(self, n_samples: int) -> Sequence[SPEFourierCoefficient]:
-        ...
+    def __call__(self, n_samples: int) -> Sequence[SPEFourierCoefficient]: ...

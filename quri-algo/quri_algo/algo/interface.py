@@ -158,5 +158,4 @@ class CircuitAnalysisMixin(Protocol):
         pass
 
 
-class QuantumAlgorithm(Algorithm, CircuitAnalysisMixin, ABC):
-    ...
+class QuantumAlgorithm(Algorithm, CircuitAnalysisMixin, ABC): ...

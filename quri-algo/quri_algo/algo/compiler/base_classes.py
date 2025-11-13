@@ -120,13 +120,11 @@ class CompilationAnalysis(Analysis):
 class QuantumCompiler(QuantumAlgorithm, ABC):
     @property
     @abstractmethod
-    def cost_function(self) -> CostFunction:
-        ...
+    def cost_function(self) -> CostFunction: ...
 
     @property
     @abstractmethod
-    def solver(self) -> VariationalSolver:
-        ...
+    def solver(self) -> VariationalSolver: ...
 
     @timer
     @abstractmethod

@@ -43,5 +43,4 @@ class OperatorPowerEstimatorBase(ExpectationValueEstimator[StateT], Protocol):
     @abstractmethod
     def __call__(
         self, state: StateT, operator_power: int | float, *args: Any, **kwargs: Any
-    ) -> Estimate[complex]:
-        ...
+    ) -> Estimate[complex]: ...

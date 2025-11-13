@@ -19,8 +19,7 @@ class StateFactory(Protocol):
     """Base class for state preparation."""
 
     @abstractmethod
-    def __call__(self, *args: Any, **kwargs: Any) -> QuantumState:
-        ...
+    def __call__(self, *args: Any, **kwargs: Any) -> QuantumState: ...
 
 
 @runtime_checkable
@@ -31,5 +30,4 @@ class TimeEvolutionStateFactory(StateFactory, Protocol):
     @abstractmethod
     def __call__(
         self, evolution_time: float, *args: Any, **kwargs: Any
-    ) -> QuantumState:
-        ...
+    ) -> QuantumState: ...

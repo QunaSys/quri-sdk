@@ -35,9 +35,7 @@ def get_gaussian_sigma(gap: float, target_eps: float, overlap: float) -> float:
     return float(
         np.min(
             [
-                0.9
-                * gap
-                / np.sqrt(2 * np.log(9 * gap * target_eps**-1 * overlap**-1)),
+                0.9 * gap / np.sqrt(2 * np.log(9 * gap * target_eps**-1 * overlap**-1)),
                 0.2 * gap,
             ]
         )

@@ -35,8 +35,7 @@ class AdiabaticTimeEvolutionStateFactoryBase(TimeEvolutionStateFactory, Protocol
         self,
         hamiltonian_mapping: HamiltonianMapping,
         TECircuitFactory: TECircuitFactoryConstructor,
-    ):
-        ...
+    ): ...
 
     @abstractmethod
     def __call__(
@@ -46,5 +45,4 @@ class AdiabaticTimeEvolutionStateFactoryBase(TimeEvolutionStateFactory, Protocol
         initial_state: CircuitQuantumState,
         *args: Any,
         **kwargs: Any
-    ) -> CircuitQuantumState:
-        ...
+    ) -> CircuitQuantumState: ...

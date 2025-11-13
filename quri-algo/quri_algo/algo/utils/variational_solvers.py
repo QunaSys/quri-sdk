@@ -32,8 +32,7 @@ class VariationalSolver(ABC):
         init_params: Params,
         *args: Any,
         **kwds: Any
-    ) -> Sequence[OptimizerState]:
-        ...
+    ) -> Sequence[OptimizerState]: ...
 
 
 class QURIPartsVariationalSolver(VariationalSolver):
