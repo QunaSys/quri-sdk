@@ -8,31 +8,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass, field
-from typing import Any, Literal, Optional, Sequence, cast
-from typing_extensions import TypeAlias
+from dataclasses import dataclass
 from functools import cached_property
+from typing import Literal, Optional, Sequence, cast
 
-from pyscf import gto, scf, df
 from openfermion.ops import FermionOperator
-from openfermion.ops.representations.interaction_operator import InteractionOperator
-
-
-from quri_parts.core.operator.operator import Operator
-from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
+from pyscf import df, gto, scf
+from quri_parts.chem.mol import ActiveSpace, cas
 from quri_parts.openfermion.mol import (
     get_fermionic_hamiltonian as get_fermionic_mapped_hamiltonian,
+)
+from quri_parts.openfermion.mol import (
     operator_from_of_fermionic_op,
 )
 from quri_parts.openfermion.transforms import jordan_wigner
-from quri_parts.chem.mol import ActiveSpace, cas
+from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
+from typing_extensions import TypeAlias
 
+from quri_algo.problem.models.interface import HamiltonianMixin
 from quri_algo.problem.operators.hamiltonian import (
     FermionicHamiltonian,
     QubitHamiltonian,
 )
-from quri_algo.problem.models.interface import HamiltonianMixin
-
 
 AtomCoordinate: TypeAlias = tuple[float, float, float]
 

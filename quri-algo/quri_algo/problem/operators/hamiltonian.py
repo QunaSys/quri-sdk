@@ -29,7 +29,8 @@ HamiltonianT = TypeVar("HamiltonianT", bound="Hamiltonian")
 
 
 class QubitHamiltonian(Hamiltonian):
-    """A Hamiltonian expressed in qubit (Pauli operator) form for a fixed-size qubit system.
+    """A Hamiltonian expressed in qubit (Pauli operator) form for a fixed-size
+    qubit system.
 
     This class represents a molecular or physical system's Hamiltonian that has been
     mapped to a qubit representation. The resulting operator acts on a
@@ -43,7 +44,6 @@ class QubitHamiltonian(Hamiltonian):
         n_qubit (int): The total number of qubits (spin orbitals) the Hamiltonian acts on.
         _qubit_hamiltonian (Operator): The underlying qubit-space operator, typically a
             sum of weighted Pauli strings.
-
     """
 
     def __init__(self, n_qubit: int, qubit_hamiltonian: Operator):

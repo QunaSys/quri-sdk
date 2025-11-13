@@ -37,8 +37,7 @@ class ExpectationValueEstimator(Protocol[StateT]):
 class OperatorPowerEstimatorBase(ExpectationValueEstimator[StateT], Protocol):
     r"""Base class for any estimator that estimates the expectation value
     :math:`\langle U^k \rangle`, where :math:`U` is a unitary operator and `k`
-    is the power.
-    """
+    is the power."""
 
     @abstractmethod
     def __call__(
