@@ -18,9 +18,7 @@ from quri_parts.chem.mol import ActiveSpace, cas
 from quri_parts.openfermion.mol import (
     get_fermionic_hamiltonian as get_fermionic_mapped_hamiltonian,
 )
-from quri_parts.openfermion.mol import (
-    operator_from_of_fermionic_op,
-)
+from quri_parts.openfermion.mol import operator_from_of_fermionic_op
 from quri_parts.openfermion.transforms import jordan_wigner
 from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
 from typing_extensions import TypeAlias
