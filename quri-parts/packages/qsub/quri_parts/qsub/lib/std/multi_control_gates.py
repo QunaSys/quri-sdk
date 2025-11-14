@@ -323,7 +323,7 @@ def MultiControlledNamedMCGatesSub(
                 control_bits,
                 control_value,
             ),
-            qubits[:-1],
+            qubits,
         )
         builder.add_op(CNOT, [qubits[-1], qubits[-2]])
     elif target_op.base_id == Identity.base_id:
