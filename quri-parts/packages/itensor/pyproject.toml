@@ -28,7 +28,7 @@ style = "pep440"
 python = "^3.9.8"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-juliacall = "^0.9.12"
+juliacall = ">=0.9.12,<0.9.25"
 
 
 

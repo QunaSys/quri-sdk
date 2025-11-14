@@ -24,7 +24,10 @@ Once you sign the CLA, it will cover your future contributions submitted to Quna
 QURI SDK is a meta package for the packages defined and developed in the directories `quri-parts`, `quri-algo` and `quri-vm`.
 
 We use [Poetry](https://python-poetry.org/) to manage dependencies and packaging.
-Install the latest version and run `poetry install` to create a virtualenv and install dependencies.
+Install the latest version and, from the repository root, run `poetry install --with dev,lint,typecheck,doc` 
+once to create a unified workspace virtualenv that contains all packages (`quri-parts`, `quri-algo`, `quri-vm`, 
+and the meta package). All subsequent development commands (tests, lint, docs, etc.) should be executed via 
+`poetry run` in this root environment.
 
 
 ### Linting and testing
