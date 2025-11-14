@@ -72,21 +72,21 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
-      # - id: mypy-quri-vm
-      #   name: poetry run mypy (quri-vm)
-      #   entry: poetry run mypy quri-vm
-      #   language: system
-      #   types: [python]
-      #   pass_filenames: false
-      # - id: mypy-quri-algo
-      #   name: poetry run mypy (quri-algo)
-      #   entry: poetry run mypy quri-algo/quri_algo/ quri-algo/tests
-      #   language: system
-      #   types: [python]
-      #   pass_filenames: false
-      # - id: mypy-quri-parts
-      #   name: poetry run mypy (quri-parts)
-      #   entry: poetry run mypy quri-parts
-      #   language: system
-      #   types: [python]
-      #   pass_filenames: false
+      - id: mypy-quri-vm
+        name: poetry run mypy (quri-vm)
+        entry: poetry run mypy quri-vm
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: mypy-quri-algo
+        name: poetry run mypy (quri-algo)
+        entry: poetry run mypy quri-algo/quri_algo/ quri-algo/tests
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: mypy-quri-parts
+        name: poetry run mypy (quri-parts)
+        entry: poetry run mypy quri-parts
+        language: system
+        types: [python]
+        pass_filenames: false

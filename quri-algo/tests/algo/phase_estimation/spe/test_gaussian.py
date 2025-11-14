@@ -91,7 +91,7 @@ class TestGaussianGSEE(unittest.TestCase):
 
     def test_gaussian_gsee(self) -> None:
         search_range = np.linspace(
-            self.shift - np.pi * 3, self.shift + np.pi * 3, 10000
+            self.shift - np.pi * 3, self.shift + np.pi * 3, 10000, dtype=float
         )
         input_state = quantum_state(1)
         result = self.gaussian_algo(input_state, self.gaussian_param, search_range, 0.8)

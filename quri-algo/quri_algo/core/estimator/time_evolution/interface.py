@@ -61,11 +61,11 @@ class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
         self.sampler = sampler
         self.transpiler = transpiler
 
-        self._hadamard_test = HadamardTest(
+        self._hadamard_test: HadamardTest[StateT] = HadamardTest(
             self.controlled_time_evolution_factory,
             self.sampler,
             transpiler=self.transpiler,
-        )  # type: ignore
+        )
 
     @property
     def real_circuit_factory(self) -> HadamardTestCircuitFactory:
