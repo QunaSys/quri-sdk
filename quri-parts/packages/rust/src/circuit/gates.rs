@@ -3,6 +3,30 @@ use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
+use rayon::prelude::*;
+
+const UNITARY_TOLERANCE: f64 = 1e-5;
+
+fn is_square_matrix(matrix: &[Vec<Complex64>], dim: usize) -> bool {
+    matrix.len() == dim && matrix.iter().all(|row| row.len() == dim)
+}
+
+fn is_unitary_parallel(matrix: &[Vec<Complex64>]) -> bool {
+    let dim = matrix.len();
+    (0..dim).into_par_iter().all(|i| {
+        (0..dim).into_par_iter().all(|j| {
+            let expected = if i == j {
+                Complex64::new(1.0, 0.0)
+            } else {
+                Complex64::new(0.0, 0.0)
+            };
+            let dot = (0..dim)
+                .map(|k| matrix[i][k] * matrix[j][k].conj())
+                .sum::<Complex64>();
+            (dot - expected).norm_sqr() < UNITARY_TOLERANCE
+        })
+    })
+}
 
 #[pyfunction(
     name = "Identity",
@@ -260,29 +284,18 @@ pub fn unitary_matrix(
     unitary_matrix: Vec<Vec<Complex64>>,
 ) -> PyResult<QuantumGate> {
     let dim = 2usize.pow(target_indices.len() as u32);
-    if unitary_matrix.len() == dim && unitary_matrix.iter().all(|v| v.len() == dim) {
-        if (0..dim).all(|i| {
-            (0..dim).all(|j| {
-                ((0..dim)
-                    .map(|k| unitary_matrix[i][k] * unitary_matrix[j][k].conj())
-                    .sum::<Complex64>()
-                    - Complex64::new(Into::<u8>::into(i == j) as f64, 0f64))
-                .abs()
-                    < 1e-5
-            })
-        }) {
-            Ok(QuantumGate::UnitaryMatrix(
-                target_indices.into(),
-                unitary_matrix.into_iter().map(Into::into).collect(),
-            ))
-        } else {
-            Err(pyo3::exceptions::PyValueError::new_err(
-                "The given matrix is not unitary.",
-            ))
-        }
-    } else {
+    if !is_square_matrix(&unitary_matrix, dim) {
         Err(pyo3::exceptions::PyValueError::new_err(
             "The number of qubits does not match the size of the unitary matrix.",
+        ))
+    } else if !is_unitary_parallel(&unitary_matrix) {
+        Err(pyo3::exceptions::PyValueError::new_err(
+            "The given matrix is not unitary.",
+        ))
+    } else {
+        Ok(QuantumGate::UnitaryMatrix(
+            target_indices.into(),
+            unitary_matrix.into_iter().map(Into::into).collect(),
         ))
     }
 }
