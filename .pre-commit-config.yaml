@@ -1,0 +1,92 @@
+repos:
+  - repo: local
+    hooks:
+      - id: isort-quri-algo
+        name: poetry run isort (quri-algo)
+        entry: poetry run isort quri-algo/quri_algo
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: isort-quri-parts
+        name: poetry run isort (quri-parts)
+        entry: poetry run isort quri-parts/packages
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: isort-quri-vm
+        name: poetry run isort (quri-vm)
+        entry: poetry run isort quri-vm
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: black-quri-algo
+        name: poetry run black (quri-algo)
+        entry: poetry run black quri-algo/quri_algo
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: black-quri-parts
+        name: poetry run black (quri-parts)
+        entry: poetry run black quri-parts/packages
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: black-quri-vm
+        name: poetry run black (quri-vm)
+        entry: poetry run black quri-vm
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: docformatter-quri-algo
+        name: poetry run docformatter (quri-algo)
+        entry: poetry run docformatter -r -i quri-algo/quri_algo
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: docformatter-quri-parts
+        name: poetry run docformatter (quri-parts)
+        entry: poetry run docformatter -r -i quri-parts/packages
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: rustfmt-quri-parts
+        name: cargo fmt --all --check (quri-parts)
+        entry: bash -lc 'cd quri-parts && cargo fmt --all -- --check'
+        language: system
+        pass_filenames: false
+      - id: flake8-quri-algo
+        name: poetry run flake8 (quri-algo)
+        entry: poetry run flake8 quri-algo/quri_algo --show-source
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: flake8-quri-parts
+        name: poetry run flake8 (quri-parts)
+        entry: poetry run flake8 quri-parts/packages --config .flake8
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: flake8-quri-vm
+        name: poetry run flake8 (quri-vm)
+        entry: poetry run flake8 quri-vm --config .flake8
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: mypy-quri-vm
+        name: poetry run mypy (quri-vm)
+        entry: poetry run mypy quri-vm
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: mypy-quri-algo
+        name: poetry run mypy (quri-algo)
+        entry: poetry run mypy quri-algo/quri_algo/ quri-algo/tests
+        language: system
+        types: [python]
+        pass_filenames: false
+      - id: mypy-quri-parts
+        name: poetry run mypy (quri-parts)
+        entry: poetry run mypy quri-parts
+        language: system
+        types: [python]
+        pass_filenames: false
