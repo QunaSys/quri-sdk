@@ -1256,7 +1256,8 @@ class TestPhaseHandlingInResolver:
         assert sub.operations[0][0] == MCSWAP(4)
 
     def test_mcswap_gate_four_controls_checkerboard_pattern(self) -> None:
-        """Test mapping SWAP to MCSWAP with four controls (checkerboard pattern)."""
+        """Test mapping SWAP to MCSWAP with four controls (checkerboard
+        pattern)."""
         sub = MultiControlledNamedMCGatesSub(SWAP, 4, 0b1010)
         assert sub is not None
         assert len(sub.qubits) == 6  # 4 control + 2 target qubits

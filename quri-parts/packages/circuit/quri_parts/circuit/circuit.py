@@ -12,10 +12,11 @@ from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Optional, Protocol, Union
 
+from typing_extensions import TypeAlias, TypeGuard
+
 #: An immutable quantum circuit having only non-parametric gates.
 #: A mutable quantum circuit having only non-parametric gates.
 from quri_parts.rust.circuit.circuit import ImmutableQuantumCircuit, QuantumCircuit
-from typing_extensions import TypeAlias, TypeGuard
 
 from .gate import QuantumGate
 from .gates import (

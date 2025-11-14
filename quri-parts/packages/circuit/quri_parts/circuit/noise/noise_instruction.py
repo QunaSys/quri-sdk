@@ -17,15 +17,15 @@ from typing import Union, cast
 import numpy as np
 import numpy.linalg as la
 import numpy.typing as npt
+from typing_extensions import TypeAlias
+
+from quri_parts.circuit.gate_names import NonParametricGateNameType
 from quri_parts.rust.circuit.noise import (
     DepthIntervalNoise,
     GateIntervalNoise,
     GateNoiseInstruction,
     MeasurementNoise,
 )
-from typing_extensions import TypeAlias
-
-from quri_parts.circuit.gate_names import NonParametricGateNameType
 
 #: Represents a backend-independent noise instruction to be added to NoiseModel.
 NoiseInstruction: TypeAlias = Union[
