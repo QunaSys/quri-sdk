@@ -1310,10 +1310,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q3, q2)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 2, 3) on first 3 qubits
+        # Operation 1: MultiControlled(CNOT, 2, 3) on all 4 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2)
+        assert qubits1 == (q0, q1, q2, q3)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1326,6 +1326,13 @@ class TestPhaseHandlingInResolver:
         assert op2.id.local_name == "CNOT"
         assert qubits2 == (q3, q2)
         assert regs2 == ()
+
+        # Assert all operations in sub result
+        assert sub.operations == (
+            (op0, qubits0, regs0),
+            (op1, qubits1, regs1),
+            (op2, qubits2, regs2),
+        )
 
     def test_mcswap_gate_with_negation(self) -> None:
         """Test mapping SWAP to controlled CNOT with control negation."""
@@ -1342,10 +1349,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q3, q2)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 2, 1) on first 3 qubits
+        # Operation 1: MultiControlled(CNOT, 2, 1) on all 4 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2)
+        assert qubits1 == (q0, q1, q2, q3)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1374,10 +1381,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q2, q1)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 1, 1) on first 2 qubits
+        # Operation 1: MultiControlled(CNOT, 1, 1) on all 3 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1)
+        assert qubits1 == (q0, q1, q2)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1407,10 +1414,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q2, q1)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 1, 0) on first 2 qubits
+        # Operation 1: MultiControlled(CNOT, 1, 0) on all 3 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1)
+        assert qubits1 == (q0, q1, q2)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1439,10 +1446,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q4, q3)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 3, 7) on first 4 qubits
+        # Operation 1: MultiControlled(CNOT, 3, 7) on all 5 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2, q3)
+        assert qubits1 == (q0, q1, q2, q3, q4)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1472,10 +1479,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q4, q3)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 3, 5) on first 4 qubits
+        # Operation 1: MultiControlled(CNOT, 3, 5) on all 5 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2, q3)
+        assert qubits1 == (q0, q1, q2, q3, q4)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1505,10 +1512,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q5, q4)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 4, 15) on first 5 qubits
+        # Operation 1: MultiControlled(CNOT, 4, 15) on all 6 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2, q3, q4)
+        assert qubits1 == (q0, q1, q2, q3, q4, q5)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1538,10 +1545,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q5, q4)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 4, 10) on first 5 qubits
+        # Operation 1: MultiControlled(CNOT, 4, 10) on all 6 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2, q3, q4)
+        assert qubits1 == (q0, q1, q2, q3, q4, q5)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
@@ -1571,10 +1578,10 @@ class TestPhaseHandlingInResolver:
         assert qubits0 == (q6, q5)
         assert regs0 == ()
 
-        # Operation 1: MultiControlled(CNOT, 5, 17) on first 6 qubits
+        # Operation 1: MultiControlled(CNOT, 5, 17) on all 7 qubits
         op1, qubits1, regs1 = sub.operations[1]
         assert op1.id.local_name == "MultiControlled"
-        assert qubits1 == (q0, q1, q2, q3, q4, q5)
+        assert qubits1 == (q0, q1, q2, q3, q4, q5, q6)
         assert regs1 == ()
         mc_target_op = op1.id.params[0]
         assert isinstance(mc_target_op, Op)
