@@ -37,9 +37,3 @@ mypy = ">=0.950"
 docformatter = "^1.4"
 isort = "^5.10.1"
 black = "^23.1.0"
-
-[tool.black]
-line-length = 88
-
-[tool.isort]
-profile = "black"
