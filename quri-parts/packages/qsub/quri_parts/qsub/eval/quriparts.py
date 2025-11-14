@@ -192,6 +192,13 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
         self._qubit_map_stack: list[dict[Qubit, Qubit]] = []
         self._qubit_map: Optional[dict[Qubit, Qubit]] = None
         self._allocator: Optional[QubitAllocator] = None
+        self._cache: dict[
+            tuple[SubId, tuple[int, ...], Sequence[Register], int], list[QuantumGate]
+        ] = {}
+        self._gate_stack: list[list[QuantumGate]] = []
+        self._arg_stack: list[
+            tuple[SubId, tuple[int, ...], Sequence[Register], int]
+        ] = []
 
     def result(self) -> QuantumCircuit:
         qubit_index = 0
@@ -229,6 +236,19 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
             self._qubit_map_stack.append(dict(zip(sub.qubits, qubits)))
         self._qubit_map_stack.append(dict(self._allocator.allocate_map(sub.aux_qubits)))
         self._update_qubit_map()
+
+        assert self._qubit_map is not None
+        mapped_qs = tuple(self._qubit_map[q].uid for q in qubits)
+        k = (sub.sub_id, mapped_qs, regs, self._allocator.total())
+        if k in self._cache:
+            gates = self._cache[k]
+            self._gates.extend(gates)
+            self._gate_stack[-1].extend(gates)
+            return False
+
+        self._gate_stack.append([])
+        self._arg_stack.append(k)
+
         return True
 
     def exit_sub(
@@ -241,6 +261,12 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
         self._qubit_map_stack.pop()
         self._update_qubit_map()
 
+        if enter_sub:
+            gates = self._gate_stack.pop()
+            self._cache[self._arg_stack.pop()] = gates
+            if self._gate_stack:
+                self._gate_stack[-1].extend(gates)
+
     def primitive(
         self,
         mop: Primitive,
@@ -250,4 +276,8 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
     ) -> None:
         if self._qubit_map is None:
             raise ValueError("Uninitialized qubit mapping")
-        self._gates.append(_convert_op(mop, qubits, regs, self._qubit_map))
+
+        g = _convert_op(mop, qubits, regs, self._qubit_map)
+        self._gates.append(g)
+
+        self._gate_stack[-1].append(g)
