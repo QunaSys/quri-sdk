@@ -7,29 +7,40 @@ on:
       - quri-parts/packages/**/*.rs
       - quri-parts/rust/**/*.rs
       - quri-parts/pyproject.toml
-      - quri-parts/poetry.lock
       - quri-parts/.flake8
+      - pyproject.toml
+      - poetry.lock
       - .github/workflows/quri-parts-lint.yml
-      - .github/actions/quri-parts/python-poetry-install/action.yml
+      - .github/actions/python-poetry-install/action.yml
       - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
 
-defaults:
-  run:
-    working-directory: quri-parts
 
 jobs:
   lint:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/quri-parts/python-poetry-install
+    - uses: ./.github/actions/python-poetry-install
       with:
-        poetry-version: '1.4.0'
+        poetry-version: '1.8.5'
         python-version: '3.10'
+
+    - name: Cache Poetry environment
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pypoetry
+          .venv
+        key: poetry-${{ runner.os }}-py310-quri-parts-lint-${{ hashFiles('poetry.lock') }}
+
+    - name: Install dependencies
+      run: |
+        poetry env use 3.10
+        poetry install --with dev,lint --sync
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -37,29 +48,26 @@ jobs:
         additional-key: "lint"
 
     - name: Install fmt
+      working-directory: quri-parts
       run: rustup component add rustfmt
 
     - name: Run format
-      run: |
-        cargo fmt --all -- --check
+      working-directory: quri-parts
+      run: cargo fmt --all -- --check
       if: success() || failure()
 
-    - run: |
-        poetry env use 3.10
-        poetry install --only lint
-
-    - run: |
-        poetry run isort packages --check --diff
+    - name: Run isort
+      run: poetry run bash -c 'cd quri-parts && isort packages --check --diff'
       if: success() || failure()
 
-    - run: |
-        poetry run black packages --check
+    - name: Run black
+      run: poetry run bash -c 'cd quri-parts && black packages --check'
       if: success() || failure()
 
-    - run: |
-        poetry run flake8 packages
+    - name: Run flake8
+      run: poetry run bash -c 'cd quri-parts && flake8 packages --config .flake8'
       if: success() || failure()
 
-    - run: |
-        poetry run docformatter -c -r packages
+    - name: Run docformatter
+      run: poetry run bash -c 'cd quri-parts && docformatter -c -r packages'
       if: success() || failure()

@@ -3,30 +3,41 @@ name: QURI VM Test
 on:
   pull_request:
     paths:
-      - 'quri-vm/**.py'
-      - quri-vm/poetry.lock
+      - quri-vm/**/*.py
+      - quri-vm/pyproject.toml
+      - pyproject.toml
+      - poetry.lock
       - .github/workflows/quri-vm-test.yml
+      - .github/actions/python-poetry-install/action.yml
   push:
     branches: [main]
 
-defaults:
-  run:
-    working-directory: quri-vm
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.10'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/quri-vm/setup
+    - uses: ./.github/actions/python-poetry-install
       with:
-        poetry-version: '1.4.0'
-        python-version: '3.10'
+        poetry-version: '1.8.5'
+        python-version: ${{ env.PYTHON_VERSION }}
 
-    - run: |
-        poetry env use 3.10
-        poetry install
+    - name: Cache Poetry environment
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pypoetry
+        key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-quri-vm-test-${{ hashFiles('poetry.lock') }}
 
-    - run: poetry run pytest
+    - name: Install dependencies
+      run: |
+        poetry env use $PYTHON_VERSION
+        poetry install --only main,dev
+
+    - name: Run pytest
+      run: poetry run bash -c 'cd quri-vm && pytest'

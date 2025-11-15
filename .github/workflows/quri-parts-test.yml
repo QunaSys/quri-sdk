@@ -8,17 +8,16 @@ on:
       - quri-parts/./**/Cargo.toml
       - quri-parts/./**/Cargo.lock
       - quri-parts/rust/**/*.rs
-      - quri-parts/poetry.lock
-      - .github/workflows/quri-parts-test.yml
-      - .github/actions/quri-parts/python-poetry-install/action.yml
-      - .github/actions/quri-parts/rust-install-cache/action.yml
       - quri-parts/**/*.jl
+      - quri-parts/pyproject.toml
+      - pyproject.toml
+      - poetry.lock
+      - .github/workflows/quri-parts-test.yml
+      - .github/actions/python-poetry-install/action.yml
+      - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
 
-defaults:
-  run:
-    working-directory: quri-parts
 
 jobs:
   test:
@@ -32,39 +31,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/quri-parts/python-poetry-install
+    - uses: ./.github/actions/python-poetry-install
       with:
-        poetry-version: '1.4.0'
+        poetry-version: '1.8.5'
         python-version: ${{ matrix.python_version }}
+
+    - name: Cache Poetry environment
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pypoetry
+        key: poetry-${{ runner.os }}-py${{ matrix.python_version }}-quri-parts-test-${{ hashFiles('poetry.lock') }}
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
         toolchain: "stable"
         additional-key: "test"
 
-    - uses: actions/cache@v3
+    - uses: actions/cache@v4
       with:
         path: |
           ~/.julia/
         key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
 
-    - run: |
-        cargo test --workspace
+    - name: Run Rust tests
+      working-directory: quri-parts
+      run: cargo test --workspace
 
-    - run: |
+    - name: Install dependencies
+      run: |
         poetry env use ${{ matrix.python_version }}
-        poetry run pip install -vvv -e packages/rust
+        poetry run pip install -vvv -e quri-parts/packages/rust
         poetry install -vvv --only main,dev
 
-    - run: |
-        poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
+    - name: Detect Julia project
       id: julia_project
+      run: |
+        poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
 
-    - run: |
+    - name: Prepare Julia deps
+      run: |
         poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
-    - run: |
-        poetry run pytest
+    - name: Run pytest
+      run: poetry run bash -c 'cd quri-parts && pytest'
