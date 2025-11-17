@@ -1,5 +1,3 @@
-extern crate blas_src as _; // force OpenBLAS linkage for ndarray's BLAS backend
-extern crate openblas_src as _; // keep pkg-config hints active when using system OpenBLAS
 use pyo3::prelude::*;
 
 mod circuit;

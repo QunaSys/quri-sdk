@@ -24,10 +24,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install BLAS dependencies
-      run: |
-        sudo apt-get install -y libopenblas-dev libblas-dev
-
     - uses: actions/setup-python@v4
       with:
         python-version: '3.11'
