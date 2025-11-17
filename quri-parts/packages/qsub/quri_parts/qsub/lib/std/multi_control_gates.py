@@ -361,7 +361,7 @@ def generate_multicontrolled_to_mc_sub_resolver(
         if target_sub is None:
             return _multi_controlled_sub(target_op, control_bits, control_value, s_and)
 
-        builder = SubBuilder(control_bits + op.qubit_count, op.reg_count)
+        builder = SubBuilder(op.qubit_count, op.reg_count)
         control_q = builder.qubits[:control_bits]
         target_q = builder.qubits[control_bits:]
 
