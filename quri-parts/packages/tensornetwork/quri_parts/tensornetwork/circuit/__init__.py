@@ -104,11 +104,11 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        tensor_map: Sequence[Mapping[int, TensorNetworkQuantumGate]],
+        layer_tensor_map: Sequence[Mapping[int, TensorNetworkQuantumGate]],
     ):
         self.input_edges = input_edges
         self.output_edges = output_edges
-        self.tensor_map = tensor_map
+        self.layer_tensor_map = layer_tensor_map
         super().__init__(container)
 
     def copy(self) -> "TensorNetworkLayer":
@@ -119,7 +119,7 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         circuit_nodes = {circuit_node_mapping[n] for n in self._container}
         tensor_map = [
             {q: circuit_node_mapping[n] for q, n in mapping.items()}
-            for mapping in self.tensor_map
+            for mapping in self.layer_tensor_map
         ]
         circuit_input_edges = [circuit_edge_mapping[e] for e in self.input_edges]
         circuit_output_edges = [circuit_edge_mapping[e] for e in self.output_edges]
