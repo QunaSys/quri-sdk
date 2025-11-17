@@ -3141,7 +3141,7 @@ url = "../quri-parts/packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.24.0"
+version = "0.24.1"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
