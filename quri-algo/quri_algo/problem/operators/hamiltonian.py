@@ -70,13 +70,13 @@ class QubitHamiltonian(Hamiltonian):
 
 
 class FermionicHamiltonian(Hamiltonian):
-    def __init__(self, n_spin_orbital: int, fermionic_hamiltonian: FermionOperator):
+    def __init__(self, n_spin_orbital: int, fermion_operator: FermionOperator):
         self.n_spin_orbital = n_spin_orbital
-        self._fermionic_hamiltonian = fermionic_hamiltonian
+        self._fermion_operator = fermion_operator
 
     @property
-    def fermionic_hamiltonian(self) -> FermionOperator:
-        return self._fermionic_hamiltonian
+    def fermion_operator(self) -> FermionOperator:
+        return self._fermion_operator
 
     def get_matrix_representation(
         self, *args: Any, **kwargs: Any

@@ -8,16 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
-import numpy as np
-from pyscf import gto, scf
 from typing import Literal
-from quri_algo.problem.models.mol import MolecularSystem
+
+import numpy as np
+import pytest
+from pyscf import df, gto, scf
 from quri_parts.chem.mol import ActiveSpace
-from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
-from quri_parts.openfermion.mol import get_qubit_mapped_hamiltonian
-from quri_algo.problem.operators.hamiltonian import QubitHamiltonian
 from quri_parts.core.operator.operator import Operator
+from quri_parts.openfermion.mol import get_qubit_mapped_hamiltonian
+from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
+
+from quri_algo.problem.models.mol import MolecularSystem
 
 H2O_COORDS = "O 0 0 0; H 0.757 0.586 0; H -0.757 0.586 0"
 H2O_TEST_COORDS = "O 0 0 0; H 0.2774 0.8929 0.2544; H 0.6068, -0.2383, -0.7169"
@@ -89,13 +90,30 @@ def test_cached_attributes(h2o_system: MolecularSystem) -> None:
 
 
 @pytest.mark.parametrize("backend", ["pyscf_mem_efficient", "pyscf_density_fitting"])
-def test_hartree_fock_converges(
-    backend: Literal["pyscf_mem_efficient", "pyscf_density_fitting"],
+def test_hartree_fock_matches_pyscf_and_backend(
+    backend: Literal["pyscf_mem_efficient", "pyscf_density_fitting"]
 ) -> None:
-    sys = MolecularSystem(atom="H 0 0 0; H 0 0 0.74", basis="sto-3g", backend=backend)
+    sys = MolecularSystem(atom=H2O_TEST_COORDS, basis="sto-3g", backend=backend)
     mf = sys.get_hartree_fock()
     assert mf.converged
-    assert sys.get_hartree_fock() is mf
+
+    mol = gto.M(atom=H2O_TEST_COORDS, basis="sto-3g", unit="Angstrom")
+    mf_ref = scf.ROHF(mol) if mol.spin else scf.RHF(mol)
+    if backend == "pyscf_mem_efficient":
+        mf_ref.direct_scf = True
+    elif backend == "pyscf_density_fitting":
+        mf_ref = mf_ref.density_fit()
+        mf_ref.with_df._cderi = df.incore.cholesky_eri(mol)
+    mf_ref.run(verbose=0)
+
+    assert mf_ref.converged
+    for i in range(mf_ref.mo_coeff.shape[1]):
+        col1 = mf_ref.mo_coeff[:, i]
+        col2 = mf.mo_coeff[:, i]
+        assert np.allclose(col1, col2, atol=1e-12) or np.allclose(
+            col1, -col2, atol=1e-12
+        )
+    assert np.allclose(mf_ref.e_tot, mf.e_tot, atol=1e-12)
 
 
 def test_active_space_default(h2o_system: MolecularSystem) -> None:

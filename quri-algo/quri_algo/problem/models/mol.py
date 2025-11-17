@@ -34,13 +34,26 @@ AtomCoordinate: TypeAlias = tuple[float, float, float]
 
 @dataclass
 class MolecularSystem(HamiltonianMixin):
-    """Represents a molecular system using PySCF as a backend.
+    """
+    Represents a molecular system using PySCF as a backend.
 
     Provides utilities for:
       - Building the molecule
       - Performing a Hartree–Fock (RHF or ROHF) calculation
       - Mapping the resulting fermionic Hamiltonian into a qubit Hamiltonian
         compatible with QURI's quantum chemistry interface.
+
+    Attributes:
+        atom (Sequence[tuple[str, tuple[float, float, float]]] | str):
+            The list of atoms with their coordinates (in Angstroms),
+            e.g., [("H", (0.0, 0.0, 0.0)), ("H", (0.0, 0.0, 0.74))],
+            or a PySCF-readable string.
+        basis (str): Basis set to use for the molecule (default: "sto-3g").
+        charge (int): Molecular charge (default: 0).
+        spin (int): Total spin (2S) of the molecule (default: 0).
+        frozen (Optional[list[int]]): Indices of frozen orbitals to exclude from the active space.
+        backend (Literal["pyscf_mem_efficient", "pyscf_density_fitting"]):
+            SCF computation backend; either memory-efficient or density-fitting (default: "pyscf_mem_efficient").
     """
 
     atom: Sequence[tuple[str, AtomCoordinate]] | str
@@ -88,6 +101,20 @@ class MolecularSystem(HamiltonianMixin):
 
     @cached_property
     def active_space(self) -> ActiveSpace:
+        """
+        Constructs the active space for the molecule.
+
+        The active space is defined by:
+          - Excluding frozen orbitals if `self.frozen` is set.
+          - Using the remaining orbitals as the active orbitals.
+          - Number of active electrons is the total number of electrons
+            minus twice the number of frozen orbitals.
+          - Number of active orbitals is the total number of molecular orbitals
+            minus the number of frozen orbitals.
+
+        Returns:
+            ActiveSpace: An `ActiveSpace` object describing the active orbitals and electrons.
+        """
         pyscf_mol = self.pyscf_mol
         n_frozen = len(self.frozen) if self.frozen else 0
         n_orbitals = pyscf_mol.nao - n_frozen
@@ -115,7 +142,7 @@ class MolecularSystem(HamiltonianMixin):
         n_spin_orbital = self.hartree_fock.mo_coeff.shape[1] * 2
         return FermionicHamiltonian(
             n_spin_orbital=n_spin_orbital,
-            fermionic_hamiltonian=cast(FermionOperator, fermion_op),
+            fermion_operator=cast(FermionOperator, fermion_op),
         )
 
     def get_fermionic_hamiltonian(self) -> FermionicHamiltonian:
@@ -128,7 +155,7 @@ class MolecularSystem(HamiltonianMixin):
         n_qubit = self.active_space.n_active_orb * 2
 
         qubit_operator, _ = operator_from_of_fermionic_op(
-            fermion_h.fermionic_hamiltonian,
+            fermion_h.fermion_operator,
             self.active_space,
             sz=None,
             fermion_qubit_mapping=jordan_wigner,
