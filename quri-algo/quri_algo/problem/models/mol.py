@@ -54,7 +54,7 @@ class MolecularSystem(HamiltonianMixin):
 
     @cached_property
     def pyscf_mol(self) -> gto.Mole:
-        """PySCF Mole object (built once and cached)."""
+        """PySCF Mole object."""
         return gto.M(
             atom=self.atom,
             basis=self.basis,
