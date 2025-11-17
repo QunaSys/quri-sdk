@@ -34,8 +34,7 @@ AtomCoordinate: TypeAlias = tuple[float, float, float]
 
 @dataclass
 class MolecularSystem(HamiltonianMixin):
-    """
-    Represents a molecular system using PySCF as a backend.
+    """Represents a molecular system using PySCF as a backend.
 
     Provides utilities for:
       - Building the molecule
@@ -101,8 +100,7 @@ class MolecularSystem(HamiltonianMixin):
 
     @cached_property
     def active_space(self) -> ActiveSpace:
-        """
-        Constructs the active space for the molecule.
+        """Constructs the active space for the molecule.
 
         The active space is defined by:
           - Excluding frozen orbitals if `self.frozen` is set.
