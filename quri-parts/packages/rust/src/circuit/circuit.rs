@@ -135,7 +135,17 @@ impl ImmutableQuantumCircuit {
     #[pyo3(name = "__add__")]
     fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<PyObject> {
         let py = slf.py();
-        Ok(Self::combine(slf, gates)?.into_py(py))
+        match Self::combine(slf, gates) {
+            Ok(circuit) => Ok(circuit.into_py(py)),
+            Err(err) => {
+                // propagate mismatched qubit error (or any other Value Error)
+                if err.is_instance_of::<pyo3::exceptions::PyValueError>(py) {
+                    Err(err)
+                } else {
+                    Ok(py.NotImplemented())
+                }
+            }
+        }
     }
 
     fn freeze(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
