@@ -62,7 +62,7 @@ class TensorNetworkOperator(TensorNetworkLayer):
         operator_output_edges = [operator_edge_mapping[e] for e in self.output_edges]
         tensor_map = [
             {q: operator_node_mapping[n] for q, n in tm.items()}
-            for tm in self.tensor_map
+            for tm in self.layer_tensor_map
         ]
 
         return TensorNetworkOperator(
