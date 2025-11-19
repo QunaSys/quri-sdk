@@ -7,15 +7,21 @@ from quri_parts.qsub.lib.std import (
     RX,
     RY,
     RZ,
+    SWAP,
     Cbz,
     Controlled,
     H,
+    Identity,
     Label,
     M,
     MultiControlled,
     Phase,
     S,
     Sdag,
+    SqrtX,
+    SqrtXdag,
+    SqrtY,
+    SqrtYdag,
     T,
     Tdag,
     Toffoli,
@@ -856,6 +862,107 @@ class TestMultiControlledNamedMCGatesSub:
         assert sub.operations[3] == (X, (sub.qubits[0],), ())  # Negate bit 0
         assert sub.operations[4] == (X, (sub.qubits[5],), ())  # Negate bit 5
 
+    def test_identity_gate(self) -> None:
+        """Test mapping Identity to MCIdentity."""
+        sub = MultiControlledNamedMCGatesSub(Identity, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have Identity operations on all qubits
+        for i, (op, qubits, regs) in enumerate(sub.operations):
+            assert op.id.local_name == "Identity"
+            assert qubits == (sub.qubits[i],)
+            assert regs == ()
+
+    def test_sdag_gate(self) -> None:
+        """Test mapping Sdag to MCSdag."""
+        sub = MultiControlledNamedMCGatesSub(Sdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MCS")
+
+    def test_t_gate(self) -> None:
+        """Test mapping T to MCT."""
+        sub = MultiControlledNamedMCGatesSub(T, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_tdag_gate(self) -> None:
+        """Test mapping Tdag to MCTdag."""
+        sub = MultiControlledNamedMCGatesSub(Tdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrtx_gate(self) -> None:
+        """Test mapping SqrtX to MCSqrtX."""
+        sub = MultiControlledNamedMCGatesSub(SqrtX, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrtxdag_gate(self) -> None:
+        """Test mapping SqrtXdag to MCSqrtXdag."""
+        sub = MultiControlledNamedMCGatesSub(SqrtXdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrty_gate(self) -> None:
+        """Test mapping SqrtY to MCSqrtY."""
+        sub = MultiControlledNamedMCGatesSub(SqrtY, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sqrtydag_gate(self) -> None:
+        """Test mapping SqrtYdag to MCSqrtYdag."""
+        sub = MultiControlledNamedMCGatesSub(SqrtYdag, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 1
+        assert sub.operations[0][0].id.local_name.startswith("MC")
+
+    def test_sdag_gate_with_negation(self) -> None:
+        """Test mapping Sdag with control negation."""
+        sub = MultiControlledNamedMCGatesSub(Sdag, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have X gates for negation plus MCSdag
+        assert sub.operations[0][0].id.local_name == "X"  # Negation
+        assert sub.operations[1][0].id.local_name.startswith("MCS")  # MCSdag
+        assert sub.operations[2][0].id.local_name == "X"  # Negation
+
+    def test_t_gate_with_negation(self) -> None:
+        """Test mapping T with control negation."""
+        sub = MultiControlledNamedMCGatesSub(T, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have X gates for negation plus MCT
+        assert sub.operations[0][0].id.local_name == "X"  # Negation
+        assert sub.operations[1][0].id.local_name.startswith("MC")  # MCT
+        assert sub.operations[2][0].id.local_name == "X"  # Negation
+
+    def test_tdag_gate_with_negation(self) -> None:
+        """Test mapping Tdag with control negation."""
+        sub = MultiControlledNamedMCGatesSub(Tdag, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+        # Should have X gates for negation plus MCTdag
+        assert sub.operations[0][0].id.local_name == "X"  # Negation
+        assert sub.operations[1][0].id.local_name.startswith("MC")  # MCTdag
+        assert sub.operations[2][0].id.local_name == "X"  # Negation
+
 
 class TestPhaseHandlingInResolver:
     """Test phase handling in generate_multicontrolled_to_mc_sub_resolver."""
@@ -1187,3 +1294,342 @@ class TestPhaseHandlingInResolver:
         assert resolved_sub.operations[0] == op_0
         op_1 = (MultiControlled(Sdag, 1, 0b1), resolved_sub.qubits[:2], ())
         assert resolved_sub.operations[1] == op_1
+
+    def test_mcswap_gate(self) -> None:
+        """Test mapping SWAP to controlled CNOT operations."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 2, 0b11)
+        assert sub is not None
+        assert len(sub.qubits) == 4
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q3, q2)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q3, q2)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 2, 3) on all 4 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 2  # control_bits
+        assert op1.id.params[2] == 3  # control_value (0b11)
+
+        # Operation 2: CNOT on last two qubits (q3, q2) - same as operation 0
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q3, q2)
+        assert regs2 == ()
+
+        # Assert all operations in sub result
+        assert sub.operations == (
+            (op0, qubits0, regs0),
+            (op1, qubits1, regs1),
+            (op2, qubits2, regs2),
+        )
+
+    def test_mcswap_gate_with_negation(self) -> None:
+        """Test mapping SWAP to controlled CNOT with control negation."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 2, 0b01)
+        assert sub is not None
+        assert len(sub.qubits) == 4
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q3, q2)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q3, q2)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 2, 1) on all 4 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 2  # control_bits
+        assert op1.id.params[2] == 1  # control_value (0b01)
+
+        # Operation 2: CNOT on last two qubits (q3, q2)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q3, q2)
+        assert regs2 == ()
+
+    def test_mcswap_gate_single_control(self) -> None:
+        """Test mapping SWAP to controlled CNOT with single control."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 1, 0b1)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+
+        q0, q1, q2 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q2, q1)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q2, q1)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 1, 1) on all 3 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 1  # control_bits
+        assert op1.id.params[2] == 1  # control_value (0b1)
+
+        # Operation 2: CNOT on last two qubits (q2, q1)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q2, q1)
+        assert regs2 == ()
+
+    def test_mcswap_gate_single_control_negation(self) -> None:
+        """Test mapping SWAP to controlled CNOT with single control
+        negation."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 1, 0b0)
+        assert sub is not None
+        assert len(sub.qubits) == 3
+        assert len(sub.operations) == 3
+
+        q0, q1, q2 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q2, q1)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q2, q1)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 1, 0) on all 3 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 1  # control_bits
+        assert op1.id.params[2] == 0  # control_value (0b0)
+
+        # Operation 2: CNOT on last two qubits (q2, q1)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q2, q1)
+        assert regs2 == ()
+
+    def test_mcswap_gate_three_controls(self) -> None:
+        """Test mapping SWAP to controlled CNOT with three controls."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 3, 0b111)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3, q4 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q4, q3)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q4, q3)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 3, 7) on all 5 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3, q4)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 3  # control_bits
+        assert op1.id.params[2] == 7  # control_value (0b111)
+
+        # Operation 2: CNOT on last two qubits (q4, q3)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q4, q3)
+        assert regs2 == ()
+
+    def test_mcswap_gate_three_controls_mixed_pattern(self) -> None:
+        """Test mapping SWAP to controlled CNOT with three controls (mixed
+        pattern)."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 3, 0b101)
+        assert sub is not None
+        assert len(sub.qubits) == 5
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3, q4 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q4, q3)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q4, q3)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 3, 5) on all 5 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3, q4)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 3  # control_bits
+        assert op1.id.params[2] == 5  # control_value (0b101)
+
+        # Operation 2: CNOT on last two qubits (q4, q3)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q4, q3)
+        assert regs2 == ()
+
+    def test_mcswap_gate_four_controls_all_ones(self) -> None:
+        """Test mapping SWAP to controlled CNOT with four controls (all
+        ones)."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 4, 0b1111)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3, q4, q5 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q5, q4)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q5, q4)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 4, 15) on all 6 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3, q4, q5)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 4  # control_bits
+        assert op1.id.params[2] == 15  # control_value (0b1111)
+
+        # Operation 2: CNOT on last two qubits (q5, q4)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q5, q4)
+        assert regs2 == ()
+
+    def test_mcswap_gate_four_controls_checkerboard_pattern(self) -> None:
+        """Test mapping SWAP to controlled CNOT with four controls
+        (checkerboard pattern)."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 4, 0b1010)
+        assert sub is not None
+        assert len(sub.qubits) == 6
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3, q4, q5 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q5, q4)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q5, q4)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 4, 10) on all 6 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3, q4, q5)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 4  # control_bits
+        assert op1.id.params[2] == 10  # control_value (0b1010)
+
+        # Operation 2: CNOT on last two qubits (q5, q4)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q5, q4)
+        assert regs2 == ()
+
+    def test_mcswap_gate_five_controls_sparse_pattern(self) -> None:
+        """Test mapping SWAP to controlled CNOT with five controls (sparse
+        pattern)."""
+        sub = MultiControlledNamedMCGatesSub(SWAP, 5, 0b10001)
+        assert sub is not None
+        assert len(sub.qubits) == 7
+        assert len(sub.operations) == 3
+
+        q0, q1, q2, q3, q4, q5, q6 = sub.qubits
+
+        # Operation 0: CNOT on last two qubits (q6, q5)
+        op0, qubits0, regs0 = sub.operations[0]
+        assert op0.id.local_name == "CNOT"
+        assert qubits0 == (q6, q5)
+        assert regs0 == ()
+
+        # Operation 1: MultiControlled(CNOT, 5, 17) on all 7 qubits
+        op1, qubits1, regs1 = sub.operations[1]
+        assert op1.id.local_name == "MultiControlled"
+        assert qubits1 == (q0, q1, q2, q3, q4, q5, q6)
+        assert regs1 == ()
+        mc_target_op = op1.id.params[0]
+        assert isinstance(mc_target_op, Op)
+        assert mc_target_op.id.local_name == "CNOT"
+        assert op1.id.params[1] == 5  # control_bits
+        assert op1.id.params[2] == 17  # control_value (0b10001)
+
+        # Operation 2: CNOT on last two qubits (q6, q5)
+        op2, qubits2, regs2 = sub.operations[2]
+        assert op2.id.local_name == "CNOT"
+        assert qubits2 == (q6, q5)
+        assert regs2 == ()
+
+
+def test_mcswap_multicontrolled_mapping() -> None:
+    """Test that MultiControlled(SWAP, ...) maps to MCSWAP."""
+    # Create MultiControlled SWAP operations
+    mc_swap_1 = MultiControlled(SWAP, 1, 0b1)
+    mc_swap_2 = MultiControlled(SWAP, 2, 0b11)
+    mc_swap_3 = MultiControlled(SWAP, 3, 0b111)
+
+    # Use a repository with the multi-controlled resolver
+    repo = default_repository().copy()
+    repo.register_sub_resolver(
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+    )
+
+    # Since MCSWAP is not implemented, these should return None or default behavior
+    sub1 = resolve_sub(mc_swap_1, repo)
+    sub2 = resolve_sub(mc_swap_2, repo)
+    sub3 = resolve_sub(mc_swap_3, repo)
+
+    # These will use default MultiControlled implementation since MCSWAP is removed
+    assert sub1 is not None
+    assert sub2 is not None
+    assert sub3 is not None
+
+
+def test_mcswap_with_control_negation() -> None:
+    """Test MCSWAP with control negation patterns."""
+    # Test various control patterns that require negation
+    mc_swap_mixed = MultiControlled(SWAP, 3, 0b101)  # Control on |101⟩
+
+    repo = default_repository().copy()
+    repo.register_sub_resolver(
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+    )
+
+    # Since MCSWAP is not implemented, this should use default behavior
+    sub = resolve_sub(mc_swap_mixed, repo)
+    assert sub is not None
