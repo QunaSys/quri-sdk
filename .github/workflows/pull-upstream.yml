@@ -1,0 +1,32 @@
+name: Pull upstream changes
+
+on:
+  schedule:
+    - cron: '0 0 * * MON-FRI'
+  workflow_dispatch:
+
+jobs:
+  pull-upstream:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Get QURI Parts bot access token
+      id: qp-bot-token
+      uses: getsentry/action-github-app-token@v2.0.0
+      with:
+        app_id: ${{ secrets.QP_BOT_APP_ID }}
+        private_key: ${{ secrets.QP_BOT_PRIVATE_KEY }}
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+        ref: main
+        token: ${{ steps.qp-bot-token.outputs.token }}
+    - run: git fetch --tags https://github.com/QunaSys/quri-parts.git
+    - run: git pull --ff-only https://github.com/QunaSys/quri-parts.git
+    - run: git push
+    - run: git push --tags
+    - run: git fetch origin internal-main
+    - run: git switch internal-main
+    - run: git config --global user.email "quri-parts-bot@qunasys.com"
+    - run: git config --global user.name "QURI Parts bot"
+    - run: git merge main
+    - run: git push origin internal-main

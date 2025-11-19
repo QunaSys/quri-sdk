@@ -1,0 +1,53 @@
+name: Push branch to public repo
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  push_branch:
+    name: Push branch to public repo
+    if: (github.event.issue.pull_request && github.event.comment.body == 'push to public')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: refs/pull/${{ github.event.issue.number }}/head
+        fetch-depth: 0
+    - id: check-internal-commits
+      run: |
+        git merge-base --is-ancestor 59c26148fdb797a4573379fd027f730052dcbb19 HEAD && \
+        echo contained=true >> $GITHUB_OUTPUT
+        exit 0
+    - if: steps.check-internal-commits.outputs.contained == 'true'
+      run: |
+        msg='The branch cannot be pushed to the public repository because it contains internal commits in internal-main branch. Please create a branch from main branch.'
+        gh pr comment ${{ github.event.issue.number }} --body "$msg"
+        echo "::error ::$msg"
+        exit 1
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get HEAD ref
+      id: head-branch
+      run: |
+        echo name=$(gh pr view ${{ github.event.issue.pull_request.html_url }} --json headRefName --jq .headRefName) >> $GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Get QURI Parts bot access token
+      id: qp-bot-token
+      uses: getsentry/action-github-app-token@v2.0.0
+      with:
+        app_id: ${{ secrets.QP_BOT_APP_ID }}
+        private_key: ${{ secrets.QP_BOT_PRIVATE_KEY }}
+    - run: |
+        git config --local --unset-all $(git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader)
+        git push https://x-access-token:$ACCESS_TOKEN@github.com/QunaSys/quri-parts.git HEAD:$BRANCH_REF
+      env:
+        ACCESS_TOKEN: ${{ steps.qp-bot-token.outputs.token }}
+        BRANCH_REF: refs/heads/${{ steps.head-branch.outputs.name }}
+    - run: |
+        msg="The branch has been successfully pushed: https://github.com/QunaSys/quri-parts/tree/$BRANCH"
+        gh pr comment ${{ github.event.issue.number }} --body "$msg"
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        BRANCH: ${{ steps.head-branch.outputs.name }}
