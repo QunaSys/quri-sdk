@@ -111,20 +111,25 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-13"
+          - os: "macos-15-intel"
             target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "11", "13" ]
+        python-version: [ "9", "11", "14" ]
+        # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
+        exclude:
+          - python-version: "14"
+            system:
+              os: "windows-latest"
     defaults:
       run:
         shell: bash
-        working-directory: quri-parts
     env:
       # Needed to avoid format error in Windows
       PYTHONUTF8: "1"
+      VCPKG_ROOT: ${{ github.workspace }}\vcpkg
     steps:
       - uses: actions/cache@v4
         with:
@@ -149,22 +154,46 @@ jobs:
           python-version: 3.${{matrix.python-version}}
 
       - name: Install boost
+        if: matrix.python-version == '14' || (matrix.python-version == '13' && runner.os == 'Windows')
         uses: MarkusJx/install-boost@v2
-        if: runner.os == 'Windows'
         id: install-boost
         with:
-          boost_version: 1.73.0
+          # this version required to build qulacs
+          boost_version: 1.83.0
+
+      # required to build llvmlite<0.47,>=0.46.0dev0 (from numba->amazon-braket-default-simulator>=1.32.0->amazon-braket-sdk<2.0.0,>=1.25.1->quri-parts-braket==0.24.1.post53.dev0+08826f24)
+      - name: Install LLVM
+        if: runner.os == 'macOS' && (matrix.python-version == '10' || matrix.python-version == '11' || matrix.python-version == '12' || matrix.python-version == '13')
+        run: |
+          brew install llvm@20
+          LLVM_PREFIX="$(brew --prefix llvm@20)"
+          export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
+          echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
+          echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
+          pip install llvmlite==0.46.0
+
+      - name: Install vcpkg
+        if: runner.os == 'Windows' && matrix.python-version == '14'
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git $VCPKG_ROOT
+          "$VCPKG_ROOT\bootstrap-vcpkg.bat"
+
+      # required to build pillow>=8 (from matplotlib~=3.8->cirq-core<2.0.0,>=1.0.0->quri-parts-cirq==0.24.1.post53.dev0+08826f24)
+      - name: Install zlib via vcpkg
+        if: runner.os == 'Windows' && matrix.python-version == '14'
+        run: |
+          "$VCPKG_ROOT\vcpkg.exe" install zlib
 
       - name: Install packages
         env:
-          BOOST_ROOT: ${{ runner.os == 'Windows' && steps.install-boost.outputs.BOOST_ROOT || '' }}
+          BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
-          pip install pytest setuptools==75.1.0
+          pip install --upgrade pytest setuptools
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
-          for FILE in $(find dist -name '*.tar.gz'); do
+          for FILE in $(find quri-parts/dist -name '*.tar.gz'); do
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
               if [[ "$FILE" = *"quri_parts_pyscf"* || "$FILE" = *"quri_parts_itensor"* ]]; then
                 # We cannot run tests on native Windows, since pyscf does not support it.
@@ -177,6 +206,12 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
               continue
             fi
+            if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
+              continue
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
+              continue
+            fi
             pip install -v $FILE
           done
 
@@ -184,9 +219,15 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+            if [[ "${{ matrix.python-version }}" = "14" ]]; then
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
+            else
+              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
+            fi
+          elif [[ "${{ matrix.python-version }}" = "14" ]]; then
+            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
           else
-            pytest packages
+            pytest quri-parts/packages
           fi
 
   rust-wheel-package:
@@ -199,7 +240,7 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-13"
+          - os: "macos-15-intel"
             target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
@@ -287,20 +328,25 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-13"
+          - os: "macos-15-intel"
             target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12", "13" ]
+        python-version: [ "9", "10", "11", "12", "13", "14" ]
+        # Currentl, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
+        exclude:
+          - python-version: "14"
+            system:
+              os: "windows-latest"
     defaults:
       run:
         shell: bash
-        working-directory: quri-parts
     env:
       # Needed to avoid format error in Windows
       PYTHONUTF8: "1"
+      VCPKG_ROOT: ${{ github.workspace }}\vcpkg
     steps:
       - uses: actions/cache@v4
         with:
@@ -324,18 +370,39 @@ jobs:
         with:
           python-version: 3.${{matrix.python-version}}
 
-      - run: python --version
-
       - name: Install boost
+        if: matrix.python-version == '14' || (matrix.python-version == '13' && runner.os == 'Windows')
         uses: MarkusJx/install-boost@v2
-        if: runner.os == 'Windows' && matrix.python-version == '13'
         id: install-boost
         with:
-          boost_version: 1.73.0
+          # this version required to build qulacs
+          boost_version: 1.83.0
+
+      # required to build llvmlite<0.47,>=0.46.0dev0 (from numba->amazon-braket-default-simulator>=1.32.0->amazon-braket-sdk<2.0.0,>=1.25.1->quri-parts-braket==0.24.1.post53.dev0+08826f24)
+      - name: Install LLVM
+        if: runner.os == 'macOS' && (matrix.python-version == '10' || matrix.python-version == '11' || matrix.python-version == '12' || matrix.python-version == '13')
+        run: |
+          brew install llvm@20
+          LLVM_PREFIX="$(brew --prefix llvm@20)"
+          export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
+          echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
+          echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
+          pip install llvmlite==0.46.0
+
+      - name: Install vcpkg
+        uses: lukka/run-vcpkg@v11
+        if: runner.os == 'Windows' && matrix.python-version == '14'
+        with:
+          doNotCache: false
+
+      # required to build pillow>=8 (from matplotlib~=3.8->cirq-core<2.0.0,>=1.0.0->quri-parts-cirq==0.24.1.post53.dev0+08826f24)
+      - name: Install zlib via vcpkg
+        if: runner.os == 'Windows' && matrix.python-version == '14'
+        run: vcpkg install zlib
 
       - name: Install packages
         env:
-          BOOST_ROOT: ${{ (runner.os == 'Windows' && matrix.python-version == '13') && steps.install-boost.outputs.BOOST_ROOT || '' }}
+          BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
           pip install pytest
@@ -343,13 +410,13 @@ jobs:
               sudo apt install -y libjpeg-dev
           fi
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-              pip install dist/quri_parts*.manylinux2014_x86_64.whl
+              pip install quri-parts/dist/quri_parts*.manylinux2014_x86_64.whl
           else
-            for FILE in "$(find dist -name 'quri_parts*.whl')"; do
+            for FILE in "$(find quri-parts/dist -name 'quri_parts*.whl')"; do
               pip install -v $FILE
             done
           fi
-          for FILE in $(find dist_py -name '*.whl'); do
+          for FILE in $(find quri-parts/dist_py -name '*.whl'); do
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
               if [[ "$FILE" = *"quri_parts_pyscf"* || "$FILE" = *"quri_parts_itensor"* ]]; then
                 # We cannot run tests on native Windows, since pyscf does not support it.
@@ -362,6 +429,12 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
               continue
             fi
+            if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
+              continue
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
+              continue
+            fi
             pip install -v $FILE
           done
 
@@ -369,9 +442,15 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+            if [[ "${{ matrix.python-version }}" = "14" ]]; then
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
+            else
+              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
+            fi
+          elif [[ "${{ matrix.python-version }}" = "14" ]]; then
+            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
           else
-            pytest packages
+            pytest quri-parts/packages
           fi
 
   quri-parts-python-package:
