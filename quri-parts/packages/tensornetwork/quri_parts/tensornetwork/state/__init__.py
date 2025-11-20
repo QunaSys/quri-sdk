@@ -166,10 +166,10 @@ class TensorNetworkState(NodeCollection):  # type: ignore
         self,
         edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        tensor_map: Sequence[Mapping[int, Union[AbstractNode]]],
+        layer_tensor_map: Sequence[Mapping[int, Union[AbstractNode]]],
     ):
         self.edges = edges
-        self.tensor_map = tensor_map
+        self.layer_tensor_map = layer_tensor_map
         super().__init__(container)
 
     def with_gates_applied(self, circuit: TensorNetworkLayer) -> "TensorNetworkState":
@@ -182,7 +182,7 @@ class TensorNetworkState(NodeCollection):  # type: ignore
             e ^ f
 
         node_set = state._container.union(circuit._container)
-        tensor_map = list(state.tensor_map) + list(circuit.tensor_map)
+        tensor_map = list(state.layer_tensor_map) + list(circuit.layer_tensor_map)
         return TensorNetworkState(circuit.output_edges, node_set, tensor_map)
 
     def copy(self, conjugate: bool = False) -> "TensorNetworkState":
@@ -194,7 +194,7 @@ class TensorNetworkState(NodeCollection):  # type: ignore
         state_edges = [state_edge_mapping[e] for e in self.edges]
         tensor_map = [
             {q: state_node_mapping[n] for q, n in mapping.items()}
-            for mapping in self.tensor_map
+            for mapping in self.layer_tensor_map
         ]
 
         return TensorNetworkState(state_edges, state_nodes, tensor_map)
