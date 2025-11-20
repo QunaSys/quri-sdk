@@ -40,17 +40,17 @@ jobs:
         poetry install --only lint
 
     - name: Run isort
-      run: poetry run bash -c 'cd quri-algo && isort quri_algo --check --diff'
+      run: poetry run isort quri-algo/quri_algo --check --diff
       if: success() || failure()
 
     - name: Run black
-      run: poetry run bash -c 'cd quri-algo && black quri_algo --check'
+      run: poetry run black quri-algo/quri_algo --check
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run bash -c 'cd quri-algo && flake8 quri_algo --show-source'
+      run: poetry run flake8 quri-algo/quri_algo --show-source
       if: success() || failure()
 
     - name: Run docformatter
-      run: poetry run bash -c 'cd quri-algo && docformatter -c -r quri_algo'
+      run: poetry run docformatter -c -r quri-algo/quri_algo
       if: success() || failure()

@@ -40,4 +40,4 @@ jobs:
         poetry install --only main,dev
 
     - name: Run pytest
-      run: poetry run bash -c 'cd quri-vm && pytest'
+      run: poetry run pytest quri-vm

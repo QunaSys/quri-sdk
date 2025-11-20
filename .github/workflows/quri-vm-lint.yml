@@ -41,17 +41,17 @@ jobs:
         poetry install --with dev,lint,typecheck --sync
 
     - name: Run isort
-      run: poetry run bash -c 'cd quri-vm && isort . --check --diff'
+      run: poetry run isort quri-vm --check --diff
       if: success() || failure()
 
     - name: Run black
-      run: poetry run bash -c 'cd quri-vm && black . --check'
+      run: poetry run black quri-vm --check
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run bash -c 'cd quri-vm && flake8 . --config .flake8'
+      run: poetry run flake8 quri-vm --config .flake8
       if: success() || failure()
 
     - name: Run mypy
-      run: poetry run bash -c 'cd quri-vm && mypy .'
+      run: poetry run mypy quri-vm
       if: success() || failure()

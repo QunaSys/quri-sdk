@@ -42,4 +42,4 @@ jobs:
         poetry install --with dev,typecheck --sync
 
     - name: Run mypy
-      run: poetry run bash -c 'cd quri-algo && mypy tests/ quri_algo/'
+      run: poetry run mypy quri-algo/tests/ quri-algo/quri_algo/

@@ -53,5 +53,5 @@ jobs:
           mypy-${{ runner.os }}-${{ matrix.python_version }}-
 
     - name: Run mypy
-      run: poetry run bash -c 'cd quri-parts && mypy .'
+      run: poetry run mypy quri-parts
       if: success() || failure()

@@ -57,17 +57,17 @@ jobs:
       if: success() || failure()
 
     - name: Run isort
-      run: poetry run bash -c 'cd quri-parts && isort packages --check --diff'
+      run: poetry run isort quri-parts/packages --check --diff
       if: success() || failure()
 
     - name: Run black
-      run: poetry run bash -c 'cd quri-parts && black packages --check'
+      run: poetry run black quri-parts/packages --check
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run bash -c 'cd quri-parts && flake8 packages --config .flake8'
+      run: poetry run flake8 quri-parts/packages --config .flake8
       if: success() || failure()
 
     - name: Run docformatter
-      run: poetry run bash -c 'cd quri-parts && docformatter -c -r packages'
+      run: poetry run docformatter -c -r quri-parts/packages
       if: success() || failure()
