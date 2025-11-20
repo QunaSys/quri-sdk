@@ -3,7 +3,7 @@ repos:
     hooks:
       - id: isort-quri-algo
         name: poetry run isort (quri-algo)
-        entry: poetry run isort quri-algo/quri_algo
+        entry: poetry run isort quri-algo
         language: system
         types: [python]
         pass_filenames: false

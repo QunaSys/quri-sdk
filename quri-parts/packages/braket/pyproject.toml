@@ -31,14 +31,3 @@ amazon-braket-sdk = "^1.25.1"
 amazon-braket-schemas = "^1.22.0"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
-
-[tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../circuit", develop = true}
-quri-parts-core = {path = "../core", develop = true}
-
-pytest = "^7.0.1"
-flake8 = "^4.0.1"
-mypy = ">=0.950"
-docformatter = "^1.4"
-isort = "^5.10.1"
-black = "^23.1.0"

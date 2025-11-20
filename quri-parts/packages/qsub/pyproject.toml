@@ -24,14 +24,3 @@ python = ">=3.10"
 quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
 qulacsvis = "^0.7.6"
-
-[tool.poetry.group.dev.dependencies]
-quri-parts-circuit = { path = "../circuit", develop = true }
-quri-parts-qulacs = { path = "../qulacs", develop = true }
-
-pytest = "^7.0.1"
-flake8 = "^4.0.1"
-mypy = ">=0.950"
-docformatter = "^1.4"
-isort = "^5.10.1"
-black = "^23.1.0"

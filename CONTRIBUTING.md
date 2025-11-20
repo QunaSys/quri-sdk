@@ -44,6 +44,11 @@ All commands can be run in the Poetry virtualenv by:
 ```
 poetry run isort .
 ```
+Note: when you run isort in the base directory, you need to prompts it to find and use
+the config files in each subdirectory:
+```
+poetry run isort . --resolve-all-configs
+```
 
 #### Code formatting
 

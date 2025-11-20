@@ -28,14 +28,3 @@ style = "pep440"
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
-
-[tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../circuit", develop = true}
-quri-parts-core = {path = "../core", develop = true}
-
-pytest = "^7.0.1"
-flake8 = "^4.0.1"
-mypy = ">=0.950"
-docformatter = "^1.4"
-isort = "^5.10.1"
-black = "^23.1.0"

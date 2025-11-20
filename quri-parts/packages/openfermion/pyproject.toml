@@ -30,16 +30,3 @@ typing-extensions = "^4.1.1"
 quri-parts-core = "*"
 quri-parts-chem = "*"
 openfermion = "^1.5.1"
-
-[tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../circuit", develop = true}
-quri-parts-core = {path = "../core", develop = true}
-quri-parts-chem = {path = "../chem", develop = true}
-quri-parts-qulacs = {path = "../qulacs", develop = true}
-
-pytest = "^7.0.1"
-flake8 = "^4.0.1"
-mypy = ">=0.950"
-docformatter = "^1.4"
-isort = "^5.10.1"
-black = "^23.1.0"
