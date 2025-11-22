@@ -1,12 +1,12 @@
 # Contribution Guidelines
 
-We are happy that you are interested in contributing to QURI Parts!
+We are happy that you are interested in contributing to QURI SDK!
 Please read the following contribution guidelines.
 
 
 ## Issues
 
-Issues are managed on [GitHub](https://github.com/QunaSys/quri-parts/issues).
+Issues are managed on [GitHub](https://github.com/QunaSys/quri-sdk/issues).
 Please search existing issues before opening a new one.
 
 
@@ -20,6 +20,8 @@ Once you sign the CLA, it will cover your future contributions submitted to Quna
 
 
 ## Development
+
+QURI SDK is a meta package for the packages defined and developed in the directories `quri-parts`, `quri-algo` and `quri-vm`.
 
 We use [Poetry](https://python-poetry.org/) to manage dependencies and packaging.
 Install the latest version and run `poetry install` to create a virtualenv and install dependencies.
@@ -74,17 +76,6 @@ poetry run mypy --config-file ../../mypy.ini .
 
 ```
 poetry run pytest
-```
-
-### Documentation
-
-You can build documentation by:
-
-```
-cd docs
-poetry run make html
-# For live preview
-poetry run make livehtml
 ```
 
 ### Continuous integration (CI)
