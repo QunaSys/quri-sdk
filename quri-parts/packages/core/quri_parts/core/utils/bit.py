@@ -35,11 +35,12 @@ def lowest_bit_index(x: int) -> int:
         raise ValueError("Given integer is zero.")
     return (x & -x).bit_length() - 1
 
-
-def parity_sign_of_bits(bits: int) -> int:
-    """Returns a sign corresponding to parity of bits (even=1, odd=-1)."""
-    try:
-        # int.bit_count() is available on Python 3.10+
+# int.bit_count() is only available in Python 3.10+
+if hasattr(int, "bit_count"):
+    def parity_sign_of_bits(bits: int) -> int:
+        """Returns a sign corresponding to parity of bits (even=1, odd=-1)."""
         return 1 - 2 * (bits.bit_count() % 2)
-    except AttributeError:
+else:
+    def parity_sign_of_bits(bits: int) -> int:
+        """Returns a sign corresponding to parity of bits (even=1, odd=-1)."""
         return 1 - 2 * (bin(bits).count("1") % 2)
