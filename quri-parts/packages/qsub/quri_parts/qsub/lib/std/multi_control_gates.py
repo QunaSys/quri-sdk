@@ -31,7 +31,20 @@ from .cz import CZ
 from .logic import scoped_and
 from .multi_control import MultiControlled, _multi_controlled_sub
 from .rotation import RX, RY, RZ, Phase
-from .single_clifford import H, S, Sdag, SqrtX, SqrtXdag, SqrtY, SqrtYdag, X, Y, Z
+from .single_clifford import (
+    H,
+    Identity,
+    S,
+    Sdag,
+    SqrtX,
+    SqrtXdag,
+    SqrtY,
+    SqrtYdag,
+    X,
+    Y,
+    Z,
+)
+from .swap import SWAP
 from .t import T, Tdag
 from .toffoli import Toffoli
 
@@ -301,6 +314,21 @@ def MultiControlledNamedMCGatesSub(
             ),
             qubits,
         )
+    elif target_op.base_id == SWAP.base_id:
+        assert len(qubits) == control_bits + 2
+        builder.add_op(CNOT, [qubits[-1], qubits[-2]])
+        builder.add_op(
+            MultiControlled(
+                CNOT,
+                control_bits,
+                control_value,
+            ),
+            qubits,
+        )
+        builder.add_op(CNOT, [qubits[-1], qubits[-2]])
+    elif target_op.base_id == Identity.base_id:
+        for q in qubits:
+            builder.add_op(Identity, [q])
     else:
         return None
     return builder.build()
