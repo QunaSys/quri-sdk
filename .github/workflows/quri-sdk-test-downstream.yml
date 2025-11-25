@@ -1,0 +1,90 @@
+name: Test Downstream with PR Branch
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/quri-sdk-test-downstream
+      - quri-algo/**/*.py
+      - quri-algo/pyproject.toml
+      - quri-vm/**/*.py
+      - quri-vm/pyproject.toml
+      - quri-parts/packages/**/*.py
+      - quri-parts/packages/**/*.rs
+      - quri-parts/./**/Cargo.toml
+      - pyproject.toml
+  push:
+    branches: [main]
+
+jobs:
+  test-downstream:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: quri-sdk
+      
+      - name: Get current branch name
+        id: branch
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "name=${{ github.head_ref }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Get Internal QURI repo fetcher access token
+        id: quri-fetcher-token
+        uses: getsentry/action-github-app-token@v2.0.0
+        with:
+            app_id: ${{ secrets.QURI_FETCHER_APP_ID }}
+            private_key: ${{ secrets.QURI_FETCHER_PRIVATE_KEY }}
+        
+      
+      - name: Checkout private repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.PRIVATE_REPO_URL }}
+          token: ${{ steps.quri-fetcher-token.outputs.token }}
+          path: downstream-repo
+      
+      - name: Replace submodule with checked out branch
+        run: |
+          rm -rf downstream-repo/quri-sdk
+          mv -f quri-sdk downstream-repo/
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: downstream-repo/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+      
+      - name: Install dependencies
+        working-directory: downstream-repo
+        run: poetry install --no-interaction --no-root
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      
+      - name: Install project
+        working-directory: downstream-repo
+        run: poetry install --no-interaction
+      
+      - name: Run tests with pytest
+        working-directory: downstream-repo
+        run: |
+          poetry run pytest quri-algo-plus -v --tb=short
+          poetry run pytest quri-parts-plus -v --tb=short
+          poetry run pytest quri-vm-plus -v --tb=short
