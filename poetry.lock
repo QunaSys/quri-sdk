@@ -4697,7 +4697,7 @@ temp = ">=2020.7.2,<2021.0.0"
 
 [[package]]
 name = "quri-algo"
-version = "0.24.0"
+version = "0.24.1"
 description = "Algorithm library based on QURI Parts"
 optional = false
 python-versions = ">=3.10,<4"
@@ -5020,7 +5020,7 @@ url = "quri-parts/packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.24.0"
+version = "0.24.1"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
@@ -5096,7 +5096,7 @@ url = "quri-parts/packages/tket"
 
 [[package]]
 name = "quri-vm"
-version = "0.24.0"
+version = "0.24.1"
 description = ""
 optional = false
 python-versions = "<4,>=3.10"
