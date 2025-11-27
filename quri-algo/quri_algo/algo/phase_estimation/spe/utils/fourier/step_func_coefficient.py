@@ -126,7 +126,7 @@ def get_F_tilde(d: int, delta: float) -> npt.NDArray[np.complex128]:
 
 
 def get_k_from_idx(idx: int, d: int) -> int:
-    r""":math:`F_{k}` is labelled as
+    r""":math:`F_{k}` is labelled as.
 
     .. math::
         [F_{-d}, ..., F_{-1}, F_{0}, F_{1}, ..., F_{d}]
@@ -135,7 +135,7 @@ def get_k_from_idx(idx: int, d: int) -> int:
 
 
 def sample_from_F_tilde(distribution: Sequence[complex], n_sample: int) -> Counter[int]:
-    """index :math:`i` represents :math:`F_{k=-d+i}`."""
+    """Index :math:`i` represents :math:`F_{k=-d+i}`."""
     if np.sum(np.abs(distribution)) != 1:
         distribution /= np.sum(np.abs(distribution))
     random_gen = np.random.default_rng()
