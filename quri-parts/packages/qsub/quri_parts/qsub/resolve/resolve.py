@@ -8,14 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import functools
 import logging
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
-from types import TracebackType
-from typing import Any, Generic, Optional, Protocol, Sequence, Type, TypeAlias, cast
+from typing import Any, Generic, Protocol, Sequence, TypeAlias, cast
 
 from typing_extensions import Self
 
