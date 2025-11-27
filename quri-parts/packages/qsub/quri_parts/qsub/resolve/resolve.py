@@ -75,18 +75,13 @@ class SubRepositoryProtocol(Protocol):
     def copy(self) -> Self:
         ...
 
-    @property
-    @abstractmethod
-    def additions(self) -> Sequence["SubRepository"] | None:
-        ...
-
     @abstractmethod
     def chain(self, repos: Sequence["SubRepository"]) -> "CompositeSubRepository":
         ...
 
-    @abstractmethod
-    def flatten(self) -> "SubRepository":
-        ...
+    # @abstractmethod
+    # def flatten(self) -> "SubRepository":
+    #     ...
 
 
 class SubRepository(SubRepositoryProtocol):
@@ -123,15 +118,8 @@ class SubRepository(SubRepositoryProtocol):
             ret._mapping[k] = [item for item in v]
         return ret
 
-    @property
-    def additions(self) -> Sequence["SubRepository"] | None:
-        return None
-
     def chain(self, repos: Sequence["SubRepository"]) -> "CompositeSubRepository":
         return CompositeSubRepository(additions=repos, root_repo=self)
-
-    def flatten(self) -> "SubRepository":
-        return self.copy()
 
     def __add__(self, repo: "SubRepository") -> "SubRepository":
         new_repo = self.copy()
@@ -158,29 +146,12 @@ class CompositeSubRepository(SubRepositoryProtocol):
         self._scoped_repo: SubRepository | None = None
         self._is_live = False
 
-    def __enter__(self) -> "CompositeSubRepository":
-        logger.debug("__enter__")
-        self._is_live = True
-        self._scoped_repo = self.flatten()
-        return self
-
-    def __exit__(
-        self,
-        exc_type: Optional[Type[BaseException]],
-        exc_val: Optional[BaseException],
-        exc_tb: Optional[TracebackType],
-    ) -> None:
-        logger.debug("__exit__")
-        self._is_live = False
-        self._scoped_repo = None
-
     def find_resolver(self, op: Op) -> SubResolver | None:
-        if self._is_live:
-            assert self._scoped_repo is not None
-            repo_to_use = self._scoped_repo
-        else:
-            repo_to_use = self.flatten()
-        return repo_to_use.find_resolver(op)
+        for addition in reversed(self._additions):
+            resolver = addition.find_resolver(op)
+            if resolver is not None:
+                return resolver
+        return self.root_repo.find_resolver(op)
 
     def register_sub(
         self, op: Op | OpFactory[Any] | BaseIdent, sub: Sub | SubFactory[Any]
@@ -199,15 +170,6 @@ class CompositeSubRepository(SubRepositoryProtocol):
         return CompositeSubRepository(
             [a.copy() for a in self._additions], self.root_repo.copy()
         )
-
-    @property
-    def additions(self) -> Sequence["SubRepository"] | None:
-        return self._additions
-
-    def flatten(self) -> "SubRepository":
-        logger.debug("Building composed repo.")
-        assert self.additions is not None
-        return functools.reduce(lambda a, b: a + b, [self.root_repo, *self.additions])
 
     def chain(self, repos: Sequence[SubRepository]) -> "CompositeSubRepository":
         return CompositeSubRepository(
