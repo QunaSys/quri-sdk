@@ -77,10 +77,6 @@ class SubRepositoryProtocol(Protocol):
     def chain(self, repos: Sequence["SubRepository"]) -> "CompositeSubRepository":
         ...
 
-    # @abstractmethod
-    # def flatten(self) -> "SubRepository":
-    #     ...
-
 
 class SubRepository(SubRepositoryProtocol):
     def __init__(self) -> None:
@@ -117,13 +113,10 @@ class SubRepository(SubRepositoryProtocol):
         return ret
 
     def chain(self, repos: Sequence["SubRepository"]) -> "CompositeSubRepository":
+        """Concatenate a sequence of addition repos to the this repo and make a
+        :class:`CompositeSubRepository`.
+        """
         return CompositeSubRepository(additions=repos, root_repo=self)
-
-    def __add__(self, repo: "SubRepository") -> "SubRepository":
-        new_repo = self.copy()
-        for base_id, res_list in repo._mapping.items():
-            new_repo._mapping[base_id].extend(res_list)
-        return new_repo
 
 
 _DEFAULT = SubRepository()
@@ -134,6 +127,10 @@ def default_repository() -> SubRepository:
 
 
 class CompositeSubRepository(SubRepositoryProtocol):
+    """A :class:`SubRepositoryProtocol` that holds the root repo and a
+    sequence of additional `SubRepository`s.
+    """
+
     def __init__(
         self,
         additions: Sequence[SubRepository],
@@ -145,6 +142,9 @@ class CompositeSubRepository(SubRepositoryProtocol):
         self._is_live = False
 
     def find_resolver(self, op: Op) -> SubResolver | None:
+        """Finds the resolver starting from the last repo in the addition.
+        If none exists in the addition, it finds from the root repo.
+        """
         for addition in reversed(self._additions):
             resolver = addition.find_resolver(op)
             if resolver is not None:
@@ -154,6 +154,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
     def register_sub(
         self, op: Op | OpFactory[Any] | BaseIdent, sub: Sub | SubFactory[Any]
     ) -> None:
+        """Registration not allowed for composite sub repository."""
         raise ValueError("Registration is not allowed for CompositeSubRepository.")
 
     def register_sub_resolver(
@@ -162,6 +163,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
         resolver: SubResolver,
         condition: SubResolverCondition | None = None,
     ) -> None:
+        """Registration not allowed for composite sub repository."""
         raise ValueError("Registration is not allowed for CompositeSubRepository.")
 
     def copy(self) -> "CompositeSubRepository":
