@@ -92,13 +92,13 @@ def test_trotter_hadamard_test_with_transpiler() -> None:
         {pauli_label("X0 X1"): 2, pauli_label("Y0 Y1"): 2, pauli_label("Z0 Z1"): 2}
     )
     problem = QubitHamiltonian(2, operator)
-    estimator: TrotterTimeEvolutionHadamardTest[
-        State
-    ] = TrotterTimeEvolutionHadamardTest(
-        qubit_hamiltonian=problem,
-        sampler=create_qulacs_vector_ideal_sampler(),
-        n_trotter=1,
-        transpiler=fake_transpiler,
+    estimator: TrotterTimeEvolutionHadamardTest[State] = (
+        TrotterTimeEvolutionHadamardTest(
+            qubit_hamiltonian=problem,
+            sampler=create_qulacs_vector_ideal_sampler(),
+            n_trotter=1,
+            transpiler=fake_transpiler,
+        )
     )
     assert estimator.controlled_time_evolution_factory(
         np.random.random()
