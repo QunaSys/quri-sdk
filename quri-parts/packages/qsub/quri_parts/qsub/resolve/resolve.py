@@ -127,9 +127,8 @@ def default_repository() -> SubRepository:
 
 
 class CompositeSubRepository(SubRepositoryProtocol):
-    """A :class:`SubRepositoryProtocol` that holds the root repo and a
-    sequence of additional `SubRepository`s.
-    """
+    """A :class:`SubRepositoryProtocol` that holds the root repo and a sequence
+    of additional `SubRepository`s."""
 
     def __init__(
         self,
@@ -143,6 +142,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
 
     def find_resolver(self, op: Op) -> SubResolver | None:
         """Finds the resolver starting from the last repo in the addition.
+
         If none exists in the addition, it finds from the root repo.
         """
         for addition in reversed(self._additions):
