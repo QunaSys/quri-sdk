@@ -9,6 +9,7 @@
 # limitations under the License.
 
 import itertools
+import unittest.mock
 from collections import Counter
 
 import pytest
@@ -277,6 +278,32 @@ def test_create_concurrent_vector_state_sampler() -> None:
         ans += [Counter({2 * i + j: n_shots[ind_shot]})]
     vector_sampling_cnts = state_vector_concurrent_sampler(circuit_state_shots_tuples)
     assert vector_sampling_cnts == ans
+
+
+def test_create_concurrent_vector_state_sampler_passes_random_seed() -> None:
+    seeds: list[int] = []
+
+    def fake_sampler_creator(seed: int):
+        seeds.append(seed)
+
+        def _sampler(_, shots: int):
+            return Counter({0: shots})
+
+        return _sampler
+
+    vector_state = QuantumStateVector(
+        1,
+        circuit=QuantumCircuit(1),
+    )
+
+    with unittest.mock.patch(
+        "quri_parts.qulacs.simulator.create_qulacs_vector_state_sampler",
+        side_effect=fake_sampler_creator,
+    ):
+        sampler = create_concurrent_vector_state_sampler(random_seed=11)
+        list(sampler([(vector_state, 10)]))
+
+    assert seeds == [11]
 
 
 def test_create_qulacs_ideal_vector_state_sampler() -> None:

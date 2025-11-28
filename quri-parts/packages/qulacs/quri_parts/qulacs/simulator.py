@@ -10,6 +10,8 @@
 
 import warnings
 from collections import Counter
+from itertools import count
+from threading import Lock
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
 
 import numpy as np
@@ -201,16 +203,22 @@ def create_qulacs_vector_state_sampler(
     return state_sampler
 
 
-def _sequential_vector_state_sampler(
-    _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
-) -> Iterable[MeasurementCounts]:
-    state_sampler = create_qulacs_vector_state_sampler()
-    return [state_sampler(state, shots) for state, shots in state_shots_tuples]
-
-
 def create_concurrent_vector_state_sampler(
-    executor: Optional["Executor"] = None, concurrency: int = 1
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+    random_seed: int = 0,
 ) -> ConcurrentStateSampler[QulacsStateT]:
+    seed_counter = count(random_seed)
+    seed_lock = Lock()
+
+    def _sequential_vector_state_sampler(
+        _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
+    ) -> Iterable[MeasurementCounts]:
+        with seed_lock:
+            seed = next(seed_counter)
+        state_sampler = create_qulacs_vector_state_sampler(seed)
+        return [state_sampler(state, shots) for state, shots in state_shots_tuples]
+
     def concurrent_state_sampler(
         state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
     ) -> Iterable[MeasurementCounts]:
