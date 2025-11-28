@@ -11,12 +11,14 @@
 import itertools
 import unittest.mock
 from collections import Counter
+from typing import Any, Callable
 
 import pytest
 from numpy import allclose, array, isclose, pi
 from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumCircuit, X
+from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
@@ -283,10 +285,10 @@ def test_create_concurrent_vector_state_sampler() -> None:
 def test_create_concurrent_vector_state_sampler_passes_random_seed() -> None:
     seeds: list[int] = []
 
-    def fake_sampler_creator(seed: int):
+    def fake_sampler_creator(seed: int) -> Callable[[Any, int], MeasurementCounts]:
         seeds.append(seed)
 
-        def _sampler(_, shots: int):
+        def _sampler(_: Any, shots: int) -> MeasurementCounts:
             return Counter({0: shots})
 
         return _sampler
