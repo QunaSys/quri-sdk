@@ -24,7 +24,7 @@ class FermiHubbardSystem(HamiltonianMixin):
         self, mapping: OpenFermionQubitMapping
     ) -> QubitHamiltonian:
         qubit_operator = mapping.of_operator_mapper(
-            self.get_fermionic_hamiltonian().fermionic_hamiltonian
+            self.get_fermionic_hamiltonian().fermion_operator
         )
         return QubitHamiltonian(mapping.n_qubits, qubit_operator)
 

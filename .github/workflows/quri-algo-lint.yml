@@ -3,7 +3,7 @@ name: QURI Algo Lint
 on:
   pull_request:
     paths:
-      - quri-algo/quri_algo/**/*.py
+      - quri-algo/**.py
       - quri-algo/pyproject.toml
       - quri-algo/.flake8
       - pyproject.toml
