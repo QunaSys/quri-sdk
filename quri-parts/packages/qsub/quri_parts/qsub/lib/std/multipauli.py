@@ -8,14 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# from quri_parts.qsub.lib import std
+from quri_parts.qsub.lib import std
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
 
 from . import NS
-from .cnot import CNOT
-from .rotation import RZ
-from .single_clifford import H, SqrtX, SqrtXdag, X, Y, Z
 
 
 class _Pauli(ParamUnitarySubDef[tuple[int, ...]]):
@@ -29,11 +26,11 @@ class _Pauli(ParamUnitarySubDef[tuple[int, ...]]):
         for qubit, pauli in zip(builder.qubits, pauli_ids):
             match pauli:
                 case 1:
-                    builder.add_op(X, (qubit,))
+                    builder.add_op(std.X, (qubit,))
                 case 2:
-                    builder.add_op(Y, (qubit,))
+                    builder.add_op(std.Y, (qubit,))
                 case 3:
-                    builder.add_op(Z, (qubit,))
+                    builder.add_op(std.Z, (qubit,))
                 case _:
                     raise ValueError(f"Unknown pauli id: {pauli}")
 
@@ -57,9 +54,9 @@ class _PauliRotation(ParamUnitarySubDef[tuple[int, ...], float]):
             for qubit, pauli in zip(qubits, pauli_ids):
                 match pauli:
                     case 1:
-                        builder.add_op(H, (qubit,))
+                        builder.add_op(std.H, (qubit,))
                     case 2:
-                        op = SqrtX if rot_sign == 1 else SqrtXdag
+                        op = std.SqrtX if rot_sign == 1 else std.SqrtXdag
                         builder.add_op(op, (qubit,))
                     case 3:
                         pass
@@ -68,10 +65,10 @@ class _PauliRotation(ParamUnitarySubDef[tuple[int, ...], float]):
 
         add_rot_gates(1)
         for qubit in reversed(qubits[1:]):
-            builder.add_op(CNOT, (qubit, qubits[0]))
-        builder.add_op(RZ(angle), (qubits[0],))
+            builder.add_op(std.CNOT, (qubit, qubits[0]))
+        builder.add_op(std.RZ(angle), (qubits[0],))
         for qubit in qubits[1:]:
-            builder.add_op(CNOT, (qubit, qubits[0]))
+            builder.add_op(std.CNOT, (qubit, qubits[0]))
         add_rot_gates(-1)
 
 
