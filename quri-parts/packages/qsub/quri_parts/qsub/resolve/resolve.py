@@ -13,7 +13,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Generic, Protocol, Sequence, TypeAlias, cast
+from typing import Any, Generic, Protocol, TypeAlias, cast
 
 from typing_extensions import Self
 
@@ -55,26 +55,11 @@ class SubRepositoryProtocol(Protocol):
         ...
 
     @abstractmethod
-    def register_sub(
-        self, op: Op | OpFactory[Any] | BaseIdent, sub: Sub | SubFactory[Any]
-    ) -> None:
-        ...
-
-    @abstractmethod
-    def register_sub_resolver(
-        self,
-        op: Op | OpFactory[Any] | BaseIdent,
-        resolver: SubResolver,
-        condition: SubResolverCondition | None = None,
-    ) -> None:
-        ...
-
-    @abstractmethod
     def copy(self) -> Self:
         ...
 
     @abstractmethod
-    def chain(self, repos: Sequence["SubRepository"]) -> "CompositeSubRepository":
+    def chain(self, addition: "SubRepository") -> "CompositeSubRepository":
         ...
 
 
@@ -112,11 +97,11 @@ class SubRepository(SubRepositoryProtocol):
             ret._mapping[k] = [item for item in v]
         return ret
 
-    def chain(self, repos: Sequence["SubRepository"]) -> "CompositeSubRepository":
+    def chain(self, addition: "SubRepository") -> "CompositeSubRepository":
         """Concatenate a sequence of addition repos to the this repo and make a
         :class:`CompositeSubRepository`.
         """
-        return CompositeSubRepository(additions=repos, root_repo=self)
+        return CompositeSubRepository(self, addition)
 
 
 _DEFAULT = SubRepository()
@@ -130,49 +115,23 @@ class CompositeSubRepository(SubRepositoryProtocol):
     """A :class:`SubRepositoryProtocol` that holds the root repo and a sequence
     of additional `SubRepository`s."""
 
-    def __init__(
-        self,
-        additions: Sequence[SubRepository],
-        root_repo: SubRepository = default_repository(),
-    ):
-        self.root_repo = root_repo
-        self._additions = additions
+    def __init__(self, parent_repo: SubRepositoryProtocol, child_repo: SubRepository):
+        self.parent_repo = parent_repo
+        self.child_repo = child_repo
 
     def find_resolver(self, op: Op) -> SubResolver | None:
-        """Finds the resolver starting from the last repo in the addition.
+        """Finds the resolver starting from the child repo.
 
-        If none exists in the addition, it finds from the root repo.
+        If none exists in the child, it finds from the parent repo.
         """
-        for addition in reversed(self._additions):
-            resolver = addition.find_resolver(op)
-            if resolver is not None:
-                return resolver
-        return self.root_repo.find_resolver(op)
-
-    def register_sub(
-        self, op: Op | OpFactory[Any] | BaseIdent, sub: Sub | SubFactory[Any]
-    ) -> None:
-        """Registration not allowed for composite sub repository."""
-        raise ValueError("Registration is not allowed for CompositeSubRepository.")
-
-    def register_sub_resolver(
-        self,
-        op: Op | OpFactory[Any] | BaseIdent,
-        resolver: SubResolver,
-        condition: SubResolverCondition | None = None,
-    ) -> None:
-        """Registration not allowed for composite sub repository."""
-        raise ValueError("Registration is not allowed for CompositeSubRepository.")
+        resolver = self.child_repo.find_resolver(op)
+        return resolver if resolver else self.parent_repo.find_resolver(op)
 
     def copy(self) -> "CompositeSubRepository":
-        return CompositeSubRepository(
-            [a.copy() for a in self._additions], self.root_repo.copy()
-        )
+        return CompositeSubRepository(self.parent_repo.copy(), self.child_repo.copy())
 
-    def chain(self, repos: Sequence[SubRepository]) -> "CompositeSubRepository":
-        return CompositeSubRepository(
-            additions=[*self._additions, *repos], root_repo=self.root_repo
-        )
+    def chain(self, addition: SubRepository) -> "CompositeSubRepository":
+        return CompositeSubRepository(self, addition)
 
 
 def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub | None:

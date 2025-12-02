@@ -19,7 +19,7 @@ def _make_simulator_repo() -> CompositeSubRepository:
     )
     addition_repo = SubRepository()
     addition_repo.register_sub_resolver(std.MultiControlled, addition_resolver)
-    return CompositeSubRepository([addition_repo], default_repository())
+    return CompositeSubRepository(default_repository(), addition_repo)
 
 
 _SIMULATOR_REPO = _make_simulator_repo()
