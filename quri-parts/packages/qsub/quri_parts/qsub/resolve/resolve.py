@@ -137,8 +137,6 @@ class CompositeSubRepository(SubRepositoryProtocol):
     ):
         self.root_repo = root_repo
         self._additions = additions
-        self._scoped_repo: SubRepository | None = None
-        self._is_live = False
 
     def find_resolver(self, op: Op) -> SubResolver | None:
         """Finds the resolver starting from the last repo in the addition.
