@@ -112,8 +112,8 @@ def default_repository() -> SubRepository:
 
 
 class CompositeSubRepository(SubRepositoryProtocol):
-    """A :class:`SubRepositoryProtocol` that holds the root repo and a sequence
-    of additional `SubRepository`s."""
+    """A :class:`SubRepositoryProtocol` that holds the parent repo and an additional
+    child `SubRepository`."""
 
     def __init__(self, parent_repo: SubRepositoryProtocol, child_repo: SubRepository):
         self.parent_repo = parent_repo
