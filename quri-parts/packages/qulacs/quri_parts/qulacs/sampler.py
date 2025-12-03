@@ -11,7 +11,6 @@
 from collections import Counter
 from collections.abc import Callable, Iterable
 from functools import partial
-from itertools import count
 from typing import TYPE_CHECKING, Any, Optional
 
 import qulacs
@@ -34,6 +33,7 @@ from .simulator import (
     create_qulacs_ideal_vector_state_sampler,
     create_qulacs_noisesimulator_state_sampler,
     create_qulacs_vector_state_sampler,
+    create_seed_counter
 )
 from .types import QulacsParametricStateT, QulacsStateT
 
@@ -43,9 +43,8 @@ if TYPE_CHECKING:
 _state_vector_sampler = create_qulacs_vector_state_sampler
 _ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
 
-
 def _sample(
-    circuit: ImmutableQuantumCircuit, shots: int, random_seed: int = 0
+    circuit: ImmutableQuantumCircuit, shots: int, random_seed: Optional[int] = None
 ) -> MeasurementCounts:
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
     return _state_vector_sampler(random_seed)(state, shots)
@@ -62,7 +61,7 @@ def create_qulacs_vector_ideal_sampler() -> Sampler:
     return _ideal_sample
 
 
-def create_qulacs_vector_sampler(random_seed: int = 0) -> Sampler:
+def create_qulacs_vector_sampler(random_seed: Optional[int] = None) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     sampling."""
     return partial(_sample, random_seed=random_seed)
@@ -72,12 +71,13 @@ def _sample_concurrently(
     circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]],
     executor: Optional["Executor"],
     concurrency: int = 1,
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
 ) -> Iterable[MeasurementCounts]:
-    seed_counter = count(random_seed)
-
+    
     circuit_shots_list = list(circuit_shots_tuples)
+    seed_counter = create_seed_counter(random_seed)
     seeds = [next(seed_counter) for _ in circuit_shots_list]
+
     seeded_circuit_shots = [
         (circuit, shots, seed)
         for (circuit, shots), seed in zip(circuit_shots_list, seeds)
@@ -98,7 +98,7 @@ def _sample_concurrently(
 
 
 def create_qulacs_vector_concurrent_sampler(
-    random_seed: int = 0, executor: Optional["Executor"] = None, concurrency: int = 1
+    random_seed: Optional[int] = None, executor: Optional["Executor"] = None, concurrency: int = 1
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs vector simulator
     for sampling."""
@@ -114,7 +114,7 @@ def create_qulacs_vector_concurrent_sampler(
 
 
 def create_qulacs_general_vector_sampler(
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     """Creates a Qulacs :class:`GeneralSampler`"""
     sampler = create_qulacs_vector_sampler(random_seed)
@@ -132,7 +132,7 @@ def create_qulacs_general_vector_ideal_sampler() -> (
 
 
 def create_qulacs_stochastic_state_vector_sampler(
-    model: NoiseModel, random_seed: int = 0
+    model: NoiseModel, random_seed: Optional[int] = None
 ) -> Sampler:
     """Returns a :class:`~Sampler` that repeats Qulacs state vector simulation
     for shot times with noise model."""
@@ -148,7 +148,7 @@ def create_qulacs_stochastic_state_vector_sampler(
         # To keep sampling random but deterministic, we use different seed for each
         # iteration
         # TODO: consider using non-consecutive seeds.
-        seed_counter = count(random_seed)
+        seed_counter = create_seed_counter(random_seed)
         for _ in range(shots):
             state.set_computational_basis(0)
             qs_circuit.update_quantum_state(state)
@@ -159,7 +159,7 @@ def create_qulacs_stochastic_state_vector_sampler(
 
 
 def create_qulacs_density_matrix_sampler(
-    model: NoiseModel, random_seed: int = 0
+    model: NoiseModel, random_seed: Optional[int] = None
 ) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs simulator using density
     matrix with noise model."""
@@ -193,7 +193,7 @@ def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
 
 def create_qulacs_density_matrix_general_sampler(
     model: NoiseModel,
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
@@ -213,7 +213,7 @@ def create_qulacs_ideal_density_matrix_general_sampler(
 
 
 def create_qulacs_noisesimulator_sampler(
-    model: NoiseModel, random_seed: int = 0
+    model: NoiseModel, random_seed: Optional[int] = None
 ) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs NoiseSimulator."""
 
@@ -236,7 +236,7 @@ def _create_qulacs_concurrent_sampler_with_noise_model(
     executor: Optional["Executor"],
     concurrency: int,
 ) -> ConcurrentSampler:
-    seed_counter = count(random_seed)
+    seed_counter = create_seed_counter(random_seed)
 
     def _sample_sequentially(
         _: Any,
@@ -267,7 +267,7 @@ def _create_qulacs_concurrent_sampler_with_noise_model(
 
 def create_qulacs_density_matrix_concurrent_sampler(
     model: NoiseModel,
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
 ) -> ConcurrentSampler:
@@ -285,7 +285,7 @@ def create_qulacs_density_matrix_concurrent_sampler(
 
 def create_qulacs_stochastic_state_vector_concurrent_sampler(
     model: NoiseModel,
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
 ) -> ConcurrentSampler:
@@ -303,7 +303,7 @@ def create_qulacs_stochastic_state_vector_concurrent_sampler(
 
 def create_qulacs_noisesimulator_concurrent_sampler(
     model: NoiseModel,
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
 ) -> ConcurrentSampler:
@@ -321,7 +321,7 @@ def create_qulacs_noisesimulator_concurrent_sampler(
 
 def create_qulacs_noisesimulator_general_sampler(
     model: NoiseModel,
-    random_seed: int = 0,
+    random_seed: Optional[int] = None,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
