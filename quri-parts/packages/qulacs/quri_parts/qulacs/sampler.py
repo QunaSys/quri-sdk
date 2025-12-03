@@ -33,7 +33,7 @@ from .simulator import (
     create_qulacs_ideal_vector_state_sampler,
     create_qulacs_noisesimulator_state_sampler,
     create_qulacs_vector_state_sampler,
-    create_seed_counter
+    create_seed_counter,
 )
 from .types import QulacsParametricStateT, QulacsStateT
 
@@ -42,6 +42,7 @@ if TYPE_CHECKING:
 
 _state_vector_sampler = create_qulacs_vector_state_sampler
 _ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
+
 
 def _sample(
     circuit: ImmutableQuantumCircuit, shots: int, random_seed: Optional[int] = None
@@ -73,7 +74,6 @@ def _sample_concurrently(
     concurrency: int = 1,
     random_seed: Optional[int] = None,
 ) -> Iterable[MeasurementCounts]:
-    
     circuit_shots_list = list(circuit_shots_tuples)
     seed_counter = create_seed_counter(random_seed)
     seeds = [next(seed_counter) for _ in circuit_shots_list]
@@ -98,7 +98,9 @@ def _sample_concurrently(
 
 
 def create_qulacs_vector_concurrent_sampler(
-    random_seed: Optional[int] = None, executor: Optional["Executor"] = None, concurrency: int = 1
+    random_seed: Optional[int] = None,
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs vector simulator
     for sampling."""

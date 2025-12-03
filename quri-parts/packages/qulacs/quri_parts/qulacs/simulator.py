@@ -11,7 +11,7 @@
 import warnings
 from collections import Counter
 from itertools import count, repeat
-from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
+from typing import TYPE_CHECKING, Any, Iterable, Iterator, Optional, Union, overload
 
 import numpy as np
 import qulacs as ql
@@ -42,15 +42,17 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 
-def _none_iterator():
+def _none_iterator() -> Iterator[None]:
     while True:
         yield None
 
-def create_seed_counter(random_seed: Optional[int]) -> Iterable[Optional[int]]:
+
+def create_seed_counter(random_seed: Optional[int]) -> Iterator[Optional[int]]:
     if random_seed is None:
         yield from _none_iterator()
     else:
         yield from count(random_seed)
+
 
 def _get_init_vector_from_state(state: QulacsStateT) -> NDArray[complex128]:
     n_qubits = state.qubit_count
@@ -220,7 +222,6 @@ def create_concurrent_vector_state_sampler(
     concurrency: int = 1,
     random_seed: Optional[int] = None,
 ) -> ConcurrentStateSampler[QulacsStateT]:
-
     def _sequential_vector_state_sampler(
         _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int, int]]
     ) -> Iterable[MeasurementCounts]:
@@ -280,7 +281,7 @@ def create_qulacs_density_matrix_state_sampler(
         if shots > max(2**10, (2**qubit_count) ** 2 / 10):
             mat = density_matrix.get_matrix()
             return sample_from_density_matrix(mat, shots)
-        
+
         if random_seed is None:
             return Counter(density_matrix.sampling(shots))
         else:
