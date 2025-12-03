@@ -9,8 +9,9 @@
 # limitations under the License.
 
 from collections import Counter
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from functools import partial
+from itertools import count
 from typing import TYPE_CHECKING, Any, Optional
 
 import qulacs
@@ -33,7 +34,6 @@ from .simulator import (
     create_qulacs_ideal_vector_state_sampler,
     create_qulacs_noisesimulator_state_sampler,
     create_qulacs_vector_state_sampler,
-    create_seed_counter,
 )
 from .types import QulacsParametricStateT, QulacsStateT
 
@@ -75,25 +75,39 @@ def _sample_concurrently(
     random_seed: Optional[int] = None,
 ) -> Iterable[MeasurementCounts]:
     circuit_shots_list = list(circuit_shots_tuples)
-    seed_counter = create_seed_counter(random_seed)
-    seeds = [next(seed_counter) for _ in circuit_shots_list]
-
-    seeded_circuit_shots = [
-        (circuit, shots, seed)
-        for (circuit, shots), seed in zip(circuit_shots_list, seeds)
-    ]
 
     def _sample_sequentially(
         _: Any,
-        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int, int]],
+        tuples: Sequence[tuple[ImmutableQuantumCircuit, int]],
     ) -> Iterable[MeasurementCounts]:
-        return [
-            _sample(circuit, shots, seed)
-            for circuit, shots, seed in circuit_shots_tuples
-        ]
+        return [_sample(circuit, shots) for circuit, shots in tuples]
+
+    if random_seed is None:
+        return execute_concurrently(
+            _sample_sequentially,
+            None,
+            circuit_shots_list,
+            executor,
+            concurrency,
+        )
+
+    seed_counter = count(random_seed)
+    seeded_circuit_shots = [
+        (circuit, shots, next(seed_counter)) for circuit, shots in circuit_shots_list
+    ]
+
+    def _sample_sequentially_with_seed(
+        _: Any,
+        tuples: Sequence[tuple[ImmutableQuantumCircuit, int, int]],
+    ) -> Iterable[MeasurementCounts]:
+        return [_sample(circuit, shots, seed) for circuit, shots, seed in tuples]
 
     return execute_concurrently(
-        _sample_sequentially, None, seeded_circuit_shots, executor, concurrency
+        _sample_sequentially_with_seed,
+        None,
+        seeded_circuit_shots,
+        executor,
+        concurrency,
     )
 
 
@@ -147,14 +161,18 @@ def create_qulacs_stochastic_state_vector_sampler(
 
         sampled = []
         state = qulacs.QuantumState(qubit_count)
-        # To keep sampling random but deterministic, we use different seed for each
-        # iteration
-        # TODO: consider using non-consecutive seeds.
-        seed_counter = create_seed_counter(random_seed)
+        if random_seed is None:
+            for _ in range(shots):
+                state.set_computational_basis(0)
+                qs_circuit.update_quantum_state(state)
+                sampled += state.sampling(1)
+            return Counter(sampled)
+
+        seed_iterator = count(random_seed)
         for _ in range(shots):
             state.set_computational_basis(0)
             qs_circuit.update_quantum_state(state)
-            sampled += state.sampling(1, next(seed_counter))
+            sampled += state.sampling(1, next(seed_iterator))
         return Counter(sampled)
 
     return _sample_with_noise
@@ -232,36 +250,53 @@ def create_qulacs_noisesimulator_sampler(
 
 
 def _create_qulacs_concurrent_sampler_with_noise_model(
-    sampler_creator: Callable[[NoiseModel, int], Sampler],
+    sampler_creator: Callable[[NoiseModel, Optional[int]], Sampler],
     model: NoiseModel,
-    random_seed: int,
+    random_seed: Optional[int],
     executor: Optional["Executor"],
     concurrency: int,
 ) -> ConcurrentSampler:
-    seed_counter = create_seed_counter(random_seed)
-
     def _sample_sequentially(
         _: Any,
-        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int, int]],
+        circuit_shots_tuples: Sequence[tuple[ImmutableQuantumCircuit, int, int]],
     ) -> Iterable[MeasurementCounts]:
         return [
             sampler_creator(model, seed)(circuit, shots)
             for circuit, shots, seed in circuit_shots_tuples
         ]
 
+    def _sample_sequentially_without_seed(
+        _: Any,
+        circuit_shots_tuples: Sequence[tuple[ImmutableQuantumCircuit, int]],
+    ) -> Iterable[MeasurementCounts]:
+        sampler = sampler_creator(model, None)
+        return [sampler(circuit, shots) for circuit, shots in circuit_shots_tuples]
+
     def sampler(
         circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
         circuit_shots_list = list(circuit_shots_tuples)
-        seeds = [next(seed_counter) for _ in circuit_shots_list]
+        if random_seed is None:
+            return execute_concurrently(
+                _sample_sequentially_without_seed,
+                None,
+                circuit_shots_list,
+                executor,
+                concurrency,
+            )
 
+        seed_counter = count(random_seed)
         seeded_circuit_shots = [
-            (circuit, shots, seed)
-            for (circuit, shots), seed in zip(circuit_shots_list, seeds)
+            (circuit, shots, next(seed_counter))
+            for circuit, shots in circuit_shots_list
         ]
 
         return execute_concurrently(
-            _sample_sequentially, None, seeded_circuit_shots, executor, concurrency
+            _sample_sequentially,
+            None,
+            seeded_circuit_shots,
+            executor,
+            concurrency,
         )
 
     return sampler

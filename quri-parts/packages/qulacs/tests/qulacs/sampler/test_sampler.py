@@ -176,7 +176,9 @@ def test_concurrent_sampler_assigns_unique_random_seeds() -> None:
     model = NoiseModel()
     used_seeds: list[int] = []
 
-    def fake_sampler_creator(_: NoiseModel, seed: int) -> Sampler:
+    def fake_sampler_creator(_: NoiseModel, seed: Optional[int]) -> Sampler:
+        if seed is None:
+            raise AssertionError("seed should not be None")
         used_seeds.append(seed)
 
         def _sampler(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:

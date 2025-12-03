@@ -10,8 +10,9 @@
 
 import warnings
 from collections import Counter
-from itertools import count, repeat
-from typing import TYPE_CHECKING, Any, Iterable, Iterator, Optional, Union, overload
+from collections.abc import Sequence
+from itertools import count
+from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
 
 import numpy as np
 import qulacs as ql
@@ -42,16 +43,11 @@ if TYPE_CHECKING:
     from concurrent.futures import Executor
 
 
-def _none_iterator() -> Iterator[None]:
-    while True:
-        yield None
-
-
-def create_seed_counter(random_seed: Optional[int]) -> Iterator[Optional[int]]:
+def _make_seed_list(length: int, random_seed: Optional[int]) -> list[Optional[int]]:
     if random_seed is None:
-        yield from _none_iterator()
-    else:
-        yield from count(random_seed)
+        return [None] * length
+    seed_generator = count(random_seed)
+    return [next(seed_generator) for _ in range(length)]
 
 
 def _get_init_vector_from_state(state: QulacsStateT) -> NDArray[complex128]:
@@ -223,11 +219,20 @@ def create_concurrent_vector_state_sampler(
     random_seed: Optional[int] = None,
 ) -> ConcurrentStateSampler[QulacsStateT]:
     def _sequential_vector_state_sampler(
-        _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int, int]]
+        _: Any,
+        state_shots_tuples: Sequence[tuple[QulacsStateT, int, Optional[int]]],
     ) -> Iterable[MeasurementCounts]:
         return [
             create_qulacs_vector_state_sampler(seed)(state, shots)
             for state, shots, seed in state_shots_tuples
+        ]
+
+    def _sequential_vector_state_sampler_without_seed(
+        _: Any, state_shots_tuples: Sequence[tuple[QulacsStateT, int]]
+    ) -> Iterable[MeasurementCounts]:
+        return [
+            create_qulacs_vector_state_sampler(None)(state, shots)
+            for state, shots in state_shots_tuples
         ]
 
     def concurrent_state_sampler(
@@ -235,10 +240,15 @@ def create_concurrent_vector_state_sampler(
     ) -> Iterable[MeasurementCounts]:
         state_shots_list = list(state_shots_tuples)
         if random_seed is None:
-            seeds = [None] * len(state_shots_list)
-        else:
-            seed_counter = create_seed_counter(random_seed)
-            seeds = [next(seed_counter) for _ in state_shots_list]
+            return execute_concurrently(
+                _sequential_vector_state_sampler_without_seed,
+                None,
+                state_shots_list,
+                executor,
+                concurrency,
+            )
+
+        seeds = _make_seed_list(len(state_shots_list), random_seed)
 
         seeded_state_shots = [
             (state, shots, seed)
