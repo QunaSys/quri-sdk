@@ -198,8 +198,8 @@ def test_concurrent_sampler_assigns_unique_random_seeds() -> None:
         )
         list(sampler([(circuit, 10) for circuit in circuits]))
 
-    assert len(used_seeds) == 2
-    assert set(used_seeds) == {11, 12}
+    assert len(used_seeds) == 3
+    assert set(used_seeds) == {11, 12, 13}
 
 
 class TestQulacsVectorGeneralSampler(unittest.TestCase):

@@ -11,7 +11,6 @@
 import warnings
 from collections import Counter
 from itertools import count
-from threading import Lock
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
 
 import numpy as np
@@ -208,24 +207,31 @@ def create_concurrent_vector_state_sampler(
     concurrency: int = 1,
     random_seed: int = 0,
 ) -> ConcurrentStateSampler[QulacsStateT]:
-    seed_counter = count(random_seed)
-    seed_lock = Lock()
 
     def _sequential_vector_state_sampler(
-        _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
+        _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int, int]]
     ) -> Iterable[MeasurementCounts]:
-        with seed_lock:
-            seed = next(seed_counter)
-        state_sampler = create_qulacs_vector_state_sampler(seed)
-        return [state_sampler(state, shots) for state, shots in state_shots_tuples]
+        return [
+            create_qulacs_vector_state_sampler(seed)(state, shots)
+            for state, shots, seed in state_shots_tuples
+        ]
 
     def concurrent_state_sampler(
         state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
     ) -> Iterable[MeasurementCounts]:
+        state_shots_list = list(state_shots_tuples)
+        seed_counter = count(random_seed)
+        seeds = [next(seed_counter) for _ in state_shots_list]
+
+        seeded_state_shots = [
+            (state, shots, seed)
+            for (state, shots), seed in zip(state_shots_list, seeds)
+        ]
+
         return execute_concurrently(
             _sequential_vector_state_sampler,
             None,
-            state_shots_tuples,
+            seeded_state_shots,
             executor,
             concurrency,
         )

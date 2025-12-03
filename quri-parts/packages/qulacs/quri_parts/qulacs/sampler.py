@@ -12,7 +12,6 @@ from collections import Counter
 from collections.abc import Callable, Iterable
 from functools import partial
 from itertools import count
-from threading import Lock
 from typing import TYPE_CHECKING, Any, Optional
 
 import qulacs
@@ -75,14 +74,26 @@ def _sample_concurrently(
     concurrency: int = 1,
     random_seed: int = 0,
 ) -> Iterable[MeasurementCounts]:
+    seed_counter = count(random_seed)
+
+    circuit_shots_list = list(circuit_shots_tuples)
+    seeds = [next(seed_counter) for _ in circuit_shots_list]
+    seeded_circuit_shots = [
+        (circuit, shots, seed)
+        for (circuit, shots), seed in zip(circuit_shots_list, seeds)
+    ]
+
     def _sample_sequentially(
         _: Any,
-        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]],
+        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int, int]],
     ) -> Iterable[MeasurementCounts]:
-        return [_sample(circuit, shots) for circuit, shots in circuit_shots_tuples]
+        return [
+            _sample(circuit, shots, seed)
+            for circuit, shots, seed in circuit_shots_tuples
+        ]
 
     return execute_concurrently(
-        _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
+        _sample_sequentially, None, seeded_circuit_shots, executor, concurrency
     )
 
 
@@ -226,24 +237,29 @@ def _create_qulacs_concurrent_sampler_with_noise_model(
     concurrency: int,
 ) -> ConcurrentSampler:
     seed_counter = count(random_seed)
-    seed_lock = Lock()
 
     def _sample_sequentially(
-        _: Any, circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
+        _: Any,
+        circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int, int]],
     ) -> Iterable[MeasurementCounts]:
-        results: list[MeasurementCounts] = []
-        with seed_lock:
-            seed = next(seed_counter)
-        noise_sampler = sampler_creator(model, seed)
-        for circuit, shots in circuit_shots_tuples:
-            results.append(noise_sampler(circuit, shots))
-        return results
+        return [
+            sampler_creator(model, seed)(circuit, shots)
+            for circuit, shots, seed in circuit_shots_tuples
+        ]
 
     def sampler(
         circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
+        circuit_shots_list = list(circuit_shots_tuples)
+        seeds = [next(seed_counter) for _ in circuit_shots_list]
+
+        seeded_circuit_shots = [
+            (circuit, shots, seed)
+            for (circuit, shots), seed in zip(circuit_shots_list, seeds)
+        ]
+
         return execute_concurrently(
-            _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
+            _sample_sequentially, None, seeded_circuit_shots, executor, concurrency
         )
 
     return sampler
@@ -294,34 +310,10 @@ def create_qulacs_noisesimulator_concurrent_sampler(
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs
     NoiseSimulator."""
 
-    def _create_qulacs_concurrent_sampler_with_noise_model(
-        sampler_creator: Callable[[NoiseModel], Sampler],
-        model: NoiseModel,
-        executor: Optional["Executor"],
-        concurrency: int,
-    ) -> ConcurrentSampler:
-        noise_sampler = sampler_creator(model)
-
-        def _sample_sequentially(
-            _: Any,
-            circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]],
-        ) -> Iterable[MeasurementCounts]:
-            return [
-                noise_sampler(circuit, shots) for circuit, shots in circuit_shots_tuples
-            ]
-
-        def sampler(
-            circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
-        ) -> Iterable[MeasurementCounts]:
-            return execute_concurrently(
-                _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
-            )
-
-        return sampler
-
     return _create_qulacs_concurrent_sampler_with_noise_model(
         create_qulacs_noisesimulator_sampler,
         model,
+        random_seed,
         executor,
         concurrency,
     )
