@@ -416,17 +416,10 @@ impl GenericGateProperty {
                     .into_iter()
                     .map(|v| v.into())
                     .collect();
-                if self.enable_unitary_check {
-                    Ok(
-                        crate::circuit::gates::unitary_matrix(self.target_indices, unitary_matrix)?
-                            .map_param(|_: f64| unreachable!()),
-                    )
-                } else {
-                    Ok(
-                        QuantumGate::UnitaryMatrix(self.target_indices, unitary_matrix)
-                            .map_param(|_: f64| unreachable!()),
-                    )
-                }
+                Ok(
+                    QuantumGate::UnitaryMatrix(self.target_indices, unitary_matrix)
+                        .map_param(|_: f64| unreachable!()),
+                )
             }
             "Pauli"
                 if self.control_indices.is_empty()
