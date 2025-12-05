@@ -8,11 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from math import sqrt
+
+import numpy as np
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.circuit.library import UnitaryGate
 
 from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.qiskit.circuit import circuit_from_qiskit
+
+ECR_UNITARY_MATRIX = np.sqrt(0.5) * np.array(
+    [[0, 1, 0, 1.0j], [1, 0, -1.0j, 0], [0, 1.0j, 0, 1], [-1.0j, 0, 1, 0]]
+)
 
 
 def test_circuit_from_qiskit() -> None:
@@ -22,6 +29,7 @@ def test_circuit_from_qiskit() -> None:
     qis_circ.cx(0, 1)
     qis_circ.cz(0, 2)
     qis_circ.swap(1, 2)
+    qis_circ.ecr(0, 2)
     qis_circ.rx(0.125, 0)
     qis_circ.p(2.3, 0)
     qis_circ.u(1.2, 2.1, 3.1, 2)
@@ -37,6 +45,7 @@ def test_circuit_from_qiskit() -> None:
         gates.CNOT(0, 1),
         gates.CZ(0, 2),
         gates.SWAP(1, 2),
+        gates.UnitaryMatrix([0, 2], ECR_UNITARY_MATRIX),
         gates.RX(0, 0.125),
         gates.U1(0, 2.3),
         gates.U3(2, 1.2, 2.1, 3.1),
