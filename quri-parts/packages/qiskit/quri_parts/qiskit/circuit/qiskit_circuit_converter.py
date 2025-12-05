@@ -129,7 +129,14 @@ def circuit_from_qiskit(
                     control_indices=(q[0]._index,),
                 )
             )
-        elif gname in ["ecr", "swap"]:
+        elif gname == "ecr":
+            circuit.add_gate(
+                UnitaryMatrix(
+                    target_indices=[q[0]._index, q[1]._index],
+                    unitary_matrix=instruction.to_matrix(),
+                )
+            )
+        elif gname == "swap":
             circuit.add_gate(
                 QuantumGate(
                     name=_two_qubit_gate_qiskit_quri_parts[gname],
