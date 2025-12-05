@@ -8,8 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from math import sqrt
-
 import numpy as np
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.circuit.library import UnitaryGate
