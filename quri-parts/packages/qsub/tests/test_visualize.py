@@ -1,16 +1,55 @@
-from qulacsvis.models.circuit import ControlQubitInfo, GateData  # type: ignore
+from typing import Any
+
+from qulacsvis.models.circuit import (  # type: ignore
+    CircuitData,
+    ControlQubitInfo,
+    GateData,
+)
 
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
     SWAP,
     Controlled,
+    H,
+    M,
     MultiControlled,
     Toffoli,
     X,
+    conditional,
 )
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.visualize import _op_controls, op_to_vis_data
+from quri_parts.qsub.sub import Sub, SubBuilder
+import quri_parts.qsub.visualize as visualize
+from quri_parts.qsub.visualize import (
+    _op_controls,
+    draw_sub,
+    op_to_vis_data,
+    sub_to_vis_data,
+)
+
+
+def _classical_sub() -> Sub:
+    builder = SubBuilder(arg_qubits_count=2)
+    q0, q1 = builder.qubits
+    builder.add_op(H, (q0,))
+    register = builder.add_aux_register()
+    builder.add_op(M, (q1,), (register,))
+    with conditional(builder, register):
+        builder.add_op(CZ, (q0, q1))
+    return builder.build()
+
+
+def _patch_drawer(monkeypatch: Any, record: dict[str, Any]) -> None:
+    class DummyDrawer:
+        def __init__(self, circuit_data: CircuitData, *, dpi: int, scale: float) -> None:
+            record["data"] = circuit_data
+
+        def draw(self, **_: Any) -> str:
+            record["drawn"] = True
+            return "figure"
+
+    monkeypatch.setattr(visualize, "MPLCircuitlDrawer", DummyDrawer)
 
 
 class TestOpControls:
@@ -108,3 +147,42 @@ class TestOpToVisData:
                 for i, c in [(4, 1), (2, 1), (3, 0), (5, 1), (6, 0), (1, 1)]
             ],
         )
+
+
+class TestSubToVisData:
+    def test_classical_ops_are_ignored(self) -> None:
+        data = sub_to_vis_data(_classical_sub())
+        assert isinstance(data, CircuitData)
+        assert data.qubit_count == 2
+        gate_names = {gate.name for line in data.gates for gate in line}
+        assert {"H", "CZ"} <= gate_names
+
+
+class TestDrawSub:
+    def test_handles_classical_ops(self, monkeypatch) -> None:
+        record: dict[str, Any] = {}
+
+        _patch_drawer(monkeypatch, record)
+
+        result = draw_sub(_classical_sub())
+        assert result == "figure"
+        assert record.get("drawn") is True
+        data = record["data"]
+        assert data.qubit_count == 2
+        gate_names = {
+            gate.name
+            for line in data.gates
+            for gate in line
+            if gate.name not in {"wire", "ghost"}
+        }
+        assert {"H", "CZ"} <= gate_names
+
+    def test_falls_back_to_single_op(self, monkeypatch) -> None:
+        record: dict[str, Any] = {}
+
+        _patch_drawer(monkeypatch, record)
+
+        result = draw_sub(CNOT)
+        assert result == "figure"
+        assert record.get("drawn") is True
+        assert isinstance(record["data"], CircuitData)
