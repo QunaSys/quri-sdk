@@ -6,6 +6,7 @@ from qulacsvis.models.circuit import (  # type: ignore
     GateData,
 )
 
+import quri_parts.qsub.visualize as visualize
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -20,7 +21,6 @@ from quri_parts.qsub.lib.std import (
 )
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.sub import Sub, SubBuilder
-import quri_parts.qsub.visualize as visualize
 from quri_parts.qsub.visualize import (
     _op_controls,
     draw_sub,
@@ -42,7 +42,9 @@ def _classical_sub() -> Sub:
 
 def _patch_drawer(monkeypatch: Any, record: dict[str, Any]) -> None:
     class DummyDrawer:
-        def __init__(self, circuit_data: CircuitData, *, dpi: int, scale: float) -> None:
+        def __init__(
+            self, circuit_data: CircuitData, *, dpi: int, scale: float
+        ) -> None:
             record["data"] = circuit_data
 
         def draw(self, **_: Any) -> str:
