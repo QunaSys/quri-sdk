@@ -21,7 +21,7 @@ from quri_parts.qsub.op import Op
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
-from quri_parts.qsub.sub import Sub
+from quri_parts.qsub.sub import Sub, SubBuilder
 
 if TYPE_CHECKING:
     import matplotlib
@@ -72,14 +72,20 @@ def op_to_vis_data(
 
 def sub_to_vis_data(sub: Sub) -> CircuitData:
     """Convert a Sub to data used by qulacsvis."""
-    gates = [op_to_vis_data(op, qubits, regs) for op, qubits, regs in sub.operations]
+    gates = [
+        op_to_vis_data(op, qubits, regs)
+        for op, qubits, regs in sub.operations
+        if qubits  # skip classical registers-only ops (Cbz/Label) that have no qubits
+    ]
     return CircuitData.from_gate_sequence(gates, len(sub.qubits) + len(sub.aux_qubits))
 
 
 def machine_sub_to_vis_data(msub: MachineSub) -> CircuitData:
     """Convert a MachineSub to data used by qulacsvis."""
     gates = [
-        op_to_vis_data(mop.op, qubits, regs) for mop, qubits, regs in msub.instructions
+        op_to_vis_data(mop.op, qubits, regs)
+        for mop, qubits, regs in msub.instructions
+        if qubits  # same filtering for machine instructions
     ]
     return CircuitData.from_gate_sequence(
         gates, len(msub.qubits) + len(msub.aux_qubits)
@@ -99,7 +105,9 @@ def draw_sub(
     if isinstance(sub, Op):
         s = resolve_sub(sub, repository)
         if s is None:
-            raise KeyError(f"Sub not found for Op: {sub}")
+            builder = SubBuilder(sub.qubit_count, sub.reg_count)
+            builder.add_op(sub, builder.qubits, builder.registers)
+            s = builder.build()
     else:
         s = sub
     return MPLCircuitlDrawer(  # type: ignore
