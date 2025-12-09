@@ -15,12 +15,12 @@ from typing import Any, Literal, Mapping, Optional, Union
 
 import numpy as np
 import numpy.typing as npt
-import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, Node, split_node
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
 from typing_extensions import TypeAlias
 
-from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
+import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
+from tensornetwork import AbstractNode, Edge, Node, split_node
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
     [[1, 0], [0, 1]],

@@ -11,33 +11,36 @@
 from typing import Any, List, Mapping, Optional, Sequence, Text, Union
 
 import numpy as np
-import tensornetwork as tn
 from h5py import Group
-from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
-
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
+
+import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import (
     TensorNetworkLayer,
     TensorNetworkTranspiler,
     convert_circuit,
 )
+from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 
 
 class MappedNode(AbstractNode):  # type: ignore
-    """This is a convenience class for single-qubits."""
+    """This is a convenience class for single tensors in an MPS or MPO.
+
+    This node must be initialized with an existing node, it then facilitates
+    functionality needed for certain MPS or MPO based algorithms."""
 
     def __init__(
         self,
         node: Node,
         qubit_index: int,
-        qubit_edge_index: int,
+        input_edge_index: Optional[int] = None,
+        output_edge_index: Optional[int] = None,
         name: Optional[Text] = None,
     ) -> None:
         self.node = node
         self.backend = node.backend
         self.qubit_index = qubit_index
-        self.qubit_edge_index = qubit_edge_index  # This may not be 0 in an MPS
         for e in self:
             if e.node1 == self.node:
                 e.node1 = self
@@ -45,14 +48,87 @@ class MappedNode(AbstractNode):  # type: ignore
                 e.node2 = self
         if name is not None:
             self.name = name
+        self.input_edge_index = input_edge_index
+        self.output_edge_index = output_edge_index
+        if input_edge_index is not None:
+            assert self[input_edge_index] in node.edges
+            self._input_edge = self[input_edge_index]
+        else:
+            self._input_edge = None
+        if output_edge_index is not None:
+            assert self[output_edge_index] in node.edges
+            self._output_edge = self[output_edge_index]
+        else:
+            self._output_edge = None
+        self._left_edge = None
+        self._right_edge = None
+    
+
+    def determine_left_right_edge(self, e: Edge, n: AbstractNode) -> None:
+        if isinstance(n, MappedNode):
+            if n.qubit_index == self.qubit_index - 1:
+                assert self._left_edge is None
+                self._left_edge = e
+            elif n.qubit_index == self.qubit_index + 1:
+                assert self._right_edge is None
+                self._right_edge = e
+
 
     @property
     def dtype(self) -> Tensor:
         return self.node.dtype
 
     @property
-    def qubit_edge(self) -> Edge:
-        return self[self.qubit_edge_index]
+    def input_edge(self) -> Edge:
+        if self._input_edge:
+            return self._input_edge
+        else:
+            raise ValueError(f"Mappednode {self} does not have an input edge.")
+
+    @property
+    def output_edge(self) -> Edge:
+        if self._output_edge:
+            return self._output_edge
+        else:
+            raise ValueError(f"Mappednode {self} does not have an output edge.")
+
+    @property
+    def input_qubit_edge_mapping(self) -> Mapping[int, Optional[Edge]]:
+        return {self.qubit_index: self.input_edge}
+
+    @property
+    def output_qubit_edge_mapping(self) -> Mapping[int, Optional[Edge]]:
+        return {self.qubit_index: self.output_edge}
+    
+    def check_left(self, e: Edge, n: AbstractNode) -> Optional[Edge]:
+        if isinstance(n, MappedNode):
+            if n.qubit_index == self.qubit_index - 1:
+                return e
+    
+    def check_right(self, e: Edge, n: AbstractNode) -> Optional[Edge]:
+        if isinstance(n, MappedNode):
+            if n.qubit_index == self.qubit_index + 1:
+                return e
+
+    @property
+    def left_edge(self) -> Optional[Edge]:
+        edge = None
+        for e in self:
+            returned_edge = self.check_left(e, e.node1)
+            if returned_edge:
+                assert edge is None
+                edge = returned_edge
+        return edge
+
+    @property
+    def right_edge(self) -> Optional[Edge]:
+        edge = None
+        for e in self:
+            returned_edge = self.check_right(e, e.node1)
+            if returned_edge:
+                assert edge is None
+                edge = returned_edge
+        return edge
 
     def copy(self, conjugate: bool = False) -> "MappedNode":
         """Returns a copy of itself."""
@@ -60,7 +136,8 @@ class MappedNode(AbstractNode):  # type: ignore
         mapped_node = MappedNode(
             node_copy,
             self.qubit_index,
-            self.qubit_edge_index,
+            self.input_edge_index,
+            self.output_edge_index,
             self.name,
         )
         return mapped_node
@@ -225,7 +302,7 @@ def get_zero_state(qubit_count: int, backend: str = "numpy") -> TensorNetworkSta
     tensor_map: dict[int, MappedNode] = {}
     for q in range(qubit_count):
         node = Node(np.array([1.0, 0.0], dtype=np.complex128), backend=backend)
-        mapped_node = MappedNode(node, q, 0, name=f"|0> q={q}")
+        mapped_node = MappedNode(node, q, None, 0, name=f"|0> q={q}")
         qubits.append(mapped_node)
         zero_state_edges.append(mapped_node[0])
         tensor_map[q] = mapped_node

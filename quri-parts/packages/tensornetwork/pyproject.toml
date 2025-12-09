@@ -29,6 +29,9 @@ python = "^3.9.8"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 tensornetwork-ng = "^0.5.1"
+tensorflow = "^2.0"
+jax = "^0.4"
+jaxlib = "^0.4"
 
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}

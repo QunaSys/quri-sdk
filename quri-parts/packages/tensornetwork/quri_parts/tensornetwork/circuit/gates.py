@@ -14,6 +14,7 @@ from typing import Mapping, Sequence
 
 import numpy as np
 import numpy.typing as npt
+
 from tensornetwork import Edge, Node
 
 """The following gates are in tensor form, which should not be confused with their
