@@ -1,5 +1,6 @@
 from typing import Any
 
+from _pytest.monkeypatch import MonkeyPatch
 from qulacsvis.models.circuit import (  # type: ignore
     CircuitData,
     ControlQubitInfo,
@@ -40,6 +41,10 @@ def _classical_sub() -> Sub:
     return builder.build()
 
 
+class DummyFigure:
+    ...
+
+
 def _patch_drawer(monkeypatch: Any, record: dict[str, Any]) -> None:
     class DummyDrawer:
         def __init__(
@@ -47,9 +52,11 @@ def _patch_drawer(monkeypatch: Any, record: dict[str, Any]) -> None:
         ) -> None:
             record["data"] = circuit_data
 
-        def draw(self, **_: Any) -> str:
+        def draw(self, **_: Any) -> DummyFigure:
             record["drawn"] = True
-            return "figure"
+            figure = DummyFigure()
+            record["figure"] = figure
+            return figure
 
     monkeypatch.setattr(visualize, "MPLCircuitlDrawer", DummyDrawer)
 
@@ -161,13 +168,13 @@ class TestSubToVisData:
 
 
 class TestDrawSub:
-    def test_handles_classical_ops(self, monkeypatch) -> None:
+    def test_handles_classical_ops(self, monkeypatch: MonkeyPatch) -> None:
         record: dict[str, Any] = {}
 
         _patch_drawer(monkeypatch, record)
 
         result = draw_sub(_classical_sub())
-        assert result == "figure"
+        assert result is record["figure"]
         assert record.get("drawn") is True
         data = record["data"]
         assert data.qubit_count == 2
@@ -179,12 +186,12 @@ class TestDrawSub:
         }
         assert {"H", "CZ"} <= gate_names
 
-    def test_falls_back_to_single_op(self, monkeypatch) -> None:
+    def test_falls_back_to_single_op(self, monkeypatch: MonkeyPatch) -> None:
         record: dict[str, Any] = {}
 
         _patch_drawer(monkeypatch, record)
 
         result = draw_sub(CNOT)
-        assert result == "figure"
+        assert result is record["figure"]
         assert record.get("drawn") is True
         assert isinstance(record["data"], CircuitData)
