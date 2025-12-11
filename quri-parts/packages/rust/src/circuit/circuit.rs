@@ -454,7 +454,7 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix)?,
+            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix, false)?,
             None,
         )
     }
@@ -467,7 +467,11 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
+            crate::circuit::gates::single_qubit_unitary_matrix(
+                target_index,
+                unitary_matrix,
+                false,
+            )?,
             None,
         )
     }
@@ -485,6 +489,7 @@ warnings.warn(
                 target_index1,
                 target_index2,
                 unitary_matrix,
+                false,
             )?,
             None,
         )

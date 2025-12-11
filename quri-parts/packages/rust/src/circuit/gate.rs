@@ -132,7 +132,6 @@ impl QuantumGate<Option<f64>> {
                 params: vec![].into(),
                 pauli_ids: vec![].into(),
                 unitary_matrix: None,
-                enable_unitary_check: true,
             }
         }
 
@@ -145,7 +144,6 @@ impl QuantumGate<Option<f64>> {
                 params: vec![p].into(),
                 pauli_ids: vec![].into(),
                 unitary_matrix: None,
-                enable_unitary_check: true,
             }
         }
 
@@ -251,7 +249,6 @@ pub struct GenericGateProperty {
     pub params: Vec<f64>,
     pub pauli_ids: Vec<u8>,
     pub unitary_matrix: Option<Vec<Vec<Complex64>>>,
-    pub enable_unitary_check: bool,
 }
 
 impl Default for GenericGateProperty {
@@ -264,7 +261,6 @@ impl Default for GenericGateProperty {
             params: Vec::new(),
             pauli_ids: Vec::new(),
             unitary_matrix: None,
-            enable_unitary_check: true,
         }
     }
 }
@@ -498,7 +494,6 @@ impl PartialEq for GenericGateProperty {
         if &self.name != &other.name
             || !unordered_eq(&self.control_indices, &other.control_indices)
             || &self.params != &other.params
-            || self.enable_unitary_check != other.enable_unitary_check
         {
             return false;
         }
@@ -546,7 +541,7 @@ fn format_tuple<T: core::fmt::Display>(input: &[T]) -> String {
 
 impl GenericGateProperty {
     pub fn get_compat_string(&self) -> String {
-        format!("QuantumGate(name='{}', target_indices=({}), control_indices=({}), classical_indices=({}), params=({}), pauli_ids=({}), unitary_matrix={}, enable_unitary_check={})",
+        format!("QuantumGate(name='{}', target_indices=({}), control_indices=({}), classical_indices=({}), params=({}), pauli_ids=({}), unitary_matrix={})",
             &self.name,
             format_tuple(self.target_indices.as_slice()),
             format_tuple(self.control_indices.as_slice()),
@@ -557,8 +552,7 @@ impl GenericGateProperty {
                 if let Some(matrix) = &self.unitary_matrix {
                     format_tuple(matrix.iter().map(|row| format!("({})", format_tuple(row))).collect::<Vec<_>>().as_slice())
                 }else {"()".to_owned()}
-            },
-            self.enable_unitary_check,
+            }
         )
     }
     pub fn get_compat_string_parametric(&self) -> String {
@@ -596,7 +590,7 @@ mod wrapper {
     impl QuantumGateWrapper {
         #[new]
         #[pyo3(
-            signature = (name, target_indices, control_indices=Vec::new(), classical_indices=Vec::new(), params=Vec::new(), pauli_ids=Vec::new(), unitary_matrix=None, enable_unitary_check=true),
+            signature = (name, target_indices, control_indices=Vec::new(), classical_indices=Vec::new(), params=Vec::new(), pauli_ids=Vec::new(), unitary_matrix=None),
             text_signature = "(
                 name: str,
                 target_indices: Sequence[int],
@@ -604,8 +598,7 @@ mod wrapper {
                 classical_indices: Sequence[int] = [],
                 params: Sequence[float] = [],
                 pauli_ids: Sequence[int] = [],
-                unitary_matrix: Optional[Sequence[Sequence[complex]]] = None,
-                enable_unitary_check: bool = True
+                unitary_matrix: Optional[Sequence[Sequence[complex]]] = None
             )"
         )]
         fn py_new(
@@ -616,7 +609,6 @@ mod wrapper {
             params: Vec<f64>,
             pauli_ids: Vec<u8>,
             mut unitary_matrix: Option<Vec<Vec<Complex64>>>,
-            enable_unitary_check: bool,
         ) -> PyResult<Self> {
             if let Some(matrix) = &unitary_matrix {
                 if matrix.len() == 0 {
@@ -633,7 +625,6 @@ mod wrapper {
                 unitary_matrix: unitary_matrix
                     .map(|v| v.into_iter().map(Into::into).collect())
                     .into(),
-                enable_unitary_check,
             };
             let mut bad_flag = false;
             let ret = prop.into_gate()?.map_param(|p| match p {
@@ -675,7 +666,6 @@ mod wrapper {
                 Vec<f64>,
                 Vec<u8>,
                 Option<Vec<Vec<Complex64>>>,
-                bool,
             ),
         )> {
             let data = &slf.get().0.clone().map_param(Some).into_property();
@@ -692,7 +682,6 @@ mod wrapper {
                         .clone()
                         .map(|v| v.into_iter().map(Into::into).collect())
                         .into(),
-                    data.enable_unitary_check,
                 ),
             ))
         }
@@ -719,7 +708,6 @@ mod wrapper {
                     }
                 }
             }
-            data.enable_unitary_check.hash(&mut hasher);
             hasher.finish()
         }
 
