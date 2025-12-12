@@ -124,10 +124,10 @@ class TestStepFunctionSignalGenerator(unittest.TestCase):
         )
 
         state = quantum_state(100)
-        generator: StepFunctionSignalGenerator[CircuitQuantumState] = (
-            StepFunctionSignalGenerator(
-                power_estimator=estimator, state=state, d=10000, delta=1e-4
-            )
+        generator: StepFunctionSignalGenerator[
+            CircuitQuantumState
+        ] = StepFunctionSignalGenerator(
+            power_estimator=estimator, state=state, d=10000, delta=1e-4
         )
         signal_function = generator(n_sample=int(1e10))
 
@@ -208,14 +208,14 @@ class TestGaussianSignalGenerator(unittest.TestCase):
         )
 
         state = quantum_state(100)
-        generator: GaussianSignalGenerator[CircuitQuantumState] = (
-            GaussianSignalGenerator(
-                power_estimator=estimator,
-                state=state,
-                cutoff_T=self.cutoff_T,
-                n_discretize=self.n_discretize,
-                sigma=self.sigma,
-            )
+        generator: GaussianSignalGenerator[
+            CircuitQuantumState
+        ] = GaussianSignalGenerator(
+            power_estimator=estimator,
+            state=state,
+            cutoff_T=self.cutoff_T,
+            n_discretize=self.n_discretize,
+            sigma=self.sigma,
         )
         signal_function = generator(n_sample=int(1e6))
 

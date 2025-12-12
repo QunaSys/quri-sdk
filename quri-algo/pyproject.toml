@@ -28,41 +28,6 @@ quri-parts-qsub = "*"
 quri-parts-rust = "*"
 pytest = "^8.3.3"
 
-[tool.poetry.group.dev.dependencies]
-quri-parts-circuit = { path = "../quri-parts/packages/circuit", develop = true }
-quri-parts-core = { path = "../quri-parts/packages/core", develop = true }
-quri-parts-algo = { path = "../quri-parts/packages/algo", develop = true }
-quri-parts-chem = { path = "../quri-parts/packages/chem", develop = true }
-quri-parts-qulacs = { path = "../quri-parts/packages/qulacs", develop = true }
-quri-parts-pyscf = { path = "../quri-parts/packages/pyscf", develop = true }
-quri-parts-openfermion = { path = "../quri-parts/packages/openfermion", develop = true }
-quri-parts-qsub = { path = "../quri-parts/packages/qsub", develop = true }
-quri-parts-rust = { path = "../quri-parts/packages/rust", develop = true }
-
-[tool.poetry.group.ipykernel.dependencies]
-ipykernel = "^6.29.5"
-
-[tool.poetry.group.lint.dependencies]
-black = { version = "^23.10.0", extras = ["jupyter"] }
-flake8 = "^6.0.0"
-# Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
-docformatter = "^1.4,<1.6.0"
-isort = "^5.12.0"
-
-[tool.poetry.group.typecheck.dependencies]
-mypy = ">=0.950"
-
-[tool.poetry.group.test.dependencies]
-pytest = ">=7.0.1,<9.0.0"
-
-[tool.poetry.group.doc.dependencies]
-Sphinx = ">=4.4,<8.0"
-furo = ">=2022.2.23,<2024.0.0"
-sphinx-autobuild = "^2021.3.14"
-nbsphinx = ">=0.8.9,<0.10.0"
-ipython = "^8.4.0"
-notebook = ">=6.4.12,<8.0.0"
-myst-parser = ">=0.18.1,<2.1.0"
 
 [build-system]
 requires = ["poetry-core"]
@@ -70,3 +35,5 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
+known_first_party = ["quri_algo"]
+known_third_party = ["quri_vm", "quri_parts"]

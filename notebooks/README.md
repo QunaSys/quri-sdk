@@ -65,7 +65,10 @@ To get a general overview of the capabilities and workflow of QURI SDK, please s
 
 ## Installation instructions
 
-The notebooks here use `quri-algo`, `quri-parts`, `quri-vm` and `quri-parts-qsci`. Make sure you have the latest versions of them installed.
+The notebooks here use `quri-algo`, `quri-parts`, `quri-vm` and `quri-parts-qsci`. Make sure you have the 
+latest versions of them installed. When working inside the `quri-sdk` monorepo you can reuse the repository 
+root environment created via `poetry install --with dev,lint,typecheck,doc`; the instructions below are for
+setting up a dedicated environment for the notebooks in isolation.
 
 The easiest way is to use a virtual environment with Python 3.10 or later. Then install the required packages using
 

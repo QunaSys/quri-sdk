@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, NamedTuple, Optional
+from typing import Callable, NamedTuple, Optional, Sequence
 
 import numpy as np
 from typing_extensions import TypeAlias
@@ -42,7 +42,7 @@ class _Estimate(NamedTuple):
 
 
 #: Interface representing regression ansatz
-RegressionMethod: TypeAlias = Callable[[float, Iterable[float], Iterable[float]], float]
+RegressionMethod: TypeAlias = Callable[[float, Sequence[float], Sequence[float]], float]
 
 
 def make_training_circuits(
@@ -111,8 +111,8 @@ def create_polynomial_regression(order: int) -> RegressionMethod:
 
     def polynomial_regression(
         values_noise: float,
-        values_noise_training: Iterable[float],
-        values_exact_training: Iterable[float],
+        values_noise_training: Sequence[float],
+        values_exact_training: Sequence[float],
     ) -> float:
         opt_result = polynomial_fitting(
             values_noise_training, values_exact_training, order, values_noise
@@ -133,8 +133,8 @@ def create_exp_regression(order: int) -> RegressionMethod:
 
     def exp_regression(
         values_noise: float,
-        values_noise_training: Iterable[float],
-        values_exact_training: Iterable[float],
+        values_noise_training: Sequence[float],
+        values_exact_training: Sequence[float],
     ) -> float:
         opt_result = exp_fitting(
             values_noise_training, values_exact_training, order, values_noise
@@ -158,8 +158,8 @@ def create_exp_regression_with_const(order: int, constant: float) -> RegressionM
 
     def exp_regression_with_const(
         values_noise: float,
-        values_noise_training: Iterable[float],
-        values_exact_training: Iterable[float],
+        values_noise_training: Sequence[float],
+        values_exact_training: Sequence[float],
     ) -> float:
         opt_result = exp_fitting_with_const(
             values_noise_training, values_exact_training, order, constant, values_noise
@@ -185,8 +185,8 @@ def create_exp_regression_with_const_log(
 
     def exp_regression_with_const_log(
         values_noise: float,
-        values_noise_training: Iterable[float],
-        values_exact_training: Iterable[float],
+        values_noise_training: Sequence[float],
+        values_exact_training: Sequence[float],
     ) -> float:
         opt_result = exp_fitting_with_const_log(
             values_noise_training, values_exact_training, order, constant, values_noise
