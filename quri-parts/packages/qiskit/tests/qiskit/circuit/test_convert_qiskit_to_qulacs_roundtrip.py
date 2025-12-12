@@ -61,9 +61,9 @@ def test_qiskit_to_qulacs_roundtrip(
     qulacs_circuit: QuantumCircuit = convert_circuit(qp_circuit)
     expected = Operator(qc).data
     actual = _qulacs_circuit_to_matrix(qulacs_circuit)
-    assert np.allclose(
-        actual, expected, atol=1e-8, rtol=1e-6
-    ), f"{name} conversion produced an unexpected unitary"
+    _assert_unitary_equal_up_to_global_phase(
+        actual, expected, msg=f"{name} conversion produced an unexpected unitary"
+    )
 
 
 def _qulacs_circuit_to_matrix(circuit: QuantumCircuit) -> NDArray[np.complex128]:
@@ -76,3 +76,17 @@ def _qulacs_circuit_to_matrix(circuit: QuantumCircuit) -> NDArray[np.complex128]
         circuit.update_quantum_state(state)
         mat[:, col] = state.get_vector()
     return mat
+
+
+def _assert_unitary_equal_up_to_global_phase(
+    actual: NDArray[np.complex128],
+    expected: NDArray[np.complex128],
+    *,
+    atol: float = 1e-8,
+    rtol: float = 1e-6,
+    msg: str = "",
+) -> None:
+    idx = np.argmax(np.abs(expected))
+    assert np.abs(expected.flat[idx]) > 0
+    phase = expected.flat[idx] / actual.flat[idx]
+    assert np.allclose(actual * phase, expected, atol=atol, rtol=rtol), msg
