@@ -8,7 +8,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
+
 import numpy as np
+from numpy.typing import NDArray
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.circuit.library import UnitaryGate
 from qiskit.quantum_info import Operator
@@ -61,9 +64,7 @@ def test_circuit_from_qiskit_with_ecr() -> None:
 
     # ECR should be decomposed into native gates instead of a raw unitary matrix.
     unitary_gate_names = [
-        gate.name
-        for gate in qp_circuit.gates
-        if is_unitary_matrix_gate_name(gate.name)
+        gate.name for gate in qp_circuit.gates if is_unitary_matrix_gate_name(gate.name)
     ]
     assert unitary_gate_names.count(gate_names.UnitaryMatrix) == 0
 
@@ -72,10 +73,10 @@ def test_circuit_from_qiskit_with_ecr() -> None:
     _assert_unitary_equal_up_to_global_phase(actual, expected)
 
 
-def _qulacs_circuit_to_matrix(circuit: object) -> np.ndarray:
+def _qulacs_circuit_to_matrix(circuit: Any) -> NDArray[np.complex128]:
     qubit_count = circuit.get_qubit_count()
     dim = 1 << qubit_count
-    mat = np.zeros((dim, dim), dtype=np.complex128)
+    mat: NDArray[np.complex128] = np.zeros((dim, dim), dtype=np.complex128)
     from qulacs import QuantumState
 
     state = QuantumState(qubit_count)
@@ -87,7 +88,11 @@ def _qulacs_circuit_to_matrix(circuit: object) -> np.ndarray:
 
 
 def _assert_unitary_equal_up_to_global_phase(
-    actual: np.ndarray, expected: np.ndarray, *, atol: float = 1e-8, rtol: float = 1e-6
+    actual: NDArray[np.complex128],
+    expected: NDArray[np.complex128],
+    *,
+    atol: float = 1e-8,
+    rtol: float = 1e-6,
 ) -> None:
     idx = np.argmax(np.abs(expected))
     assert np.abs(expected.flat[idx]) > 0
