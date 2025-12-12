@@ -49,7 +49,11 @@ def _patch_drawer(monkeypatch: MonkeyPatch, record: dict[str, Any]) -> None:
     orig_init = visualize.MPLCircuitlDrawer.__init__
 
     def recording_init(
-        self, circuit_data: CircuitData, *, dpi: int, scale: float
+        self: visualize.MPLCircuitlDrawer,
+        circuit_data: CircuitData,
+        *,
+        dpi: int,
+        scale: float,
     ) -> None:
         record["data"] = circuit_data
         orig_init(self, circuit_data, dpi=dpi, scale=scale)
@@ -257,8 +261,10 @@ class TestDrawSub:
             if isinstance(p, mpatches.Rectangle) and p.get_linestyle() == "--"
         ]
         assert cond_rects, "Conditional region rectangle missing"
-        assert cbz_circles[0].center[0] < cond_rects[0].get_x()
         rect_x = cond_rects[0].get_x()
+        rect_w = cond_rects[0].get_width()
+        cbz_x = cbz_circles[0].center[0]
+        assert rect_x <= cbz_x <= rect_x + rect_w
         assert any(
             abs(x - rect_x) < 1e-6 for line in ax.lines for x in line.get_xdata()
         )

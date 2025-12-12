@@ -40,6 +40,22 @@ if TYPE_CHECKING:
     import matplotlib
 
 
+__all__ = [
+    "CircuitData",
+    "ConditionalBlock",
+    "ControlBitInfo",
+    "GateData",
+    "GateType",
+    "MPLCircuitlDrawer",
+    "draw",
+    "draw_msub",
+    "draw_sub",
+    "machine_sub_to_vis_data",
+    "op_to_vis_data",
+    "sub_to_vis_data",
+]
+
+
 #: A control qubit specified by (qubit_index, control_value).
 #: control_value should be 0 or 1.
 ControlQubit: TypeAlias = tuple[int, int]
@@ -293,6 +309,8 @@ def _build_conditional_blocks(
             cbz_layer = _find_gate_layer(circuit, start_gate)
         except ValueError:
             continue
+        start_layer: int | None
+        end_layer: int | None
         if isinstance(body_first_gate, GateData):
             try:
                 start_layer = _find_gate_layer(circuit, body_first_gate)

@@ -13,16 +13,26 @@ from dataclasses import dataclass, field
 from enum import Enum
 from itertools import chain
 from math import hypot
-from typing import Deque, List, Optional, Sequence, Tuple
+from typing import Deque, List, Optional, Sequence, Tuple, cast
 
 import matplotlib
+import matplotlib.pyplot as plt
 from matplotlib import patches
-from qulacsvis.models.circuit import CircuitData as QVCircuitData
-from qulacsvis.models.circuit import ControlQubitInfo as QVControlQubitInfo
-from qulacsvis.models.circuit import GateData as QVGateData
-from qulacsvis.utils.gate import grouping_adjacent_gates, to_latex_style
-from qulacsvis.visualization import matplotlib as qv_mpl
-from qulacsvis.visualization.matplotlib import MPLCircuitlDrawer as QVMPLCircuitlDrawer
+from qulacsvis.models.circuit import (  # type: ignore[import-untyped]
+    CircuitData as QVCircuitData,
+)
+from qulacsvis.models.circuit import (  # type: ignore[import-untyped]
+    ControlQubitInfo as QVControlQubitInfo,
+)
+from qulacsvis.models.circuit import GateData as QVGateData  # type: ignore[import-untyped]
+from qulacsvis.utils.gate import (  # type: ignore[import-untyped]
+    grouping_adjacent_gates,
+    to_latex_style,
+)
+from qulacsvis.visualization import matplotlib as qv_mpl  # type: ignore[import-untyped]
+from qulacsvis.visualization.matplotlib import (  # type: ignore[import-untyped]
+    MPLCircuitlDrawer as QVMPLCircuitlDrawer,
+)
 from typing_extensions import Final
 
 # Visualization models ---------------------------------------------------------
@@ -140,7 +150,7 @@ def _align_layers(
 ) -> None:
     if min_line_index > max_line_index:
         min_line_index, max_line_index = max_line_index, min_line_index
-    lines = lines[min_line_index : max_line_index + 1]
+    lines = lines[min_line_index: max_line_index + 1]
     layer_counts = [len(queue) for queue in lines]
     max_layer_count = max(layer_counts) if layer_counts else 0
 
@@ -153,25 +163,25 @@ def _align_layers(
 
 MATPLOTLIB_INLINE_BACKENDS = qv_mpl.MATPLOTLIB_INLINE_BACKENDS
 
-GATE_DEFAULT_WIDTH = qv_mpl.GATE_DEFAULT_WIDTH
-GATE_DEFAULT_HEIGHT = qv_mpl.GATE_DEFAULT_HEIGHT
+GATE_DEFAULT_WIDTH: float = cast(float, qv_mpl.GATE_DEFAULT_WIDTH)
+GATE_DEFAULT_HEIGHT: float = cast(float, qv_mpl.GATE_DEFAULT_HEIGHT)
 
-GATE_MARGIN_RIGHT: Final[float] = qv_mpl.GATE_MARGIN_RIGHT
-GATE_MARGIN_LEFT: Final[float] = qv_mpl.GATE_MARGIN_LEFT
-GATE_MARGIN_BOTTOM: Final[float] = qv_mpl.GATE_MARGIN_BOTTOM
-GATE_MARGIN_TOP: Final[float] = qv_mpl.GATE_MARGIN_TOP
+GATE_MARGIN_RIGHT: Final[float] = cast(float, qv_mpl.GATE_MARGIN_RIGHT)
+GATE_MARGIN_LEFT: Final[float] = cast(float, qv_mpl.GATE_MARGIN_LEFT)
+GATE_MARGIN_BOTTOM: Final[float] = cast(float, qv_mpl.GATE_MARGIN_BOTTOM)
+GATE_MARGIN_TOP: Final[float] = cast(float, qv_mpl.GATE_MARGIN_TOP)
 
-CIRCUIT_MARGIN = qv_mpl.CIRCUIT_MARGIN
+CIRCUIT_MARGIN: float = cast(float, qv_mpl.CIRCUIT_MARGIN)
 
-PORDER_LINE: Final[int] = qv_mpl.PORDER_LINE
-PORDER_GATE: Final[int] = qv_mpl.PORDER_GATE
-PORDER_TEXT: Final[int] = qv_mpl.PORDER_TEXT
+PORDER_LINE: Final[int] = cast(int, qv_mpl.PORDER_LINE)
+PORDER_GATE: Final[int] = cast(int, qv_mpl.PORDER_GATE)
+PORDER_TEXT: Final[int] = cast(int, qv_mpl.PORDER_TEXT)
 
 
 def _calc_gate_width(gate: GateData) -> float:
-    width = GATE_DEFAULT_WIDTH
+    width: float = GATE_DEFAULT_WIDTH
     if gate.name == "":
-        return width
+        return float(width)
     try:
         to_latex_style(gate.name)
     except KeyError:
@@ -234,15 +244,14 @@ def _to_qulacsvis_gate(gate: GateData, qubit_count: int) -> QVGateData:
 
 def _to_qulacsvis_circuit(circuit: CircuitData) -> QVCircuitData:
     qubit_count = max(1, circuit.qubit_count)
+    gates: List[List[QVGateData]] = [[] for _ in range(qubit_count)]
     if circuit.layer_count == 0:
-        gates: List[List[QVGateData]] = [[] for _ in range(qubit_count)]
         return QVCircuitData(
             qubit_count=qubit_count,
             layer_count=0,
             gates=gates,
         )
 
-    gates: List[List[QVGateData]] = [[] for _ in range(qubit_count)]
     for layer in range(circuit.layer_count):
         for qubit in range(qubit_count):
             if qubit < circuit.qubit_count:
@@ -295,7 +304,9 @@ class MPLCircuitlDrawer:
         base_drawer = QVMPLCircuitlDrawer(
             qv_circuit, dpi=self._dpi, scale=self._fig_scale_factor
         )
-        figure = base_drawer.draw(debug=debug, filename=None)
+        figure: matplotlib.figure.Figure = base_drawer.draw(
+            debug=debug, filename=None
+        )
 
         self._figure = figure
         self._ax = base_drawer._ax
@@ -316,7 +327,7 @@ class MPLCircuitlDrawer:
             figure.savefig(filename)
 
         if matplotlib.get_backend() in MATPLOTLIB_INLINE_BACKENDS:
-            matplotlib.pyplot.close(figure)
+            plt.close(figure)
         return figure
 
     def _extend_limits(self) -> None:
@@ -499,6 +510,8 @@ class MPLCircuitlDrawer:
         lw: float = 2.0,
         zorder: int = PORDER_LINE,
     ) -> None:
+        if self._ax is None:
+            return
         from_x, from_y = from_xy
         to_x, to_y = to_xy
         self._ax.plot(
@@ -519,6 +532,8 @@ class MPLCircuitlDrawer:
         zorder: int = PORDER_LINE,
         separation: float = 0.08,
     ) -> None:
+        if self._ax is None:
+            return
         from_x, from_y = from_xy
         to_x, to_y = to_xy
         dx = to_x - from_x
@@ -550,6 +565,8 @@ class MPLCircuitlDrawer:
         clip_on: bool = True,
         zorder: int = PORDER_TEXT,
     ) -> None:
+        if self._ax is None:
+            return
         self._ax.text(
             x,
             y,
@@ -565,6 +582,8 @@ class MPLCircuitlDrawer:
     def _gate_with_size(
         self, gate: GateData, xy: Tuple[float, float], multi_gate_size: int
     ) -> None:
+        if self._ax is None:
+            return
         xpos, ypos = xy
         gate_width = _calc_gate_width(gate)
 
