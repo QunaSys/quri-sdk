@@ -9,7 +9,6 @@
 # limitations under the License.
 
 from collections.abc import Mapping
-from typing import Union
 
 from qiskit import transpile
 from qiskit.circuit import QuantumCircuit as QiskitQuantumCircuit
@@ -27,7 +26,6 @@ from quri_parts.circuit.gate_names import (
     ThreeQubitGateNameType,
     TwoQubitGateNameType,
 )
-from quri_parts.qiskit.circuit.gate_names import ECR, QiskitTwoQubitGateNameType
 
 _single_qubit_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "id": gate_names.Identity,
@@ -49,12 +47,9 @@ _single_qubit_rotation_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameT
     "rz": gate_names.RZ,
 }
 
-_two_qubit_gate_qiskit_quri_parts: Mapping[
-    str, Union[TwoQubitGateNameType, QiskitTwoQubitGateNameType]
-] = {
+_two_qubit_gate_qiskit_quri_parts: Mapping[str, TwoQubitGateNameType] = {
     "cx": gate_names.CNOT,
     "cz": gate_names.CZ,
-    "ecr": ECR,
     "swap": gate_names.SWAP,
 }
 
@@ -69,6 +64,14 @@ _U_gate_qiskit_quri_parts: Mapping[str, SingleQubitGateNameType] = {
     "u3": gate_names.U3,
     "u": gate_names.U3,
 }
+
+_preconversion_basis_gates = sorted(
+    _single_qubit_gate_qiskit_quri_parts.keys()
+    | _single_qubit_rotation_gate_qiskit_quri_parts.keys()
+    | _three_qubits_gate_quri_parts.keys()
+    | _U_gate_qiskit_quri_parts.keys()
+    | {"cx", "cz", "ecr", "swap"}
+)
 
 
 def circuit_from_qiskit(
@@ -87,14 +90,10 @@ def circuit_from_qiskit(
     circuit = QuantumCircuit(qubit_count)
 
     if pre_conversion:
-        allowed_gates = (
-            _single_qubit_gate_qiskit_quri_parts.keys()
-            | _single_qubit_rotation_gate_qiskit_quri_parts.keys()
-            | _two_qubit_gate_qiskit_quri_parts.keys()
-            | _three_qubits_gate_quri_parts.keys()
-            | _U_gate_qiskit_quri_parts.keys()
+        qiskit_circuit = transpile(
+            qiskit_circuit,
+            basis_gates=_preconversion_basis_gates,
         )
-        qiskit_circuit = transpile(qiskit_circuit, basis_gates=allowed_gates)
 
     for instruction, q, r in qiskit_circuit:
         gname = instruction.name
@@ -130,12 +129,8 @@ def circuit_from_qiskit(
                 )
             )
         elif gname == "ecr":
-            circuit.add_gate(
-                UnitaryMatrix(
-                    target_indices=[q[0]._index, q[1]._index],
-                    unitary_matrix=instruction.to_matrix(),
-                )
-            )
+            # Decompose ECR into gates supported by Qulacs.
+            _append_ecr_as_supported_gates(circuit, q[0]._index, q[1]._index)
         elif gname == "swap":
             circuit.add_gate(
                 QuantumGate(
@@ -170,3 +165,13 @@ def circuit_from_qiskit(
                 )
             )
     return circuit
+
+
+def _append_ecr_as_supported_gates(
+    circuit: QuantumCircuit, control: int, target: int
+) -> None:
+    """Decompose an ECR gate into gates supported by Qulacs."""
+    circuit.add_gate(gates.S(control))
+    circuit.add_gate(gates.SqrtX(target))
+    circuit.add_gate(gates.CNOT(control, target))
+    circuit.add_gate(gates.X(control))
