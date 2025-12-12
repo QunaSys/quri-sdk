@@ -18,22 +18,20 @@ from typing import Deque, List, Optional, Sequence, Tuple, cast
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import patches
-from qulacsvis.models.circuit import (  # type: ignore[import-untyped]
-    CircuitData as QVCircuitData,
-)
-from qulacsvis.models.circuit import (  # type: ignore[import-untyped]
-    ControlQubitInfo as QVControlQubitInfo,
-)
-from qulacsvis.models.circuit import GateData as QVGateData  # type: ignore[import-untyped]
+from qulacsvis.models import circuit as qv_circuit  # type: ignore[import-untyped]
 from qulacsvis.utils.gate import (  # type: ignore[import-untyped]
     grouping_adjacent_gates,
     to_latex_style,
 )
 from qulacsvis.visualization import matplotlib as qv_mpl  # type: ignore[import-untyped]
-from qulacsvis.visualization.matplotlib import (  # type: ignore[import-untyped]
-    MPLCircuitlDrawer as QVMPLCircuitlDrawer,
+from qulacsvis.visualization.matplotlib import (
+    MPLCircuitlDrawer as QVMPLCircuitlDrawer,  # type: ignore[import-untyped]
 )
 from typing_extensions import Final
+
+QVCircuitData = qv_circuit.CircuitData
+QVControlQubitInfo = qv_circuit.ControlQubitInfo
+QVGateData = qv_circuit.GateData
 
 # Visualization models ---------------------------------------------------------
 
@@ -229,7 +227,7 @@ def _circuit_span(
     return circuit_min_x, circuit_max_x
 
 
-def _to_qulacsvis_gate(gate: GateData, qubit_count: int) -> QVGateData:
+def _to_qulacsvis_gate(gate: GateData, qubit_count: int) -> "QVGateData":
     if gate.name in {"ghost", "wire"}:
         return QVGateData(gate.name)
 
