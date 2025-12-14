@@ -9,29 +9,27 @@
 # limitations under the License.
 
 from collections import deque
+
+# mypy: disable-error-code=import-untyped
 from dataclasses import dataclass, field
 from enum import Enum
 from itertools import chain
 from math import hypot
-from typing import Deque, List, Optional, Sequence, Tuple, cast
+from typing import Any, Deque, List, Optional, Sequence, Tuple, cast
 
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import patches
-from qulacsvis.models import circuit as qv_circuit  # type: ignore[import-untyped]
-from qulacsvis.utils.gate import (  # type: ignore[import-untyped]
-    grouping_adjacent_gates,
-    to_latex_style,
-)
-from qulacsvis.visualization import matplotlib as qv_mpl  # type: ignore[import-untyped]
-from qulacsvis.visualization.matplotlib import (
-    MPLCircuitlDrawer as QVMPLCircuitlDrawer,  # type: ignore[import-untyped]
-)
+from qulacsvis.models.circuit import CircuitData as QVCircuitData
+from qulacsvis.models.circuit import ControlQubitInfo as QVControlQubitInfo
+from qulacsvis.models.circuit import GateData as QVGateData
+from qulacsvis.utils import gate as qv_gate
+from qulacsvis.visualization import matplotlib as qv_mpl
+from qulacsvis.visualization.matplotlib import MPLCircuitlDrawer as QVMPLCircuitlDrawer
 from typing_extensions import Final
 
-QVCircuitData = qv_circuit.CircuitData
-QVControlQubitInfo = qv_circuit.ControlQubitInfo
-QVGateData = qv_circuit.GateData
+grouping_adjacent_gates = qv_gate.grouping_adjacent_gates
+to_latex_style = qv_gate.to_latex_style
 
 # Visualization models ---------------------------------------------------------
 
@@ -148,7 +146,8 @@ def _align_layers(
 ) -> None:
     if min_line_index > max_line_index:
         min_line_index, max_line_index = max_line_index, min_line_index
-    lines = lines[min_line_index: max_line_index + 1]
+    max_line_index += 1
+    lines = lines[min_line_index:max_line_index]
     layer_counts = [len(queue) for queue in lines]
     max_layer_count = max(layer_counts) if layer_counts else 0
 
@@ -227,7 +226,7 @@ def _circuit_span(
     return circuit_min_x, circuit_max_x
 
 
-def _to_qulacsvis_gate(gate: GateData, qubit_count: int) -> "QVGateData":
+def _to_qulacsvis_gate(gate: GateData, qubit_count: int) -> Any:
     if gate.name in {"ghost", "wire"}:
         return QVGateData(gate.name)
 
@@ -240,9 +239,9 @@ def _to_qulacsvis_gate(gate: GateData, qubit_count: int) -> "QVGateData":
     return QVGateData(gate.name, qubit_targets, controls)
 
 
-def _to_qulacsvis_circuit(circuit: CircuitData) -> QVCircuitData:
+def _to_qulacsvis_circuit(circuit: CircuitData) -> Any:
     qubit_count = max(1, circuit.qubit_count)
-    gates: List[List[QVGateData]] = [[] for _ in range(qubit_count)]
+    gates: List[List[Any]] = [[] for _ in range(qubit_count)]
     if circuit.layer_count == 0:
         return QVCircuitData(
             qubit_count=qubit_count,
@@ -302,9 +301,7 @@ class MPLCircuitlDrawer:
         base_drawer = QVMPLCircuitlDrawer(
             qv_circuit, dpi=self._dpi, scale=self._fig_scale_factor
         )
-        figure: matplotlib.figure.Figure = base_drawer.draw(
-            debug=debug, filename=None
-        )
+        figure: matplotlib.figure.Figure = base_drawer.draw(debug=debug, filename=None)
 
         self._figure = figure
         self._ax = base_drawer._ax

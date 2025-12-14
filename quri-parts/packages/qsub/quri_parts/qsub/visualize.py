@@ -96,11 +96,10 @@ def op_to_vis_data(
         controls = (*controls, *_op_controls(op, offset))
 
     name = op.id.to_str(full=False, param_truncate=8)
-    control_positions = [pos for pos, _ in controls]
-    control_info = [ControlBitInfo(qubits[pos].uid, val) for pos, val in controls]
-
-    quantum_targets = [
-        qubits[i].uid for i in range(len(qubits)) if i not in control_positions
+    control_info = [ControlBitInfo(qubits[c[0]].uid, c[1]) for c in controls]
+    control_indices = [c[0] for c in controls]
+    target_bits = [
+        qubits[i].uid for i in range(len(qubits)) if i not in control_indices
     ]
     classical_targets: list[int] = []
     gate_type = GateType.GENERIC
@@ -113,22 +112,22 @@ def op_to_vis_data(
         ctrl_idx = register_indices.get(regs[0].uid)
         if ctrl_idx is not None:
             classical_targets.append(ctrl_idx)
-        quantum_targets = []
+        target_bits = []
         gate_type = GateType.CLASSICAL
     elif op.base_id == Label.base_id and regs:
         if regs[0].uid in register_indices:
             classical_targets.append(register_indices[regs[0].uid])
-        quantum_targets = []
+        target_bits = []
         gate_type = GateType.CLASSICAL
     else:
         classical_targets.extend(register_indices.get(reg.uid, -1) for reg in regs)
         classical_targets = [c for c in classical_targets if c >= 0]
-        if not quantum_targets and classical_targets:
+        if not target_bits and classical_targets:
             gate_type = GateType.CLASSICAL
 
     return GateData(
         name,
-        quantum_targets,
+        target_bits,
         control_info,
         classical_targets,
         gate_type,

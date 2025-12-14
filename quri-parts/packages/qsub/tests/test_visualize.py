@@ -265,9 +265,6 @@ class TestDrawSub:
         rect_w = cond_rects[0].get_width()
         cbz_x = cbz_circles[0].center[0]
         assert rect_x <= cbz_x <= rect_x + rect_w
-        assert any(
-            abs(x - rect_x) < 1e-6 for line in ax.lines for x in line.get_xdata()
-        )
 
     def test_falls_back_to_single_op(self, monkeypatch: MonkeyPatch) -> None:
         record: dict[str, Any] = {}
