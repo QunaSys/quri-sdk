@@ -59,7 +59,7 @@ class SubRepository(Protocol):
         ...
 
     @abstractmethod
-    def with_override(self, addition: "SimpleSubRepository") -> "SubRepository":
+    def with_override(self, addition: "SubRepository") -> "SubRepository":
         ...
 
 
@@ -97,9 +97,7 @@ class SimpleSubRepository(SubRepository):
             ret._mapping[k] = [item for item in v]
         return ret
 
-    def with_override(
-        self, addition: "SimpleSubRepository"
-    ) -> "CompositeSubRepository":
+    def with_override(self, addition: "SubRepository") -> "SubRepository":
         """Creates a new SubRepository that overrides the."""
         return CompositeSubRepository(self, addition)
 
@@ -115,7 +113,7 @@ class CompositeSubRepository(SubRepository):
     """A :class:`SubRepositoryProtocol` that holds the parent repo and an
     additional child `SubRepository`."""
 
-    def __init__(self, parent_repo: SubRepository, child_repo: SimpleSubRepository):
+    def __init__(self, parent_repo: SubRepository, child_repo: SubRepository):
         self.parent_repo = parent_repo
         self.child_repo = child_repo
 
@@ -130,7 +128,7 @@ class CompositeSubRepository(SubRepository):
     def copy(self) -> "CompositeSubRepository":
         return CompositeSubRepository(self.parent_repo.copy(), self.child_repo.copy())
 
-    def with_override(self, addition: SimpleSubRepository) -> "CompositeSubRepository":
+    def with_override(self, addition: SubRepository) -> SubRepository:
         return CompositeSubRepository(self, addition)
 
 

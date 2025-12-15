@@ -5,6 +5,7 @@ from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, OpFactory, SimpleParamOp
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.resolve import (
+    CompositeSubRepository,
     SimpleSubRepository,
     SimpleSubResolver,
     SubCollector,
@@ -150,6 +151,180 @@ class TestSubRepository:
         assert resolver3 is not None
         sub3 = resolver3(op3, composite_repo)
         assert sub3 == child_op3_sub()
+
+    def test_composite_parent_and_child(self) -> None:
+        """Test case where both parent and child repositories are CompositeSubRepository."""
+        op0 = Op(Ident(NS, "op0"), 1)
+        op1 = Op(Ident(NS, "op1"), 1)
+        op2 = Op(Ident(NS, "op2"), 1)
+        op3 = Op(Ident(NS, "op3"), 1)
+
+        # Create base repository with op0
+        override0_repo = SimpleSubRepository()
+
+        def override0_op0_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        override0_repo.register_sub(op0, override0_op0_sub())
+
+        # Create first override repository with op1
+        override1_repo = SimpleSubRepository()
+
+        def override1_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override1_repo.register_sub(op1, override1_op1_sub())
+
+        # First CompositeSubRepository (will be parent)
+        parent_composite = override0_repo.with_override(override1_repo)
+        assert isinstance(parent_composite, CompositeSubRepository)
+
+        # Create second override repository with op2
+        override2_repo = SimpleSubRepository()
+
+        def override2_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(H, (q,))
+            return builder.build()
+
+        override2_repo.register_sub(op2, override2_op2_sub())
+
+        # Second CompositeSubRepository (will be child)
+        child_composite = parent_composite.with_override(override2_repo)
+        assert isinstance(child_composite, CompositeSubRepository)
+
+        # Create final CompositeSubRepository where both parent and child are Composite
+        override3_repo = SimpleSubRepository()
+
+        def override3_op3_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override3_repo.register_sub(op3, override3_op3_sub())
+
+        # This creates a CompositeSubRepository where:
+        # - parent is child_composite (which is itself a CompositeSubRepository)
+        # - child is override3_repo (SimpleSubRepository)
+        final_composite = child_composite.with_override(override3_repo)
+
+        assert isinstance(final_composite, CompositeSubRepository)
+        assert isinstance(final_composite.parent_repo, CompositeSubRepository)
+        assert isinstance(final_composite.child_repo, SimpleSubRepository)
+
+        # Verify resolution works correctly through the hierarchy
+        # op3 should come from override3_repo
+        resolver3 = final_composite.find_resolver(op3)
+        assert resolver3 is not None
+        assert resolver3(op3, final_composite) == override3_op3_sub()
+
+        # op2 should come from override2_repo (through child_composite)
+        resolver2 = final_composite.find_resolver(op2)
+        assert resolver2 is not None
+        assert resolver2(op2, final_composite) == override2_op2_sub()
+
+        # op1 should come from override1_repo (through parent_composite)
+        resolver1 = final_composite.find_resolver(op1)
+        assert resolver1 is not None
+        assert resolver1(op1, final_composite) == override1_op1_sub()
+
+        # op0 should come from override0_repo
+        resolver0 = final_composite.find_resolver(op0)
+        assert resolver0 is not None
+        assert resolver0(op0, final_composite) == override0_op0_sub()
+
+    def test_both_parent_and_child_composite(self) -> None:
+        """Test case where BOTH parent and child are CompositeSubRepository."""
+        op0 = Op(Ident(NS, "op0"), 1)
+        op1 = Op(Ident(NS, "op1"), 1)
+        op2 = Op(Ident(NS, "op2"), 1)
+        op3 = Op(Ident(NS, "op3"), 1)
+
+        # Build parent composite: override0 + override1
+        override0_repo = SimpleSubRepository()
+
+        def override0_op0_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        override0_repo.register_sub(op0, override0_op0_sub())
+
+        override1_repo = SimpleSubRepository()
+
+        def override1_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override1_repo.register_sub(op1, override1_op1_sub())
+
+        parent_composite = override0_repo.with_override(override1_repo)
+        assert isinstance(parent_composite, CompositeSubRepository)
+
+        # Build child composite: override2 + override3
+        override2_repo = SimpleSubRepository()
+
+        def override2_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(H, (q,))
+            return builder.build()
+
+        override2_repo.register_sub(op2, override2_op2_sub())
+
+        override3_repo = SimpleSubRepository()
+
+        def override3_op3_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override3_repo.register_sub(op3, override3_op3_sub())
+
+        child_composite = override2_repo.with_override(override3_repo)
+        assert isinstance(child_composite, CompositeSubRepository)
+
+        # Create final composite where BOTH parent and child are Composite
+        final_composite = parent_composite.with_override(child_composite)
+
+        assert isinstance(final_composite, CompositeSubRepository)
+        assert isinstance(final_composite.parent_repo, CompositeSubRepository)
+        assert isinstance(final_composite.child_repo, CompositeSubRepository)
+
+        # Verify resolution works correctly
+        # op3 should come from override3_repo (child's child)
+        resolver3 = final_composite.find_resolver(op3)
+        assert resolver3 is not None
+        assert resolver3(op3, final_composite) == override3_op3_sub()
+
+        # op2 should come from override2_repo (child's parent)
+        resolver2 = final_composite.find_resolver(op2)
+        assert resolver2 is not None
+        assert resolver2(op2, final_composite) == override2_op2_sub()
+
+        # op1 should come from override1_repo (parent's child)
+        resolver1 = final_composite.find_resolver(op1)
+        assert resolver1 is not None
+        assert resolver1(op1, final_composite) == override1_op1_sub()
+
+        # op0 should come from override0_repo (parent's parent)
+        resolver0 = final_composite.find_resolver(op0)
+        assert resolver0 is not None
+        assert resolver0(op0, final_composite) == override0_op0_sub()
 
     def test_simulator_repository_resolves_multicontrolled(self) -> None:
         repo = simulator_repository()
