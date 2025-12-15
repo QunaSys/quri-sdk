@@ -4,7 +4,7 @@ from quri_parts.qsub.lib.std import H, X, Y
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, OpFactory, SimpleParamOp
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.resolve import SimpleSubResolver, SubCollector, SimpleSubRepository
+from quri_parts.qsub.resolve import SimpleSubRepository, SimpleSubResolver, SubCollector
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 NS = NameSpace("test")
@@ -212,7 +212,9 @@ class TestCollectSubs:
         repository.register_sub(op1, op1_sub())
 
         # control custom resolver
-        def control_sub_resolver(op: Op, repository: SimpleSubRepository) -> Optional[Sub]:
+        def control_sub_resolver(
+            op: Op, repository: SimpleSubRepository
+        ) -> Optional[Sub]:
             target_op = cast(Op, op.id.params[0])
             op_sub_resolver = repository.find_resolver(target_op)
             if not op_sub_resolver:

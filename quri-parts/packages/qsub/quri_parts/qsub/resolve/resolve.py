@@ -59,7 +59,7 @@ class SubRepository(Protocol):
         ...
 
     @abstractmethod
-    def chain(self, addition: "SimpleSubRepository") -> "SubRepository":
+    def with_override(self, addition: "SimpleSubRepository") -> "SubRepository":
         ...
 
 
@@ -97,10 +97,10 @@ class SimpleSubRepository(SubRepository):
             ret._mapping[k] = [item for item in v]
         return ret
 
-    def chain(self, addition: "SimpleSubRepository") -> "CompositeSubRepository":
-        """Concatenate a sequence of addition repos to the this repo and make a
-        :class:`CompositeSubRepository`.
-        """
+    def with_override(
+        self, addition: "SimpleSubRepository"
+    ) -> "CompositeSubRepository":
+        """Creates a new SubRepository that overrides the"""
         return CompositeSubRepository(self, addition)
 
 
@@ -130,7 +130,7 @@ class CompositeSubRepository(SubRepository):
     def copy(self) -> "CompositeSubRepository":
         return CompositeSubRepository(self.parent_repo.copy(), self.child_repo.copy())
 
-    def chain(self, addition: SimpleSubRepository) -> "CompositeSubRepository":
+    def with_override(self, addition: SimpleSubRepository) -> "CompositeSubRepository":
         return CompositeSubRepository(self, addition)
 
 
