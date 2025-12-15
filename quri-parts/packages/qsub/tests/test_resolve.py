@@ -4,7 +4,7 @@ from quri_parts.qsub.lib.std import H, X, Y
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, OpFactory, SimpleParamOp
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.resolve import SimpleSubResolver, SubCollector, SubRepository
+from quri_parts.qsub.resolve import SimpleSubResolver, SubCollector, SimpleSubRepository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 NS = NameSpace("test")
@@ -21,7 +21,7 @@ class TestSubRepository:
         c_mc21y = cont(mc21y.id)
         mc21_cy = mcont(cy.id, 2, 1)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         def dummy_sub(i: int) -> Sub:
             return Sub((Qubit(i),), (), (), (), ())
@@ -89,7 +89,7 @@ class TestCollectSubs:
         op2 = Op(Ident(NS, "op2"), 2)
         op3 = Op(Ident(NS, "op3"), 3)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         # op3 uses op2 and X
         def op3_sub() -> Sub:
@@ -131,7 +131,7 @@ class TestCollectSubs:
 
         indexed_op2: OpFactory[int] = SimpleParamOp((NS, "indexed_op2"), 1)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         # op uses indexed_op1(2), indexed_op1(4)
         def op_sub() -> Sub:
@@ -190,7 +190,7 @@ class TestCollectSubs:
         op1 = Op(Ident(NS, "op1"), 1)
         control: OpFactory[Op] = SimpleParamOp((NS, "control"), 2)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         # op uses control_op1
         def op_sub() -> Sub:
@@ -212,7 +212,7 @@ class TestCollectSubs:
         repository.register_sub(op1, op1_sub())
 
         # control custom resolver
-        def control_sub_resolver(op: Op, repository: SubRepository) -> Optional[Sub]:
+        def control_sub_resolver(op: Op, repository: SimpleSubRepository) -> Optional[Sub]:
             target_op = cast(Op, op.id.params[0])
             op_sub_resolver = repository.find_resolver(target_op)
             if not op_sub_resolver:

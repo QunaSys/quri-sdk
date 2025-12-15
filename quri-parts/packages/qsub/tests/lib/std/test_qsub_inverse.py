@@ -30,7 +30,7 @@ from quri_parts.qsub.lib.std import (
 from quri_parts.qsub.lib.std.inverse import inverse_sub_resolver
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
-from quri_parts.qsub.resolve import SubRepository, default_repository
+from quri_parts.qsub.resolve import SimpleSubRepository, default_repository
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -61,7 +61,7 @@ class TestInverseSub:
         builder.add_op(CZ, (q1, q0))
         builder.add_op(M, (q1,), (r,))
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         fdag = Inverse(F)
@@ -89,7 +89,7 @@ class TestInverseSub:
         builder.add_op(H, (q,))
         builder.add_op(S, (a,))
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         fdag = Inverse(F)
@@ -116,7 +116,7 @@ class TestInverseSub:
         builder.add_op(S, (q,))
         builder.add_op(M, (q,), (r,))
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         fdag = Inverse(F)
@@ -142,7 +142,7 @@ class TestInverseSub:
         builder.add_op(T, qs)
         builder.add_phase(0.12)
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         fdag = Inverse(F)

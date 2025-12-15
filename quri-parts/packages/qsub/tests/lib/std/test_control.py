@@ -35,7 +35,7 @@ from quri_parts.qsub.lib.std.control import (
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
 from quri_parts.qsub.opsub import OpSubDef, opsub
-from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
+from quri_parts.qsub.resolve import SimpleSubRepository, default_repository, resolve_sub
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 
@@ -58,7 +58,7 @@ _repo = default_repository()
 class TestControlledSub:
     def test_no_sub(self) -> None:
         ccz = Controlled(CZ)
-        sub = controlled_sub_resolver(ccz, SubRepository())
+        sub = controlled_sub_resolver(ccz, SimpleSubRepository())
         assert sub is None
 
     def test_expand_sub(self) -> None:
@@ -71,7 +71,7 @@ class TestControlledSub:
         builder.add_op(CZ, (q1, q0))
         builder.add_op(M, (q1,), (r,))
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -99,7 +99,7 @@ class TestControlledSub:
         builder.add_op(H, (q,))
         builder.add_op(Y, (a,))
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -125,7 +125,7 @@ class TestControlledSub:
         builder.add_op(H, (q,))
         builder.add_op(M, (q,), (r,))
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -150,7 +150,7 @@ class TestControlledSub:
         builder.add_op(H, (q,))
         builder.add_phase(math.pi / 4)
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -173,7 +173,7 @@ class TestControlledSub:
         builder.add_op(H, builder.qubits)
         builder.add_phase(math.pi)
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -196,7 +196,7 @@ class TestControlledSub:
         builder.add_op(H, builder.qubits)
         builder.add_phase(math.pi / 2)
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -219,7 +219,7 @@ class TestControlledSub:
         builder.add_op(H, builder.qubits)
         builder.add_phase(-math.pi / 2)
         f_sub = builder.build()
-        repository = SubRepository()
+        repository = SimpleSubRepository()
         repository.register_sub(F, f_sub)
 
         cf = Controlled(F)
@@ -660,7 +660,7 @@ def test_inverse_optimized_controlled() -> None:
 
     HCXH, _ = opsub(_HCXH)
 
-    def controlled_h_cx_h_resolver(op: Op, repository: SubRepository) -> Sub:
+    def controlled_h_cx_h_resolver(op: Op, repository: SimpleSubRepository) -> Sub:
         target_op = op.id.params[0]
         assert isinstance(target_op, Op)
         builder = SubBuilder(op.qubit_count, op.reg_count)
@@ -675,7 +675,7 @@ def test_inverse_optimized_controlled() -> None:
         builder.add_op(Controlled(H), (qs[0], qs[1]))
         return builder.build()
 
-    test_sub_repository = SubRepository()
+    test_sub_repository = SimpleSubRepository()
     register_controlled_resolver(test_sub_repository, controlled_h_cx_h_resolver, HCXH)
 
     inv_op = Controlled(Inverse(HCXH))

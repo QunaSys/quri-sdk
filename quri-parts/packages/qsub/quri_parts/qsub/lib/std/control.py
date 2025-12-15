@@ -24,6 +24,7 @@ from quri_parts.qsub.op import (
 )
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.resolve import (
+    SimpleSubRepository,
     SubRepository,
     SubResolver,
     SubResolverCondition,
@@ -378,7 +379,7 @@ def _get_inv_target_condition(op: AbstractOp) -> SubResolverCondition:
 
 
 def register_controlled_resolver(
-    sub_repository: SubRepository,
+    sub_repository: SimpleSubRepository,
     control_resolver: SubResolver,
     op: Op | OpFactory[Any],
 ) -> None:

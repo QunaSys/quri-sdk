@@ -21,7 +21,7 @@ from .op import (
     op,
     param_op,
 )
-from .resolve import SubRepository, default_repository
+from .resolve import SimpleSubRepository, default_repository
 from .sub import ParamSubDef, Sub, SubDef, SubFactory, param_sub, sub
 
 
@@ -38,7 +38,8 @@ class NonUnitarySubDef(OpSubDef, NonUnitaryDef):
 
 
 def opsub(
-    opsub_def: type[OpSubDef], repository: SubRepository | None = default_repository()
+    opsub_def: type[OpSubDef],
+    repository: SimpleSubRepository | None = default_repository(),
 ) -> tuple[Op, Sub]:
     _op = op(opsub_def)
     _sub = sub(opsub_def)
@@ -61,7 +62,7 @@ class ParamNonUnitarySubDef(ParamOpSubDef[Params], ParamNonUnitaryDef[Params]):
 
 def param_opsub(
     opsub_def: type[ParamOpSubDef[Params]],
-    repository: SubRepository | None = default_repository(),
+    repository: SimpleSubRepository | None = default_repository(),
 ) -> tuple[OpFactory[Params], SubFactory[Params]]:
     _op = param_op(opsub_def)
     _sub = param_sub(opsub_def)

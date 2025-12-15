@@ -23,7 +23,12 @@ from quri_parts.qsub.op import (
     param_op,
 )
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.resolve import SubRepository, SubResolver, default_repository
+from quri_parts.qsub.resolve import (
+    SimpleSubRepository,
+    SubRepository,
+    SubResolver,
+    default_repository,
+)
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 from . import NS
@@ -371,7 +376,7 @@ def generate_multicontrolled_to_mc_sub_resolver(
         ... )
     """
 
-    def resolver(op: Op, repository: SubRepository) -> Sub | None:
+    def resolver(op: Op, repository: SimpleSubRepository) -> Sub | None:
         target_op, control_bits, control_value = op.id.params
         assert isinstance(target_op, Op)
         assert isinstance(control_bits, int)

@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .resolve import CompositeSubRepository, SubRepository, default_repository
+from .resolve import CompositeSubRepository, SimpleSubRepository, default_repository
 
 
 def _make_simulator_repo() -> CompositeSubRepository:
@@ -17,7 +17,7 @@ def _make_simulator_repo() -> CompositeSubRepository:
     addition_resolver = (
         std.multi_control_gates.generate_multicontrolled_to_mc_sub_resolver()
     )
-    addition_repo = SubRepository()
+    addition_repo = SimpleSubRepository()
     addition_repo.register_sub_resolver(std.MultiControlled, addition_resolver)
     return CompositeSubRepository(default_repository(), addition_repo)
 

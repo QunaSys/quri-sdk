@@ -1,5 +1,6 @@
 from .resolve import (
     CompositeSubRepository,
+    SimpleSubRepository,
     SimpleSubResolver,
     SubRepository,
     SubResolver,
@@ -13,6 +14,7 @@ __all__ = [
     "SubResolver",
     "SubRepository",
     "CompositeSubRepository",
+    "SimpleSubRepository",
     "default_repository",
     "SubCollector",
     "resolve_sub",

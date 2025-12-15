@@ -49,7 +49,7 @@ def _get_base_id(op: Op | OpFactory[Params] | BaseIdent) -> BaseIdent:
 SubResolverCondition: TypeAlias = Callable[[Ident], bool]
 
 
-class SubRepositoryProtocol(Protocol):
+class SubRepository(Protocol):
     @abstractmethod
     def find_resolver(self, op: Op) -> SubResolver | None:
         ...
@@ -59,11 +59,11 @@ class SubRepositoryProtocol(Protocol):
         ...
 
     @abstractmethod
-    def chain(self, addition: "SubRepository") -> "CompositeSubRepository":
+    def chain(self, addition: "SimpleSubRepository") -> "SubRepository":
         ...
 
 
-class SubRepository(SubRepositoryProtocol):
+class SimpleSubRepository(SubRepository):
     def __init__(self) -> None:
         self._mapping: dict[
             BaseIdent, list[tuple[SubResolver, SubResolverCondition | None]]
@@ -91,31 +91,31 @@ class SubRepository(SubRepositoryProtocol):
     ) -> None:
         self._mapping[_get_base_id(op)].append((resolver, condition))
 
-    def copy(self) -> "SubRepository":
-        ret = SubRepository()
+    def copy(self) -> "SimpleSubRepository":
+        ret = SimpleSubRepository()
         for k, v in self._mapping.items():
             ret._mapping[k] = [item for item in v]
         return ret
 
-    def chain(self, addition: "SubRepository") -> "CompositeSubRepository":
+    def chain(self, addition: "SimpleSubRepository") -> "CompositeSubRepository":
         """Concatenate a sequence of addition repos to the this repo and make a
         :class:`CompositeSubRepository`.
         """
         return CompositeSubRepository(self, addition)
 
 
-_DEFAULT = SubRepository()
+_DEFAULT = SimpleSubRepository()
 
 
-def default_repository() -> SubRepository:
+def default_repository() -> SimpleSubRepository:
     return _DEFAULT
 
 
-class CompositeSubRepository(SubRepositoryProtocol):
+class CompositeSubRepository(SubRepository):
     """A :class:`SubRepositoryProtocol` that holds the parent repo and an
     additional child `SubRepository`."""
 
-    def __init__(self, parent_repo: SubRepositoryProtocol, child_repo: SubRepository):
+    def __init__(self, parent_repo: SubRepository, child_repo: SimpleSubRepository):
         self.parent_repo = parent_repo
         self.child_repo = child_repo
 
@@ -130,7 +130,7 @@ class CompositeSubRepository(SubRepositoryProtocol):
     def copy(self) -> "CompositeSubRepository":
         return CompositeSubRepository(self.parent_repo.copy(), self.child_repo.copy())
 
-    def chain(self, addition: SubRepository) -> "CompositeSubRepository":
+    def chain(self, addition: SimpleSubRepository) -> "CompositeSubRepository":
         return CompositeSubRepository(self, addition)
 
 
