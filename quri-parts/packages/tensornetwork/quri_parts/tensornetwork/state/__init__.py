@@ -43,8 +43,8 @@ class MultiMappedNode(AbstractNode):  # type: ignore
                 e.node1 = self
             if e.node2 == self.node:
                 e.node2 = self
-        if name is not None:
-            self.name = name
+        
+        self.name = name
         if input_qubit_edge_mapping:
             self.input_qubit_edge_mapping = {}
             for qb in input_qubit_edge_mapping:
@@ -253,7 +253,15 @@ class MappedNode(MultiMappedNode):  # type: ignore
         output_edge_index: Optional[int] = None,
         name: Optional[Text] = None,
     ) -> None:
-        MultiMappedNode.__init__(self, node, {qubit_index: node[input_edge_index]}, {qubit_index: node[output_edge_index]}, name=name)
+        if input_edge_index is None:
+            input_mapping = None
+        else:
+            input_mapping = {qubit_index: node[input_edge_index]}
+        if output_edge_index is None:
+            output_mapping = None
+        else:
+            output_mapping = {qubit_index: node[output_edge_index]}
+        MultiMappedNode.__init__(self, node, input_mapping, output_mapping, name=name)
         self.qubit_index = qubit_index
         self.input_edge_index = input_edge_index
         self.output_edge_index = output_edge_index
@@ -281,14 +289,6 @@ class MappedNode(MultiMappedNode):  # type: ignore
             return self._output_edge
         else:
             raise ValueError(f"Mappednode {self} does not have an output edge.")
-
-    # @property
-    # def input_qubit_edge_mapping(self) -> Mapping[int, Optional[Edge]]:
-    #     return {self.qubit_index: self.input_edge}
-
-    # @property
-    # def output_qubit_edge_mapping(self) -> Mapping[int, Optional[Edge]]:
-    #     return {self.qubit_index: self.output_edge}
 
 
     def copy(self, conjugate: bool = False) -> "MappedNode":

@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Mapping, Optional, Sequence, Union
+from typing import Callable, Mapping, MutableSequence, Optional, Sequence, Union
 
 from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
@@ -104,7 +104,7 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        layer_tensor_map: Sequence[Mapping[int, TensorNetworkQuantumGate]],
+        layer_tensor_map: MutableSequence[Mapping[int, TensorNetworkQuantumGate]],
     ):
         self.input_edges = input_edges
         self.output_edges = output_edges
