@@ -28,8 +28,8 @@ from quri_parts.qulacs.sampler import (
 class LogicalCircuitSimulator(ABC):
     """Abstract base class for logical circuit simulator.
 
-    The primary objective is to define the interfaces to give VMs the ability
-    to execute logical circuits.
+    The primary objective is to define the interfaces to give VMs the
+    ability to execute logical circuits.
     """
 
     @abstractmethod
@@ -38,7 +38,8 @@ class LogicalCircuitSimulator(ABC):
         circuit: NonParametricQuantumCircuit,
         shots: int,
         noise_model: NoiseModel | None = None,
-    ) -> MeasurementCounts: ...
+    ) -> MeasurementCounts:
+        ...
 
     @abstractmethod
     def estimate(
@@ -46,7 +47,8 @@ class LogicalCircuitSimulator(ABC):
         estimatable: Estimatable,
         state: _StateT,
         noise_model: NoiseModel | None = None,
-    ) -> Estimate[complex]: ...
+    ) -> Estimate[complex]:
+        ...
 
 
 class QulacsSimulator(LogicalCircuitSimulator):

@@ -112,9 +112,10 @@ def recordable(f: Callable[Concatenate["Recorder", P], R]) -> RecordableFunction
         with recorder.start_func():
             return f(recorder, *args, **kwargs)
 
-    wrapper = cast(RecordableFunction[P, R], wrapper)
-    wrapper.id = f_id
-    return update_wrapper(wrapper, f)
+    update_wrapper(wrapper, f)
+    typed_wrapper = cast(RecordableFunction[P, R], wrapper)
+    typed_wrapper.id = f_id
+    return typed_wrapper
 
 
 _DEFAULT_LOGGER_NAME = f"{logging.Logger.root.name}.quri_parts_recording"
