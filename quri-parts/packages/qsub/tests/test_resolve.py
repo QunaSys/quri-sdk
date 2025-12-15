@@ -1,6 +1,6 @@
 from typing import Optional, cast
 
-from quri_parts.qsub.lib.std import H, X, Y
+from quri_parts.qsub.lib.std import MCX, H, MultiControlled, Pauli, X, Y
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, OpFactory, SimpleParamOp
 from quri_parts.qsub.qubit import Qubit
@@ -10,6 +10,7 @@ from quri_parts.qsub.resolve import (
     SubCollector,
     SubRepository,
 )
+from quri_parts.qsub.resolve.simulator_repo import simulator_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 NS = NameSpace("test")
@@ -86,6 +87,90 @@ class TestSubRepository:
         repository.register_sub_resolver(mcont.base_id, mcc_resolver, mcc_resolver_cond)
         assert repository.find_resolver(c_mc21y) == cmc_resolver
         assert repository.find_resolver(mc21_cy) == mcc_resolver
+
+    def test_with_override(self) -> None:
+        op1 = Op(Ident(NS, "op1"), 1)
+        op2 = Op(Ident(NS, "op2"), 1)
+        op3 = Op(Ident(NS, "op3"), 1)
+
+        # Create parent repository with resolvers for op1 and op2
+        parent_repo = SimpleSubRepository()
+
+        def parent_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        def parent_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        parent_repo.register_sub(op1, parent_op1_sub())
+        parent_repo.register_sub(op2, parent_op2_sub())
+
+        # Create child repository that overrides op1 and adds op3
+        child_repo = SimpleSubRepository()
+
+        def child_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(H, (q,))
+            return builder.build()
+
+        def child_op3_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        child_repo.register_sub(op1, child_op1_sub())
+        child_repo.register_sub(op3, child_op3_sub())
+
+        # Create composite repository using with_override
+        composite_repo = parent_repo.with_override(child_repo)
+
+        # Test that child overrides parent for op1
+        resolver1 = composite_repo.find_resolver(op1)
+        assert resolver1 is not None
+        sub1 = resolver1(op1, composite_repo)
+        assert sub1 == child_op1_sub()  # Should use child's resolver
+
+        # Test that parent resolver is used for op2 (not overridden)
+        resolver2 = composite_repo.find_resolver(op2)
+        assert resolver2 is not None
+        sub2 = resolver2(op2, composite_repo)
+        assert sub2 == parent_op2_sub()  # Should use parent's resolver
+
+        # Test that child's new resolver works for op3
+        resolver3 = composite_repo.find_resolver(op3)
+        assert resolver3 is not None
+        sub3 = resolver3(op3, composite_repo)
+        assert sub3 == child_op3_sub()
+
+    def test_simulator_repository_resolves_multicontrolled(self) -> None:
+        repo = simulator_repository()
+
+        # Test simple MultiControlled operation
+        mc_x = MultiControlled(X, 2, 0b11)
+        resolver = repo.find_resolver(mc_x)
+        assert resolver is not None
+        sub = resolver(mc_x, repo)
+        assert sub is not None
+        assert sub.operations == ((MCX(2), sub.qubits, ()),)
+
+        pauli = Pauli((1, 1))
+        resolver = repo.find_resolver(pauli)
+        assert resolver is not None
+        sub = resolver(pauli, repo)
+        assert sub is not None
+        assert sub.operations == (
+            (X, (sub.qubits[0],), ()),
+            (X, (sub.qubits[1],), ()),
+        )
 
 
 class TestCollectSubs:
