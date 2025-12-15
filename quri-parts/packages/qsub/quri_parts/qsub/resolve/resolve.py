@@ -100,7 +100,7 @@ class SimpleSubRepository(SubRepository):
     def with_override(
         self, addition: "SimpleSubRepository"
     ) -> "CompositeSubRepository":
-        """Creates a new SubRepository that overrides the"""
+        """Creates a new SubRepository that overrides the."""
         return CompositeSubRepository(self, addition)
 
 

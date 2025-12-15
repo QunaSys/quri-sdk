@@ -35,7 +35,12 @@ from quri_parts.qsub.lib.std.control import (
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
 from quri_parts.qsub.opsub import OpSubDef, opsub
-from quri_parts.qsub.resolve import SimpleSubRepository, default_repository, resolve_sub
+from quri_parts.qsub.resolve import (
+    SimpleSubRepository,
+    SubRepository,
+    default_repository,
+    resolve_sub,
+)
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 
@@ -660,7 +665,7 @@ def test_inverse_optimized_controlled() -> None:
 
     HCXH, _ = opsub(_HCXH)
 
-    def controlled_h_cx_h_resolver(op: Op, repository: SimpleSubRepository) -> Sub:
+    def controlled_h_cx_h_resolver(op: Op, repository: SubRepository) -> Sub:
         target_op = op.id.params[0]
         assert isinstance(target_op, Op)
         builder = SubBuilder(op.qubit_count, op.reg_count)
