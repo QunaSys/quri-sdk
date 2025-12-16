@@ -110,23 +110,33 @@ def default_repository() -> SimpleSubRepository:
 
 
 class CompositeSubRepository(SubRepository):
-    """A :class:`SubRepositoryProtocol` that holds the parent repo and an
-    additional child `SubRepository`."""
+    """A :class:`SubRepositoryProtocol` that holds the base repo and an
+    additional `SubRepository`."""
 
-    def __init__(self, parent_repo: SubRepository, child_repo: SubRepository):
-        self.parent_repo = parent_repo
-        self.child_repo = child_repo
+    def __init__(self, base_repo: SubRepository, addition_repo: SubRepository):
+        self._base_repo = base_repo
+        self._addition_repo = addition_repo
+
+    @property
+    def base_repo(self) -> SubRepository:
+        return self._base_repo
+
+    @property
+    def addition_repo(self) -> SubRepository:
+        return self._addition_repo
 
     def find_resolver(self, op: Op) -> SubResolver | None:
-        """Finds the resolver starting from the child repo.
+        """Finds the resolver starting from the addition repo.
 
-        If none exists in the child, it finds from the parent repo.
+        If none exists in the addition, it finds from the base repo.
         """
-        resolver = self.child_repo.find_resolver(op)
-        return resolver if resolver else self.parent_repo.find_resolver(op)
+        resolver = self._addition_repo.find_resolver(op)
+        return resolver if resolver else self._base_repo.find_resolver(op)
 
     def copy(self) -> "CompositeSubRepository":
-        return CompositeSubRepository(self.parent_repo.copy(), self.child_repo.copy())
+        return CompositeSubRepository(
+            self._base_repo.copy(), self._addition_repo.copy()
+        )
 
     def with_override(self, addition: SubRepository) -> SubRepository:
         return CompositeSubRepository(self, addition)
