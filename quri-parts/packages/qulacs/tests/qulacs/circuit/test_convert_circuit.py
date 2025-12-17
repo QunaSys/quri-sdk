@@ -28,6 +28,7 @@ from quri_parts.circuit.transpile import (
     TwoQubitUnitaryMatrixKAKTranspiler,
 )
 from quri_parts.core.state import GeneralCircuitQuantumState
+from quri_parts.qiskit.circuit import gates as qiskit_gates
 from quri_parts.qulacs.circuit import (
     _dense_matrix_gate_qulacs,
     convert_circuit,
@@ -276,6 +277,34 @@ def test_convert_circuit() -> None:
         assert gates_equal(converted.get_gate(i), expected)
 
 
+def test_convert_circuit_with_ecr_gate() -> None:
+    circuit = QuantumCircuit(2)
+    circuit.add_gate(qiskit_gates.ECR(0, 1))
+
+    qulacs_circuit = convert_circuit(circuit)
+
+    assert qulacs_circuit.get_gate_count() == 4
+    assert [qulacs_circuit.get_gate(i).get_name().lower() for i in range(4)] == [
+        "s",
+        "sqrtx",
+        "cnot",
+        "x",
+    ]
+
+    expected = np.array(
+        [
+            [0, 1, 0, 1j],
+            [1, 0, -1j, 0],
+            [0, 1j, 0, 1],
+            [-1j, 0, 1, 0],
+        ],
+        dtype=np.complex128,
+    ) / np.sqrt(2)
+
+    actual = _qulacs_circuit_to_matrix(qulacs_circuit)
+    _assert_unitary_equal_up_to_global_phase(actual, expected)
+
+
 def test_convert_parametric_circuit() -> None:
     circuit = ParametricQuantumCircuit(3)
     circuit.add_X_gate(1)
@@ -391,3 +420,28 @@ def test_evaluate_1qubit_unitary_matrix_gate() -> None:
     assert np.allclose(
         target / (target[0] / abs(target[0])), expect / (expect[0] / abs(expect[0]))
     )
+
+
+def _qulacs_circuit_to_matrix(circuit: qulacs.QuantumCircuit) -> np.ndarray:
+    qubit_count = circuit.get_qubit_count()
+    dim = 1 << qubit_count
+    mat = np.zeros((dim, dim), dtype=np.complex128)
+    state = qulacs.QuantumState(qubit_count)
+    for col in range(dim):
+        state.set_computational_basis(col)
+        circuit.update_quantum_state(state)
+        mat[:, col] = state.get_vector()
+    return mat
+
+
+def _assert_unitary_equal_up_to_global_phase(
+    actual: np.ndarray,
+    expected: np.ndarray,
+    *,
+    atol: float = 1e-8,
+    rtol: float = 1e-6,
+) -> None:
+    idx = np.argmax(np.abs(expected))
+    assert np.abs(expected.flat[idx]) > 0
+    phase = expected.flat[idx] / actual.flat[idx]
+    assert np.allclose(actual * phase, expected, atol=atol, rtol=rtol)
