@@ -62,11 +62,12 @@ def test_circuit_from_qiskit_with_ecr() -> None:
     qp_circuit = circuit_from_qiskit(qis_circ)
     qulacs_circuit = convert_circuit(qp_circuit)
 
-    # ECR should be decomposed into native gates instead of a raw unitary matrix.
+    # The circuit keeps the ECR gate until Qulacs conversion.
     unitary_gate_names = [
         gate.name for gate in qp_circuit.gates if is_unitary_matrix_gate_name(gate.name)
     ]
     assert unitary_gate_names.count(gate_names.UnitaryMatrix) == 0
+    assert qp_circuit.gates[0].name == "ECR"
 
     expected = Operator(qis_circ).data
     actual = _qulacs_circuit_to_matrix(qulacs_circuit)

@@ -41,6 +41,7 @@ from quri_parts.circuit.gate_names import (
     is_two_qubit_gate_name,
     is_unitary_matrix_gate_name,
 )
+from quri_parts.qiskit.circuit.transpile import transpile_ecr_gates
 
 from ..utils import cast_to_list
 from .compiled_circuit import compile_circuit, compile_parametric_circuit
@@ -248,6 +249,7 @@ def convert_gate(
 
 
 def convert_circuit(circuit: NonParametricQuantumCircuit) -> qulacs.QuantumCircuit:
+    circuit = transpile_ecr_gates(circuit)
     qulacs_circuit = qulacs.QuantumCircuit(circuit.qubit_count)
     for gate in circuit.gates:
         qulacs_circuit.add_gate(convert_gate(gate))
