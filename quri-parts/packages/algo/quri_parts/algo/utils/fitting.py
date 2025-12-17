@@ -9,7 +9,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Iterable, cast
+from typing import Sequence, cast
 
 import numpy as np
 from numpy.polynomial import Polynomial
@@ -21,14 +21,14 @@ class FittedResult:
     """An immutable (frozen) dataclass representing a fitted result."""
 
     #: Coefficients of the fitting function, obtained by fitting.
-    parameters: list[float]
+    parameters: Sequence[float]
 
     #: The value at a certain point obtained by using a fitted function.
     value: float
 
 
 def polynomial_fitting(
-    x_data: Iterable[float], y_data: Iterable[float], order: int, point: float
+    x_data: Sequence[float], y_data: Sequence[float], order: int, point: float
 ) -> FittedResult:
     """Polynomial fitting with an polynomial of a given order.
 
@@ -49,8 +49,8 @@ def polynomial_fitting(
 
 
 def exp_fitting(
-    x_data: Iterable[float],
-    y_data: Iterable[float],
+    x_data: Sequence[float],
+    y_data: Sequence[float],
     order: int,
     point: float,
 ) -> FittedResult:
@@ -89,8 +89,8 @@ def exp_fitting(
 
 
 def exp_fitting_with_const(
-    x_data: Iterable[float],
-    y_data: Iterable[float],
+    x_data: Sequence[float],
+    y_data: Sequence[float],
     order: int,
     constant: float,
     point: float,
@@ -131,8 +131,8 @@ def exp_fitting_with_const(
 
 
 def exp_fitting_with_const_log(
-    x_data: Iterable[float],
-    y_data: Iterable[float],
+    x_data: Sequence[float],
+    y_data: Sequence[float],
     order: int,
     constant: float,
     point: float,
@@ -173,6 +173,6 @@ def exp_fitting_with_const_log(
         )
         .convert()
         .coef
-    )
+    ).tolist()
     fitted_value = constant + sign * np.exp(Polynomial(fitted_params[0:])(point))
     return FittedResult(parameters=fitted_params, value=fitted_value)

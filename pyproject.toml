@@ -91,10 +91,11 @@ botocore = ">=1.29.115"
 
 pytest = ">=7.0.1,<9.0.0"
 maturin = "^1.0"
+ipykernel = "^6.29.5"
 
 [tool.poetry.group.lint.dependencies]
 black = "^23.1.0"
-flake8 = ">=4.0.1,<8.0.0"
+flake8 = "7.1.1"
 # Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
 docformatter = "1.5.1"
 isort = "^5.10.1"

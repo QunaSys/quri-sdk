@@ -46,7 +46,7 @@ class HadamardTestMeasurementCount(NamedTuple):
 
 
 def _general_sample_on_state(
-    sampler: Union[Sampler, StateSampler[State]], state: State, n_shots: int
+    sampler: Union[Sampler, StateSampler[StateT]], state: State, n_shots: int
 ) -> MeasurementCounts:
     if isinstance(state, QuantumStateVector):
         sampler = cast(StateSampler[State], sampler)

@@ -3,42 +3,55 @@ name: QURI VM Lint
 on:
   pull_request:
     paths:
-      - 'quri-vm/**.py'
+      - quri-vm/**/*.py
       - quri-vm/pyproject.toml
-      - quri-vm/poetry.lock
       - quri-vm/.flake8
+      - pyproject.toml
+      - poetry.lock
       - .github/workflows/quri-vm-lint.yml
+      - .github/actions/python-poetry-install/action.yml
   push:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: quri-vm
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.10'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/quri-vm/setup
+    - uses: ./.github/actions/python-poetry-install
       with:
-        poetry-version: '1.8.0'
-        python-version: '3.10'
+        poetry-version: '1.8.5'
+        python-version: ${{ env.PYTHON_VERSION }}
 
-    - run: |
-        poetry env use 3.10
-        poetry install
+    - name: Cache Poetry environment
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pypoetry
+          .venv
+        key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-quri-vm-lint-${{ hashFiles('poetry.lock') }}
 
-    - run: poetry run isort . --check --diff
+    - name: Install dependencies
+      run: |
+        poetry env use $PYTHON_VERSION
+        poetry install --with dev,lint,typecheck --sync
+
+    - name: Run isort
+      run: poetry run isort quri-vm --check --diff
       if: success() || failure()
 
-    - run: poetry run black . --check
+    - name: Run black
+      run: poetry run black quri-vm --check
       if: success() || failure()
 
-    - run: poetry run flake8 .
+    - name: Run flake8
+      run: poetry run flake8 quri-vm --config .flake8
       if: success() || failure()
 
-    - run: poetry run mypy .
+    - name: Run mypy
+      run: poetry run mypy quri-vm
       if: success() || failure()
