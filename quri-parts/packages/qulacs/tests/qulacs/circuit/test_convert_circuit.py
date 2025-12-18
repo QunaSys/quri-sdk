@@ -14,6 +14,7 @@ from typing import Any, Callable, cast
 import numpy as np
 import pytest
 import qulacs
+from numpy.typing import NDArray
 from qulacs.gate import to_matrix_gate
 
 from quri_parts.circuit import (
@@ -422,10 +423,10 @@ def test_evaluate_1qubit_unitary_matrix_gate() -> None:
     )
 
 
-def _qulacs_circuit_to_matrix(circuit: qulacs.QuantumCircuit) -> np.ndarray:
+def _qulacs_circuit_to_matrix(circuit: qulacs.QuantumCircuit) -> NDArray[np.complex128]:
     qubit_count = circuit.get_qubit_count()
     dim = 1 << qubit_count
-    mat = np.zeros((dim, dim), dtype=np.complex128)
+    mat: NDArray[np.complex128] = np.zeros((dim, dim), dtype=np.complex128)
     state = qulacs.QuantumState(qubit_count)
     for col in range(dim):
         state.set_computational_basis(col)
@@ -435,8 +436,8 @@ def _qulacs_circuit_to_matrix(circuit: qulacs.QuantumCircuit) -> np.ndarray:
 
 
 def _assert_unitary_equal_up_to_global_phase(
-    actual: np.ndarray,
-    expected: np.ndarray,
+    actual: NDArray[np.complex128],
+    expected: NDArray[np.complex128],
     *,
     atol: float = 1e-8,
     rtol: float = 1e-6,

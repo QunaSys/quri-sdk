@@ -14,7 +14,12 @@ from typing import Optional, Union, cast
 from qiskit import transpile
 from qiskit.providers import Backend
 
-from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit, gate_names, gates
+from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
+    QuantumCircuit,
+    gate_names,
+    gates,
+)
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
@@ -112,7 +117,7 @@ def _get_ecr_targets(gate: object) -> Optional[tuple[int, int]]:
     if len(target_indices) != 2:
         return None
 
-    if hasattr(gate, "name") and gate.name == ECR:  # type: ignore[attr-defined]
+    if hasattr(gate, "name") and gate.name == ECR:
         return cast(tuple[int, int], tuple(target_indices))
 
     return None
