@@ -493,6 +493,36 @@ pub(crate) fn py_hash(gate: &QuantumGate) -> u64 {
     hasher.finish()
 }
 
+pub(crate) fn py_hash_maybe_unbound(gate: &QuantumGate<crate::circuit::MaybeUnbound>) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    let mut hasher = DefaultHasher::new();
+    let data = gate
+        .clone()
+        .map_param(|p| match p {
+            crate::circuit::MaybeUnbound::Bound(value) => Some(value),
+            crate::circuit::MaybeUnbound::Unbound(_) => None,
+        })
+        .into_property();
+    data.name.hash(&mut hasher);
+    data.target_indices.hash(&mut hasher);
+    data.control_indices.hash(&mut hasher);
+    data.classical_indices.hash(&mut hasher);
+    for p in data.params.iter() {
+        p.to_le_bytes().hash(&mut hasher);
+    }
+    data.pauli_ids.hash(&mut hasher);
+    if let Some(matrix) = &data.unitary_matrix {
+        for p in matrix.iter() {
+            for q in p.iter() {
+                q.re.to_le_bytes().hash(&mut hasher);
+                q.im.to_le_bytes().hash(&mut hasher);
+            }
+        }
+    }
+    hasher.finish()
+}
+
 #[test]
 fn test_unordered_eq() {
     assert!(unordered_eq(&[0, 1], &[1, 0]));

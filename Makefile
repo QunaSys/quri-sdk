@@ -1,5 +1,5 @@
 .PHONY:	develop
-develop:	packages/rust/src packages/rust/Cargo.toml packages/rust/pyproject.toml
+develop:	quri-parts/packages/rust/src quri-parts/packages/rust/Cargo.toml quri-parts/packages/rust/pyproject.toml
 	poetry run pip install "setuptools>=64" "setuptools-rust"
 	poetry run pip install "setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-manylinux_2_17_x86_64.whl ; sys_platform=='linux' and platform_machine=='x86_64'" \
 	"setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-macosx_11_0_arm64.whl ; sys_platform=='darwin' and platform_machine== 'arm64'" \
@@ -15,4 +15,4 @@ develop:	packages/rust/src packages/rust/Cargo.toml packages/rust/pyproject.toml
 	"setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-freebsd_14_2_release_amd64.whl ; sys_platform=='freebsd14' and platform_machine=='amd64'" \
 	"setuptools-rust-bundled@https://github.com/QunaSys/setuptools-rust-bundled/releases/download/v0.1.4/setuptools_rust_bundled-0.1.4-py3-none-netbsd_10_1_amd64.whl ; sys_platform=='netbsd10' and platform_machine=='amd64'" \
 	"setuptools-rust-bundled==0.1.4"
-	poetry run pip install --no-build-isolation -vv -e packages/rust
+	poetry run pip install --no-build-isolation -vv -e quri-parts/packages/rust
