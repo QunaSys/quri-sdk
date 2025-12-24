@@ -440,6 +440,19 @@ impl ImmutableParametricQuantumCircuit {
 
         Ok(())
     }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        self.qubit_count.to_le_bytes().hash(&mut hasher);
+        self.cbit_count.to_le_bytes().hash(&mut hasher);
+        for gate in &self.gates.0 {
+            crate::circuit::gate::py_hash_maybe_unbound(gate).hash(&mut hasher);
+        }
+        hasher.finish()
+    }
 }
 
 #[pyclass(
@@ -893,6 +906,31 @@ impl ImmutableBoundParametricQuantumCircuit {
 
     fn freeze(slf: Py<Self>) -> Py<Self> {
         slf
+    }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(slf: PyRef<'_, Self>) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+
+        // Hash the underlying circuit data directly
+        let super_ref = slf.as_super();
+        super_ref.qubit_count.to_le_bytes().hash(&mut hasher);
+        super_ref.cbit_count.to_le_bytes().hash(&mut hasher);
+        for gate in &super_ref.gates.0 {
+            crate::circuit::gate::py_hash(gate).hash(&mut hasher);
+        }
+
+        // Hash the parameter bindings in a deterministic order
+        let mut sorted_params: Vec<_> = slf.0.iter().map(|(k, v)| (k.clone(), *v)).collect();
+        sorted_params.sort_by_key(|(param, _)| param.clone());
+        for (param, value) in sorted_params {
+            param.hash(&mut hasher);
+            value.to_bits().hash(&mut hasher);
+        }
+
+        hasher.finish()
     }
 }
 
