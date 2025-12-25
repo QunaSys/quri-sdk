@@ -859,6 +859,31 @@ impl ParametricQuantumCircuit {
             None,
         )
     }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> PyResult<u64> {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "unhashable type: 'ParametricQuantumCircuit'",
+        ))
+    }
+
+    #[pyo3(name = "__eq__")]
+    fn py_eq(slf: PyRef<'_, Self>, other: &Bound<'_, PyAny>) -> bool {
+        // Try to extract as ParametricQuantumCircuit first
+        if let Ok(other_pqc) = other.extract::<PyRef<'_, Self>>() {
+            let self_base: &ImmutableParametricQuantumCircuit = &slf.as_super();
+            let other_base: &ImmutableParametricQuantumCircuit = &other_pqc.as_super();
+            return self_base == other_base;
+        }
+
+        // Try to extract as ImmutableParametricQuantumCircuit
+        if let Ok(other_ipqc) = other.extract::<PyRef<'_, ImmutableParametricQuantumCircuit>>() {
+            let self_base: &ImmutableParametricQuantumCircuit = &slf.as_super();
+            return self_base == &*other_ipqc;
+        }
+
+        false
+    }
 }
 
 #[pyclass(

@@ -557,6 +557,31 @@ warnings.warn(
             None,
         )
     }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> PyResult<u64> {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "unhashable type: 'QuantumCircuit'",
+        ))
+    }
+
+    #[pyo3(name = "__eq__")]
+    fn py_eq(slf: PyRef<'_, Self>, other: &Bound<'_, PyAny>) -> bool {
+        // Try to extract as QuantumCircuit first
+        if let Ok(other_qc) = other.extract::<PyRef<'_, Self>>() {
+            let self_base: &ImmutableQuantumCircuit = &slf.as_super();
+            let other_base: &ImmutableQuantumCircuit = &other_qc.as_super();
+            return self_base == other_base;
+        }
+
+        // Try to extract as ImmutableQuantumCircuit
+        if let Ok(other_iqc) = other.extract::<PyRef<'_, ImmutableQuantumCircuit>>() {
+            let self_base: &ImmutableQuantumCircuit = &slf.as_super();
+            return self_base == &*other_iqc;
+        }
+
+        false
+    }
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
