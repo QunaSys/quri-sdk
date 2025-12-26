@@ -22,7 +22,7 @@ def test_draw_latex_superposition() -> None:
     rendered = state.draw(output="latex_source", precision=6)
 
     assert (
-        rendered == "\\frac{1}{\\sqrt{2}}|00\\rangle + \\frac{1}{\\sqrt{2}}|11\\rangle"
+        rendered == "\\frac{\\sqrt{2}}{2}|00\\rangle + \\frac{\\sqrt{2}}{2}|11\\rangle"
     )
 
 
