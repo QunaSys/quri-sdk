@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 import warnings
 from abc import ABC
 from math import comb
@@ -195,24 +196,190 @@ def _format_complex_latex(val: complex, precision: int) -> str:
     return "".join(parts)
 
 
+_IDENTIFICATION_BASE_CONSTANTS = ["pi", "sqrt(2)", "sqrt(3)", "sqrt(5)"]
+_LATEX_NAME_MAP = {"pi": r"\pi", "e": "e"}
+
+
 def _format_component_latex(val: float, precision: int) -> str:
-    """Render a real component with a few common symbolic forms."""
-    common = {
-        (1 / np.sqrt(2)): r"\frac{1}{\sqrt{2}}",
-        -(1 / np.sqrt(2)): r"-\frac{1}{\sqrt{2}}",
-        np.pi / 2: r"\frac{\pi}{2}",
-        -np.pi / 2: r"-\frac{\pi}{2}",
-        np.pi / 4: r"\frac{\pi}{4}",
-        -np.pi / 4: r"-\frac{\pi}{4}",
-        np.pi / 6: r"\frac{\pi}{6}",
-        -np.pi / 6: r"-\frac{\pi}{6}",
-        np.pi / 8: r"\frac{\pi}{8}",
-        -np.pi / 8: r"-\frac{\pi}{8}",
-    }
-    for k, v in common.items():
-        if np.isclose(val, k, atol=10 ** (-(precision + 2))):
-            return v
+    """Render a real component using mpmath-based identifications when
+    possible."""
+    identified = _identify_component_latex(val, precision)
+    if identified is not None:
+        return identified
     return f"{val:.{precision}g}"
+
+
+def _identify_component_latex(val: float, precision: int) -> Optional[str]:
+    """Try to express the value symbolically and convert to LaTeX."""
+    try:
+        from mpmath import mp  # type: ignore[import-untyped]
+    except Exception:
+        return None
+
+    tol = 10 ** (-(precision + 2))
+    prev_dps = mp.dps
+    try:
+        mp.dps = max(prev_dps, precision + 5, 30)
+        expr = mp.identify(mp.mpf(val), _IDENTIFICATION_BASE_CONSTANTS, tol=tol)
+    except Exception:
+        return None
+    finally:
+        mp.dps = prev_dps
+    if not expr:
+        return None
+    try:
+        tree = ast.parse(expr, mode="eval")
+    except Exception:
+        return None
+
+    try:
+        evaluated = _evaluate_identification_ast(tree.body, mp)
+        target = mp.mpf(val)
+        tol_val = mp.mpf(tol)
+        if not mp.almosteq(evaluated, target, rel_eps=tol_val, abs_eps=tol_val):
+            return None
+    except Exception:
+        return None
+
+    return _identification_expr_to_latex(tree.body, precision)
+
+
+def _identification_expr_to_latex(expr: ast.AST, precision: int) -> Optional[str]:
+    """Convert the expression returned by mpmath.identify into LaTeX."""
+    try:
+        latex, _ = _ast_to_latex(expr, precision)
+    except Exception:
+        return None
+    return latex
+
+
+def _evaluate_identification_ast(node: ast.AST, mp: Any) -> Any:
+    """Evaluate the identification AST using the given mpmath context."""
+    if isinstance(node, ast.Constant):
+        return mp.mpf(node.value)
+    if isinstance(node, ast.Name):
+        if node.id == "pi":
+            return mp.pi
+        if node.id == "e":
+            return mp.e
+        raise ValueError(f"Unsupported constant name: {node.id}")
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        return -_evaluate_identification_ast(node.operand, mp)
+    if isinstance(node, ast.BinOp):
+        if isinstance(node.op, ast.Add):
+            return _evaluate_identification_ast(
+                node.left, mp
+            ) + _evaluate_identification_ast(node.right, mp)
+        if isinstance(node.op, ast.Sub):
+            return _evaluate_identification_ast(
+                node.left, mp
+            ) - _evaluate_identification_ast(node.right, mp)
+        if isinstance(node.op, ast.Mult):
+            return _evaluate_identification_ast(
+                node.left, mp
+            ) * _evaluate_identification_ast(node.right, mp)
+        if isinstance(node.op, ast.Div):
+            return _evaluate_identification_ast(
+                node.left, mp
+            ) / _evaluate_identification_ast(node.right, mp)
+        if isinstance(node.op, ast.Pow):
+            return _evaluate_identification_ast(
+                node.left, mp
+            ) ** _evaluate_identification_ast(node.right, mp)
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        args = [_evaluate_identification_ast(arg, mp) for arg in node.args]
+        func = node.func.id
+        if func == "sqrt" and args:
+            return mp.sqrt(args[0])
+        if func == "log" and args:
+            return mp.log(args[0])
+        if func == "exp" and args:
+            return mp.e ** args[0]
+    raise ValueError(f"Unsupported expression: {ast.dump(node)}")
+
+
+def _ast_to_latex(node: ast.AST, precision: int) -> tuple[str, int]:
+    """Recursively convert a restricted AST to a LaTeX string."""
+    if isinstance(node, ast.Constant):
+        val = node.value
+        if isinstance(val, float):
+            return f"{val:.{precision}g}", 5
+        return str(val), 5
+    if isinstance(node, ast.Name):
+        return _LATEX_NAME_MAP.get(node.id, node.id), 5
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        inner, inner_prec = _ast_to_latex(node.operand, precision)
+        return f"-{_parenthesize(inner, inner_prec, 2)}", 4
+    if isinstance(node, ast.BinOp):
+        if isinstance(node.op, ast.Add):
+            left, left_prec = _ast_to_latex(node.left, precision)
+            right, right_prec = _ast_to_latex(node.right, precision)
+            return (
+                f"{_parenthesize(left, left_prec, 1)} + {_parenthesize(right, right_prec, 1)}",
+                1,
+            )
+        if isinstance(node.op, ast.Sub):
+            left, left_prec = _ast_to_latex(node.left, precision)
+            right, right_prec = _ast_to_latex(node.right, precision)
+            return (
+                f"{_parenthesize(left, left_prec, 1)} - {_parenthesize(right, right_prec, 1)}",
+                1,
+            )
+        if isinstance(node.op, ast.Mult):
+            left, left_prec = _ast_to_latex(node.left, precision)
+            right, right_prec = _ast_to_latex(node.right, precision)
+            left = _parenthesize(left, left_prec, 2)
+            right = _parenthesize(right, right_prec, 2)
+            return _combine_multiplication_terms(left, right), 2
+        if isinstance(node.op, ast.Div):
+            numerator, _ = _ast_to_latex(node.left, precision)
+            denominator, _ = _ast_to_latex(node.right, precision)
+            return f"\\frac{{{numerator}}}{{{denominator}}}", 3
+        if isinstance(node.op, ast.Pow):
+            base, base_prec = _ast_to_latex(node.left, precision)
+            exp, exp_prec = _ast_to_latex(node.right, precision)
+            base = _parenthesize(base, base_prec, 3)
+            exp = _parenthesize(exp, exp_prec, 3)
+            return f"{base}^{{{exp}}}", 3
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+        args = [_ast_to_latex(arg, precision) for arg in node.args]
+        func = node.func.id
+        if func == "sqrt" and args:
+            arg, _ = args[0]
+            return f"\\sqrt{{{arg}}}", 4
+        if func == "log" and args:
+            arg, _ = args[0]
+            return f"\\log\\left({arg}\\right)", 4
+        if func == "exp" and args:
+            arg, _ = args[0]
+            return f"e^{{{arg}}}", 4
+    raise ValueError(f"Unsupported expression: {ast.dump(node)}")
+
+
+def _parenthesize(expr: str, child_prec: int, parent_prec: int) -> str:
+    if child_prec < parent_prec:
+        return f"({expr})"
+    return expr
+
+
+def _combine_multiplication_terms(left: str, right: str) -> str:
+    denom = _unit_fraction_denominator(left)
+    if denom is not None:
+        return f"\\frac{{{right}}}{{{denom}}}"
+    denom = _unit_fraction_denominator(right)
+    if denom is not None:
+        return f"\\frac{{{left}}}{{{denom}}}"
+    if left == "1":
+        return right
+    if left == "-1":
+        return f"-{right}"
+    return f"{left}\\,{right}"
+
+
+def _unit_fraction_denominator(expr: str) -> Optional[str]:
+    if expr.startswith("\\frac{1}{") and expr.endswith("}"):
+        return expr[len("\\frac{1}{") : -1]
+    return None
 
 
 def _significant_terms(
@@ -220,8 +387,8 @@ def _significant_terms(
 ) -> list[tuple[int, complex]]:
     idxs = np.where(np.abs(vector) > threshold)[0]
     terms = [(int(idx), complex(vector[idx])) for idx in idxs]
-    # Sort by magnitude descending, then by index for determinism
-    terms.sort(key=lambda t: (-abs(t[1]), t[0]))
+    # # Sort by magnitude descending, then by index for determinism
+    # terms.sort(key=lambda t: (-abs(t[1]), t[0]))
     return terms
 
 
@@ -292,21 +459,21 @@ def _draw_qsphere(
             "Matplotlib is required for 'qsphere' output. Install matplotlib to enable."
         ) from e
     try:
-        import colorcet as cc  # type: ignore[import-untyped]
+        import importlib
 
+        cc = importlib.import_module("colorcet")
         cmap = cc.m_cyclic_mybm_20_100_c48
-        # cmap = plt.get_cmap("hsv")
     except Exception:  # pragma: no cover - import guard
         cmap = plt.get_cmap("hsv")
 
     from matplotlib.colors import Normalize
 
-    fig = plt.figure(figsize=(5, 4))
-    ax = cast(Any, fig.add_subplot(111, projection="3d"))
+    fig = plt.figure(figsize=(6, 4))
+    ax = cast(Any, fig.add_subplot(111, projection="3d", computed_zorder=True))
 
     probs = np.abs(vector) ** 2
     phases = np.angle(vector)
-    phase_norm = Normalize(vmin=-np.pi, vmax=np.pi)
+    phase_norm = Normalize(vmin=0, vmax=2 * np.pi)
 
     # sphere grid
     u = np.linspace(0, 2 * np.pi, 25)
@@ -314,7 +481,7 @@ def _draw_qsphere(
     xs = np.outer(np.cos(u), np.sin(v))
     ys = np.outer(np.sin(u), np.sin(v))
     zs = np.outer(np.ones_like(u), np.cos(v))
-    ax.plot_surface(xs, ys, zs, color="lightgray", alpha=0.2, linewidth=0)
+    ax.plot_surface(xs, ys, zs, color="lightgray", alpha=0.2, linewidth=0, zorder=0)
 
     top_indices = np.argsort(probs)[::-1]
     for i in top_indices:
@@ -322,7 +489,7 @@ def _draw_qsphere(
             continue
         bitstr = format(i, f"0{n_qubits}b")
         x, y, z = _qsphere_coordinates(bitstr, n_qubits)
-        color = (phases[i] + 11 / 8 * np.pi) % (2 * np.pi) - np.pi
+        color = (phases[i] + 2 * np.pi) % (2 * np.pi)
         size = max(20, 800 * probs[i])
 
         ax.scatter(
@@ -335,13 +502,6 @@ def _draw_qsphere(
             cmap=cmap,
             norm=phase_norm,
         )
-        ax.scatter(
-            [x],
-            [y],
-            [z],
-            s=1.0,
-            c="black",
-        )
 
         ax.text(
             1.3 * x,
@@ -350,7 +510,6 @@ def _draw_qsphere(
             f"$|{bitstr}\\rangle$",
             ha="center",
             va="center",
-            fontsize=8,
             color="black",
         )
 
@@ -369,38 +528,29 @@ def _draw_qsphere(
     mappable.set_array([])
     cbar = fig.colorbar(mappable, ax=ax, shrink=0.6, pad=0.05)
     ticks = [
-        -np.pi,
-        -3 * np.pi / 4,
-        -np.pi / 2,
-        -np.pi / 4,
         0,
-        np.pi / 4,
         np.pi / 2,
-        3 * np.pi / 4,
         np.pi,
+        3 * np.pi / 2,
+        2 * np.pi,
     ]
     cbar.set_ticks(ticks)
     cbar.set_ticklabels(
         [
-            r"$-\pi$",
-            r"$-3\pi/4$",
-            r"$-\pi/2$",
-            r"$-\pi/4$",
             r"$0$",
-            r"$\pi/4$",
             r"$\pi/2$",
-            r"$3\pi/4$",
             r"$\pi$",
+            r"$3\pi/2$",
+            r"$2\pi$",
         ]
     )
     cbar.set_label("Phase", rotation=270, labelpad=15)
 
-    # Keep perspective level with the equator and aspect spherical
-    ax.view_init(elev=5, azim=90)
+    ax.view_init(elev=7, azim=80)
     ax.set_box_aspect((1, 1, 1))
-    ax.set_xlim([-1, 1])
-    ax.set_ylim([-1, 1])
-    ax.set_zlim([-1, 1])
+    ax.set_xlim([-0.8, 0.8])
+    ax.set_ylim([-0.8, 0.8])
+    ax.set_zlim([-0.8, 0.8])
 
     ax.set_axis_off()
     fig.tight_layout()
@@ -423,7 +573,6 @@ def _draw_density_matrix(
 
     rho = np.outer(vector, np.conjugate(vector))
     dim = rho.shape[0]
-    max_abs = np.max(np.abs(rho)) or 1.0
 
     fig, axes = plt.subplots(1, 2, figsize=(9, 4))
     labels = [format(i, f"0{n_qubits}b") for i in range(dim)]
@@ -438,8 +587,8 @@ def _draw_density_matrix(
         ax.set_xlim(0, dim)
         ax.set_ylim(0, dim)
         ax.set_title(title)
-        for (r, c), val in np.ndenumerate(data[::-1, :]):
-            magnitude = np.sqrt(abs(val) / max_abs)
+        for (r, c), val in np.ndenumerate(data[:, :]):
+            magnitude = np.sqrt(abs(val))
             if magnitude == 0:
                 continue
             plot_x, plot_y = c + 0.5, r + 0.5
@@ -483,6 +632,14 @@ def _draw_bloch_vector(
         ax.view_init(elev=25, azim=30)
         _render_bloch_vector(ax, bloch_vec)
         ax.set_title(f"Qubit {idx}", fontsize=10)
+
+        # Axes lines
+        ax.plot([-1, 1], [0, 0], [0, 0], color="grey", linewidth=1)
+        ax.plot([0, 0], [-1, 1], [0, 0], color="grey", linewidth=1)
+        ax.plot([0, 0], [0, 0], [-1, 1], color="grey", linewidth=1)
+        ax.text(1.3, 0, 0, "X", color="grey")
+        ax.text(0, 1.1, 0, "Y", color="grey")
+        ax.text(0, 0, 1.1, "Z", color="grey")
 
         # Equator and longitude markers
         theta = np.linspace(0, 2 * np.pi, 400)
@@ -580,14 +737,6 @@ def _render_bloch_vector(ax: Any, bloch_vec: tuple[float, float, float]) -> None
     ax.plot_surface(
         x, y, z, rstride=1, cstride=1, color="lightgray", alpha=0.2, linewidth=0
     )
-
-    # Axes lines
-    ax.plot([-1, 1], [0, 0], [0, 0], color="grey", linewidth=1)
-    ax.plot([0, 0], [-1, 1], [0, 0], color="grey", linewidth=1)
-    ax.plot([0, 0], [0, 0], [-1, 1], color="grey", linewidth=1)
-    ax.text(1.3, 0, 0, "X", color="grey")
-    ax.text(0, 1.1, 0, "Y", color="grey")
-    ax.text(0, 0, 1.1, "Z", color="grey")
 
     class Arrow3D(FancyArrowPatch):
         def __init__(

@@ -18,6 +18,7 @@ except ImportError:  # pragma: no cover - import guard
     pytest.skip("matplotlib not available", allow_module_level=True)
 
 from quri_parts.core.state import QuantumStateVector
+from quri_parts.core.state.state_vector import _format_component_latex
 
 
 def test_qsphere_returns_figure() -> None:
@@ -36,3 +37,14 @@ def test_density_matrix_returns_figure() -> None:
     fig = state.draw(output="density_matrix")
 
     assert isinstance(fig, Figure)
+
+
+def test_format_component_latex_identifies_common_terms() -> None:
+    assert _format_component_latex(np.pi / 4, 6) == r"\frac{\pi}{4}"
+    assert _format_component_latex(-np.pi / 6, 6) == r"-\frac{\pi}{6}"
+    assert _format_component_latex(1 / np.sqrt(3), 6) == r"\frac{\sqrt{3}}{3}"
+
+
+def test_format_component_latex_numeric_fallback() -> None:
+    val = 0.123456
+    assert _format_component_latex(val, 3) == f"{val:.3g}"
