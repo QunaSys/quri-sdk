@@ -239,7 +239,7 @@ impl QuantumGate<Option<f64>> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct GenericGateProperty {
     pub name: String,
@@ -249,20 +249,6 @@ pub struct GenericGateProperty {
     pub params: Vec<f64>,
     pub pauli_ids: Vec<u8>,
     pub unitary_matrix: Option<Vec<Vec<Complex64>>>,
-}
-
-impl Default for GenericGateProperty {
-    fn default() -> Self {
-        Self {
-            name: String::new(),
-            target_indices: Vec::new(),
-            control_indices: Vec::new(),
-            classical_indices: Vec::new(),
-            params: Vec::new(),
-            pauli_ids: Vec::new(),
-            unitary_matrix: None,
-        }
-    }
 }
 
 impl GenericGateProperty {
