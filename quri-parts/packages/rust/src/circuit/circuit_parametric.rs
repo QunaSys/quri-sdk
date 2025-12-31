@@ -438,6 +438,16 @@ impl ImmutableParametricQuantumCircuit {
         Ok(())
     }
 
+    #[pyo3(name = "__repr__")]
+    fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
+        let circuit_drawer =
+            PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
+        let repr = circuit_drawer
+            .getattr("circuit_to_string")?
+            .call1((slf,))?;
+        repr.extract::<String>()
+    }
+
     #[pyo3(name = "__hash__")]
     fn py_hash(&self) -> u64 {
         use std::collections::hash_map::DefaultHasher;

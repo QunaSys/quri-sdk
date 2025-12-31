@@ -22,6 +22,7 @@ from .circuit_parametric import (
 from .gate import ParametricQuantumGate, QuantumGate
 from .parameter import CONST, Parameter
 from .parameter_mapping import LinearParameterMapping, ParameterOrLinearFunction
+from .utils.circuit_drawer import circuit_to_string
 
 
 class ImmutableLinearMappedParametricQuantumCircuit(ParametricQuantumCircuitProtocol):
@@ -68,6 +69,9 @@ class ImmutableLinearMappedParametricQuantumCircuit(ParametricQuantumCircuitProt
 
     def primitive_circuit(self) -> ImmutableParametricQuantumCircuit:
         return self._circuit.freeze()
+
+    def __repr__(self) -> str:
+        return circuit_to_string(self)
 
     def get_mutable_copy(self) -> "LinearMappedParametricQuantumCircuit":
         circuit = LinearMappedParametricQuantumCircuit(

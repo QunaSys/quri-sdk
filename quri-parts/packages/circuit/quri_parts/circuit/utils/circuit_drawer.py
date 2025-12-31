@@ -60,18 +60,10 @@ _GATE_STR_MAP = {
 _GATE_WIDTH = 7
 
 
-def draw_circuit(
+def _render_circuit_lines(
     circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
     line_length: int = 80,
-) -> None:
-    """Circuit drawer which outputs given circuit as an ASCII art to standard
-    streams.
-
-    Args:
-        circuit: Circuit to be output.
-        line_length: Maximum output line length.
-    """
-
+) -> list[str]:
     qubit_count = circuit.qubit_count
     depth = circuit.depth  # depth of the circuit
 
@@ -173,8 +165,30 @@ def draw_circuit(
     else:
         output = circuit_picture
 
-    for line in output:
-        print("".join(line))
+    return ["".join(line) for line in output]
+
+
+def circuit_to_string(
+    circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
+    line_length: int = 80,
+) -> str:
+    """Circuit drawer which returns given circuit as an ASCII art string."""
+    return "\n".join(_render_circuit_lines(circuit, line_length))
+
+
+def draw_circuit(
+    circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
+    line_length: int = 80,
+) -> None:
+    """Circuit drawer which outputs given circuit as an ASCII art to standard
+    streams.
+
+    Args:
+        circuit: Circuit to be output.
+        line_length: Maximum output line length.
+    """
+    for line in _render_circuit_lines(circuit, line_length):
+        print(line)
 
 
 def _generate_gate_aa(
