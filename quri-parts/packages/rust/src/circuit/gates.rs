@@ -3,6 +3,30 @@ use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
 use num_complex::{Complex64, ComplexFloat};
 use pyo3::prelude::*;
+use rayon::prelude::*;
+
+const UNITARY_TOLERANCE: f64 = 1e-5;
+
+fn is_square_matrix(matrix: &[Vec<Complex64>], dim: usize) -> bool {
+    matrix.len() == dim && matrix.iter().all(|row| row.len() == dim)
+}
+
+fn is_unitary_parallel(matrix: &[Vec<Complex64>]) -> bool {
+    let dim = matrix.len();
+    (0..dim).into_par_iter().all(|i| {
+        (0..dim).into_par_iter().all(|j| {
+            let expected = if i == j {
+                Complex64::new(1.0, 0.0)
+            } else {
+                Complex64::new(0.0, 0.0)
+            };
+            let dot = (0..dim)
+                .map(|k| matrix[i][k] * matrix[j][k].conj())
+                .sum::<Complex64>();
+            (dot - expected).norm_sqr() < UNITARY_TOLERANCE
+        })
+    })
+}
 
 #[pyfunction(
     name = "Identity",
@@ -252,64 +276,56 @@ pub fn toffoli(control_index1: usize, control_index2: usize, target_index: usize
 
 #[pyfunction(
     name = "UnitaryMatrix",
-    signature = (target_indices, unitary_matrix),
-    text_signature = "(target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]])",
+    signature = (target_indices, unitary_matrix, skip_unitary_check = false),
+    text_signature = "(target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]], skip_unitary_check: bool = False)",
 )]
 pub fn unitary_matrix(
     target_indices: Vec<usize>,
     unitary_matrix: Vec<Vec<Complex64>>,
+    skip_unitary_check: bool,
 ) -> PyResult<QuantumGate> {
     let dim = 2usize.pow(target_indices.len() as u32);
-    if unitary_matrix.len() == dim && unitary_matrix.iter().all(|v| v.len() == dim) {
-        if (0..dim).all(|i| {
-            (0..dim).all(|j| {
-                ((0..dim)
-                    .map(|k| unitary_matrix[i][k] * unitary_matrix[j][k].conj())
-                    .sum::<Complex64>()
-                    - Complex64::new(Into::<u8>::into(i == j) as f64, 0f64))
-                .abs()
-                    < 1e-5
-            })
-        }) {
-            Ok(QuantumGate::UnitaryMatrix(
-                target_indices.into(),
-                unitary_matrix.into_iter().map(Into::into).collect(),
-            ))
-        } else {
-            Err(pyo3::exceptions::PyValueError::new_err(
-                "The given matrix is not unitary.",
-            ))
-        }
-    } else {
+    if !is_square_matrix(&unitary_matrix, dim) {
         Err(pyo3::exceptions::PyValueError::new_err(
             "The number of qubits does not match the size of the unitary matrix.",
+        ))
+    } else if !skip_unitary_check && !is_unitary_parallel(&unitary_matrix) {
+        Err(pyo3::exceptions::PyValueError::new_err(
+            "The given matrix is not unitary.",
+        ))
+    } else {
+        Ok(QuantumGate::UnitaryMatrix(
+            target_indices.into(),
+            unitary_matrix.into_iter().map(Into::into).collect(),
         ))
     }
 }
 
 #[pyfunction(
     name = "SingleQubitUnitaryMatrix",
-    signature = (target_index, mat),
-    text_signature = "(target_index: int, unitary_matrix: Sequence[Sequence[complex]])",
+    signature = (target_index, mat, skip_unitary_check = false),
+    text_signature = "(target_index: int, unitary_matrix: Sequence[Sequence[complex]], skip_unitary_check: bool = False)",
 )]
 pub fn single_qubit_unitary_matrix(
     target_index: usize,
     mat: Vec<Vec<Complex64>>,
+    skip_unitary_check: bool,
 ) -> PyResult<QuantumGate> {
-    unitary_matrix(vec![target_index], mat)
+    unitary_matrix(vec![target_index], mat, skip_unitary_check)
 }
 
 #[pyfunction(
     name = "TwoQubitUnitaryMatrix",
-    signature = (target_index1, target_index2, mat),
-    text_signature = "(target_index1: int, target_index2: int, unitary_matrix: Sequence[Sequence[complex]])",
+    signature = (target_index1, target_index2, mat, skip_unitary_check = false),
+    text_signature = "(target_index1: int, target_index2: int, unitary_matrix: Sequence[Sequence[complex]], skip_unitary_check: bool = False)",
 )]
 pub fn two_qubit_unitary_matrix(
     target_index1: usize,
     target_index2: usize,
     mat: Vec<Vec<Complex64>>,
+    skip_unitary_check: bool,
 ) -> PyResult<QuantumGate> {
-    unitary_matrix(vec![target_index1, target_index2], mat)
+    unitary_matrix(vec![target_index1, target_index2], mat, skip_unitary_check)
 }
 
 #[pyfunction(
@@ -414,6 +430,7 @@ impl QuantumGate<MaybeUnbound> {
             Self::UnitaryMatrix(qs, mat) => Ok(Ok(unitary_matrix(
                 qs.into(),
                 mat.into_iter().map(Into::into).collect(),
+                false,
             )?)),
             Self::RX(q, p) => match p {
                 MaybeUnbound::Bound(p) => Ok(Ok(rx(q, p))),

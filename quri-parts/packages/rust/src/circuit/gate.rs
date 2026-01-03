@@ -392,15 +392,16 @@ impl GenericGateProperty {
                     && self.pauli_ids.is_empty()
                     && self.unitary_matrix.is_some() =>
             {
-                Ok(crate::circuit::gates::unitary_matrix(
-                    self.target_indices.into(),
-                    self.unitary_matrix
-                        .unwrap()
-                        .into_iter()
-                        .map(|v| v.into())
-                        .collect(),
-                )?
-                .map_param(|_| unreachable!()))
+                let unitary_matrix = self
+                    .unitary_matrix
+                    .unwrap()
+                    .into_iter()
+                    .map(|v| v.into())
+                    .collect();
+                Ok(
+                    QuantumGate::UnitaryMatrix(self.target_indices, unitary_matrix)
+                        .map_param(|_: f64| unreachable!()),
+                )
             }
             "Pauli"
                 if self.control_indices.is_empty()
