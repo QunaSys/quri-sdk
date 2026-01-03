@@ -69,7 +69,7 @@ def test_quantum_state(
     state1 = quantum_state(n_qubits, bits=0b01)
     assert isinstance(state1, ComputationalBasisState)
 
-    circuit = QuantumCircuit(0)
+    circuit = QuantumCircuit(n_qubits)
     state2 = quantum_state(n_qubits, bits=0b01, circuit=circuit)
     assert isinstance(state2, GeneralCircuitQuantumState)
     assert _circuit_quantum_state_mock.call_count == 1
