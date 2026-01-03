@@ -10,7 +10,7 @@ To get an overview of QURI Algo, we recommend checking out the tutorials.
 
 ## Getting started
 
-Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QURI Algo in a virtual environment using poetry or pip directly.
+Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QURI Algo in a virtual environment using poetry or pip directly. If you are working inside the `quri-sdk` monorepo, install dependencies once at the repository root with `poetry install --with dev,lint,typecheck,doc` and run all commands via `poetry run` from there.
 
 For the poetry installation, first make sure to upgrade your pip and virtualenv package. Then create a virtual environment, activate it and within it install poetry
 

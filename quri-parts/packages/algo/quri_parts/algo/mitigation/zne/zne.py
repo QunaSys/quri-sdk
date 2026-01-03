@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, NamedTuple, Optional
+from typing import Callable, NamedTuple, Optional, Sequence
 
 import numpy as np
 from typing_extensions import TypeAlias
@@ -40,7 +40,7 @@ FoldingMethod: TypeAlias = Callable[[ImmutableQuantumCircuit, float], list[int]]
 
 
 #: Interface representing zero noise extrapolation methods
-ZeroExtrapolationMethod: TypeAlias = Callable[[Iterable[float], Iterable[float]], float]
+ZeroExtrapolationMethod: TypeAlias = Callable[[Sequence[float], Sequence[float]], float]
 
 
 #: Interface representing scaling methods of circuit
@@ -165,7 +165,7 @@ def create_polynomial_extrapolate(order: int) -> ZeroExtrapolationMethod:
     """
 
     def polynomial_extrapolate(
-        scale_factors: Iterable[float], exp_values: Iterable[float]
+        scale_factors: Sequence[float], exp_values: Sequence[float]
     ) -> float:
         opt_result = polynomial_fitting(scale_factors, exp_values, order, 0)
         return opt_result.parameters[0]
@@ -183,8 +183,8 @@ def create_exp_extrapolate(order: int) -> ZeroExtrapolationMethod:
     """
 
     def exp_extrapolate(
-        scale_factors: Iterable[float],
-        exp_values: Iterable[float],
+        scale_factors: Sequence[float],
+        exp_values: Sequence[float],
     ) -> float:
         return exp_fitting(scale_factors, exp_values, order, 0).value
 
@@ -206,8 +206,8 @@ def create_exp_extrapolate_with_const(
     """
 
     def exp_extrapolate_with_const(
-        scale_factors: Iterable[float],
-        exp_values: Iterable[float],
+        scale_factors: Sequence[float],
+        exp_values: Sequence[float],
     ) -> float:
         opt_result = exp_fitting_with_const(
             scale_factors, exp_values, order, constant, 0
@@ -232,8 +232,8 @@ def create_exp_extrapolate_with_const_log(
     """
 
     def exp_extrapolate_with_const_log(
-        scale_factors: Iterable[float],
-        exp_values: Iterable[float],
+        scale_factors: Sequence[float],
+        exp_values: Sequence[float],
     ) -> float:
         opt_result = exp_fitting_with_const_log(
             scale_factors, exp_values, order, constant, 0
@@ -247,7 +247,7 @@ def zne(
     obs: Estimatable,
     circuit: ImmutableQuantumCircuit,
     estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
-    scale_factors: Iterable[float],
+    scale_factors: Sequence[float],
     extrapolate_method: ZeroExtrapolationMethod,
     folding_method: FoldingMethod,
 ) -> float:
@@ -271,7 +271,7 @@ def zne(
                 "Only the case that obs is a Hermitian has been implemented."
             )
 
-    exp_values: Iterable[float] = []
+    exp_values: Sequence[float] = []
     circuit_states = []
     for i in scale_factors:
         scaled_circuit = scaling_circuit_folding(circuit, i, folding_method)
@@ -287,7 +287,7 @@ def richardson_extrapolation(
     obs: Estimatable,
     circuit: ImmutableQuantumCircuit,
     estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
-    scale_factors: Iterable[float],
+    scale_factors: Sequence[float],
     folding_method: FoldingMethod,
 ) -> float:
     """Returns an error-mitigated expectation value of an observable by using
@@ -314,7 +314,7 @@ def richardson_extrapolation(
 
 def create_zne_estimator(
     estimator: ConcurrentQuantumEstimator[GeneralCircuitQuantumState],
-    scale_factors: Iterable[float],
+    scale_factors: Sequence[float],
     extrapolate_method: ZeroExtrapolationMethod,
     folding_method: FoldingMethod,
 ) -> QuantumEstimator[GeneralCircuitQuantumState]:

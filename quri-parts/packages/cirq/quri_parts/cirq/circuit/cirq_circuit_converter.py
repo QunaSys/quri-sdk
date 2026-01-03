@@ -67,6 +67,11 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
 
     for operation in cirq_circuit.all_operations():
         gate = operation.gate
+        if gate is None:
+            raise ValueError(
+                "Cannot convert Cirq operation to QURI Parts circuit without a gate."
+            )
+            continue
         if gate in _single_qubit_gate_quri_parts:
             circuit.add_gate(
                 QuantumGate(

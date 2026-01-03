@@ -4,15 +4,14 @@ on:
   pull_request:
     paths:
       - quri-parts/packages/**/*.py
-      - quri-parts/poetry.lock
       - quri-parts/mypy.ini
+      - quri-parts/pyproject.toml
+      - pyproject.toml
+      - poetry.lock
       - .github/workflows/quri-parts-typecheck.yml
+      - .github/actions/python-poetry-install/action.yml
   push:
     branches: [main]
-
-defaults:
-  run:
-    working-directory: quri-parts
 
 jobs:
   typecheck:
@@ -25,26 +24,34 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/quri-parts/python-poetry-install
+    - uses: ./.github/actions/python-poetry-install
       with:
-        poetry-version: '1.4.0'
+        poetry-version: '1.8.5'
         python-version: ${{ matrix.python_version }}
 
-    - run: |
+    - name: Cache Poetry environment
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/pypoetry
+          .venv
+        key: poetry-${{ runner.os }}-py${{ matrix.python_version }}-quri-parts-type-${{ hashFiles('poetry.lock') }}
+
+    - name: Install dependencies
+      run: |
         poetry env use ${{ matrix.python_version }}
-        poetry run pip install -vvv -e packages/rust
-        poetry install -vvv --only main,dev,typecheck
+        poetry install --with dev,typecheck --sync
 
     - name: Cache mypy cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
-        path: .mypy_cache
-        key: mypy-${{ runner.os }}-${{ matrix.python_version }}-${{ hashFiles('**/*.py') }}
+        path: quri-parts/.mypy_cache
+        key: mypy-${{ runner.os }}-${{ matrix.python_version }}-${{ hashFiles('quri-parts/**/*.py') }}
         restore-keys: |
           mypy-${{ runner.os }}-${{ matrix.python_version }}-
 
-    - run: |
-        poetry run mypy .
+    - name: Run mypy
+      run: poetry run mypy quri-parts
       if: success() || failure()

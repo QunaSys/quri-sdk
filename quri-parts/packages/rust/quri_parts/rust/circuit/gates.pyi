@@ -28,13 +28,20 @@ def TOFFOLI(
     control_index1: int, control_index2: int, target_index: int
 ) -> QuantumGate: ...
 def UnitaryMatrix(
-    target_indices: Sequence[int], unitary_matrix: Sequence[Sequence[complex]]
+    target_indices: Sequence[int],
+    unitary_matrix: Sequence[Sequence[complex]],
+    skip_unitary_check: bool = ...,
 ) -> QuantumGate: ...
 def SingleQubitUnitaryMatrix(
-    target_index: int, unitary_matrix: Sequence[Sequence[complex]]
+    target_index: int,
+    unitary_matrix: Sequence[Sequence[complex]],
+    skip_unitary_check: bool = ...,
 ) -> QuantumGate: ...
 def TwoQubitUnitaryMatrix(
-    target_index1: int, target_index2: int, unitary_matrix: Sequence[Sequence[complex]]
+    target_index1: int,
+    target_index2: int,
+    unitary_matrix: Sequence[Sequence[complex]],
+    skip_unitary_check: bool = ...,
 ) -> QuantumGate: ...
 def Pauli(target_indices: Sequence[int], pauli_ids: Sequence[int]) -> QuantumGate: ...
 def PauliRotation(

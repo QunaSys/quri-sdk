@@ -11,11 +11,8 @@
 from collections.abc import Collection, Sequence
 from typing import TYPE_CHECKING, Optional, TypeAlias
 
-from qulacsvis.models.circuit import (  # type: ignore
-    CircuitData,
-    ControlQubitInfo,
-    GateData,
-)
+from qulacsvis.models.circuit import CircuitData  # type: ignore
+from qulacsvis.models.circuit import ControlQubitInfo, GateData
 from qulacsvis.visualization import MPLCircuitlDrawer  # type: ignore
 
 from quri_parts.qsub.lib.std import CNOT, CZ, Controlled, MultiControlled, Toffoli

@@ -130,6 +130,19 @@ impl ImmutableQuantumCircuit {
             .unwrap_or(slf.py().NotImplemented())
     }
 
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        self.qubit_count.to_le_bytes().hash(&mut hasher);
+        self.cbit_count.to_le_bytes().hash(&mut hasher);
+        for gate in &self.gates.0 {
+            crate::circuit::gate::py_hash(gate).hash(&mut hasher);
+        }
+        hasher.finish()
+    }
+
     fn freeze(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
         if slf.borrow().is_immutable {
             Ok(slf)
@@ -454,7 +467,7 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix)?,
+            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix, false)?,
             None,
         )
     }
@@ -467,7 +480,11 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
+            crate::circuit::gates::single_qubit_unitary_matrix(
+                target_index,
+                unitary_matrix,
+                false,
+            )?,
             None,
         )
     }
@@ -485,6 +502,7 @@ warnings.warn(
                 target_index1,
                 target_index2,
                 unitary_matrix,
+                false,
             )?,
             None,
         )
