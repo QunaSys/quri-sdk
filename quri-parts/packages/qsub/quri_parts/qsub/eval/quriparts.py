@@ -208,7 +208,8 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
                 *gate.control_indices,
                 *gate.target_indices,
             )
-        circ = QuantumCircuit(qubit_index + 1)
+        allocated_qubits = self._allocator.total() if self._allocator is not None else 0
+        circ = QuantumCircuit(max(qubit_index + 1, allocated_qubits))
         circ.extend(self._gates)
         return circ
 

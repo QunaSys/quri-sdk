@@ -392,15 +392,16 @@ impl GenericGateProperty {
                     && self.pauli_ids.is_empty()
                     && self.unitary_matrix.is_some() =>
             {
-                Ok(crate::circuit::gates::unitary_matrix(
-                    self.target_indices.into(),
-                    self.unitary_matrix
-                        .unwrap()
-                        .into_iter()
-                        .map(|v| v.into())
-                        .collect(),
-                )?
-                .map_param(|_| unreachable!()))
+                let unitary_matrix = self
+                    .unitary_matrix
+                    .unwrap()
+                    .into_iter()
+                    .map(|v| v.into())
+                    .collect();
+                Ok(
+                    QuantumGate::UnitaryMatrix(self.target_indices, unitary_matrix)
+                        .map_param(|_: f64| unreachable!()),
+                )
             }
             "Pauli"
                 if self.control_indices.is_empty()
@@ -467,6 +468,60 @@ where
     }
     lhs.clone().all(|q| rhs.clone().find(|r| *r == q).is_some())
         && rhs.all(|q| lhs.clone().find(|r| *r == q).is_some())
+}
+
+pub(crate) fn py_hash(gate: &QuantumGate) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    let mut hasher = DefaultHasher::new();
+    let data = gate.clone().map_param(Some).into_property();
+    data.name.hash(&mut hasher);
+    data.target_indices.hash(&mut hasher);
+    data.control_indices.hash(&mut hasher);
+    data.classical_indices.hash(&mut hasher);
+    for p in data.params.iter() {
+        p.to_le_bytes().hash(&mut hasher);
+    }
+    data.pauli_ids.hash(&mut hasher);
+    if let Some(matrix) = &data.unitary_matrix {
+        for p in matrix.iter() {
+            for q in p.iter() {
+                q.re.to_le_bytes().hash(&mut hasher);
+                q.im.to_le_bytes().hash(&mut hasher);
+            }
+        }
+    }
+    hasher.finish()
+}
+
+pub(crate) fn py_hash_maybe_unbound(gate: &QuantumGate<crate::circuit::MaybeUnbound>) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+    let mut hasher = DefaultHasher::new();
+    let data = gate
+        .clone()
+        .map_param(|p| match p {
+            crate::circuit::MaybeUnbound::Bound(value) => Some(value),
+            crate::circuit::MaybeUnbound::Unbound(_) => None,
+        })
+        .into_property();
+    data.name.hash(&mut hasher);
+    data.target_indices.hash(&mut hasher);
+    data.control_indices.hash(&mut hasher);
+    data.classical_indices.hash(&mut hasher);
+    for p in data.params.iter() {
+        p.to_le_bytes().hash(&mut hasher);
+    }
+    data.pauli_ids.hash(&mut hasher);
+    if let Some(matrix) = &data.unitary_matrix {
+        for p in matrix.iter() {
+            for q in p.iter() {
+                q.re.to_le_bytes().hash(&mut hasher);
+                q.im.to_le_bytes().hash(&mut hasher);
+            }
+        }
+    }
+    hasher.finish()
 }
 
 #[test]
@@ -673,27 +728,7 @@ mod wrapper {
 
         #[pyo3(name = "__hash__")]
         pub(crate) fn py_hash(&self) -> u64 {
-            use std::collections::hash_map::DefaultHasher;
-            use std::hash::{Hash, Hasher};
-            let mut hasher = DefaultHasher::new();
-            let data = self.0.clone().map_param(Some).into_property();
-            data.name.hash(&mut hasher);
-            data.target_indices.hash(&mut hasher);
-            data.control_indices.hash(&mut hasher);
-            data.classical_indices.hash(&mut hasher);
-            for p in data.params.iter() {
-                p.to_le_bytes().hash(&mut hasher);
-            }
-            data.pauli_ids.hash(&mut hasher);
-            if let Some(matrix) = &data.unitary_matrix {
-                for p in matrix.iter() {
-                    for q in p.iter() {
-                        q.re.to_le_bytes().hash(&mut hasher);
-                        q.im.to_le_bytes().hash(&mut hasher);
-                    }
-                }
-            }
-            hasher.finish()
+            super::py_hash(&self.0)
         }
 
         #[pyo3(name = "__eq__")]

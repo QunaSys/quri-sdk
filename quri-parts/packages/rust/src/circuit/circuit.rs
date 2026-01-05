@@ -118,16 +118,47 @@ impl ImmutableQuantumCircuit {
 
     #[pyo3(text_signature = "(gates: ImmutableQuantumCircuit | Sequence[QuantumGate])")]
     fn combine(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<Py<QuantumCircuit>> {
+        if let Ok(other) = gates.downcast::<ImmutableQuantumCircuit>() {
+            let other_qubit_count = other.borrow().qubit_count;
+            let self_qubit_count = { slf.borrow().qubit_count };
+            if other_qubit_count != self_qubit_count {
+                return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                    "Cannot combine circuits with different qubit counts ({self_qubit_count} and {other_qubit_count})",
+                )));
+            }
+        }
         let ret = Self::get_mutable_copy(slf)?;
         QuantumCircuit::extend(ret.bind(slf.py()), gates)?;
         Ok(ret)
     }
 
     #[pyo3(name = "__add__")]
-    fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyObject {
-        Self::combine(slf, gates)
-            .map(|c| c.into_py(slf.py()))
-            .unwrap_or(slf.py().NotImplemented())
+    fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<PyObject> {
+        let py = slf.py();
+        match Self::combine(slf, gates) {
+            Ok(circuit) => Ok(circuit.into_py(py)),
+            Err(err) => {
+                // propagate mismatched qubit error (or any other Value Error)
+                if err.is_instance_of::<pyo3::exceptions::PyValueError>(py) {
+                    Err(err)
+                } else {
+                    Ok(py.NotImplemented())
+                }
+            }
+        }
+    }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        self.qubit_count.to_le_bytes().hash(&mut hasher);
+        self.cbit_count.to_le_bytes().hash(&mut hasher);
+        for gate in &self.gates.0 {
+            crate::circuit::gate::py_hash(gate).hash(&mut hasher);
+        }
+        hasher.finish()
     }
 
     fn freeze(slf: Bound<'_, Self>) -> PyResult<Bound<'_, Self>> {
@@ -454,7 +485,7 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix)?,
+            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix, false)?,
             None,
         )
     }
@@ -467,7 +498,11 @@ warnings.warn(
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
+            crate::circuit::gates::single_qubit_unitary_matrix(
+                target_index,
+                unitary_matrix,
+                false,
+            )?,
             None,
         )
     }
@@ -485,6 +520,7 @@ warnings.warn(
                 target_index1,
                 target_index2,
                 unitary_matrix,
+                false,
             )?,
             None,
         )
