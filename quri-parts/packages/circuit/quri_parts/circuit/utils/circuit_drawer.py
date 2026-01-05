@@ -17,13 +17,10 @@ from typing import Any, Sequence, Union
 import numpy as np
 import numpy.typing as npt
 
-from quri_parts.circuit import (
-    ImmutableQuantumCircuit,
-    ParametricQuantumCircuitProtocol,
-    ParametricQuantumGate,
-    QuantumGate,
-    gate_names,
-)
+from .. import gate_names
+from ..circuit import ImmutableQuantumCircuit
+from ..circuit_parametric import ParametricQuantumCircuitProtocol
+from ..gate import ParametricQuantumGate, QuantumGate
 
 _GATE_STR_MAP = {
     gate_names.X: " X ",
