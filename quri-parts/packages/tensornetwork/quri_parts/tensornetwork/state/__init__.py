@@ -23,6 +23,7 @@ from quri_parts.tensornetwork.circuit import (
 )
 from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 
+
 class MultiMappedNode(AbstractNode):  # type: ignore
     """This is a convenience class for tensors representing multiple qubits.
 
@@ -43,35 +44,49 @@ class MultiMappedNode(AbstractNode):  # type: ignore
                 e.node1 = self
             if e.node2 == self.node:
                 e.node2 = self
-        
+
         self.name = name
         if input_qubit_edge_mapping:
             self.input_qubit_edge_mapping = {}
             for qb in input_qubit_edge_mapping:
                 if input_qubit_edge_mapping[qb].node1 == self:
-                    self.input_qubit_edge_mapping[qb] = self[input_qubit_edge_mapping[qb].axis1]
+                    self.input_qubit_edge_mapping[qb] = self[
+                        input_qubit_edge_mapping[qb].axis1
+                    ]
                 if input_qubit_edge_mapping[qb].node2 == self:
-                    self.input_qubit_edge_mapping[qb] = self[input_qubit_edge_mapping[qb].axis2]
+                    self.input_qubit_edge_mapping[qb] = self[
+                        input_qubit_edge_mapping[qb].axis2
+                    ]
         else:
             self.input_qubit_edge_mapping = None
         if output_qubit_edge_mapping:
             self.output_qubit_edge_mapping = {}
             for qb in output_qubit_edge_mapping:
                 if output_qubit_edge_mapping[qb].node1 == self:
-                    self.output_qubit_edge_mapping[qb] = self[output_qubit_edge_mapping[qb].axis1]
+                    self.output_qubit_edge_mapping[qb] = self[
+                        output_qubit_edge_mapping[qb].axis1
+                    ]
                 if output_qubit_edge_mapping[qb].node2 == self:
-                    self.output_qubit_edge_mapping[qb] = self[output_qubit_edge_mapping[qb].axis2]
+                    self.output_qubit_edge_mapping[qb] = self[
+                        output_qubit_edge_mapping[qb].axis2
+                    ]
         else:
             self.output_qubit_edge_mapping = None
         assert self.input_qubit_edge_mapping or self.output_qubit_edge_mapping
         if self.input_qubit_edge_mapping and self.output_qubit_edge_mapping:
-            assert list(self.input_qubit_edge_mapping.keys()) == list(self.output_qubit_edge_mapping.keys())
-        self.qubit_indices = list(self.input_qubit_edge_mapping.keys()) if self.input_qubit_edge_mapping else list(self.output_qubit_edge_mapping.keys())
-    
+            assert list(self.input_qubit_edge_mapping.keys()) == list(
+                self.output_qubit_edge_mapping.keys()
+            )
+        self.qubit_indices = (
+            list(self.input_qubit_edge_mapping.keys())
+            if self.input_qubit_edge_mapping
+            else list(self.output_qubit_edge_mapping.keys())
+        )
+
     @property
     def dtype(self) -> Tensor:
         return self.node.dtype
-    
+
     def check_left(self, e: Edge) -> Optional[Edge]:
         if e.node1 != self:
             n = e.node1
@@ -82,7 +97,7 @@ class MultiMappedNode(AbstractNode):  # type: ignore
         if isinstance(n, MultiMappedNode):
             if max(n.qubit_indices) == min(self.qubit_indices) - 1:
                 return e
-    
+
     def check_right(self, e: Edge) -> Optional[Edge]:
         if e.node1 != self:
             n = e.node1
@@ -122,22 +137,34 @@ class MultiMappedNode(AbstractNode):  # type: ignore
             input_mapping = {}
             for qb in self.input_qubit_edge_mapping:
                 if self.input_qubit_edge_mapping[qb].node1 == self:
-                    input_mapping[qb] = node_copy[self.input_qubit_edge_mapping[qb].axis1]
+                    input_mapping[qb] = node_copy[
+                        self.input_qubit_edge_mapping[qb].axis1
+                    ]
                 elif self.input_qubit_edge_mapping[qb].node2 == self:
-                    input_mapping[qb] = node_copy[self.input_qubit_edge_mapping[qb].axis2]
+                    input_mapping[qb] = node_copy[
+                        self.input_qubit_edge_mapping[qb].axis2
+                    ]
                 else:
-                    raise ValueError(f"The node {self} has edges that are not connectd to it")
+                    raise ValueError(
+                        f"The node {self} has edges that are not connectd to it"
+                    )
         else:
             input_mapping = None
         if self.output_qubit_edge_mapping:
             output_mapping = {}
             for qb in self.output_qubit_edge_mapping:
                 if self.output_qubit_edge_mapping[qb].node1 == self:
-                    output_mapping[qb] = node_copy[self.output_qubit_edge_mapping[qb].axis1]
+                    output_mapping[qb] = node_copy[
+                        self.output_qubit_edge_mapping[qb].axis1
+                    ]
                 elif self.input_qubit_edge_mapping[qb].node2 == self:
-                    output_mapping[qb] = node_copy[self.output_qubit_edge_mapping[qb].axis2]
+                    output_mapping[qb] = node_copy[
+                        self.output_qubit_edge_mapping[qb].axis2
+                    ]
                 else:
-                    raise ValueError(f"The node {self} has edges that are not connectd to it")
+                    raise ValueError(
+                        f"The node {self} has edges that are not connectd to it"
+                    )
         else:
             output_mapping = None
         mapped_node = MultiMappedNode(
@@ -238,7 +265,6 @@ class MultiMappedNode(AbstractNode):  # type: ignore
         raise NotImplementedError("Serializing nodes is not supported for MappedNode")
 
 
-
 class MappedNode(MultiMappedNode):  # type: ignore
     """This is a convenience class for single tensors in an MPS or MPO.
 
@@ -290,7 +316,6 @@ class MappedNode(MultiMappedNode):  # type: ignore
         else:
             raise ValueError(f"Mappednode {self} does not have an output edge.")
 
-
     def copy(self, conjugate: bool = False) -> "MappedNode":
         """Returns a copy of itself."""
         node_copy = self.node.copy(conjugate)
@@ -302,6 +327,7 @@ class MappedNode(MultiMappedNode):  # type: ignore
             self.name,
         )
         return mapped_node
+
 
 class TensorNetworkState(NodeCollection):  # type: ignore
     """Tensor network representation of a quantum state.

@@ -8,8 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection, Sequence
-from copy import copy
+from collections.abc import Collection, MutableSequence, Sequence
 from functools import reduce
 from typing import Any, Literal, Mapping, Optional, Union
 
@@ -43,14 +42,14 @@ class TensorNetworkOperator(TensorNetworkLayer):
 
     def __init__(
         self,
-        index_list: Sequence[int],
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        tensor_map: Sequence[Mapping[int, AbstractNode]],
+        layer_tensor_map: MutableSequence[Mapping[int, AbstractNode]],
     ):
-        self.index_list = index_list
-        super().__init__(input_edges, output_edges, container, tensor_map)
+        all_index_lists = [set(m.keys()) for m in layer_tensor_map]
+        self.index_list = list(reduce(set.union, all_index_lists))
+        super().__init__(input_edges, output_edges, container, layer_tensor_map)
 
     def copy(self) -> "TensorNetworkOperator":
         """Returns a copy of itself."""
@@ -66,7 +65,6 @@ class TensorNetworkOperator(TensorNetworkLayer):
         ]
 
         return TensorNetworkOperator(
-            copy(self.index_list),
             operator_input_edges,
             operator_output_edges,
             operator_nodes,
@@ -195,7 +193,6 @@ def tensor_to_mpo(
     nodes.add(right_node)
 
     return TensorNetworkOperator(
-        operator_copy.index_list,
         operator_copy.input_edges,
         operator_copy.output_edges,
         nodes,
@@ -255,7 +252,7 @@ def operator_to_tensor(
     op = Node(data, backend=backend)
     tensor_map = {q: op for q in all_indices_list}
     tensor = TensorNetworkOperator(
-        all_indices_list, op[:qubit_count], op[qubit_count:], {op}, [tensor_map]
+        op[:qubit_count], op[qubit_count:], {op}, [tensor_map]
     )
 
     if convert_to_mpo:
