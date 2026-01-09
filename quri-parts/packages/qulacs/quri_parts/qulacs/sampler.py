@@ -10,6 +10,7 @@
 
 from collections import Counter
 from collections.abc import Callable, Iterable
+from functools import partial
 from typing import TYPE_CHECKING, Any, Optional
 
 import qulacs
@@ -25,6 +26,7 @@ from quri_parts.core.sampling import (
 from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.core.utils.concurrent import execute_concurrently
 
+from ._backend import DEFAULT_BACKEND, QulacsBackend
 from .circuit.noise import convert_circuit_with_noise_model
 from .simulator import (
     create_qulacs_density_matrix_state_sampler,
@@ -38,81 +40,82 @@ from .types import QulacsParametricStateT, QulacsStateT
 if TYPE_CHECKING:
     from concurrent.futures import Executor
 
-_state_vector_sampler = create_qulacs_vector_state_sampler()
-_ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
 
-
-def _sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
-    state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
-    return _state_vector_sampler(state, shots)
-
-
-def _ideal_sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
-    state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
-    return _ideal_vector_sampler(state, shots)
-
-
-def create_qulacs_vector_ideal_sampler() -> Sampler:
+def create_qulacs_vector_ideal_sampler(
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     returning the probabilities multiplied by the specific shot count."""
+    ideal_state_sampler = create_qulacs_ideal_vector_state_sampler(backend)
+
+    def _ideal_sample(
+        circuit: ImmutableQuantumCircuit, shots: int
+    ) -> MeasurementCounts:
+        state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
+        return ideal_state_sampler(state, shots)
+
     return _ideal_sample
 
 
-def create_qulacs_vector_sampler() -> Sampler:
+def create_qulacs_vector_sampler(
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs vector simulator for
     sampling."""
+    state_sampler = create_qulacs_vector_state_sampler(backend)
+
+    def _sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
+        state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
+        return state_sampler(state, shots)
+
     return _sample
 
 
-def _sample_sequentially(
-    _: Any, circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
-) -> Iterable[MeasurementCounts]:
-    return [_sample(circuit, shots) for circuit, shots in circuit_shots_tuples]
-
-
-def _sample_concurrently(
-    circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]],
-    executor: Optional["Executor"],
-    concurrency: int = 1,
-) -> Iterable[MeasurementCounts]:
-    return execute_concurrently(
-        _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
-    )
-
-
 def create_qulacs_vector_concurrent_sampler(
-    executor: Optional["Executor"] = None, concurrency: int = 1
+    executor: Optional["Executor"] = None,
+    concurrency: int = 1,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs vector simulator
     for sampling."""
+    sampler = create_qulacs_vector_sampler(backend)
 
-    def sampler(
+    def _sample_sequentially(
+        _: Any, circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
+    ) -> Iterable[MeasurementCounts]:
+        return [sampler(circuit, shots) for circuit, shots in circuit_shots_tuples]
+
+    def _sample_concurrently(
         circuit_shots_tuples: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
-        return _sample_concurrently(circuit_shots_tuples, executor, concurrency)
+        return execute_concurrently(
+            _sample_sequentially, None, circuit_shots_tuples, executor, concurrency
+        )
 
-    return sampler
+    return _sample_concurrently
 
 
-def create_qulacs_general_vector_sampler() -> (
-    GeneralSampler[QulacsStateT, QulacsParametricStateT]
-):
+def create_qulacs_general_vector_sampler(
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     """Creates a Qulacs :class:`GeneralSampler`"""
-    sampler = create_qulacs_vector_sampler()
-    state_sampler = create_qulacs_vector_state_sampler()
+    sampler = create_qulacs_vector_sampler(backend)
+    state_sampler = create_qulacs_vector_state_sampler(backend)
     return GeneralSampler(sampler, state_sampler)
 
 
-def create_qulacs_general_vector_ideal_sampler() -> (
-    GeneralSampler[QulacsStateT, QulacsParametricStateT]
-):
+def create_qulacs_general_vector_ideal_sampler(
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     """Creates an ideal Qulacs :class:`GeneralSampler`"""
-    sampler = create_qulacs_vector_ideal_sampler()
-    state_sampler = create_qulacs_ideal_vector_state_sampler()
+    sampler = create_qulacs_vector_ideal_sampler(backend)
+    state_sampler = create_qulacs_ideal_vector_state_sampler(backend)
     return GeneralSampler(sampler, state_sampler)
 
 
-def create_qulacs_stochastic_state_vector_sampler(model: NoiseModel) -> Sampler:
+def create_qulacs_stochastic_state_vector_sampler(
+    model: NoiseModel,
+) -> Sampler:
     """Returns a :class:`~Sampler` that repeats Qulacs state vector simulation
     for shot times with noise model."""
 
@@ -133,11 +136,14 @@ def create_qulacs_stochastic_state_vector_sampler(model: NoiseModel) -> Sampler:
     return _sample_with_noise
 
 
-def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
+def create_qulacs_density_matrix_sampler(
+    model: NoiseModel,
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs simulator using density
     matrix with noise model."""
 
-    state_sampler = create_qulacs_density_matrix_state_sampler(model)
+    state_sampler = create_qulacs_density_matrix_state_sampler(model, backend)
 
     def _sample_with_noise(
         circuit: ImmutableQuantumCircuit, shots: int
@@ -148,12 +154,17 @@ def create_qulacs_density_matrix_sampler(model: NoiseModel) -> Sampler:
     return _sample_with_noise
 
 
-def create_qulacs_density_matrix_ideal_sampler(model: NoiseModel) -> Sampler:
+def create_qulacs_density_matrix_ideal_sampler(
+    model: NoiseModel,
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs simulator using density
     matrix with noise model and provides the exact probabilities multiplied
     with the shot count."""
 
-    ideal_state_sampler = create_qulacs_ideal_density_matrix_state_sampler(model)
+    ideal_state_sampler = create_qulacs_ideal_density_matrix_state_sampler(
+        model, backend
+    )
 
     def _sample_with_noise(
         circuit: ImmutableQuantumCircuit, shots: int
@@ -168,9 +179,10 @@ def create_qulacs_density_matrix_general_sampler(
     model: NoiseModel,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
-    sampler = create_qulacs_density_matrix_sampler(model)
-    state_sampler = create_qulacs_density_matrix_state_sampler(model)
+    sampler = create_qulacs_density_matrix_sampler(model, backend)
+    state_sampler = create_qulacs_density_matrix_state_sampler(model, backend)
     return GeneralSampler(sampler, state_sampler)
 
 
@@ -178,16 +190,20 @@ def create_qulacs_ideal_density_matrix_general_sampler(
     model: NoiseModel,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
-    sampler = create_qulacs_density_matrix_ideal_sampler(model)
-    state_sampler = create_qulacs_ideal_density_matrix_state_sampler(model)
+    sampler = create_qulacs_density_matrix_ideal_sampler(model, backend)
+    state_sampler = create_qulacs_ideal_density_matrix_state_sampler(model, backend)
     return GeneralSampler(sampler, state_sampler)
 
 
-def create_qulacs_noisesimulator_sampler(model: NoiseModel) -> Sampler:
+def create_qulacs_noisesimulator_sampler(
+    model: NoiseModel,
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> Sampler:
     """Returns a :class:`~Sampler` that uses Qulacs NoiseSimulator."""
 
-    state_sampler = create_qulacs_noisesimulator_state_sampler(model)
+    state_sampler = create_qulacs_noisesimulator_state_sampler(model, backend)
 
     def _sample_with_noise(
         circuit: ImmutableQuantumCircuit, shots: int
@@ -228,12 +244,13 @@ def create_qulacs_density_matrix_concurrent_sampler(
     model: NoiseModel,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs simulator using
     density matrix with noise model for sampling."""
 
     return _create_qulacs_concurrent_sampler_with_noise_model(
-        create_qulacs_density_matrix_sampler,
+        partial(create_qulacs_density_matrix_sampler, backend=backend),
         model,
         executor,
         concurrency,
@@ -260,12 +277,13 @@ def create_qulacs_noisesimulator_concurrent_sampler(
     model: NoiseModel,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentSampler:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs
     NoiseSimulator."""
 
     return _create_qulacs_concurrent_sampler_with_noise_model(
-        create_qulacs_noisesimulator_sampler,
+        partial(create_qulacs_noisesimulator_sampler, backend=backend),
         model,
         executor,
         concurrency,
@@ -276,8 +294,9 @@ def create_qulacs_noisesimulator_general_sampler(
     model: NoiseModel,
     executor: Optional["Executor"] = None,
     concurrency: int = 1,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     """A :class:`~GeneralSampler` based on qulacs NoiseSimulator."""
-    sampler = create_qulacs_noisesimulator_sampler(model)
-    state_sampler = create_qulacs_noisesimulator_state_sampler(model)
+    sampler = create_qulacs_noisesimulator_sampler(model, backend)
+    state_sampler = create_qulacs_noisesimulator_state_sampler(model, backend)
     return GeneralSampler(sampler, state_sampler)
