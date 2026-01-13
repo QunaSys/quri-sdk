@@ -19,6 +19,7 @@ from typing_extensions import TypeAlias
 
 import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
+from quri_parts.tensornetwork.state import TensorNetworkState
 from tensornetwork import AbstractNode, Edge, Node, split_node
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
@@ -70,6 +71,35 @@ class TensorNetworkOperator(TensorNetworkLayer):
             operator_nodes,
             tensor_map,
         )
+    
+    def contract_with(self, state: TensorNetworkState) -> AbstractNode:
+        copy_state = state.copy()
+        conj_state = copy_state.conjugate()
+        copy_operator = self.copy()
+        operator_ordered_indices = sorted(list(self.index_list))
+
+        for i, (e, h) in enumerate(
+            zip(
+                copy_state.edges,
+                conj_state.edges,
+            )
+        ):
+            if i in self.index_list:
+                indx = operator_ordered_indices.index(i)
+                f = copy_operator.input_edges[indx]
+                g = copy_operator.output_edges[indx]
+                e ^ f
+                g ^ h
+            else:
+                e ^ h
+
+        contracted_node = tn.contractors.greedy(
+            copy_state._container.union(
+                conj_state._container.union(copy_operator._container)
+            )
+        )
+        
+        return contracted_node
 
 
 _OperatorKey: TypeAlias = Union[PauliLabel, frozenset[tuple[PauliLabel, complex]]]
