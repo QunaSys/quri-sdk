@@ -36,6 +36,9 @@ class QulacsBackend(Protocol):
     ) -> None:
         ...
 
+    def check_support(self, context: str) -> None:
+        ...
+
 
 @dataclass(frozen=True)
 class DefaultQulacsBackend:
@@ -55,6 +58,9 @@ class DefaultQulacsBackend:
     def validate_state_vector(
         self, vector: NDArray[complex128], qubit_count: int
     ) -> None:
+        return None
+
+    def check_support(self, context: str) -> None:
         return None
 
 

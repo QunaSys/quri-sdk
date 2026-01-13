@@ -34,6 +34,7 @@ from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
 
 from ._backend import DEFAULT_BACKEND, QulacsBackend
+from ._backend_support import SIMULATOR_CONTEXTS
 from .types import QulacsStateT
 from .utils import cast_to_list
 
@@ -145,6 +146,7 @@ def evaluate_state_to_vector(
 ) -> QuantumStateVector:
     """Convert GeneralCircuitQuantumState or QuantumStateVector to
     QuantumStateVector that only contains the state vector."""
+    backend.check_support(SIMULATOR_CONTEXTS["evaluate_state_to_vector"])
     out_state_vector = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
 
     # We need to disable type check due to an error in qulacs type annotation
@@ -161,6 +163,7 @@ def run_circuit(
 ) -> NDArray[complex128]:
     """Act a ImmutableQuantumCircuit onto a state vector and returns a new
     state vector."""
+    backend.check_support(SIMULATOR_CONTEXTS["run_circuit"])
 
     qulacs_state = _get_updated_qulacs_state_from_vector(circuit, init_state, backend)
     # We need to disable type check due to an error in qulacs type annotation
@@ -199,6 +202,7 @@ def create_qulacs_vector_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
+    backend.check_support(SIMULATOR_CONTEXTS["create_qulacs_vector_state_sampler"])
 
     def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
         if backend.should_use_multinomial(n_shots, state.qubit_count):
@@ -226,6 +230,9 @@ def create_concurrent_vector_state_sampler(
     concurrency: int = 1,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentStateSampler[QulacsStateT]:
+    backend.check_support(
+        SIMULATOR_CONTEXTS["create_concurrent_vector_state_sampler"]
+    )
     def _sequential(
         _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
     ) -> Iterable[MeasurementCounts]:
@@ -249,6 +256,7 @@ def create_qulacs_ideal_vector_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates an ideal state sampler based on Qulacs circuit execution."""
+    backend.check_support(SIMULATOR_CONTEXTS["create_qulacs_ideal_vector_state_sampler"])
 
     def ideal_state_sampler(
         state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
@@ -264,6 +272,9 @@ def create_qulacs_density_matrix_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates a noisy state sampler for a specific noise model."""
+    backend.check_support(
+        SIMULATOR_CONTEXTS["create_qulacs_density_matrix_state_sampler"]
+    )
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         density_matrix = _evaluate_qp_state_to_qulacs_state(
@@ -285,6 +296,9 @@ def create_qulacs_ideal_density_matrix_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates a noisy state sampler for a specific noise model."""
+    backend.check_support(
+        SIMULATOR_CONTEXTS["create_qulacs_ideal_density_matrix_state_sampler"]
+    )
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         density_matrix = _evaluate_qp_state_to_qulacs_state(
@@ -302,6 +316,9 @@ def create_qulacs_noisesimulator_state_sampler(
 ) -> StateSampler[QulacsStateT]:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs
     NoiseSimulator."""
+    backend.check_support(
+        SIMULATOR_CONTEXTS["create_qulacs_noisesimulator_state_sampler"]
+    )
 
     def _noise_simulator_state_sampler(
         state: QulacsStateT, shots: int
