@@ -230,9 +230,8 @@ def create_concurrent_vector_state_sampler(
     concurrency: int = 1,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentStateSampler[QulacsStateT]:
-    backend.check_support(
-        SIMULATOR_CONTEXTS["create_concurrent_vector_state_sampler"]
-    )
+    backend.check_support(SIMULATOR_CONTEXTS["create_concurrent_vector_state_sampler"])
+
     def _sequential(
         _: Any, state_shots_tuples: Iterable[tuple[QulacsStateT, int]]
     ) -> Iterable[MeasurementCounts]:
@@ -256,7 +255,9 @@ def create_qulacs_ideal_vector_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates an ideal state sampler based on Qulacs circuit execution."""
-    backend.check_support(SIMULATOR_CONTEXTS["create_qulacs_ideal_vector_state_sampler"])
+    backend.check_support(
+        SIMULATOR_CONTEXTS["create_qulacs_ideal_vector_state_sampler"]
+    )
 
     def ideal_state_sampler(
         state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
