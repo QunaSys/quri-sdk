@@ -50,7 +50,7 @@ class DefaultQulacsBackend:
         return qulacs_state
 
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
-        return n_shots > 2 ** max(qubit_count, 10)
+        return n_shots > int(2 ** max(int(qubit_count), 10))
 
     def validate_state_vector(
         self, vector: NDArray[complex128], qubit_count: int
