@@ -413,12 +413,12 @@ def generate_multicontrolled_to_mc_sub_resolver(
                 tuple(reg_map[r] for r in rs),
             )
 
-        if target_sub.phase != 0:
-            phase = target_sub.phase % (2 * math.pi)
+        phase = target_sub.phase % (2 * math.pi)
+        if phase != 0:
+            builder.add_phase(phase / 2.0)
             if (control_value & (1 << (control_bits - 1))) == 0:
                 # use diag(e^i(phase), 1)  instead of diag(1, e^i(phase))
                 phase = (-phase) % (2 * math.pi)
-                builder.add_phase(phase)
             if phase == math.pi:
                 phase_op = Z
             elif phase == math.pi / 2:
@@ -426,7 +426,7 @@ def generate_multicontrolled_to_mc_sub_resolver(
             elif phase == 3 * math.pi / 2:
                 phase_op = Sdag
             else:
-                phase_op = Phase(phase)
+                phase_op = RZ(phase)
 
             if control_bits == 1:
                 builder.add_op(phase_op, qubits=control_q)
