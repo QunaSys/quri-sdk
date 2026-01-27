@@ -229,6 +229,8 @@ def controlled_sqrtx_resolver(op: Op, repository: SubRepository) -> Sub:
     builder = SubBuilder(op.qubit_count, op.reg_count)
     q0, q1 = builder.qubits
     _crx(builder, q0, q1, math.pi / 2)
+    # sqrtX carries a global phase of +pi/4; make it relative on the control.
+    builder.add_op(Phase(math.pi / 4), (q0,))
     return builder.build()
 
 
@@ -236,6 +238,8 @@ def controlled_sqrtxdag_resolver(op: Op, repository: SubRepository) -> Sub:
     builder = SubBuilder(op.qubit_count, op.reg_count)
     q0, q1 = builder.qubits
     _crx(builder, q0, q1, -math.pi / 2)
+    # sqrtXdag carries a global phase of -pi/4; make it relative on the control.
+    builder.add_op(Phase(-math.pi / 4), (q0,))
     return builder.build()
 
 
@@ -243,6 +247,8 @@ def controlled_sqrty_resolver(op: Op, repository: SubRepository) -> Sub:
     builder = SubBuilder(op.qubit_count, op.reg_count)
     q0, q1 = builder.qubits
     _cry(builder, q0, q1, math.pi / 2)
+    # sqrtY carries a global phase of +pi/4; make it relative on the control.
+    builder.add_op(Phase(math.pi / 4), (q0,))
     return builder.build()
 
 
@@ -250,6 +256,8 @@ def controlled_sqrtydag_resolver(op: Op, repository: SubRepository) -> Sub:
     builder = SubBuilder(op.qubit_count, op.reg_count)
     q0, q1 = builder.qubits
     _cry(builder, q0, q1, -math.pi / 2)
+    # sqrtYdag carries a global phase of -pi/4; make it relative on the control.
+    builder.add_op(Phase(-math.pi / 4), (q0,))
     return builder.build()
 
 
