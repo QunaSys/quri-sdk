@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, Any, Iterable, Optional
 
 import numpy as np
 import numpy.typing as npt
+
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.sampling import (
     ConcurrentSampler,
@@ -27,7 +28,6 @@ from quri_parts.core.state import (
     QuantumStateT,
 )
 from quri_parts.core.utils.concurrent import execute_concurrently
-
 from quri_parts.tensornetwork.state import convert_state
 
 if TYPE_CHECKING:

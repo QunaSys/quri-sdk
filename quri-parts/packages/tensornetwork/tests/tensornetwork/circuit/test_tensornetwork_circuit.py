@@ -9,11 +9,11 @@
 # limitations under the License.
 
 import numpy as np
+import tensornetwork as tn
 from numpy.testing import assert_almost_equal
+
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.gates import CNOT, H, X, Y, Z
-
-import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import convert_circuit
 
 circuit_tensor_pairs = [
