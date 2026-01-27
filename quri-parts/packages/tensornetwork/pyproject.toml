@@ -33,6 +33,10 @@ tensorflow = "^2.0"
 jax = "^0.4"
 jaxlib = "^0.4"
 
+[tool.poetry.extras]
+tensorflow = ["tensorflow"]
+jax = ["jax", "jaxlib"]
+
 [tool.poetry.group.dev.dependencies]
 quri-parts-circuit = {path = "../circuit", develop = true}
 quri-parts-core = {path = "../core", develop = true}

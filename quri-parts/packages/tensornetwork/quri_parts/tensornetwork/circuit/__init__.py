@@ -9,7 +9,9 @@
 # limitations under the License.
 
 from typing import Callable, Mapping, MutableSequence, Optional, Sequence, Union
+import tensornetwork as tn
 
+from tensornetwork import AbstractNode, Edge, NodeCollection
 from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
     SingleQubitGateNameType,
@@ -27,7 +29,6 @@ from quri_parts.circuit.transpile import (
     SequentialTranspiler,
 )
 
-import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import gates
 from quri_parts.tensornetwork.circuit.gates import (
     SingleQubitGate,
@@ -37,7 +38,6 @@ from quri_parts.tensornetwork.circuit.gates import (
     ThreeQubitGate,
     TwoQubitGate,
 )
-from tensornetwork import AbstractNode, Edge, NodeCollection
 
 _single_qubit_gate_tensornetwork: Mapping[
     SingleQubitGateNameType, type[SingleQubitGate]
