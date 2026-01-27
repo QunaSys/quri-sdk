@@ -154,6 +154,26 @@ class TestUnboundParametricQuantumCircuit:
         assert len(samples) == 2
         assert sum(samples.values()) == 1000
 
+    def test_hash(self) -> None:
+        import pytest
+
+        circuit1 = mutable_circuit()
+        with pytest.raises(
+            TypeError, match="unhashable type: 'ParametricQuantumCircuit'"
+        ):
+            hash(circuit1)
+
+        circuit2 = ParametricQuantumCircuit(2)
+        with pytest.raises(
+            TypeError, match="unhashable type: 'ParametricQuantumCircuit'"
+        ):
+            hash(circuit2)
+
+        # ImmutableParametricQuantumCircuit should still be hashable
+        immutable_circuit1 = circuit1.freeze()
+        immutable_circuit2 = mutable_circuit().freeze()
+        assert hash(immutable_circuit1) == hash(immutable_circuit2)
+
 
 class TestImmutableUnboundParametricQuantumCircuit:
     def test_immutable_unbound_parametric_quantum_circuit(self) -> None:
@@ -464,6 +484,28 @@ try:
             # Add different gate to make them different
             circuit2.add_T_gate(3)
             assert hash(circuit1.freeze()) != hash(circuit2.freeze())
+
+        def test_rust_parametric_quantum_circuit_unhashable(self) -> None:
+            """Test that Rust ParametricQuantumCircuit (mutable) is
+            unhashable."""
+            import pytest
+
+            circuit1 = rust_mutable_circuit()
+            with pytest.raises(
+                TypeError, match="unhashable type: 'ParametricQuantumCircuit'"
+            ):
+                hash(circuit1)
+
+            circuit2 = RustParametricQuantumCircuit(2)
+            with pytest.raises(
+                TypeError, match="unhashable type: 'ParametricQuantumCircuit'"
+            ):
+                hash(circuit2)
+
+            # ImmutableParametricQuantumCircuit should still be hashable
+            immutable_circuit1 = circuit1.freeze()
+            immutable_circuit2 = rust_mutable_circuit().freeze()
+            assert hash(immutable_circuit1) == hash(immutable_circuit2)
 
 except ImportError:
     # Rust implementation not available, skip these tests
