@@ -27,8 +27,13 @@ from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 class MultiMappedNode(AbstractNode):  # type: ignore
     """This is a convenience class for tensors representing multiple qubits.
 
-    This node must be initialized with an existing node, it then facilitates
-    functionality needed for certain MPS or MPO based algorithms."""
+    This node must be initialized with an existing node, it then
+    facilitates functionality needed for certain MPS or MPO based
+    algorithms.
+    """
+
+    _input_qubit_index_mapping: Optional[dict[int, int]]
+    _output_qubit_index_mapping: Optional[dict[int, int]]
 
     def __init__(
         self,
@@ -52,18 +57,26 @@ class MultiMappedNode(AbstractNode):  # type: ignore
             self._input_qubit_index_mapping = {}
             for qb in input_qubit_edge_mapping:
                 if input_qubit_edge_mapping[qb].node1 == self:
-                    self._input_qubit_index_mapping[qb] = input_qubit_edge_mapping[qb].axis1
+                    self._input_qubit_index_mapping[qb] = input_qubit_edge_mapping[
+                        qb
+                    ].axis1
                 if input_qubit_edge_mapping[qb].node2 == self:
-                    self._input_qubit_index_mapping[qb] = input_qubit_edge_mapping[qb].axis2
+                    self._input_qubit_index_mapping[qb] = input_qubit_edge_mapping[
+                        qb
+                    ].axis2
         else:
             self._input_qubit_index_mapping = None
         if output_qubit_edge_mapping:
             self._output_qubit_index_mapping = {}
             for qb in output_qubit_edge_mapping:
                 if output_qubit_edge_mapping[qb].node1 == self:
-                    self._output_qubit_index_mapping[qb] = output_qubit_edge_mapping[qb].axis1
+                    self._output_qubit_index_mapping[qb] = output_qubit_edge_mapping[
+                        qb
+                    ].axis1
                 if output_qubit_edge_mapping[qb].node2 == self:
-                    self._output_qubit_index_mapping[qb] = output_qubit_edge_mapping[qb].axis2
+                    self._output_qubit_index_mapping[qb] = output_qubit_edge_mapping[
+                        qb
+                    ].axis2
         else:
             self._output_qubit_index_mapping = None
         assert self.input_qubit_edge_mapping or self.output_qubit_edge_mapping
@@ -71,23 +84,26 @@ class MultiMappedNode(AbstractNode):  # type: ignore
             assert list(self.input_qubit_edge_mapping.keys()) == list(
                 self.output_qubit_edge_mapping.keys()
             )
-        self.qubit_indices = (
-            list(self.input_qubit_edge_mapping.keys())
-            if self.input_qubit_edge_mapping
-            else list(self.output_qubit_edge_mapping.keys())
-        )
+        if self.input_qubit_edge_mapping:
+            self.qubit_indices = list(self.input_qubit_edge_mapping.keys())
+        elif self.output_qubit_edge_mapping:
+            self.qubit_indices = list(self.output_qubit_edge_mapping.keys())
 
     @property
-    def input_qubit_edge_mapping(self) -> dict[int,Edge]:
+    def input_qubit_edge_mapping(self) -> Optional[dict[int, Edge]]:
         if self._input_qubit_index_mapping is not None:
-            return {qb: self[idx] for qb, idx in self._input_qubit_index_mapping.items()}
+            return {
+                qb: self[idx] for qb, idx in self._input_qubit_index_mapping.items()
+            }
         else:
             return None
 
     @property
-    def output_qubit_edge_mapping(self) -> dict[int,Edge]:
+    def output_qubit_edge_mapping(self) -> Optional[dict[int, Edge]]:
         if self._output_qubit_index_mapping is not None:
-            return {qb: self[idx] for qb, idx in self._output_qubit_index_mapping.items()}
+            return {
+                qb: self[idx] for qb, idx in self._output_qubit_index_mapping.items()
+            }
         else:
             return None
 
@@ -96,11 +112,17 @@ class MultiMappedNode(AbstractNode):  # type: ignore
         return self.node.dtype
 
     def _check_left(self, e: Edge) -> Optional[Edge]:
-        """Check to see if `e` connects to a tensor to the left of this one"""
-        if e in self.input_qubit_edge_mapping.values():
-            return
-        if e in self.output_qubit_edge_mapping.values():
-            return
+        """Check to see if `e` connects to a tensor to the left of this one."""
+        if (
+            self.input_qubit_edge_mapping is not None
+            and e in self.input_qubit_edge_mapping.values()
+        ):
+            return None
+        if (
+            self.output_qubit_edge_mapping is not None
+            and e in self.output_qubit_edge_mapping.values()
+        ):
+            return None
         if e.node1 != self:
             n = e.node1
         elif e.node2 != self:
@@ -110,13 +132,24 @@ class MultiMappedNode(AbstractNode):  # type: ignore
         if isinstance(n, MultiMappedNode):
             if max(n.qubit_indices) == min(self.qubit_indices) - 1:
                 return e
+            else:
+                return None
+        else:
+            raise ValueError("Expected `MultiMappedNode` type")
 
     def _check_right(self, e: Edge) -> Optional[Edge]:
-        """Check to see if `e` connects to a tensor to the right of this one"""
-        if e in self.input_qubit_edge_mapping.values():
-            return
-        if e in self.output_qubit_edge_mapping.values():
-            return
+        """Check to see if `e` connects to a tensor to the right of this
+        one."""
+        if (
+            self.input_qubit_edge_mapping is not None
+            and e in self.input_qubit_edge_mapping.values()
+        ):
+            return None
+        if (
+            self.output_qubit_edge_mapping is not None
+            and e in self.output_qubit_edge_mapping.values()
+        ):
+            return None
         if e.node1 != self:
             n = e.node1
         elif e.node2 != self:
@@ -126,13 +159,18 @@ class MultiMappedNode(AbstractNode):  # type: ignore
         if isinstance(n, MultiMappedNode):
             if min(n.qubit_indices) == max(self.qubit_indices) + 1:
                 return e
+            else:
+                return None
+        else:
+            raise ValueError("Expected `MultiMappedNode` type")
 
     @property
     def left_edge(self) -> Optional[Edge]:
         """Assuming the tensor is in MPO form, returns the left edge.
-        
-        This method throws an error if there are multiple left edges, such as after a
-        contraction of two MPO layers."""
+
+        This method throws an error if there are multiple left edges,
+        such as after a contraction of two MPO layers.
+        """
         edge = None
         for e in self:
             returned_edge = self._check_left(e)
@@ -145,9 +183,10 @@ class MultiMappedNode(AbstractNode):  # type: ignore
     @property
     def right_edge(self) -> Optional[Edge]:
         """Assuming the tensor is in MPO form, returns the right edge.
-        
-        This method throws an error if there are multiple right edges, such as after a
-        contraction of two MPO layers."""
+
+        This method throws an error if there are multiple right edges,
+        such as after a contraction of two MPO layers.
+        """
         edge = None
         for e in self:
             returned_edge = self._check_right(e)
@@ -174,17 +213,19 @@ class MultiMappedNode(AbstractNode):  # type: ignore
             if returned_edge:
                 edges.append(returned_edge)
         return edges
-    
+
     @property
     def bond_dimension(self) -> Optional[int]:
-        """Gives the highest bond dimension of this tensor"""
+        """Gives the highest bond dimension of this tensor."""
 
-        mpo_bonds = [e.dimension for e in (self.left_edge, self.right_edge) if e is not None]
+        mpo_bonds: list[int] = [
+            e.dimension for e in (self.left_edge, self.right_edge) if e is not None
+        ]
         if mpo_bonds:
             return max(mpo_bonds)
         else:
             return None
-    
+
     def flatten_edges(self) -> None:
         if len(self.left_edges) > 1:
             tn.flatten_edges(self.left_edges)
@@ -272,7 +313,7 @@ class MultiMappedNode(AbstractNode):  # type: ignore
 
     def set_tensor(self, tensor: Tensor) -> None:
         self.node.set_tensor(tensor)
-    
+
     @property
     def shape(self) -> Any:
         return self.node.shape
@@ -280,7 +321,7 @@ class MultiMappedNode(AbstractNode):  # type: ignore
     @property
     def _tensor(self) -> Tensor:
         return self.node.tensor
-    
+
     @property
     def tensor(self) -> Tensor:
         return self._tensor
@@ -332,7 +373,6 @@ class MultiMappedNode(AbstractNode):  # type: ignore
           A node.
         """
         raise NotImplementedError("Serializing nodes is not supported for MappedNode")
-    
 
     def __repr__(self) -> Text:
         edges = self.get_all_edges()
@@ -347,8 +387,10 @@ class MultiMappedNode(AbstractNode):  # type: ignore
 class MappedNode(MultiMappedNode):  # type: ignore
     """This is a convenience class for single tensors in an MPS or MPO.
 
-    This node must be initialized with an existing node, it then facilitates
-    functionality needed for certain MPS or MPO based algorithms."""
+    This node must be initialized with an existing node, it then
+    facilitates functionality needed for certain MPS or MPO based
+    algorithms.
+    """
 
     def __init__(
         self,

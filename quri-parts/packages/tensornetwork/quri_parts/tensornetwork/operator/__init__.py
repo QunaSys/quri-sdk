@@ -71,7 +71,7 @@ class TensorNetworkOperator(TensorNetworkLayer):
             operator_nodes,
             tensor_map,
         )
-    
+
     def contract_with(self, state: TensorNetworkState) -> AbstractNode:
         copy_state = state.copy()
         conj_state = copy_state.conjugate()
@@ -98,7 +98,7 @@ class TensorNetworkOperator(TensorNetworkLayer):
                 conj_state._container.union(copy_operator._container)
             )
         )
-        
+
         return contracted_node
 
 
