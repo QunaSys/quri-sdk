@@ -204,12 +204,8 @@ class TestVMBackend:
         backend = _DevicePropertyBackend(
             nisq_iontrap_device.generate_device_property(
                 qubit_count=16,
-                native_gates={
-                    gate_names.RX,
-                    gate_names.RY,
-                    gate_names.RZ,
-                    gate_names.CZ,
-                },
+                native_gates_1q={gate_names.RX, gate_names.RY, gate_names.RZ},
+                native_gates_2q={gate_names.CZ},
                 gate_error_1q=1.0e-5,
                 gate_error_2q=1.0e-3,
                 gate_error_meas=1.0e-3,
@@ -230,12 +226,8 @@ class TestVMBackend:
         backend = _DevicePropertyBackend(
             nisq_spcond_lattice.generate_device_property(
                 lattice=SquareLattice(4, 4),
-                native_gates={
-                    gate_names.RX,
-                    gate_names.RY,
-                    gate_names.RZ,
-                    gate_names.CZ,
-                },
+                native_gates_1q={gate_names.RX, gate_names.RY, gate_names.RZ},
+                native_gates_2q={gate_names.CZ},
                 gate_error_1q=1.0e-4,
                 gate_error_2q=1.0e-2,
                 gate_error_meas=1.0e-2,
