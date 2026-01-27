@@ -46,10 +46,10 @@ class TensorNetworkOperator(TensorNetworkLayer):
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        layer_tensor_map: MutableSequence[Mapping[int, AbstractNode]],
+        layer_tensor_map: list[dict[int, AbstractNode]],
     ):
         all_index_lists = [set(m.keys()) for m in layer_tensor_map]
-        self.index_list = list(reduce(set.union, all_index_lists))
+        self.index_list = list(reduce(set.union, all_index_lists))  # type: ignore[arg-type]
         super().__init__(input_edges, output_edges, container, layer_tensor_map)
 
     def copy(self) -> "TensorNetworkOperator":

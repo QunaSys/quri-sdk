@@ -104,7 +104,7 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        layer_tensor_map: MutableSequence[Mapping[int, TensorNetworkQuantumGate]],
+        layer_tensor_map: list[dict[int, AbstractNode]],
     ):
         self.input_edges = input_edges
         self.output_edges = output_edges

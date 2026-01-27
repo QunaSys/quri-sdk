@@ -322,13 +322,13 @@ class MultiMappedNode(AbstractNode):  # type: ignore
     def _tensor(self) -> Tensor:
         return self.node.tensor
 
-    @property
-    def tensor(self) -> Tensor:
-        return self._tensor
-
     @_tensor.setter
     def _tensor(self, tensor: Tensor) -> None:
         self.node.tensor = tensor
+
+    @property
+    def tensor(self) -> Tensor:
+        return self._tensor
 
     @tensor.setter
     def tensor(self, tensor: Tensor) -> None:
@@ -384,7 +384,7 @@ class MultiMappedNode(AbstractNode):  # type: ignore
         )
 
 
-class MappedNode(MultiMappedNode):  # type: ignore
+class MappedNode(MultiMappedNode):
     """This is a convenience class for single tensors in an MPS or MPO.
 
     This node must be initialized with an existing node, it then
