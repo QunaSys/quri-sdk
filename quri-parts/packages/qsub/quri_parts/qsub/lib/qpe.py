@@ -16,14 +16,13 @@
 # to keep both implementations in sync until this module is removed.
 # =============================================================================
 
-from cmath import pi
 import warnings
+from cmath import pi
+
 from quri_parts.qsub.lib.std import SWAP, Controlled, H, Phase
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
-
-
 
 warnings.warn(
     "quri_algo.qsub.lib.qpe is deprecated. Please import with quri_algo.qsub.qpe instead.",
