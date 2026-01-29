@@ -9,11 +9,9 @@
 # limitations under the License.
 
 # =============================================================================
-# DEPRECATED: This module is deprecated.
-# Please use quri_algo.qsub.qpe instead.
-#
-# When updating this file, ensure you also update quri_algo/qsub/qpe.py
-# to keep both implementations in sync until this module is removed.
+# NOTE: When updating this file, also update the deprecated module at
+# quri_parts/packages/qsub/quri_parts/qsub/lib/qpe.py
+# to maintain backward compatibility until that module is removed.
 # =============================================================================
 
 from cmath import pi
@@ -22,13 +20,6 @@ from quri_parts.qsub.lib.std import SWAP, Controlled, H, Phase
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
-import warnings
-
-warnings.warn(
-    "quri_algo.qsub.lib.qpe is deprecated. Please import with quri_algo.qsub.qpe instead.",
-    FutureWarning,
-    stacklevel=2
-)
 
 
 class _QFTdag(ParamUnitarySubDef[int]):
