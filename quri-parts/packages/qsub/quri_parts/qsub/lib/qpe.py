@@ -17,12 +17,12 @@
 # =============================================================================
 
 from cmath import pi
-
+import warnings
 from quri_parts.qsub.lib.std import SWAP, Controlled, H, Phase
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
-import warnings
+
 
 
 warnings.warn(
