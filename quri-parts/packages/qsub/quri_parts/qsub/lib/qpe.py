@@ -27,7 +27,7 @@ import warnings
 warnings.warn(
     "quri_algo.qsub.lib.qpe is deprecated. Please import with quri_algo.qsub.qpe instead.",
     FutureWarning,
-    stacklevel=2
+    stacklevel=2,
 )
 
 
