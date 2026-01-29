@@ -24,6 +24,7 @@ from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
 import warnings
 
+
 warnings.warn(
     "quri_algo.qsub.lib.qpe is deprecated. Please import with quri_algo.qsub.qpe instead.",
     FutureWarning,
