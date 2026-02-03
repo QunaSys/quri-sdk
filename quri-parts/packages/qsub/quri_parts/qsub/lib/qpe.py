@@ -9,11 +9,10 @@
 # limitations under the License.
 
 # =============================================================================
-# DEPRECATED: This module is deprecated.
-# Please use quri_algo.qsub.qpe instead.
+# DEPRECATED: This module is deprecated and feature-freezed.
+# Please develop on the same-named module under quri_algo.qsub instead.
 #
-# When updating this file, ensure you also update quri_algo/qsub/qpe.py
-# to keep both implementations in sync until this module is removed.
+# This module should receive only the critical bug fix.
 # =============================================================================
 
 import warnings
@@ -25,7 +24,7 @@ from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
 
 warnings.warn(
-    "quri_parts.qsub.lib.qpe is deprecated. Please import with quri_algo.qsub.qpe instead.",
+    "quri_parts.qsub.lib.qpe is deprecated and no longer maintained. Please import with quri_algo.qsub.qpe instead.",
     FutureWarning,
     stacklevel=2,
 )

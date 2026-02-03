@@ -9,9 +9,8 @@
 # limitations under the License.
 
 # =============================================================================
-# NOTE: When updating this file, also update the deprecated module at
-# quri_parts/packages/qsub/quri_parts/qsub/lib/qpe.py
-# to maintain backward compatibility until that module is removed.
+# NOTE: Consider adding the critical bug fix to the deprecated module at
+# quri_parts/packages/qsub/quri_parts/qsub/lib/qpe.py as well
 # =============================================================================
 
 from cmath import pi
