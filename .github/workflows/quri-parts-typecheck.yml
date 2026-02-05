@@ -53,5 +53,6 @@ jobs:
           mypy-${{ runner.os }}-${{ matrix.python_version }}-
 
     - name: Run mypy
-      run: poetry run mypy quri-parts
+      # we have no `qsvt` package, skip
+      run: poetry run mypy quri-parts --exclude quri-parts/packages/qsvt
       if: success() || failure()

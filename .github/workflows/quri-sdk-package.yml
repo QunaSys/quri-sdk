@@ -184,9 +184,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+            pytest packages --ignore=packages/pyscf --ignore=packages/itensor --ignore=packages/qsvt
           else
-            pytest packages
+            pytest packages --ignore=packages/qsvt
           fi
 
   rust-wheel-package:
@@ -369,9 +369,9 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor
+            pytest packages --ignore=packages/pyscf --ignore=packages/itensor --ignore=packages/qsvt
           else
-            pytest packages
+            pytest packages --ignore=packages/qsvt
           fi
 
   quri-parts-python-package:
