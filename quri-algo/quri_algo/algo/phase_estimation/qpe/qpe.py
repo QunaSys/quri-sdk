@@ -26,9 +26,9 @@ from quri_algo.algo.interface import (
 )
 from quri_algo.algo.utils.mappings import CircuitMapping
 from quri_algo.algo.utils.timer import timer
+from quri_algo.circuit_lib.time_evolution.interface import TimeEvolutionOpFactory
 from quri_algo.core.estimator.hadamard_test import remap_state_for_hadamard_test
 from quri_algo.problem import QubitHamiltonian
-from quri_algo.qsub.time_evolution.interface import TimeEvolutionOpFactory
 
 
 def get_ancilla_register_counts(
