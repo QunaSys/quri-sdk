@@ -33,6 +33,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Constrain setuptools for build isolation
+      run: echo "setuptools<75" > /tmp/build-constraints.txt
+
     - uses: ./.github/actions/python-poetry-install
       with:
         poetry-version: '1.8.5'
