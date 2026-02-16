@@ -61,12 +61,17 @@ jobs:
       working-directory: quri-parts
       run: cargo test --workspace
 
-    - name: Install dependencies
+    - name: Choose python version
       run: |
         poetry env use ${{ matrix.python_version }}
-        poetry run pip install -vvv -e quri-parts/packages/rust
+    - name: Install legacy dependency
+      if: matrix.python_version == '3.9'
+      run: |
         poetry run pip install -vvv setuptools<82
         poetry run pip install -vvv ibm-cloud-sdk-core~=3.18.0
+    - name: Install dependencies
+      run: |
+        poetry run pip install -vvv -e quri-parts/packages/rust
         poetry install -vvv --only main,dev
 
     - name: Detect Julia project
