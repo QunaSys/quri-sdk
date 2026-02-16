@@ -69,6 +69,7 @@ jobs:
       run: |
         echo "setuptools<82" > /tmp/constraints.txt
         poetry run pip install -vvv "ibm-cloud-sdk-core==3.18.0" --build-constraint /tmp/constraints.txt
+        poetry run pip install -vvv "ibm-platform-services==0.48.0" --build-constraint /tmp/constraints.txt
     - name: Install dependencies
       run: |
         poetry run pip install -vvv -e quri-parts/packages/rust
