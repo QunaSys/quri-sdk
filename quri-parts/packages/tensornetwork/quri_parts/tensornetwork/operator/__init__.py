@@ -48,7 +48,7 @@ class TensorNetworkOperator(TensorNetworkLayer):
         layer_tensor_map: list[dict[int, AbstractNode]],
     ):
         all_index_lists = [set(m.keys()) for m in layer_tensor_map]
-        self.index_list = list(reduce(set.union, all_index_lists))  # type: ignore[arg-type]
+        self.index_list = sorted(reduce(set.union, all_index_lists))  # type: ignore[arg-type]
         super().__init__(input_edges, output_edges, container, layer_tensor_map)
 
     def copy(self) -> "TensorNetworkOperator":
