@@ -67,8 +67,8 @@ jobs:
     - name: Install legacy dependency
       if: matrix.python_version == '3.9'
       run: |
-        poetry run pip install -vvv "setuptools<82"
-        poetry run pip install -vvv "ibm-cloud-sdk-core~=3.18.0"
+        echo "setuptools<82" > /tmp/constraints.txt
+        poetry run pip install -vvv "ibm-cloud-sdk-core~=3.18.0" -c /tmp/constraints.txt
     - name: Install dependencies
       run: |
         poetry run pip install -vvv -e quri-parts/packages/rust
