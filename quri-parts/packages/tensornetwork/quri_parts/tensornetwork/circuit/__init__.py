@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Mapping, Optional, Sequence, Union
+from typing import Callable, Mapping, Optional, Sequence, Union, Any
 
 import tensornetwork as tn
 from tensornetwork import AbstractNode, Edge, NodeCollection
@@ -127,7 +127,49 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         return TensorNetworkLayer(
             circuit_input_edges, circuit_output_edges, circuit_nodes, tensor_map
         )
+    
+    def extend(self, other: "TensorNetworkLayer", *varargs: Any, **kwargs: Any) -> "TensorNetworkLayer":
+        self_copy = self.copy()
+        other_copy = other.copy()
+        return connect_layers(self_copy, other_copy)
 
+def connect_layers(
+    first: TensorNetworkLayer, second: TensorNetworkLayer, max_bond_dimension: int
+) -> TensorNetworkLayer:
+    qubits = set(first.index_list)
+    qubits.update(second.index_list)
+
+    input_qubits_edges = {
+        qb: first.input_edges[i] for i, qb in enumerate(first.index_list)
+    }
+    output_qubits_edges = {
+        qb: second.output_edges[i] for i, qb in enumerate(second.index_list)
+    }
+    for qb in qubits:
+        if qb in first.index_list and qb in second.index_list:
+            (
+                first.output_edges[first.index_list.index(qb)]
+                ^ second.input_edges[second.index_list.index(qb)]
+            )
+
+    for i, qb in enumerate(second.index_list):
+        if qb not in input_qubits_edges:
+            input_qubits_edges[qb] = second.input_edges[i]
+    for i, qb in enumerate(first.index_list):
+        if qb not in output_qubits_edges:
+            output_qubits_edges[qb] = first.output_edges[i]
+
+    all_nodes = first._container
+    all_nodes.update(second._container)
+    layer_tensor_map = first.layer_tensor_map
+    layer_tensor_map.extend(second.layer_tensor_map)
+
+    return TensorNetworkLayer(
+        [input_qubits_edges[qb] for qb in sorted(input_qubits_edges.keys())],
+        [output_qubits_edges[qb] for qb in sorted(output_qubits_edges.keys())],
+        all_nodes,
+        layer_tensor_map,
+    )
 
 def connect_gate(
     node: TensorNetworkQuantumGate,
