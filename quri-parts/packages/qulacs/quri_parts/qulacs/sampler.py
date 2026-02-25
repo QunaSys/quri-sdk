@@ -40,7 +40,7 @@ from .types import QulacsParametricStateT, QulacsStateT
 if TYPE_CHECKING:
     from concurrent.futures import Executor
 
-_state_vector_sampler = create_qulacs_vector_state_sampler
+_state_vector_sampler_factory = create_qulacs_vector_state_sampler
 _ideal_vector_sampler = create_qulacs_ideal_vector_state_sampler()
 
 
@@ -48,7 +48,7 @@ def _sample(
     circuit: ImmutableQuantumCircuit, shots: int, random_seed: Optional[int] = None
 ) -> MeasurementCounts:
     state = GeneralCircuitQuantumState(circuit.qubit_count, circuit)
-    return _state_vector_sampler(random_seed)(state, shots)
+    return _state_vector_sampler_factory(random_seed)(state, shots)
 
 
 def _ideal_sample(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
@@ -363,6 +363,6 @@ def create_qulacs_noisesimulator_general_sampler(
     concurrency: int = 1,
 ) -> GeneralSampler[QulacsStateT, QulacsParametricStateT]:
     """A :class:`~GeneralSampler` based on qulacs NoiseSimulator."""
-    sampler = create_qulacs_noisesimulator_sampler(model)
+    sampler = create_qulacs_noisesimulator_sampler(model, random_seed)
     state_sampler = create_qulacs_noisesimulator_state_sampler(model, random_seed)
     return GeneralSampler(sampler, state_sampler)
