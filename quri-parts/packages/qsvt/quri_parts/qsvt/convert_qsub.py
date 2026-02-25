@@ -4,6 +4,7 @@ from typing import cast
 import pyqsvt.frontend.gate.intrinsic as intrinsic
 from pyqsvt.frontend import Argument, CircuitBuilder, CircuitGenerator, Context, Module
 from pyqsvt.frontend import Qubit as QsvtQubit
+from pyqsvt.frontend import Qubits as QsvtQubits
 from pyqsvt.frontend import Register as QsvtRegister
 
 from quri_parts.qsub.codegen import CodeGenerator
@@ -104,9 +105,8 @@ def _add_intrinsic(mop: SubCall, qs: Sequence[QsvtQubit], rs: Sequence[QsvtRegis
         _binary_instr_map[op](qs[1], qs[0])
     elif op in _ternary_instr_map:
         _ternary_instr_map[op](qs[2], qs[0], qs[1])
-    elif base_id in _mc_instr_map:
-        # FIXME: second arg should be Qubits
-        _mc_instr_map[base_id](qs[-1], qs[:-1])
+    if mop.op.base_id == std.MCX.base_id:
+        intrinsic.mcx(qs[-1], sum(qs[:-1], QsvtQubits()))
     else:
         raise ValueError(f"Unsupported op: {op}")
 
@@ -195,5 +195,4 @@ def create_module_from_qsub_op(
 
     entry_gen = op_circuit_gen_map[entry_op]
     entry_circuit = entry_gen.generate()
-    print(entry_circuit)
     return module
