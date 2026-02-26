@@ -10,9 +10,9 @@
 
 # =============================================================================
 # NOTE: This module has a deprecated counterpart at quri_algo/qsub/qpe.py
-# which re-exports from here. Consider adding the critical bug fix to the
-# deprecated module at quri_parts/packages/qsub/quri_parts/qsub/lib/qpe.py
-# as well.
+# which re-exports from here. In the event that you need to add a critical bug
+# fix here, consider also adding it to the deprecated module at
+# quri_parts/packages/qsub/quri_parts/qsub/lib/qpe.py as well.
 # =============================================================================
 
 from cmath import pi

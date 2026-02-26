@@ -9,10 +9,10 @@
 # limitations under the License.
 
 # =============================================================================
-# DEPRECATED: This module is deprecated and feature-freezed.
-# Please develop on the same-named module under quri_algo.qsub instead.
+# DEPRECATED: This module is deprecated and feature-frozen.
+# Please develop on the identically named module under quri_algo.qsub instead.
 #
-# This module should receive only the critical bug fix.
+# This module should only receive critical bug fixes.
 # =============================================================================
 
 import warnings
