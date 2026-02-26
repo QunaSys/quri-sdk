@@ -1,6 +1,6 @@
-# QURI Parts QSVT
+# QURI Parts QRET
 
-QURI Parts QSVT is a library to construct structured circuits especially for complex
+QURI Parts QRET is a library to construct structured circuits especially for complex
 FTQC algorithms.
 
 ## Documentation
@@ -10,10 +10,9 @@ FTQC algorithms.
 ## Installation
 
 ```
-pip install quri-parts-qsvt
+pip install quri-parts-qret
 ```
 
 ## License
 
 Apache License 2.0
-

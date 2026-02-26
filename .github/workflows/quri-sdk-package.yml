@@ -219,21 +219,15 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-<<<<<<< HEAD
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor --ignore=packages/qsvt
-          else
-            pytest packages --ignore=packages/qsvt
-=======
             if [[ "${{ matrix.python-version }}" = "14" ]]; then
-              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit,qret}
             else
-              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor,qret}
             fi
           elif [[ "${{ matrix.python-version }}" = "14" ]]; then
-            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
+            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit,qret}
           else
             pytest quri-parts/packages
->>>>>>> main
           fi
 
   rust-wheel-package:
@@ -448,21 +442,15 @@ jobs:
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
-<<<<<<< HEAD
-            pytest packages --ignore=packages/pyscf --ignore=packages/itensor --ignore=packages/qsvt
-          else
-            pytest packages --ignore=packages/qsvt
-=======
             if [[ "${{ matrix.python-version }}" = "14" ]]; then
-              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit,qret}
             else
-              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor,qret}
             fi
           elif [[ "${{ matrix.python-version }}" = "14" ]]; then
-            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
+            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit,qret}
           else
             pytest quri-parts/packages
->>>>>>> main
           fi
 
   quri-parts-python-package:

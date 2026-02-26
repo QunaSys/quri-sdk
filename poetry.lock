@@ -4448,6 +4448,27 @@ type = "directory"
 url = "quri-parts/packages/qiskit"
 
 [[package]]
+name = "quri-parts-qret"
+version = "0.0.0"
+description = "A plugin to use QRET with QURI Parts"
+optional = false
+python-versions = "^3.9.8"
+groups = ["main", "dev"]
+markers = "python_version >= \"3.10\""
+files = []
+develop = true
+
+[package.dependencies]
+numpy = ">=1.22.0"
+quri-parts-circuit = "*"
+quri-parts-core = "*"
+quri-parts-qsub = "*"
+
+[package.source]
+type = "directory"
+url = "quri-parts/packages/qret"
+
+[[package]]
 name = "quri-parts-qsub"
 version = "0.0.0"
 description = "A support library for consturcting structured quantum circuits"
@@ -4466,27 +4487,6 @@ quri-parts-qulacs = "*"
 [package.source]
 type = "directory"
 url = "quri-parts/packages/qsub"
-
-[[package]]
-name = "quri-parts-qsvt"
-version = "0.0.0"
-description = "A plugin to use QSVT with QURI Parts"
-optional = false
-python-versions = "^3.9.8"
-groups = ["main", "dev"]
-markers = "python_version >= \"3.10\""
-files = []
-develop = true
-
-[package.dependencies]
-numpy = ">=1.22.0"
-quri-parts-circuit = "*"
-quri-parts-core = "*"
-quri-parts-qsub = "*"
-
-[package.source]
-type = "directory"
-url = "quri-parts/packages/qsvt"
 
 [[package]]
 name = "quri-parts-quantinuum"
@@ -5772,8 +5772,8 @@ openfermion = ["quri-parts-openfermion"]
 openqasm = ["quri-parts-openqasm"]
 pyscf = ["quri-parts-pyscf"]
 qiskit = ["quri-parts-qiskit"]
+qret = ["quri-parts-qret"]
 qsub = ["quri-parts-qsub"]
-qsvt = ["quri-parts-qsvt"]
 quantinuum = ["quri-parts-quantinuum"]
 qulacs = ["quri-parts-qulacs"]
 stim = ["quri-parts-stim"]
@@ -5783,4 +5783,4 @@ tket = ["quri-parts-tket"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.8"
-content-hash = "0fccb4463afc0b0666b30f4b7bbc751c434df4bd1208cc0502e1cae22887e08c"
+content-hash = "87d371a1fb4b59f2fcc4f065123c038978dbab13468522c2a984d36b5edf7f6b"

@@ -1,20 +1,26 @@
 from collections.abc import Iterable, Mapping, Sequence
 from typing import cast
 
-import pyqsvt.frontend.gate.intrinsic as intrinsic
-from pyqsvt.frontend import Argument, CircuitBuilder, CircuitGenerator, Context, Module
-from pyqsvt.frontend import Qubit as QsvtQubit
-from pyqsvt.frontend import Qubits as QsvtQubits
-from pyqsvt.frontend import Register as QsvtRegister
+from pyqret.frontend import Argument, CircuitBuilder, CircuitGenerator, Context, Module
+from pyqret.frontend import Qubit as QretQubit
+from pyqret.frontend import Qubits as QretQubits
+from pyqret.frontend import Register as QretRegister
+from pyqret.frontend.gate import intrinsic
 
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.lib import std
-from quri_parts.qsub.machineinst import MachineSub, SubCall, is_primitive, is_subcall
+from quri_parts.qsub.machineinst import (
+    MachineOp,
+    MachineSub,
+    SubCall,
+    is_primitive,
+    is_subcall,
+)
 from quri_parts.qsub.op import AbstractOp, Op
 from quri_parts.qsub.resolve import SubCollector, SubRepository, default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
-QSVTInstrSet = (
+QRETInstrSet: Iterable[AbstractOp] = (
     std.M,
     std.Identity,
     std.X,
@@ -36,7 +42,7 @@ QSVTInstrSet = (
     # CCZ
     std.MCX,
 )
-QSVTInstrBaseIds = set(instr.base_id for instr in QSVTInstrSet)
+QRETInstrBaseIds = set(instr.base_id for instr in QRETInstrSet)
 
 _meas_instr_map = {std.M: intrinsic.measure}
 _unary_instr_map = {
@@ -92,7 +98,9 @@ default_repository().register_sub(std.Phase, _phase_sub)
 # End transpilation
 
 
-def _add_intrinsic(mop: SubCall, qs: Sequence[QsvtQubit], rs: Sequence[QsvtRegister]):
+def _add_intrinsic(
+    mop: MachineOp, qs: Sequence[QretQubit], rs: Sequence[QretRegister]
+) -> None:
     op = mop.op
     base_id = op.base_id
     if op in _meas_instr_map:
@@ -100,23 +108,27 @@ def _add_intrinsic(mop: SubCall, qs: Sequence[QsvtQubit], rs: Sequence[QsvtRegis
     elif op in _unary_instr_map:
         _unary_instr_map[op](qs[0])
     elif base_id in _param_unary_instr_map:
-        _param_unary_instr_map[base_id](qs[0], *op.id.params)
+        param = cast(float, op.id.params[0])
+        _param_unary_instr_map[base_id](qs[0], param)
     elif op in _binary_instr_map:
         _binary_instr_map[op](qs[1], qs[0])
     elif op in _ternary_instr_map:
         _ternary_instr_map[op](qs[2], qs[0], qs[1])
-    if mop.op.base_id == std.MCX.base_id:
-        intrinsic.mcx(qs[-1], sum(qs[:-1], QsvtQubits()))
+    elif base_id in _mc_instr_map:
+        qubits = QretQubits()
+        for q in qs[:-1]:
+            qubits = qubits + q
+        _mc_instr_map[base_id](qs[-1], qubits)
     else:
         raise ValueError(f"Unsupported op: {op}")
 
 
 def _add_funcall(
     mop: SubCall,
-    qs: Iterable[QsvtQubit],
-    rs: Iterable[QsvtRegister],
+    qs: Iterable[QretQubit],
+    rs: Iterable[QretRegister],
     op_circuit_gen_map: Mapping[Op, CircuitGenerator],
-):
+) -> None:
     gen = op_circuit_gen_map[mop.op]
     circuit = gen.generate()
     circuit(*qs, *rs)
@@ -128,7 +140,7 @@ def _create_circuit_gen(
     op_circuit_gen_map: Mapping[Op, CircuitGenerator],
     builder: CircuitBuilder,
 ) -> CircuitGenerator:
-    class _Gen(CircuitGenerator):
+    class _Gen(CircuitGenerator):  # type: ignore
         def name(self) -> str:
             return op.id.to_str()
 
@@ -145,20 +157,32 @@ def _create_circuit_gen(
                 ret.add_input(f"r{r.uid}")
             return ret
 
-        def logic(self, arg: Argument):
+        def logic(self, arg: Argument) -> None:
             qubit_map = {
-                q: cast(QsvtQubit, arg[f"q{q.uid}"])
-                for q in msub.qubits + msub.aux_qubits
+                q: cast(QretQubit, arg[f"q{q.uid}"])
+                for q in list(msub.qubits) + list(msub.aux_qubits)
             }
             register_map = {
-                r: cast(QsvtRegister, arg[f"r{r.uid}"])
-                for r in msub.registers + msub.aux_registers
+                r: cast(QretRegister, arg[f"r{r.uid}"])
+                for r in list(msub.registers) + list(msub.aux_registers)
             }
             for mop, qs, rs in msub.instructions:
                 mapped_qs = tuple(qubit_map[q] for q in qs)
                 mapped_rs = tuple(register_map[r] for r in rs)
                 if is_primitive(mop):
-                    _add_intrinsic(mop, mapped_qs, mapped_rs)
+                    if mop.op.base_id == std.MCX.base_id:
+                        control_qubits = QretQubits()
+                        control_qubits._impl = (
+                            mapped_qs[0]._impl
+                            + mapped_qs[
+                                1
+                            ]._impl  # pyright: ignore[reportAttributeAccessIssue]
+                        )
+                        for q in mapped_qs[2:-1]:
+                            control_qubits += q
+                        intrinsic.mcx(mapped_qs[-1], control_qubits)
+                    else:
+                        _add_intrinsic(mop, mapped_qs, mapped_rs)
                 elif is_subcall(mop):
                     _add_funcall(mop, mapped_qs, mapped_rs, op_circuit_gen_map)
 
@@ -168,11 +192,11 @@ def _create_circuit_gen(
 def create_module_from_qsub_op(
     entry_op: Op,
     repository: SubRepository = default_repository(),
-    primitives: Iterable[AbstractOp] = QSVTInstrSet,
+    primitives: Iterable[AbstractOp] = QRETInstrSet,
 ) -> Module:
-    if not set(p.base_id for p in primitives).issubset(QSVTInstrBaseIds):
+    if not set(p.base_id for p in primitives).issubset(QRETInstrBaseIds):
         raise ValueError(
-            f"primitives contain instructions incompatible with qsvt IR: {set(p.base_id for p in primitives) - QSVTInstrBaseIds}"
+            f"primitives contain instructions incompatible with qret IR: {set(p.base_id for p in primitives) - QRETInstrBaseIds}"
         )
 
     if repository is None:
@@ -192,7 +216,6 @@ def create_module_from_qsub_op(
         op_circuit_gen_map[op] = _create_circuit_gen(
             op, msub, op_circuit_gen_map, builder
         )
-
-    entry_gen = op_circuit_gen_map[entry_op]
-    entry_circuit = entry_gen.generate()
+    # Explicitly generate the entry circuit so the module is populated.
+    op_circuit_gen_map[entry_op].generate()
     return module

@@ -88,4 +88,4 @@ jobs:
         poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - name: Run pytest
-      run: poetry run pytest quri-parts '--ignore-glob=quri-parts/packages/qsvt/*'
+      run: poetry run pytest quri-parts '--ignore-glob=quri-parts/packages/qret/*'
