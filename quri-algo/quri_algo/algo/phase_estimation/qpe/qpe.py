@@ -10,7 +10,6 @@ from quri_parts.core.state import CircuitQuantumState
 from quri_parts.qsub.compile import compile_sub
 from quri_parts.qsub.eval import QURIPartsEvaluatorHooks
 from quri_parts.qsub.evaluate import Evaluator
-from quri_parts.qsub.lib.qpe import QPE as QPEop
 from quri_parts.qsub.machineinst import MachineSub
 from quri_parts.qsub.op import Op, OpFactory
 from quri_parts.qsub.primitive import AllBasicSet
@@ -26,6 +25,7 @@ from quri_algo.algo.interface import (
 )
 from quri_algo.algo.utils.mappings import CircuitMapping
 from quri_algo.algo.utils.timer import timer
+from quri_algo.circuit_lib.qpe import QPE as QPEop
 from quri_algo.circuit_lib.time_evolution.interface import TimeEvolutionOpFactory
 from quri_algo.core.estimator.hadamard_test import remap_state_for_hadamard_test
 from quri_algo.problem import QubitHamiltonian
