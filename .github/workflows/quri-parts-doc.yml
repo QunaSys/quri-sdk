@@ -24,7 +24,7 @@ jobs:
     - uses: ./.github/actions/python-poetry-install
       with:
         poetry-version: '1.8.5'
-        python-version: '3.9'
+        python-version: '3.10'
 
     - name: Cache Poetry environment
       uses: actions/cache@v4
@@ -32,11 +32,11 @@ jobs:
         path: |
           ~/.cache/pypoetry
           .venv
-        key: poetry-${{ runner.os }}-py39-quri-parts-doc-${{ hashFiles('poetry.lock') }}
+        key: poetry-${{ runner.os }}-py310-quri-parts-doc-${{ hashFiles('poetry.lock') }}
 
     - name: Install dependencies
       run: |
-        poetry env use 3.9
+        poetry env use 3.10
         poetry install --only doc --sync
 
     - uses: actions/cache@v4
