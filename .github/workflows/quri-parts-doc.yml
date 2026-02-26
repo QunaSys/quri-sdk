@@ -37,7 +37,7 @@ jobs:
     - name: Install dependencies
       run: |
         poetry env use 3.9
-        poetry install --with dev,doc --sync
+        poetry install --only doc --sync
 
     - uses: actions/cache@v4
       with:
