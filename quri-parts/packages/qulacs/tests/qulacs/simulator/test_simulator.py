@@ -9,13 +9,16 @@
 # limitations under the License.
 
 import itertools
+import unittest.mock
 from collections import Counter
+from typing import Any, Callable
 
 import pytest
 from numpy import allclose, array, isclose, pi
 from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumCircuit, X
+from quri_parts.core.sampling import MeasurementCounts
 from quri_parts.core.state import (
     ComputationalBasisState,
     GeneralCircuitQuantumState,
@@ -277,6 +280,32 @@ def test_create_concurrent_vector_state_sampler() -> None:
         ans += [Counter({2 * i + j: n_shots[ind_shot]})]
     vector_sampling_cnts = state_vector_concurrent_sampler(circuit_state_shots_tuples)
     assert vector_sampling_cnts == ans
+
+
+def test_create_concurrent_vector_state_sampler_passes_random_seed() -> None:
+    seeds: list[int] = []
+
+    def fake_sampler_creator(seed: int) -> Callable[[Any, int], MeasurementCounts]:
+        seeds.append(seed)
+
+        def _sampler(_: Any, shots: int) -> MeasurementCounts:
+            return Counter({0: shots})
+
+        return _sampler
+
+    vector_state = QuantumStateVector(
+        1,
+        circuit=QuantumCircuit(1),
+    )
+
+    with unittest.mock.patch(
+        "quri_parts.qulacs.simulator.create_qulacs_vector_state_sampler",
+        side_effect=fake_sampler_creator,
+    ):
+        sampler = create_concurrent_vector_state_sampler(random_seed=11)
+        list(sampler([(vector_state, 10)]))
+
+    assert seeds == [11]
 
 
 def test_create_qulacs_ideal_vector_state_sampler() -> None:
