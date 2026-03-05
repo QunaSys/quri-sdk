@@ -73,19 +73,6 @@ _mc_instr_map = {
 }
 
 
-# Transpilation
-def _swap_sub() -> Sub:
-    b = SubBuilder(2)
-    q0, q1 = b.qubits
-    b.add_op(std.CNOT, (q0, q1))
-    b.add_op(std.CNOT, (q1, q0))
-    b.add_op(std.CNOT, (q0, q1))
-    return b.build()
-
-
-default_repository().register_sub(std.SWAP, _swap_sub())
-
-
 def _phase_sub(phase: float) -> Sub:
     b = SubBuilder(1)
     b.add_op(std.RZ(phase), b.qubits)
@@ -94,8 +81,6 @@ def _phase_sub(phase: float) -> Sub:
 
 
 default_repository().register_sub(std.Phase, _phase_sub)
-
-# End transpilation
 
 
 def _add_intrinsic(
