@@ -22,11 +22,15 @@ quri-parts-circuit = "*"
 quri-parts-algo = "*"
 quri-parts-chem = "*"
 quri-parts-qulacs = "*"
-quri-parts-pyscf = "*"
-quri-parts-openfermion = "*"
+quri-parts-pyscf = {version = "*", optional = true}
+quri-parts-openfermion = {version = "*", optional = true}
 quri-parts-qsub = "*"
 quri-parts-rust = "*"
 pytest = "^8.3.3"
+
+[tool.poetry.extras]
+openfermion = ["quri-parts-openfermion"]
+pyscf = ["quri-parts-pyscf"]
 
 
 [build-system]

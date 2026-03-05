@@ -12,8 +12,15 @@ from dataclasses import dataclass
 from functools import cached_property
 from typing import Literal, Optional, Sequence, cast
 
-from openfermion.ops import FermionOperator
-from pyscf import df, gto, scf
+try:
+    from openfermion.ops import FermionOperator
+except ImportError:
+    ImportError("openfermion is not installed")
+try:
+    from pyscf import df, gto, scf
+except ImportError:
+    raise ImportError("pyscf is not installed")
+
 from quri_parts.chem.mol import ActiveSpace, cas
 from quri_parts.openfermion.mol import (
     get_fermionic_hamiltonian as get_fermionic_mapped_hamiltonian,
