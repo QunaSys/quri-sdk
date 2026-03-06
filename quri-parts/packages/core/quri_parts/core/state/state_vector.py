@@ -455,6 +455,79 @@ def _to_ipython_latex(latex_str: str) -> Any:
         return latex_str
 
 
+def _light_source() -> Any:
+    from matplotlib.colors import LightSource
+
+    return LightSource(azdeg=45, altdeg=45)
+
+
+def _draw_shaded_cylinder(
+    ax: Any,
+    end: tuple[float, float, float],
+    radius: float,
+    color: Any,
+) -> None:
+    """Draw a shaded cylinder from the origin to *end* with the given RGBA *color*."""
+    sx, sy, sz = end
+    length = float(np.sqrt(sx**2 + sy**2 + sz**2))
+    if length < 1e-10:
+        return
+
+    theta = np.linspace(0, 2 * np.pi, 20)
+    r_grid, theta_grid = np.meshgrid([radius, radius], theta)
+    z_grid = np.tile([0.0, length], (len(theta), 1))
+    x_grid = radius * np.cos(theta_grid)
+    y_grid = radius * np.sin(theta_grid)
+
+    polar = float(np.arccos(np.clip(sz / length, -1.0, 1.0)))
+    azimuth = float(np.arctan2(sx, -sy))
+    rot_x = np.array([
+        [1, 0, 0],
+        [0, np.cos(polar), -np.sin(polar)],
+        [0, np.sin(polar), np.cos(polar)],
+    ])
+    rot_z = np.array([
+        [np.cos(azimuth), -np.sin(azimuth), 0],
+        [np.sin(azimuth), np.cos(azimuth), 0],
+        [0, 0, 1],
+    ])
+    pts = np.c_[x_grid.flatten(), y_grid.flatten(), z_grid.flatten()].T
+    rotated = (rot_z @ rot_x @ pts).T
+    ax.plot_surface(
+        rotated[:, 0].reshape(z_grid.shape),
+        rotated[:, 1].reshape(z_grid.shape),
+        rotated[:, 2].reshape(z_grid.shape),
+        color=color,
+        alpha=0.7,
+        linewidth=0,
+        shade=True,
+        lightsource=_light_source(),
+    )
+
+
+def _draw_shaded_sphere(
+    ax: Any,
+    center: tuple[float, float, float],
+    radius: float,
+    color: Any,
+) -> None:
+    """Draw a small shaded sphere surface at *center* with the given RGBA *color*."""
+    u = np.linspace(0, 2 * np.pi, 20)
+    v = np.linspace(0, np.pi, 10)
+    cx, cy, cz = center
+    x = cx + radius * np.outer(np.cos(u), np.sin(v))
+    y = cy + radius * np.outer(np.sin(u), np.sin(v))
+    z = cz + radius * np.outer(np.ones_like(u), np.cos(v))
+    ax.plot_surface(
+        x, y, z,
+        color=color,
+        alpha=0.95,
+        linewidth=0,
+        shade=True,
+        lightsource=_light_source(),
+    )
+
+
 def _is_mpl_in_inline_mode() -> bool:
     from matplotlib import get_backend
 
@@ -502,18 +575,11 @@ def _draw_qsphere(
         bitstr = format(i, f"0{n_qubits}b")
         x, y, z = _qsphere_coordinates(bitstr, n_qubits)
         color = (phases[i] + 2 * np.pi) % (2 * np.pi)
-        size = max(20, 800 * probs[i])
+        rgba = cmap(phase_norm(color))
+        radius = 0.1 * np.sqrt(probs[i])
+        _draw_shaded_cylinder(ax, (x, y, z), radius * 0.3, rgba)
+        _draw_shaded_sphere(ax, (x, y, z), radius, rgba)
 
-        ax.scatter(
-            [x],
-            [y],
-            [z],
-            s=size,
-            c=[color],
-            linewidth=0.0,
-            cmap=cmap,
-            norm=phase_norm,
-        )
 
         ax.text(
             1.3 * x,
@@ -852,8 +918,6 @@ def _bloch_arrow_surface(
     )
     pts = np.c_[x_grid.flatten(), y_grid.flatten(), z_grid.flatten()].T
     rotated = (rot_z @ rot_x @ pts).T
-    from matplotlib.colors import LightSource
-
     ax.plot_surface(
         rotated[:, 0].reshape(r_grid.shape),
         rotated[:, 1].reshape(r_grid.shape),
@@ -862,7 +926,7 @@ def _bloch_arrow_surface(
         alpha=0.9,
         linewidth=0,
         shade=True,
-        lightsource=LightSource(azdeg=45, altdeg=-45),
+        lightsource=_light_source(),
     )
 
 
@@ -875,7 +939,7 @@ def _render_bloch_vector(ax: Any, bloch_vec: tuple[float, float, float]) -> None
     y = np.outer(np.sin(u), np.sin(v))
     z = np.outer(np.ones_like(u), np.cos(v))
     ax.plot_surface(
-        x, y, z, rstride=1, cstride=1, color="lightgray", alpha=0.2, linewidth=0
+        x, y, z, rstride=1, cstride=1, color="lightgray", alpha=0.2, linewidth=0, 
     )
 
     _bloch_arrow_surface(ax, bloch_vec)
