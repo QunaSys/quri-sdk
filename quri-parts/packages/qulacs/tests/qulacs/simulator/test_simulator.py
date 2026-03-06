@@ -285,7 +285,9 @@ def test_create_concurrent_vector_state_sampler() -> None:
 def test_create_concurrent_vector_state_sampler_passes_random_seed() -> None:
     seeds: list[int] = []
 
-    def fake_sampler_creator(seed: int) -> Callable[[Any, int], MeasurementCounts]:
+    def fake_sampler_creator(
+        seed: int, backend: Any
+    ) -> Callable[[Any, int], MeasurementCounts]:
         seeds.append(seed)
 
         def _sampler(_: Any, shots: int) -> MeasurementCounts:
