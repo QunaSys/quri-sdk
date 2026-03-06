@@ -7,8 +7,8 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import GeneralCircuitQuantumState
 
 from quri_algo.algo.phase_estimation.qpe.qpe import QPEResult, TimeEvolutionQPE
+from quri_algo.circuit_lib.time_evolution.trotter_time_evo import TrotterTimeEvo
 from quri_algo.problem import QubitHamiltonian
-from quri_algo.qsub.time_evolution.trotter_time_evo import TrotterTimeEvo
 
 
 class QPETests(TestCase):
