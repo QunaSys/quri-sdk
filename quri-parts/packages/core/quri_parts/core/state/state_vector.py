@@ -461,13 +461,52 @@ def _light_source() -> Any:
     return LightSource(azdeg=45, altdeg=45)
 
 
+def _rotate_z_to_direction(
+    pts: Any, direction: tuple[float, float, float], length: float
+) -> Any:
+    """Rotate z-aligned points so the +z axis aligns with *direction*.
+
+    Parameters
+    ----------
+    pts:
+        (3, N) array of points expressed in the local z-aligned frame.
+    direction:
+        Target direction vector (sx, sy, sz).
+    length:
+        Pre-computed ``||direction||``; must be > 0.
+
+    Returns
+    -------
+    (N, 3) array of rotated points.
+    """
+    sx, sy, sz = direction
+    polar = float(np.arccos(np.clip(sz / length, -1.0, 1.0)))
+    azimuth = float(np.arctan2(sx, -sy))
+    rot_x = np.array(
+        [
+            [1, 0, 0],
+            [0, np.cos(polar), -np.sin(polar)],
+            [0, np.sin(polar), np.cos(polar)],
+        ]
+    )
+    rot_z = np.array(
+        [
+            [np.cos(azimuth), -np.sin(azimuth), 0],
+            [np.sin(azimuth), np.cos(azimuth), 0],
+            [0, 0, 1],
+        ]
+    )
+    return (rot_z @ rot_x @ pts).T
+
+
 def _draw_shaded_cylinder(
     ax: Any,
     end: tuple[float, float, float],
     radius: float,
     color: Any,
 ) -> None:
-    """Draw a shaded cylinder from the origin to *end* with the given RGBA *color*."""
+    """Draw a shaded cylinder from the origin to *end* with the given RGBA
+    *color*."""
     sx, sy, sz = end
     length = float(np.sqrt(sx**2 + sy**2 + sz**2))
     if length < 1e-10:
@@ -479,20 +518,8 @@ def _draw_shaded_cylinder(
     x_grid = radius * np.cos(theta_grid)
     y_grid = radius * np.sin(theta_grid)
 
-    polar = float(np.arccos(np.clip(sz / length, -1.0, 1.0)))
-    azimuth = float(np.arctan2(sx, -sy))
-    rot_x = np.array([
-        [1, 0, 0],
-        [0, np.cos(polar), -np.sin(polar)],
-        [0, np.sin(polar), np.cos(polar)],
-    ])
-    rot_z = np.array([
-        [np.cos(azimuth), -np.sin(azimuth), 0],
-        [np.sin(azimuth), np.cos(azimuth), 0],
-        [0, 0, 1],
-    ])
     pts = np.c_[x_grid.flatten(), y_grid.flatten(), z_grid.flatten()].T
-    rotated = (rot_z @ rot_x @ pts).T
+    rotated = _rotate_z_to_direction(pts, (sx, sy, sz), length)
     ax.plot_surface(
         rotated[:, 0].reshape(z_grid.shape),
         rotated[:, 1].reshape(z_grid.shape),
@@ -511,7 +538,8 @@ def _draw_shaded_sphere(
     radius: float,
     color: Any,
 ) -> None:
-    """Draw a small shaded sphere surface at *center* with the given RGBA *color*."""
+    """Draw a small shaded sphere surface at *center* with the given RGBA
+    *color*."""
     u = np.linspace(0, 2 * np.pi, 20)
     v = np.linspace(0, np.pi, 10)
     cx, cy, cz = center
@@ -519,7 +547,9 @@ def _draw_shaded_sphere(
     y = cy + radius * np.outer(np.sin(u), np.sin(v))
     z = cz + radius * np.outer(np.ones_like(u), np.cos(v))
     ax.plot_surface(
-        x, y, z,
+        x,
+        y,
+        z,
         color=color,
         alpha=0.95,
         linewidth=0,
@@ -579,7 +609,6 @@ def _draw_qsphere(
         radius = 0.1 * np.sqrt(probs[i])
         _draw_shaded_cylinder(ax, (x, y, z), radius * 0.3, rgba)
         _draw_shaded_sphere(ax, (x, y, z), radius, rgba)
-
 
         ax.text(
             1.3 * x,
@@ -758,8 +787,8 @@ def _draw_bloch_vector(
                 ls="-",
                 alpha=0.6,
             )
-            
-            t = np.linspace(0., np.pi, 200)
+
+            t = np.linspace(0.0, np.pi, 200)
             ax.plot(
                 np.cos(phi) * np.sin(t),
                 np.sin(phi) * np.sin(t),
@@ -770,7 +799,7 @@ def _draw_bloch_vector(
                 alpha=0.6,
             )
 
-            t = np.linspace(0., 1., 200)
+            t = np.linspace(0.0, 1.0, 200)
             ax.plot(
                 t * sx / magnitude,
                 t * sy / magnitude,
@@ -869,9 +898,10 @@ def _bloch_arrow_surface(
 ) -> None:
     """Draw a 3D arrow as a surface of revolution pointing in *direction*.
 
-    The arrow tip lands exactly at *direction* (which doubles as the endpoint),
-    and the surface participates in matplotlib's z-ordering so it is correctly
-    occluded by the sphere when pointing away from the viewer.
+    The arrow tip lands exactly at *direction* (which doubles as the
+    endpoint), and the surface participates in matplotlib's z-ordering
+    so it is correctly occluded by the sphere when pointing away from
+    the viewer.
     """
     sx, sy, sz = direction
     length = float(np.sqrt(sx**2 + sy**2 + sz**2))
@@ -883,7 +913,7 @@ def _bloch_arrow_surface(
     # total arrow length.
     nominal_head_length = head_fraction  # absolute size at length == 1
     nominal_head_radius = head_width * width
-    scale = (length+2.) / 3.  # sublinear: shrinks slower than the arrow
+    scale = (length + 2.0) / 3.0  # sublinear: shrinks slower than the arrow
     actual_head_length = min(length, nominal_head_length * scale)
     actual_head_radius = nominal_head_radius * scale
     shaft_length = length - actual_head_length
@@ -900,24 +930,8 @@ def _bloch_arrow_surface(
     y_grid = r_grid * np.cos(theta_grid)
 
     # Rotate the z-aligned arrow to point along (sx, sy, sz)
-    polar = float(np.arccos(np.clip(sz / length, -1.0, 1.0)))
-    azimuth = float(np.arctan2(sx, -sy))
-    rot_x = np.array(
-        [
-            [1, 0, 0],
-            [0, np.cos(polar), -np.sin(polar)],
-            [0, np.sin(polar), np.cos(polar)],
-        ]
-    )
-    rot_z = np.array(
-        [
-            [np.cos(azimuth), -np.sin(azimuth), 0],
-            [np.sin(azimuth), np.cos(azimuth), 0],
-            [0, 0, 1],
-        ]
-    )
     pts = np.c_[x_grid.flatten(), y_grid.flatten(), z_grid.flatten()].T
-    rotated = (rot_z @ rot_x @ pts).T
+    rotated = _rotate_z_to_direction(pts, (sx, sy, sz), length)
     ax.plot_surface(
         rotated[:, 0].reshape(r_grid.shape),
         rotated[:, 1].reshape(r_grid.shape),
@@ -939,7 +953,14 @@ def _render_bloch_vector(ax: Any, bloch_vec: tuple[float, float, float]) -> None
     y = np.outer(np.sin(u), np.sin(v))
     z = np.outer(np.ones_like(u), np.cos(v))
     ax.plot_surface(
-        x, y, z, rstride=1, cstride=1, color="lightgray", alpha=0.2, linewidth=0, 
+        x,
+        y,
+        z,
+        rstride=1,
+        cstride=1,
+        color="lightgray",
+        alpha=0.2,
+        linewidth=0,
     )
 
     _bloch_arrow_surface(ax, bloch_vec)
