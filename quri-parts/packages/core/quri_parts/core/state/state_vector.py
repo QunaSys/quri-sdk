@@ -209,6 +209,15 @@ def _format_component_latex(val: float, precision: int) -> str:
     return f"{val:.{precision}g}"
 
 
+def _count_additive_terms(node: ast.AST) -> int:
+    """Count the number of additive terms in an expression AST."""
+    if isinstance(node, ast.BinOp) and isinstance(node.op, (ast.Add, ast.Sub)):
+        return _count_additive_terms(node.left) + _count_additive_terms(node.right)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        return _count_additive_terms(node.operand)
+    return 1
+
+
 def _identify_component_latex(val: float, precision: int) -> Optional[str]:
     """Try to express the value symbolically and convert to LaTeX."""
     try:
@@ -230,6 +239,9 @@ def _identify_component_latex(val: float, precision: int) -> Optional[str]:
     try:
         tree = ast.parse(expr, mode="eval")
     except Exception:
+        return None
+
+    if _count_additive_terms(tree.body) > 3:
         return None
 
     try:
