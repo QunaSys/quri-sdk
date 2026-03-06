@@ -505,8 +505,10 @@ def _draw_shaded_cylinder(
     radius: float,
     color: Any,
 ) -> None:
-    """Draw a shaded cylinder from the origin to *end* with the given RGBA
-    *color*."""
+    """Draw a shaded cylinder from the origin to *end* with the given RGBA.
+
+    *color*.
+    """
     sx, sy, sz = end
     length = float(np.sqrt(sx**2 + sy**2 + sz**2))
     if length < 1e-10:
@@ -538,8 +540,10 @@ def _draw_shaded_sphere(
     radius: float,
     color: Any,
 ) -> None:
-    """Draw a small shaded sphere surface at *center* with the given RGBA
-    *color*."""
+    """Draw a small shaded sphere surface at *center* with the given RGBA.
+
+    *color*.
+    """
     u = np.linspace(0, 2 * np.pi, 20)
     v = np.linspace(0, np.pi, 10)
     cx, cy, cz = center
