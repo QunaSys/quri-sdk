@@ -3,43 +3,54 @@ name: QURI Algo Lint
 on:
   pull_request:
     paths:
+      - quri-algo/**.py
       - quri-algo/pyproject.toml
-      - quri-algo/poetry.lock
-      - quri_algo/**.py
       - quri-algo/.flake8
+      - pyproject.toml
+      - poetry.lock
       - .github/workflows/quri-algo-lint.yml
+      - .github/actions/python-poetry-install/action.yml
   push:
     branches: [main]
 
-defaults:
-  run:
-    working-directory: quri-algo
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: '3.10'
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/quri-algo/setup
-
-    - uses: actions/setup-python@v4
+    - uses: ./.github/actions/python-poetry-install
       with:
-        python-version: '3.11'
+        poetry-version: '1.8.5'
+        python-version: ${{ env.PYTHON_VERSION }}
 
-    - run: |
-        poetry env use python3.11
+    - name: Cache Poetry environment
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pypoetry
+        key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-quri-algo-lint-${{ hashFiles('poetry.lock') }}
+
+    - name: Install dependencies
+      run: |
+        poetry env use $PYTHON_VERSION
         poetry install --only lint
 
-    - run: poetry run isort quri_algo --check --diff
+    - name: Run isort
+      run: poetry run isort quri-algo/quri_algo --check --diff
       if: success() || failure()
 
-    - run: poetry run black quri_algo --check
+    - name: Run black
+      run: poetry run black quri-algo/quri_algo --check
       if: success() || failure()
 
-    - run: poetry run flake8 quri_algo --show-source
+    - name: Run flake8
+      run: poetry run flake8 quri-algo/quri_algo --show-source
       if: success() || failure()
 
-    - run: poetry run docformatter -c -r quri_algo
+    - name: Run docformatter
+      run: poetry run docformatter -c -r quri-algo/quri_algo
       if: success() || failure()

@@ -152,7 +152,6 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[StateT]):
         guess_val: float, n_scanned_energy: int, sigma: float, n_sigma: int = 1
     ) -> npt.NDArray[np.float64]:
         M = n_scanned_energy
-        sigma = sigma
         return (
             guess_val
             - 0.25 * n_sigma * sigma

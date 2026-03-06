@@ -8,11 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Any
+
+import numpy as np
+from numpy.typing import NDArray
 from qiskit import QuantumCircuit as QiskitCircuit
 from qiskit.circuit.library import UnitaryGate
+from qiskit.quantum_info import Operator
 
-from quri_parts.circuit import QuantumCircuit, gates
+from quri_parts.circuit import QuantumCircuit, gate_names, gates
+from quri_parts.circuit.gate_names import is_unitary_matrix_gate_name
 from quri_parts.qiskit.circuit import circuit_from_qiskit
+from quri_parts.qulacs.circuit import convert_circuit
 
 
 def test_circuit_from_qiskit() -> None:
@@ -46,3 +53,49 @@ def test_circuit_from_qiskit() -> None:
     expected = QuantumCircuit(3, gates=gate_list)
 
     assert circuit_from_qiskit(qis_circ).gates == expected.gates
+
+
+def test_circuit_from_qiskit_with_ecr() -> None:
+    qis_circ = QiskitCircuit(2)
+    qis_circ.ecr(0, 1)
+
+    qp_circuit = circuit_from_qiskit(qis_circ)
+    qulacs_circuit = convert_circuit(qp_circuit)
+
+    # The circuit keeps the ECR gate until Qulacs conversion.
+    unitary_gate_names = [
+        gate.name for gate in qp_circuit.gates if is_unitary_matrix_gate_name(gate.name)
+    ]
+    assert unitary_gate_names.count(gate_names.UnitaryMatrix) == 0
+    assert qp_circuit.gates[0].name == "ECR"
+
+    expected = Operator(qis_circ).data
+    actual = _qulacs_circuit_to_matrix(qulacs_circuit)
+    _assert_unitary_equal_up_to_global_phase(actual, expected)
+
+
+def _qulacs_circuit_to_matrix(circuit: Any) -> NDArray[np.complex128]:
+    qubit_count = circuit.get_qubit_count()
+    dim = 1 << qubit_count
+    mat: NDArray[np.complex128] = np.zeros((dim, dim), dtype=np.complex128)
+    from qulacs import QuantumState
+
+    state = QuantumState(qubit_count)
+    for col in range(dim):
+        state.set_computational_basis(col)
+        circuit.update_quantum_state(state)
+        mat[:, col] = state.get_vector()
+    return mat
+
+
+def _assert_unitary_equal_up_to_global_phase(
+    actual: NDArray[np.complex128],
+    expected: NDArray[np.complex128],
+    *,
+    atol: float = 1e-8,
+    rtol: float = 1e-6,
+) -> None:
+    idx = np.argmax(np.abs(expected))
+    assert np.abs(expected.flat[idx]) > 0
+    phase = expected.flat[idx] / actual.flat[idx]
+    assert np.allclose(actual * phase, expected, atol=atol, rtol=rtol)

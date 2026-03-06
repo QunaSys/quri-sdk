@@ -9,12 +9,17 @@
 # limitations under the License.
 
 from collections.abc import Mapping, Sequence
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 from qiskit import transpile
 from qiskit.providers import Backend
 
-from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
+from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
+    QuantumCircuit,
+    gate_names,
+    gates,
+)
 from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.circuit.transpile import CircuitTranspilerProtocol
 from quri_parts.qiskit.circuit import circuit_from_qiskit, convert_circuit
@@ -88,6 +93,37 @@ class QiskitTranspiler(CircuitTranspilerProtocol):
         return circuit_from_qiskit(optimized_qiskit_circ)
 
 
+def transpile_ecr_gates(circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
+    """Replace ECR gates with native gates understood by Qulacs."""
+    converted = QuantumCircuit(circuit.qubit_count)
+    for gate in circuit.gates:
+        ecr_targets = _get_ecr_targets(gate)
+        if ecr_targets is not None:
+            control, target = ecr_targets
+            converted.add_gate(gates.S(control))
+            converted.add_gate(gates.SqrtX(target))
+            converted.add_gate(gates.CNOT(control, target))
+            converted.add_gate(gates.X(control))
+        else:
+            converted.add_gate(gate)
+    return converted
+
+
+def _get_ecr_targets(gate: object) -> Optional[tuple[int, int]]:
+    if not hasattr(gate, "target_indices"):
+        return None
+
+    target_indices = getattr(gate, "target_indices")
+    if len(target_indices) != 2:
+        return None
+
+    if hasattr(gate, "name") and gate.name == ECR:
+        return cast(tuple[int, int], tuple(target_indices))
+
+    return None
+
+
 __all__ = [
     "QiskitTranspiler",
+    "transpile_ecr_gates",
 ]

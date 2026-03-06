@@ -125,6 +125,20 @@ class TestQuantumCircuit:
         assert len(samples) == 2
         assert sum(samples.values()) == 1000
 
+    def test_hash(self) -> None:
+        circuit1 = mutable_circuit()
+        with pytest.raises(TypeError, match="unhashable type: 'QuantumCircuit'"):
+            hash(circuit1)
+
+        circuit2 = QuantumCircuit(2)
+        with pytest.raises(TypeError, match="unhashable type: 'QuantumCircuit'"):
+            hash(circuit2)
+
+        # ImmutableQuantumCircuit should still be hashable
+        immutable_circuit1 = circuit1.freeze()
+        immutable_circuit2 = mutable_circuit().freeze()
+        assert hash(immutable_circuit1) == hash(immutable_circuit2)
+
 
 class TestQuantumCircuitDeprecation:
     def test_order_flip(self) -> None:

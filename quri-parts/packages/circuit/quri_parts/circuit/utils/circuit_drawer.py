@@ -83,8 +83,9 @@ def draw_circuit(
 
     # List of 2D str arrays to be printed.
     # circuit_pictures[i] corresponds to the circuit block at layer i.
-    circuit_pictures = [
-        np.full((vertical_size, _GATE_WIDTH), " ") for _ in range(depth)
+    circuit_pictures: list[npt.NDArray[np.bytes_]] = [
+        np.full((vertical_size, _GATE_WIDTH), " ", dtype=np.bytes_)
+        for _ in range(depth)
     ]
 
     # "-" at the beginning and end of each block.

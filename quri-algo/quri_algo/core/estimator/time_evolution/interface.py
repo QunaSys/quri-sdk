@@ -61,11 +61,11 @@ class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
         self.sampler = sampler
         self.transpiler = transpiler
 
-        self._hadamard_test = HadamardTest(
+        self._hadamard_test: HadamardTest[StateT] = HadamardTest(
             self.controlled_time_evolution_factory,
             self.sampler,
             transpiler=self.transpiler,
-        )  # type: ignore
+        )
 
     @property
     def real_circuit_factory(self) -> HadamardTestCircuitFactory:
@@ -85,8 +85,8 @@ class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
 class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
     r"""Turns a :class:`TimeEvolutionExpectationValueEstimator` for evaluating
     :math:`e^{-iH k \tau}` into a  :class:`OperatorPowerEstimatorBase` so that
-    :math:`e^{-iH\tau}` is treated as the unitary operator and :math:`k` as the power.
-    """
+    :math:`e^{-iH\tau}` is treated as the unitary operator and :math:`k` as the
+    power."""
 
     def __init__(
         self,

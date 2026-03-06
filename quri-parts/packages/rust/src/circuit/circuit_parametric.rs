@@ -440,6 +440,19 @@ impl ImmutableParametricQuantumCircuit {
 
         Ok(())
     }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+        self.qubit_count.to_le_bytes().hash(&mut hasher);
+        self.cbit_count.to_le_bytes().hash(&mut hasher);
+        for gate in &self.gates.0 {
+            crate::circuit::gate::py_hash_maybe_unbound(gate).hash(&mut hasher);
+        }
+        hasher.finish()
+    }
 }
 
 #[pyclass(
@@ -770,7 +783,7 @@ impl ParametricQuantumCircuit {
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix)?,
+            crate::circuit::gates::unitary_matrix(target_indices, unitary_matrix, false)?,
             None,
         )
     }
@@ -783,7 +796,11 @@ impl ParametricQuantumCircuit {
     ) -> PyResult<()> {
         Self::add_gate(
             slf,
-            crate::circuit::gates::single_qubit_unitary_matrix(target_index, unitary_matrix)?,
+            crate::circuit::gates::single_qubit_unitary_matrix(
+                target_index,
+                unitary_matrix,
+                false,
+            )?,
             None,
         )
     }
@@ -801,6 +818,7 @@ impl ParametricQuantumCircuit {
                 target_index1,
                 target_index2,
                 unitary_matrix,
+                false,
             )?,
             None,
         )
@@ -845,6 +863,31 @@ impl ParametricQuantumCircuit {
             crate::circuit::gates::measurement(qubit_indices, classical_indices)?,
             None,
         )
+    }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(&self) -> PyResult<u64> {
+        Err(pyo3::exceptions::PyTypeError::new_err(
+            "unhashable type: 'ParametricQuantumCircuit'",
+        ))
+    }
+
+    #[pyo3(name = "__eq__")]
+    fn py_eq(slf: PyRef<'_, Self>, other: &Bound<'_, PyAny>) -> bool {
+        // Try to extract as ParametricQuantumCircuit first
+        if let Ok(other_pqc) = other.extract::<PyRef<'_, Self>>() {
+            let self_base: &ImmutableParametricQuantumCircuit = &slf.as_super();
+            let other_base: &ImmutableParametricQuantumCircuit = &other_pqc.as_super();
+            return self_base == other_base;
+        }
+
+        // Try to extract as ImmutableParametricQuantumCircuit
+        if let Ok(other_ipqc) = other.extract::<PyRef<'_, ImmutableParametricQuantumCircuit>>() {
+            let self_base: &ImmutableParametricQuantumCircuit = &slf.as_super();
+            return self_base == &*other_ipqc;
+        }
+
+        false
     }
 }
 
@@ -893,6 +936,31 @@ impl ImmutableBoundParametricQuantumCircuit {
 
     fn freeze(slf: Py<Self>) -> Py<Self> {
         slf
+    }
+
+    #[pyo3(name = "__hash__")]
+    fn py_hash(slf: PyRef<'_, Self>) -> u64 {
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        let mut hasher = DefaultHasher::new();
+
+        // Hash the underlying circuit data directly
+        let super_ref = slf.as_super();
+        super_ref.qubit_count.to_le_bytes().hash(&mut hasher);
+        super_ref.cbit_count.to_le_bytes().hash(&mut hasher);
+        for gate in &super_ref.gates.0 {
+            crate::circuit::gate::py_hash(gate).hash(&mut hasher);
+        }
+
+        // Hash the parameter bindings in a deterministic order
+        let mut sorted_params: Vec<_> = slf.0.iter().map(|(k, v)| (k.clone(), *v)).collect();
+        sorted_params.sort_by_key(|(param, _)| param.clone());
+        for (param, value) in sorted_params {
+            param.hash(&mut hasher);
+            value.to_bits().hash(&mut hasher);
+        }
+
+        hasher.finish()
     }
 }
 
