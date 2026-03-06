@@ -637,23 +637,81 @@ def _draw_bloch_vector(
         ax.plot([-1, 1], [0, 0], [0, 0], color="grey", linewidth=1)
         ax.plot([0, 0], [-1, 1], [0, 0], color="grey", linewidth=1)
         ax.plot([0, 0], [0, 0], [-1, 1], color="grey", linewidth=1)
-        ax.text(1.3, 0, 0, "X", color="grey")
-        ax.text(0, 1.1, 0, "Y", color="grey")
-        ax.text(0, 0, 1.1, "Z", color="grey")
+        ax.text(1.1, 0.0, 0.1, "X", color="grey")
+        ax.text(0.0, 1.0, 0.1, "Y", color="grey")
+        ax.text(0.0, -0.05, 1.05, "Z", color="grey")
 
-        # Equator and longitude markers
+        # Equator and 90-degree meridians as reference
         theta = np.linspace(0, 2 * np.pi, 400)
-        for phi in [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4]:
-            eq_x = np.cos(theta) * np.sin(phi)
-            eq_y = np.sin(theta) * np.sin(phi)
-            eq_z = np.ones_like(theta) * np.cos(phi)
-            ax.plot(eq_x, eq_y, eq_z, color="gray", lw=0.8, ls=":", alpha=0.7)
+        ax.plot(
+            np.cos(theta),
+            np.sin(theta),
+            np.zeros_like(theta),
+            color="gray",
+            lw=0.8,
+            ls=":",
+            alpha=0.5,
+        )
+        t = np.linspace(0, np.pi, 400)
+        for phi in [0, np.pi / 2, np.pi, 3 * np.pi / 2]:
+            ax.plot(
+                np.cos(phi) * np.sin(t),
+                np.sin(phi) * np.sin(t),
+                np.cos(t),
+                color="gray",
+                lw=0.8,
+                ls=":",
+                alpha=0.7,
+            )
 
-        for phi in [0, np.pi / 4, np.pi / 2, 3 * np.pi / 4]:
-            lon_x = np.cos(phi) * np.sin(theta)
-            lon_y = np.sin(phi) * np.sin(theta)
-            lon_z = np.cos(theta)
-            ax.plot(lon_x, lon_y, lon_z, color="gray", lw=0.8, ls=":", alpha=0.7)
+        # Latitude circle and meridian at the Bloch vector position
+        sx, sy, sz = bloch_vec
+        magnitude = np.sqrt(sx**2 + sy**2 + sz**2)
+        if magnitude > 1e-6:
+            phi = np.arctan2(sy, sx)
+            polar_angle = np.arccos(np.clip(sz / magnitude, -1.0, 1.0))
+            theta = np.linspace(0, 2 * np.pi, 400)
+            ax.plot(
+                np.cos(theta) * np.sin(polar_angle),
+                np.sin(theta) * np.sin(polar_angle),
+                np.full_like(theta, np.cos(polar_angle)),
+                color="orange",
+                lw=0.8,
+                ls="-",
+                alpha=0.6,
+            )
+            
+            t = np.linspace(0., np.pi, 200)
+            ax.plot(
+                np.cos(phi) * np.sin(t),
+                np.sin(phi) * np.sin(t),
+                np.cos(t),
+                color="orange",
+                lw=0.8,
+                ls="-",
+                alpha=0.6,
+            )
+
+            t = np.linspace(0., 1., 200)
+            ax.plot(
+                t * sx / magnitude,
+                t * sy / magnitude,
+                t * sz / magnitude,
+                color="orange",
+                lw=0.8,
+                ls="--",
+                alpha=0.6,
+            )
+
+            ax.scatter(
+                np.cos(phi) * np.sin(polar_angle),
+                np.sin(phi) * np.sin(polar_angle),
+                np.cos(polar_angle),
+                color="orange",
+                lw=0.8,
+                ls="-",
+                alpha=0.6,
+            )
 
     # Hide unused subplots
     for ax in axes_list[len(bloch_vecs) :]:
@@ -723,11 +781,81 @@ def _bloch_vectors_from_state(
     return bloch_vecs
 
 
+def _bloch_arrow_surface(
+    ax: Any,
+    direction: tuple[float, float, float],
+    width: float = 0.03,
+    head_fraction: float = 0.2,
+    head_width: float = 2.5,
+    color: str = "orange",
+) -> None:
+    """Draw a 3D arrow as a surface of revolution pointing in *direction*.
+
+    The arrow tip lands exactly at *direction* (which doubles as the endpoint),
+    and the surface participates in matplotlib's z-ordering so it is correctly
+    occluded by the sphere when pointing away from the viewer.
+    """
+    sx, sy, sz = direction
+    length = float(np.sqrt(sx**2 + sy**2 + sz**2))
+    if length < 1e-10:
+        return
+
+    # Head scales sublinearly with arrow length (exponent < 1) so it stays
+    # relatively larger for short arrows.  Capped so it never exceeds the
+    # total arrow length.
+    nominal_head_length = head_fraction  # absolute size at length == 1
+    nominal_head_radius = head_width * width
+    scale = (length+2.) / 3.  # sublinear: shrinks slower than the arrow
+    actual_head_length = min(length, nominal_head_length * scale)
+    actual_head_radius = nominal_head_radius * scale
+    shaft_length = length - actual_head_length
+    shaft_width = scale * width
+
+    # 2-D profile (radius, height) defining shaft + cone head
+    profile_r = np.array([0, shaft_width, shaft_width, actual_head_radius, 0])
+    profile_z = np.array([0, 0, shaft_length, shaft_length, length])
+
+    theta = np.linspace(0, 2 * np.pi, 30)
+    r_grid, theta_grid = np.meshgrid(profile_r, theta)
+    z_grid = np.tile(profile_z, (len(theta), 1))
+    x_grid = r_grid * np.sin(theta_grid)
+    y_grid = r_grid * np.cos(theta_grid)
+
+    # Rotate the z-aligned arrow to point along (sx, sy, sz)
+    polar = float(np.arccos(np.clip(sz / length, -1.0, 1.0)))
+    azimuth = float(np.arctan2(sx, -sy))
+    rot_x = np.array(
+        [
+            [1, 0, 0],
+            [0, np.cos(polar), -np.sin(polar)],
+            [0, np.sin(polar), np.cos(polar)],
+        ]
+    )
+    rot_z = np.array(
+        [
+            [np.cos(azimuth), -np.sin(azimuth), 0],
+            [np.sin(azimuth), np.cos(azimuth), 0],
+            [0, 0, 1],
+        ]
+    )
+    pts = np.c_[x_grid.flatten(), y_grid.flatten(), z_grid.flatten()].T
+    rotated = (rot_z @ rot_x @ pts).T
+    from matplotlib.colors import LightSource
+
+    ax.plot_surface(
+        rotated[:, 0].reshape(r_grid.shape),
+        rotated[:, 1].reshape(r_grid.shape),
+        rotated[:, 2].reshape(r_grid.shape),
+        color=color,
+        alpha=0.9,
+        linewidth=0,
+        shade=True,
+        lightsource=LightSource(azdeg=45, altdeg=-45),
+    )
+
+
 def _render_bloch_vector(ax: Any, bloch_vec: tuple[float, float, float]) -> None:
     """Render a single Bloch vector on a unit sphere."""
-    from matplotlib.patches import FancyArrowPatch
-    from mpl_toolkits.mplot3d import proj3d  # type: ignore[import-untyped]
-
     # Draw sphere surface
     u = np.linspace(0, 2 * np.pi, 30)
     v = np.linspace(0, np.pi, 15)
@@ -738,31 +866,7 @@ def _render_bloch_vector(ax: Any, bloch_vec: tuple[float, float, float]) -> None
         x, y, z, rstride=1, cstride=1, color="lightgray", alpha=0.2, linewidth=0
     )
 
-    class Arrow3D(FancyArrowPatch):
-        def __init__(
-            self, xs: Any, ys: Any, zs: Any, *args: Any, **kwargs: Any
-        ) -> None:
-            super().__init__((0, 0), (0, 0), *args, **kwargs)
-            self._verts3d = xs, ys, zs
-
-        def do_3d_projection(self, renderer: Any = None) -> float:
-            xs3d, ys3d, zs3d = self._verts3d
-            axes = cast(Any, self.axes)
-            xs, ys, zs = proj3d.proj_transform(xs3d, ys3d, zs3d, axes.M)
-            self.set_positions((xs[0], ys[0]), (xs[1], ys[1]))
-            return float(np.min(zs))
-
-    sx, sy, sz = bloch_vec
-    arrow = Arrow3D(
-        [0, sx],
-        [0, sy],
-        [0, sz],
-        mutation_scale=20,
-        lw=5,
-        arrowstyle="-|>",
-        color="darkblue",
-    )
-    ax.add_artist(arrow)
+    _bloch_arrow_surface(ax, bloch_vec)
 
     ax.set_xlim([-0.8, 0.8])
     ax.set_ylim([-0.8, 0.8])
