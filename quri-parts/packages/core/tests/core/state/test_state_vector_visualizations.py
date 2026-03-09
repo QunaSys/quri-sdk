@@ -30,11 +30,11 @@ def test_qsphere_returns_figure() -> None:
     assert isinstance(fig, Figure)
 
 
-def test_density_matrix_returns_figure() -> None:
+def test_hinton_returns_figure() -> None:
     amp = 1 / np.sqrt(2)
     state = QuantumStateVector(1, vector=[amp, amp])
 
-    fig = state.draw(output="density_matrix")
+    fig = state.draw(output="hinton")
 
     assert isinstance(fig, Figure)
 

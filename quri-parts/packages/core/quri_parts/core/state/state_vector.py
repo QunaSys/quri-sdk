@@ -64,7 +64,7 @@ class QuantumStateVectorMixin(ABC):
 
         Args:
             output: One of ``"text"``, ``"latex_source"``, ``"latex"``,
-                ``"qsphere"``, ``"density_matrix"``, or ``"bloch_vector"``. The ``"latex"`` option
+                ``"qsphere"``, ``"hinton"``, or ``"bloch_vector"``. The ``"latex"`` option
                 wraps the source in :class:`IPython.display.Latex` when IPython
                 is available; otherwise the raw string is returned. The
                 visualization options return a Matplotlib figure.
@@ -81,7 +81,7 @@ class QuantumStateVectorMixin(ABC):
             "latex",
             "latex_source",
             "qsphere",
-            "density_matrix",
+            "hinton",
             "bloch_vector",
         }:
             raise ValueError(f"Unsupported output format: {output}")
@@ -93,8 +93,8 @@ class QuantumStateVectorMixin(ABC):
             return _draw_text(terms, n_qubits, max_terms, precision)
         if fmt == "qsphere":
             return _draw_qsphere(self._vector, n_qubits, precision)
-        if fmt == "density_matrix":
-            return _draw_density_matrix(self._vector, n_qubits, precision)
+        if fmt == "hinton":
+            return _draw_hinton(self._vector, n_qubits, precision)
         if fmt == "bloch_vector":
             return _draw_bloch_vector(self._vector, n_qubits)
         latex_src = _draw_latex(terms, n_qubits, max_terms, precision)
@@ -671,7 +671,7 @@ def _draw_qsphere(
     return fig
 
 
-def _draw_density_matrix(
+def _draw_hinton(
     vector: StateVectorType, n_qubits: int, precision: int
 ) -> Any:  # pragma: no cover - visual
     try:
@@ -679,7 +679,7 @@ def _draw_density_matrix(
         from matplotlib.patches import Rectangle
     except Exception as e:  # pragma: no cover - import guard
         raise ImportError(
-            "Matplotlib is required for 'density_matrix' output. Install matplotlib to enable."
+            "Matplotlib is required for 'hinton' output. Install matplotlib to enable."
         ) from e
 
     rho = np.outer(vector, np.conjugate(vector))
