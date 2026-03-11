@@ -29,7 +29,7 @@ def tensor_network_estimate(
 
     return _Estimate(
         value=contracted_node.tensor.item(),
-    )  # Can we estimate the error based on the MPO truncation error?
+    )
 
 
 def create_tensornetwork_estimator(
