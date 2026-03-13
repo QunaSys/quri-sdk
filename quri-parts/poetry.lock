@@ -32,7 +32,7 @@ description = "An open source quantum program simulator to be run locally with t
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\" and python_version >= \"3.10\""
 files = [
     {file = "amazon_braket_default_simulator-1.32.0-py3-none-any.whl", hash = "sha256:0bf5d60ef048ed6471570bc71fb9272fd2bd69490322a71a7f60e760a969813d"},
     {file = "amazon_braket_default_simulator-1.32.0.tar.gz", hash = "sha256:fcf643158559ec6e3d195ebabef0ff75887a24272e3af9b803e72526139eb3da"},
@@ -79,7 +79,7 @@ description = "An open source library that contains the schemas for Amazon Brake
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\" and python_version >= \"3.10\""
 files = [
     {file = "amazon_braket_schemas-1.27.0-py3-none-any.whl", hash = "sha256:708d2e5101c78a96f06d00ab81130e8a068e85f72f16d23899226f1f7c61961e"},
     {file = "amazon_braket_schemas-1.27.0.tar.gz", hash = "sha256:7d0b44e1343367732deeba4fc8a7f2711ada43278e0a90678bff018daab68c9c"},
@@ -133,7 +133,7 @@ description = "An open source library for interacting with quantum computing dev
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\" and python_version >= \"3.10\""
 files = [
     {file = "amazon_braket_sdk-1.106.5-py3-none-any.whl", hash = "sha256:8c8db2b30e543d6e4a9e0d271442f64359a83b6305a8dcab40b7ae0c091be201"},
     {file = "amazon_braket_sdk-1.106.5.tar.gz", hash = "sha256:e93c91eb229131ace9fc9718f9d471c788976c0b5bc3aa706d08837d10224a5c"},
@@ -166,7 +166,7 @@ description = "Reusable constraint types to use with typing.Annotated"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\""
+markers = "python_version < \"3.14\" and (extra == \"braket\" or extra == \"qiskit\")"
 files = [
     {file = "annotated_types-0.7.0-py3-none-any.whl", hash = "sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53"},
     {file = "annotated_types-0.7.0.tar.gz", hash = "sha256:aff07c09a53a08bc8cfccb9c85b05f1aa9a2a6f23728d790723543408344ce89"},
@@ -179,7 +179,7 @@ description = "ANTLR 4.13.2 runtime for Python 3"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "antlr4_python3_runtime-4.13.2-py3-none-any.whl", hash = "sha256:fe3835eb8d33daece0e799090eda89719dbccee7aa39ef94eed3818cafa5a7e8"},
     {file = "antlr4_python3_runtime-4.13.2.tar.gz", hash = "sha256:909b647e1d2fc2b70180ac586df3933e38919c85f98ccc656a96cd3f25ef3916"},
@@ -205,7 +205,7 @@ description = "Function decoration for backoff and retry"
 optional = true
 python-versions = ">=3.7,<4.0"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "backoff-2.2.1-py3-none-any.whl", hash = "sha256:63579f9a0628e06278f7e47b7d7d5b6ce20dc65c5e96a6f3ca99a6adca0396e8"},
     {file = "backoff-2.2.1.tar.gz", hash = "sha256:03f829f5bb1923180821643f8753b0502c3b682293992485b0eef2807afa5cba"},
@@ -218,7 +218,7 @@ description = "Compatibility shim providing selectable entry points for older im
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "backports.entry_points_selectable-1.3.0-py3-none-any.whl", hash = "sha256:66f5da003eb4b283c7b60581bc8bb0baf0d810eb3e3068da786d3821b4d5746a"},
     {file = "backports.entry_points_selectable-1.3.0.tar.gz", hash = "sha256:17a8b44ae700fba548686dd274ddc91c060371565cd63806c20a1d33911746e6"},
@@ -235,7 +235,7 @@ description = "When they're not builtins, they're boltons."
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "boltons-25.0.0-py3-none-any.whl", hash = "sha256:dc9fb38bf28985715497d1b54d00b62ea866eca3938938ea9043e254a3a6ca62"},
     {file = "boltons-25.0.0.tar.gz", hash = "sha256:e110fbdc30b7b9868cb604e3f71d4722dd8f4dcb4a5ddd06028ba8f1ab0b5ace"},
@@ -248,7 +248,7 @@ description = "The AWS SDK for Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "boto3-1.42.12-py3-none-any.whl", hash = "sha256:8112e1beb5978bb455ea4b41a9ef26fc408f6340d8ff69ef93dded4f80fd53e9"},
     {file = "boto3-1.42.12.tar.gz", hash = "sha256:649b134d25b278c24fcc8b3f94519de3884283b7848dc32f42b0ffdd9d19ce99"},
@@ -269,7 +269,7 @@ description = "Low-level, data-driven core of boto 3."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "botocore-1.42.12-py3-none-any.whl", hash = "sha256:4f163880350f6d831857ce5d023875b7c6534be862e5affd9fcf82b8d1ab3537"},
     {file = "botocore-1.42.12.tar.gz", hash = "sha256:1f9f63c3d6bb1f768519da30d6018706443c5d8af5472274d183a4945f3d81f8"},
@@ -293,7 +293,7 @@ description = "Python package for providing Mozilla's CA Bundle."
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"qiskit\" or extra == \"openfermion\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" or extra == \"openfermion\""
 files = [
     {file = "certifi-2025.11.12-py3-none-any.whl", hash = "sha256:97de8790030bbd5c2d96b7ec782fc2f7820ef8dba6db909ccf95449f2d062d4b"},
     {file = "certifi-2025.11.12.tar.gz", hash = "sha256:d8ab5478f2ecd78af242878415affce761ca6bc54a22a27e026d7c25357c3316"},
@@ -306,7 +306,7 @@ description = "Foreign Function Interface for Python calling C code."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\" and platform_python_implementation != \"PyPy\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" and platform_python_implementation != \"PyPy\""
 files = [
     {file = "cffi-2.0.0-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:0cf2d91ecc3fcc0625c2c530fe004f82c110405f101548512cce44322fa8ac44"},
     {file = "cffi-2.0.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:f73b96c41e3b2adedc34a7356e64c8eb96e03a3782b535e043a986276ce12a49"},
@@ -404,7 +404,7 @@ description = "The Real First Universal Charset Detector. Open, modern and activ
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"qiskit\" or extra == \"openfermion\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" or extra == \"openfermion\""
 files = [
     {file = "charset_normalizer-3.4.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:e824f1492727fa856dd6eda4f7cee25f8518a12f3c4a56a74e8095695089cf6d"},
     {file = "charset_normalizer-3.4.4-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:4bd5d4137d500351a30687c2d3971758aac9a19208fc110ccb9d7188fbe709e8"},
@@ -611,7 +611,7 @@ description = "Extended pickling support for Python objects"
 optional = true
 python-versions = ">=3.6"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "cloudpickle-2.2.1-py3-none-any.whl", hash = "sha256:61f594d1f4c295fa5cd9014ceb3a1fc4a70b0de1164b94fbc2d854ccba056f9f"},
     {file = "cloudpickle-2.2.1.tar.gz", hash = "sha256:d89684b8de9e34a2a43b3460fbca07d09d6e25ce858df4d5a44240403b6178f5"},
@@ -894,7 +894,7 @@ description = "cryptography is a package which provides cryptographic recipes an
 optional = true
 python-versions = "!=3.9.0,!=3.9.1,>=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "cryptography-46.0.3-cp311-abi3-macosx_10_9_universal2.whl", hash = "sha256:109d4ddfadf17e8e7779c39f9b18111a09efb969a301a31e987416a0191ed93a"},
     {file = "cryptography-46.0.3-cp311-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:09859af8466b69bc3c27bdf4f5d84a665e0f7ab5088412e9e2ec49758eca5cbc"},
@@ -1023,7 +1023,7 @@ description = "serialize all of Python"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "dill-0.4.0-py3-none-any.whl", hash = "sha256:44f54bf6412c2c8464c14e8243eb163690a9800dbe2c367330883b19c7561049"},
     {file = "dill-0.4.0.tar.gz", hash = "sha256:0633f1d2df477324f53a895b02c901fb961bdbf65a17122586ea7019292cbcf0"},
@@ -1368,7 +1368,7 @@ description = "Core library used by SDKs for IBM Cloud Services"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" and python_version >= \"3.10\""
 files = [
     {file = "ibm_cloud_sdk_core-3.24.2-py3-none-any.whl", hash = "sha256:432c0edd812a22a1c61af095bf48202e29a1c03a893fc735389399ace059ee64"},
     {file = "ibm_cloud_sdk_core-3.24.2.tar.gz", hash = "sha256:06265ce80162301c0e3dab336f76669137e40038ec802011e4c92f143bead116"},
@@ -1406,7 +1406,7 @@ description = "Python client library for IBM Cloud Platform Services"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" and python_version >= \"3.10\""
 files = [
     {file = "ibm_platform_services-0.72.0-py3-none-any.whl", hash = "sha256:a2c434a35add6ba07c790fbd6192dd4df34b67b3561224857794ac10cb75be43"},
     {file = "ibm_platform_services-0.72.0.tar.gz", hash = "sha256:ccceced72e4aeeaea58b2ce5c6d80888c066580974ab864ea9b2d48244a89dca"},
@@ -1426,7 +1426,7 @@ description = "Internationalized Domain Names in Applications (IDNA)"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\" or extra == \"openfermion\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" or extra == \"openfermion\""
 files = [
     {file = "idna-3.11-py3-none-any.whl", hash = "sha256:771a87f49d9defaf64091e6e6fe9c18d4833f140bd19464795bc32d966ca37ea"},
     {file = "idna-3.11.tar.gz", hash = "sha256:795dafcc9c04ed0c1fb032c2aa73654d8e8c5023a7df64a53f39190ada629902"},
@@ -1510,7 +1510,7 @@ description = "JSON Matching Expressions"
 optional = true
 python-versions = ">=3.7"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "jmespath-1.0.1-py3-none-any.whl", hash = "sha256:02e2e4cc71b5bcab88332eebf907519190dd9e6e82107fa7f83b1003a6252980"},
     {file = "jmespath-1.0.1.tar.gz", hash = "sha256:90261b206d6defd58fdd5e85f478bf633a2901798906be2ad389150c5c60edbe"},
@@ -1833,7 +1833,7 @@ description = "lightweight wrapper around basic LLVM functionality"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\" and python_version >= \"3.10\""
 files = [
     {file = "llvmlite-0.46.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:4323177e936d61ae0f73e653e2e614284d97d14d5dd12579adc92b6c2b0597b0"},
     {file = "llvmlite-0.46.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:0a2d461cb89537b7c20feb04c46c32e12d5ad4f0896c9dfc0f60336219ff248e"},
@@ -2133,7 +2133,7 @@ description = "Python library for arbitrary-precision floating-point arithmetic"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or (extra == \"tket\" or extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\") and python_version >= \"3.10\""
+markers = "(python_version < \"3.14\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or python_version >= \"3.10\")"
 files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
@@ -2152,7 +2152,7 @@ description = "Type system extensions for programs checked with the mypy type ch
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"braket\" or (extra == \"qsub\" or extra == \"braket\") and python_version >= \"3.10\""
+markers = "(python_version < \"3.14\" or extra == \"qsub\") and (extra == \"braket\" or extra == \"qsub\") and (extra == \"braket\" or python_version >= \"3.10\")"
 files = [
     {file = "mypy_extensions-1.1.0-py3-none-any.whl", hash = "sha256:1be4cccdb0f2482337c4743e60421de3a356cd97508abadd57d47403e94f5505"},
     {file = "mypy_extensions-1.1.0.tar.gz", hash = "sha256:52e68efc3284861e772bbcd66823fde5ae21fd2fdb51c62a211403730b916558"},
@@ -2165,7 +2165,7 @@ description = "Patch asyncio to allow nested event loops"
 optional = true
 python-versions = ">=3.5"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "nest_asyncio-1.6.0-py3-none-any.whl", hash = "sha256:87af6efd6b5e897c81050477ef65c62e2b2f35d51703cae01aff2905b1852e1c"},
     {file = "nest_asyncio-1.6.0.tar.gz", hash = "sha256:6f172d5449aca15afd6c646851f4e31e02c598d553a667e38cafa997cfec55fe"},
@@ -2267,7 +2267,7 @@ description = "compiling Python code using LLVM"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\" and python_version >= \"3.10\""
 files = [
     {file = "numba-0.63.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c6d6bf5bf00f7db629305caaec82a2ffb8abe2bf45eaad0d0738dc7de4113779"},
     {file = "numba-0.63.1-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:08653d0dfc9cc9c4c9a8fba29ceb1f2d5340c3b86c4a7e5e07e42b643bc6a2f4"},
@@ -2555,7 +2555,7 @@ description = "Reference OpenPulse AST in Python"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "openpulse-1.0.1-py3-none-any.whl", hash = "sha256:75fb2d4d7f74db3a86027719744541fcb725e1f5b79e14b78dc5b34ed8c66e87"},
     {file = "openpulse-1.0.1.tar.gz", hash = "sha256:4c184e3012907ec35f04202ed72621037b1a06d70195769576bfc9e62c01bf94"},
@@ -2577,7 +2577,7 @@ description = "Reference OpenQASM AST in Python"
 optional = true
 python-versions = "*"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "openqasm3-1.0.1-py3-none-any.whl", hash = "sha256:0d3a1ebe3465e3ea619bcaa369858bba8944cbb0c49604b24f94662d3ec41d41"},
     {file = "openqasm3-1.0.1.tar.gz", hash = "sha256:c589dc05d4ced50ca24167d14e0f2c916e717499ba0442e0ff2a3030ef312d0a"},
@@ -2599,7 +2599,7 @@ description = "Path optimization of einsum functions."
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"tensornetwork\""
+markers = "python_version < \"3.14\" and extra == \"braket\" or extra == \"tensornetwork\""
 files = [
     {file = "opt_einsum-3.4.0-py3-none-any.whl", hash = "sha256:69bb92469f86a1565195ece4ac0323943e83477171b91d24c35afe028a90d7cd"},
     {file = "opt_einsum-3.4.0.tar.gz", hash = "sha256:96ca72f1b886d148241348783498194c577fa30a8faac108586b14f1ba4473ac"},
@@ -2612,7 +2612,7 @@ description = "Generating OpenQASM 3 + OpenPulse in Python"
 optional = true
 python-versions = "<4.0,>=3.8"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "oqpy-0.3.9-py3-none-any.whl", hash = "sha256:2219c15ee0761ee210710db790164eddef450b7f3b942aaeb0dd312c87672355"},
     {file = "oqpy-0.3.9.tar.gz", hash = "sha256:9201f7bba247bcbe212e392f23f6d061827dfe4a3f7449f5ca74a35a9d29916b"},
@@ -3005,7 +3005,7 @@ description = "C parser in Python"
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\" and implementation_name != \"PyPy\" and platform_python_implementation != \"PyPy\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" and platform_python_implementation != \"PyPy\" and implementation_name != \"PyPy\""
 files = [
     {file = "pycparser-2.23-py3-none-any.whl", hash = "sha256:e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934"},
     {file = "pycparser-2.23.tar.gz", hash = "sha256:78816d4f24add8f10a06d6f05b4d424ad9e96cfebf68a4ddc99c65c0720d00c2"},
@@ -3018,7 +3018,7 @@ description = "Data validation using Python type hints"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\""
+markers = "python_version < \"3.14\" and (extra == \"braket\" or extra == \"qiskit\")"
 files = [
     {file = "pydantic-2.12.5-py3-none-any.whl", hash = "sha256:e561593fccf61e8a20fc46dfc2dfe075b8be7d0188df33f221ad1f0139180f9d"},
     {file = "pydantic-2.12.5.tar.gz", hash = "sha256:4d351024c75c0f085a9febbb665ce8c0c6ec5d30e903bdb6394b7ede26aebb49"},
@@ -3041,7 +3041,7 @@ description = "Core functionality for Pydantic validation and serialization"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\""
+markers = "python_version < \"3.14\" and (extra == \"braket\" or extra == \"qiskit\")"
 files = [
     {file = "pydantic_core-2.41.5-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:77b63866ca88d804225eaa4af3e664c5faf3568cea95360d21f4725ab6e07146"},
     {file = "pydantic_core-2.41.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:dfa8a0c812ac681395907e71e1274819dec685fec28273a28905df579ef137e2"},
@@ -3176,7 +3176,7 @@ description = "JSON Web Token implementation in Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "PyJWT-2.10.1-py3-none-any.whl", hash = "sha256:dcdd193e30abefd5debf142f9adfcdd2b58004e644f25406ffaebd50bd98dacb"},
     {file = "pyjwt-2.10.1.tar.gz", hash = "sha256:3cc5772eb20009233caf06e9d8a0577824723b44e6648ee0a2aedb6cf9381953"},
@@ -3252,7 +3252,7 @@ description = "Windows Negotiate Authentication Client and Server"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "pyspnego-0.12.0-py3-none-any.whl", hash = "sha256:84cc8dae6ad21e04b37c50c1d3c743f05f193e39498f6010cc68ec1146afd007"},
     {file = "pyspnego-0.12.0.tar.gz", hash = "sha256:e1d9cd3520a87a1d6db8d68783b17edc4e1464eae3d51ead411a51c82dbaae67"},
@@ -3273,7 +3273,7 @@ description = "Extensions to the standard Python datetime module"
 optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or (extra == \"qsub\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"braket\" or extra == \"qiskit\") and python_version >= \"3.10\""
+markers = "python_version < \"3.10\" and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\") or (python_version < \"3.14\" or extra == \"qsub\" or extra == \"cirq\" or extra == \"openfermion\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"qsub\" or extra == \"cirq\" or extra == \"openfermion\") and python_version >= \"3.10\""
 files = [
     {file = "python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3"},
     {file = "python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427"},
@@ -3347,7 +3347,7 @@ description = "An open-source SDK for working with quantum computers at the leve
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "qiskit-1.4.5-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:3b2e12192778942ff1c7ace26be7fa05bdb96cb3b61e932682a62c40ef026aa2"},
     {file = "qiskit-1.4.5-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:595eca31dc09b53eaf811ffadd328b98b03e6dfe025c94d62ccae9ef845a5cd9"},
@@ -3386,7 +3386,7 @@ description = "IBM Quantum client for Qiskit Runtime."
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "qiskit_ibm_runtime-0.29.1-py3-none-any.whl", hash = "sha256:3ecd6bfdf63046b59716a80aacdee27de13ec3465a30c820beefdf51bfa1c36c"},
     {file = "qiskit_ibm_runtime-0.29.1.tar.gz", hash = "sha256:b1dd9b19d26c3fffee78bd14b093ed22a77e97666b6570db1784b9a4b7eeaa41"},
@@ -3489,7 +3489,7 @@ description = "A plugin to use Amazon Braket SDK with QURI Parts"
 optional = true
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "quri_parts_braket-0.24.1-py3-none-any.whl", hash = "sha256:dffd6f1fff37c0fc469616df1810dc013c863a5d917b79f19e0234c8adf9052f"},
     {file = "quri_parts_braket-0.24.1.tar.gz", hash = "sha256:f31b41e379de554f263434713a8067739cbd0a0705cdd5907ffa0c9cd1764358"},
@@ -3670,7 +3670,7 @@ description = "A plugin to use Qiskit with QURI Parts"
 optional = true
 python-versions = "<4.0.0,>=3.9.8"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "quri_parts_qiskit-0.24.1-py3-none-any.whl", hash = "sha256:441fc4b5c3d4406470fe599252eb4dbf2c880a0e2993614780c527e39668f5d7"},
     {file = "quri_parts_qiskit-0.24.1.tar.gz", hash = "sha256:3111cf7dbdc7fa0f532190a6f84800f4707a018d270b6dc2603f3ed37df647c9"},
@@ -3836,7 +3836,7 @@ description = "Python HTTP for Humans."
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\" or extra == \"openfermion\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" or extra == \"openfermion\""
 files = [
     {file = "requests-2.32.5-py3-none-any.whl", hash = "sha256:2462f94637a34fd532264295e186976db0f5d453d1cdd31473c85a6a161affb6"},
     {file = "requests-2.32.5.tar.gz", hash = "sha256:dbba0bac56e100853db0ea71b82b4dfd5fe2bf6d3754a8893c3af500cec7d7cf"},
@@ -3859,7 +3859,7 @@ description = "This package allows for HTTP NTLM authentication using the reques
 optional = true
 python-versions = ">=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "requests_ntlm-1.3.0-py3-none-any.whl", hash = "sha256:4c7534a7d0e482bb0928531d621be4b2c74ace437e88c5a357ceb7452d25a510"},
     {file = "requests_ntlm-1.3.0.tar.gz", hash = "sha256:b29cc2462623dffdf9b88c43e180ccb735b4007228a542220e882c58ae56c668"},
@@ -3877,7 +3877,7 @@ description = "A High-Performance Graph Library for Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "rustworkx-0.17.1-cp39-abi3-macosx_10_12_x86_64.whl", hash = "sha256:c08fb8db041db052da404839b064ebfb47dcce04ba9a3e2eb79d0c65ab011da4"},
     {file = "rustworkx-0.17.1-cp39-abi3-macosx_11_0_arm64.whl", hash = "sha256:4ef8e327dadf6500edd76fedb83f6d888b9266c58bcdbffd5a40c33835c9dd26"},
@@ -3907,7 +3907,7 @@ description = "An Amazon S3 Transfer Manager"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\""
+markers = "python_version < \"3.14\" and extra == \"braket\""
 files = [
     {file = "s3transfer-0.16.0-py3-none-any.whl", hash = "sha256:18e25d66fed509e3868dc1572b3f427ff947dd2c56f844a5bf09481ad3f3b2fe"},
     {file = "s3transfer-0.16.0.tar.gz", hash = "sha256:8e990f13268025792229cd52fa10cb7163744bf56e719e0b9cb925ab79abf920"},
@@ -4150,7 +4150,7 @@ description = "Python 2 and 3 compatibility utilities"
 optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or (extra == \"qsub\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"braket\" or extra == \"qiskit\") and python_version >= \"3.10\""
+markers = "python_version < \"3.10\" and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\") or (python_version < \"3.14\" or extra == \"qsub\" or extra == \"cirq\" or extra == \"openfermion\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"qsub\" or extra == \"cirq\" or extra == \"openfermion\") and python_version >= \"3.10\""
 files = [
     {file = "six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274"},
     {file = "six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81"},
@@ -4176,7 +4176,7 @@ description = "SSPI API bindings for Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\" and sys_platform == \"win32\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" and sys_platform == \"win32\""
 files = [
     {file = "sspilib-0.5.0-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:9c64965de12f3eea242fd57045e546721929f62da65a3e5d629bee39314394d1"},
     {file = "sspilib-0.5.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:bab2f828bfb8750091f17a71cc753402ecc24544331570edeaa04b97e0f97193"},
@@ -4229,7 +4229,7 @@ description = "Manage dynamic plugins for Python applications"
 optional = true
 python-versions = ">=3.10"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\" and python_version >= \"3.10\""
 files = [
     {file = "stevedore-5.6.0-py3-none-any.whl", hash = "sha256:4a36dccefd7aeea0c70135526cecb7766c4c84c473b1af68db23d541b6dc1820"},
     {file = "stevedore-5.6.0.tar.gz", hash = "sha256:f22d15c6ead40c5bbfa9ca54aa7e7b4a07d59b36ae03ed12ced1a54cf0b51945"},
@@ -4290,7 +4290,7 @@ description = "Python library providing wrappers to SymEngine"
 optional = true
 python-versions = "<4,>=3.8"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "symengine-0.13.0-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:259fd4111c7a70c72bdff5686de1949e8132baeb612eacdaf8837720c6fe449b"},
     {file = "symengine-0.13.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:44f2eb28a1e36db0bbd6679435412f79da9743bf9c1cb3eff25e0c343b7ddd48"},
@@ -4343,7 +4343,7 @@ description = "Computer algebra system (CAS) in Python"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or (extra == \"tket\" or extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\") and python_version >= \"3.10\""
+markers = "(python_version < \"3.14\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or python_version >= \"3.10\")"
 files = [
     {file = "sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"},
     {file = "sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517"},
@@ -4512,7 +4512,7 @@ description = "Runtime typing introspection tools"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"braket\" or extra == \"qiskit\""
+markers = "python_version < \"3.14\" and (extra == \"braket\" or extra == \"qiskit\")"
 files = [
     {file = "typing_inspection-0.4.2-py3-none-any.whl", hash = "sha256:4ed1cacbdc298c220f1bd249ed5287caa16f34d44ef4e9c3d0cbad5b521545e7"},
     {file = "typing_inspection-0.4.2.tar.gz", hash = "sha256:ba561c48a67c5958007083d386c3295464928b01faa735ab8547c5692e87f464"},
@@ -4559,7 +4559,7 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "python_version >= \"3.10\" and (extra == \"braket\" or extra == \"qiskit\" or extra == \"openfermion\")"
+markers = "(python_version < \"3.14\" or extra == \"openfermion\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"openfermion\") and python_version >= \"3.10\""
 files = [
     {file = "urllib3-2.6.2-py3-none-any.whl", hash = "sha256:ec21cddfe7724fc7cb4ba4bea7aa8e2ef36f607a4bab81aa6ce42a13dc3f03dd"},
     {file = "urllib3-2.6.2.tar.gz", hash = "sha256:016f9c98bb7e98085cb2b4b17b87d2c702975664e4f060c6532e64d1c1a5e797"},
@@ -4578,7 +4578,7 @@ description = "WebSocket client for Python with low level API options"
 optional = true
 python-versions = ">=3.9"
 groups = ["main"]
-markers = "extra == \"qiskit\""
+markers = "python_version < \"3.14\" and extra == \"qiskit\""
 files = [
     {file = "websocket_client-1.9.0-py3-none-any.whl", hash = "sha256:af248a825037ef591efbf6ed20cc5faa03d3b47b9e5a2230a529eeee1c1fc3ef"},
     {file = "websocket_client-1.9.0.tar.gz", hash = "sha256:9e813624b6eb619999a97dc7958469217c3176312b3a16a4bd1bc7e08a46ec98"},
@@ -4629,4 +4629,4 @@ tket = ["quri-parts-tket"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.8"
-content-hash = "1f6cfa1813516fdccb5504269e8b5fc7f6aaddde72a547f688b22a1f66c18f81"
+content-hash = "4a82a9246cca6c20d59e3f7413f0a17504a878eb61c201ae60aa760f839a26d7"

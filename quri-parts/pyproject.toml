@@ -28,8 +28,8 @@ quri-parts-algo = "*"
 quri-parts-chem = "*"
 
 quri-parts-qulacs = { version = "*", optional = true }
-quri-parts-braket = { version = "*", optional = true }
-quri-parts-qiskit = { version = "*", optional = true }
+quri-parts-braket = { version = "*", optional = true, python = "<3.14" }
+quri-parts-qiskit = { version = "*", optional = true, python = "<3.14" }
 quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }

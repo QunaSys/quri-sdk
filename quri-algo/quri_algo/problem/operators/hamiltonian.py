@@ -8,13 +8,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 import numpy as np
 import numpy.typing as npt
-from openfermion import FermionOperator
+
+if TYPE_CHECKING:
+    from openfermion import FermionOperator
 from quri_parts.core.operator import Operator
 
 

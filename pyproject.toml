@@ -32,8 +32,8 @@ quri-parts-algo = "*"
 quri-parts-chem = "*"
 
 quri-parts-qulacs = { version = "*", optional = true }
-quri-parts-braket = { version = "*", optional = true }
-quri-parts-qiskit = { version = "*", optional = true }
+quri-parts-braket = { version = "*", optional = true, python = "<3.14" }
+quri-parts-qiskit = { version = "*", optional = true, python = "<3.14" }
 quri-parts-cirq = { version = "*", optional = true }
 quri-parts-openfermion = { version = "*", optional = true }
 quri-parts-stim = { version = "*", optional = true }
@@ -71,8 +71,8 @@ quri-parts-core = { path = "quri-parts/packages/core", develop = true }
 quri-parts-qulacs = { path = "quri-parts/packages/qulacs", develop = true }
 quri-parts-algo = { path = "quri-parts/packages/algo", develop = true }
 quri-parts-chem = { path = "quri-parts/packages/chem", develop = true }
-quri-parts-braket = { path = "quri-parts/packages/braket", develop = true }
-quri-parts-qiskit = { path = "quri-parts/packages/qiskit", develop = true }
+quri-parts-braket = { path = "quri-parts/packages/braket", develop = true, python = "<3.14" }
+quri-parts-qiskit = { path = "quri-parts/packages/qiskit", develop = true, python = "<3.14" }
 quri-parts-cirq = { path = "quri-parts/packages/cirq", develop = true }
 quri-parts-openfermion = { path = "quri-parts/packages/openfermion", develop = true }
 quri-parts-stim = { path = "quri-parts/packages/stim", develop = true }

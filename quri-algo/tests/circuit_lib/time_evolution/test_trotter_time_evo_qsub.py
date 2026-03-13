@@ -10,9 +10,9 @@ from quri_parts.qulacs.estimator import create_qulacs_general_vector_estimator
 from quri_algo.circuit.time_evolution.trotter_time_evo import (
     get_trotter_time_evolution_operator,
 )
+from quri_algo.circuit_lib.time_evolution.trotter_time_evo import TrotterTimeEvo
 from quri_algo.core.cost_functions.hilbert_schmidt_test import HilbertSchmidtTest
 from quri_algo.problem import QubitHamiltonian
-from quri_algo.qsub.time_evolution.trotter_time_evo import TrotterTimeEvo
 
 
 def test_trotter_time_evo_qsub() -> None:
