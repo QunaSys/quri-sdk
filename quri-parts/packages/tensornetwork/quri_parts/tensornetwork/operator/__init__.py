@@ -13,13 +13,13 @@ from typing import Any, Collection, Literal, Optional, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
-import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, Node, split_node
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
 from typing_extensions import TypeAlias
 
-from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
+import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 from quri_parts.tensornetwork.state import TensorNetworkState
+from tensornetwork import AbstractNode, Edge, Node, split_node
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
     [[1, 0], [0, 1]],
@@ -307,7 +307,9 @@ def operator_to_tensor(
     return tensor
 
 
-def pauli_label_to_tensor(pl: PauliLabel, backend: str = "numpy", coefficient: Optional[float] = None) -> TensorNetworkOperator:
+def pauli_label_to_tensor(
+    pl: PauliLabel, backend: str = "numpy", coefficient: Optional[complex] = None
+) -> TensorNetworkOperator:
     tensor_map = {}
     input_edges = []
     output_edges = []
@@ -321,16 +323,18 @@ def pauli_label_to_tensor(pl: PauliLabel, backend: str = "numpy", coefficient: O
         input_edges.append(tensor_map[qb])
         output_edges.append(tensor_map[qb])
 
-    return TensorNetworkOperator(input_edges, output_edges, set(tensor_map.values()), [tensor_map])
+    return TensorNetworkOperator(
+        input_edges, output_edges, set(tensor_map.values()), [tensor_map]
+    )
 
 
 def operator_to_tensor_sequence(
     operator: Union[Operator, PauliLabel],
     backend: str = "numpy",
 ) -> Sequence[TensorNetworkOperator]:
-    """Returns a sequence of `TensorNetworkOperator` each corresponding to a single
-    PauliLabel
-    
+    """Returns a sequence of `TensorNetworkOperator` each corresponding to a
+    single PauliLabel.
+
     Each generated operator has a trivial bond dimension.
 
     Args:
@@ -341,7 +345,5 @@ def operator_to_tensor_sequence(
     """
     if isinstance(operator, PauliLabel):
         return [pauli_label_to_tensor(operator, backend, 1.0)]
-    
-    return [pauli_label_to_tensor(pl,backend,c) for pl, c in operator.items()]
 
-
+    return [pauli_label_to_tensor(pl, backend, c) for pl, c in operator.items()]

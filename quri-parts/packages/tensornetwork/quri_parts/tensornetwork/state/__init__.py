@@ -11,17 +11,18 @@
 from typing import Any, List, Mapping, Optional, Sequence, Text, Union
 
 import numpy as np
-import tensornetwork as tn
+import numpy.typing as npt
 from h5py import Group
-from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
-
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
+
+import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import (
     TensorNetworkLayer,
     TensorNetworkTranspiler,
     convert_circuit,
 )
+from tensornetwork import AbstractNode, Edge, Node, NodeCollection, Tensor
 
 
 class MultiMappedNode(AbstractNode):  # type: ignore
@@ -511,17 +512,19 @@ class TensorNetworkState(NodeCollection):  # type: ignore
         tensor_map = {q: node for q in range(len(copy.edges))}
 
         return TensorNetworkState(copy.edges, {node}, [tensor_map])
-    
-    def inner_product(self, other: "TensorNetworkState", conjugate: bool = True) -> complex:
+
+    def inner_product(
+        self, other: "TensorNetworkState", conjugate: bool = True
+    ) -> complex:
         self_copy = self.copy(conjugate=conjugate)
         other_copy = other.copy()
 
         for e, f in zip(self_copy.edges, other_copy.edges):
             e ^ f
-        
+
         node_set = self_copy._container.union(other_copy._container)
-        tensor = tn.contractors.greedy(node_set).tensor
-        
+        tensor: npt.NDArray[np.complex128] = tn.contractors.greedy(node_set).tensor
+
         return tensor.item()
 
 

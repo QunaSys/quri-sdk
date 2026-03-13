@@ -8,10 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Mapping, Optional, Sequence, Union, Any
-
-import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, NodeCollection
+from typing import Any, Callable, Mapping, Optional, Sequence, Union
 
 from quri_parts.circuit import ImmutableQuantumCircuit, gate_names
 from quri_parts.circuit.gate_names import (
@@ -29,6 +26,8 @@ from quri_parts.circuit.transpile import (
     PauliRotationDecomposeTranspiler,
     SequentialTranspiler,
 )
+
+import tensornetwork as tn
 from quri_parts.tensornetwork.circuit import gates
 from quri_parts.tensornetwork.circuit.gates import (
     SingleQubitGate,
@@ -38,6 +37,7 @@ from quri_parts.tensornetwork.circuit.gates import (
     ThreeQubitGate,
     TwoQubitGate,
 )
+from tensornetwork import AbstractNode, Edge, NodeCollection
 
 _single_qubit_gate_tensornetwork: Mapping[
     SingleQubitGateNameType, type[SingleQubitGate]
@@ -127,14 +127,17 @@ class TensorNetworkLayer(NodeCollection):  # type: ignore
         return TensorNetworkLayer(
             circuit_input_edges, circuit_output_edges, circuit_nodes, tensor_map
         )
-    
-    def extend(self, other: "TensorNetworkLayer", *varargs: Any, **kwargs: Any) -> "TensorNetworkLayer":
+
+    def extend(
+        self, other: "TensorNetworkLayer", *varargs: Any, **kwargs: Any
+    ) -> "TensorNetworkLayer":
         self_copy = self.copy()
         other_copy = other.copy()
         return connect_layers(self_copy, other_copy)
 
+
 def connect_layers(
-    first: TensorNetworkLayer, second: TensorNetworkLayer, max_bond_dimension: int
+    first: TensorNetworkLayer, second: TensorNetworkLayer
 ) -> TensorNetworkLayer:
     qubits = set(first.index_list)
     qubits.update(second.index_list)
@@ -170,6 +173,7 @@ def connect_layers(
         all_nodes,
         layer_tensor_map,
     )
+
 
 def connect_gate(
     node: TensorNetworkQuantumGate,
