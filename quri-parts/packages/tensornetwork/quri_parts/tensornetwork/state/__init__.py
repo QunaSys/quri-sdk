@@ -511,6 +511,18 @@ class TensorNetworkState(NodeCollection):  # type: ignore
         tensor_map = {q: node for q in range(len(copy.edges))}
 
         return TensorNetworkState(copy.edges, {node}, [tensor_map])
+    
+    def inner_product(self, other: "TensorNetworkState", conjugate: bool = True) -> complex:
+        self_copy = self.copy(conjugate=conjugate)
+        other_copy = other.copy()
+
+        for e, f in zip(self_copy.edges, other_copy.edges):
+            e ^ f
+        
+        node_set = self_copy._container.union(other_copy._container)
+        tensor = tn.contractors.greedy(node_set).tensor
+        
+        return tensor.item()
 
 
 def get_zero_state(qubit_count: int, backend: str = "numpy") -> TensorNetworkState:
