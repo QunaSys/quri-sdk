@@ -1,3 +1,4 @@
+import itertools
 from collections.abc import Iterable, Mapping, Sequence
 from typing import cast
 
@@ -108,10 +109,27 @@ def _add_funcall(
     qs: Iterable[QretQubit],
     rs: Iterable[QretRegister],
     op_circuit_gen_map: Mapping[Op, CircuitGenerator],
+    caller_arg: Argument,
+    msubs: Mapping[Op, MachineSub],
+    ancilla_counter: "itertools.count[int]",
 ) -> None:
     gen = op_circuit_gen_map[mop.op]
     circuit = gen.generate()
-    circuit(*qs, *rs)
+
+    callee_msub = msubs[mop.op]
+    aux_qs: list[QretQubit] = []
+    for _ in callee_msub.aux_qubits:
+        name = f"_anc_q{next(ancilla_counter)}"
+        caller_arg.add_clean_ancilla(name)
+        aux_qs.append(cast(QretQubit, caller_arg[name]))
+
+    aux_rs: list[QretRegister] = []
+    for _ in callee_msub.aux_registers:
+        name = f"_anc_r{next(ancilla_counter)}"
+        caller_arg.add_input(name)
+        aux_rs.append(cast(QretRegister, caller_arg[name]))
+
+    circuit(*qs, *aux_qs, *rs, *aux_rs)
 
 
 def _create_circuit_gen(
@@ -119,6 +137,8 @@ def _create_circuit_gen(
     msub: MachineSub,
     op_circuit_gen_map: Mapping[Op, CircuitGenerator],
     builder: CircuitBuilder,
+    msubs: Mapping[Op, MachineSub],
+    ancilla_counter: "itertools.count[int]",
 ) -> CircuitGenerator:
     class _Gen(CircuitGenerator):  # type: ignore
         def name(self) -> str:
@@ -152,7 +172,15 @@ def _create_circuit_gen(
                 if is_primitive(mop):
                     _add_intrinsic(mop, mapped_qs, mapped_rs)
                 elif is_subcall(mop):
-                    _add_funcall(mop, mapped_qs, mapped_rs, op_circuit_gen_map)
+                    _add_funcall(
+                        mop,
+                        mapped_qs,
+                        mapped_rs,
+                        op_circuit_gen_map,
+                        arg,
+                        msubs,
+                        ancilla_counter,
+                    )
 
     return _Gen(builder)
 
@@ -179,10 +207,11 @@ def create_module_from_qsub_op(
     module = Module(f"__qsub__{entry_op.id.to_str()}", context)
     builder = CircuitBuilder(module)
 
+    ancilla_counter = itertools.count()
     op_circuit_gen_map: dict[Op, CircuitGenerator] = {}
     for op, msub in msubs.items():
         op_circuit_gen_map[op] = _create_circuit_gen(
-            op, msub, op_circuit_gen_map, builder
+            op, msub, op_circuit_gen_map, builder, msubs, ancilla_counter
         )
     # Explicitly generate the entry circuit so the module is populated.
     op_circuit_gen_map[entry_op].generate()
