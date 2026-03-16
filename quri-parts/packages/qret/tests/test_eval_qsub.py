@@ -44,3 +44,12 @@ def test_custom_entry_name_in_module() -> None:
 
     assert len(circuits) == 1
     assert any(name.endswith("custom_entry") for name in circuits)
+
+
+def test_disable_entry_wrapper_circuit() -> None:
+    module = create_module_from_qsub_op(SimpleSub, entry_circuit_name=None)
+    circuits = module.get_circuit_list()
+
+    assert len(circuits) == 1
+    assert "main" not in circuits
+    assert any(name.endswith("SimpleSub") for name in circuits)

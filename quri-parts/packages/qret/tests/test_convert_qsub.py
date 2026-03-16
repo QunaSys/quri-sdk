@@ -62,6 +62,23 @@ class TestCreateModuleFromQsubOp:
         assert len(circuits) == 1
         assert any("UMCX" in name for name in circuits)
 
+    def test_entry_circuit_name_option(self) -> None:
+        custom_entry_name = "entry_point"
+        module = create_module_from_qsub_op(UMCX, entry_circuit_name=custom_entry_name)
+
+        circuits = module.get_circuit_list()
+        assert len(circuits) == 1
+        assert custom_entry_name in circuits
+        assert all("UMCX" not in name for name in circuits)
+
+        module_without_wrapper = create_module_from_qsub_op(
+            UMCX, entry_circuit_name=None
+        )
+        circuits_without_wrapper = module_without_wrapper.get_circuit_list()
+        assert len(circuits_without_wrapper) == 1
+        assert custom_entry_name not in circuits_without_wrapper
+        assert any("UMCX" in name for name in circuits_without_wrapper)
+
     @pytest.mark.parametrize("control_bits", [2, 3, 4])
     def test_create_module_from_single_mcx_op(self, control_bits: int) -> None:
         class _SingleMCX(UnitarySubDef):

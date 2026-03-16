@@ -135,6 +135,22 @@ def _assert_circuit_args(
         assert info_size == size
 
 
+def _assert_input_output_counts(
+    module: Module, circuit_name: str, expected_inputs: int, expected_outputs: int
+) -> None:
+    argument = module.get_circuit(circuit_name).argument
+    infos = [argument.view_arg_info(name) for name in argument.get_arg_names()]
+
+    attrs = [
+        info.attribute() if callable(info.attribute) else info.attribute
+        for info in infos
+    ]
+    input_count = sum(attr == QuantumAttribute.Input for attr in attrs)
+    output_count = sum(attr == QuantumAttribute.Output for attr in attrs)
+    assert input_count == expected_inputs
+    assert output_count == expected_outputs
+
+
 def _get_opcode_strings(module: Module, circuit_name: str) -> list[str]:
     circuit = module.get_circuit(circuit_name)
     return [
@@ -175,6 +191,12 @@ class TestCreateModuleWithAuxQubits:
                 ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
         )
+        _assert_input_output_counts(
+            module, outer, expected_inputs=0, expected_outputs=0
+        )
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=0
+        )
 
         outer_ops = _get_opcode_strings(module, outer)
         assert _count_opcode(outer_ops, "call") == 1
@@ -214,6 +236,12 @@ class TestCreateModuleWithAuxQubits:
                 ("ar0", QuantumType.Register, QuantumAttribute.Output, 1),
             ],
         )
+        _assert_input_output_counts(
+            module, outer, expected_inputs=0, expected_outputs=1
+        )
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=1
+        )
 
         outer_ops = _get_opcode_strings(module, outer)
         assert _count_opcode(outer_ops, "call") == 1
@@ -239,6 +267,9 @@ class TestCreateModuleWithAuxQubits:
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
+        )
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=0
         )
 
         inner_ops = _get_opcode_strings(module, inner)
@@ -285,6 +316,13 @@ class TestCreateModuleWithAuxQubits:
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
+        )
+        _assert_input_output_counts(
+            module, outer, expected_inputs=0, expected_outputs=0
+        )
+        _assert_input_output_counts(module, mid, expected_inputs=0, expected_outputs=0)
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=0
         )
 
         outer_ops = _get_opcode_strings(module, outer)

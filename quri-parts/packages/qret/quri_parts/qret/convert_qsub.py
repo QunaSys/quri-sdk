@@ -122,13 +122,14 @@ def _create_circuit_gen(
     builder: CircuitBuilder,
     ancilla_counts: Mapping[Op, int],
     aux_register_counts: Mapping[Op, int],
+    circuit_name: str,
 ) -> CircuitGenerator:
     local_ancilla_count = ancilla_counts[op]
     local_aux_register_count = aux_register_counts[op]
 
     class _Gen(CircuitGenerator):  # type: ignore
         def name(self) -> str:
-            return op.id.to_str()
+            return circuit_name
 
         def arg(self) -> Argument:
             ret = Argument()
@@ -235,6 +236,7 @@ def _compute_aux_register_counts(msubs: Mapping[Op, MachineSub]) -> dict[Op, int
 def create_module_from_qsub_op(
     entry_op: Op,
     module_name: str | None = None,
+    entry_circuit_name: str | None = None,
     repository: SubRepository = default_repository(),
     primitives: Iterable[AbstractOp] = QRETInstrSet,
 ) -> Module:
@@ -262,6 +264,10 @@ def create_module_from_qsub_op(
 
     op_circuit_gen_map: dict[Op, CircuitGenerator] = {}
     for op, msub in msubs.items():
+        circuit_name = op.id.to_str()
+        if op.id == entry_op.id and entry_circuit_name is not None:
+            circuit_name = entry_circuit_name
+
         op_circuit_gen_map[op] = _create_circuit_gen(
             op,
             msub,
@@ -269,8 +275,9 @@ def create_module_from_qsub_op(
             builder,
             ancilla_counts,
             aux_register_counts,
+            circuit_name,
         )
-    # Explicitly generate the entry circuit so the module is populated.
+
     op_circuit_gen_map[entry_op].generate()
 
     # pyqret.Module.get_circuit() canonicalizes qubit attrs to Operate.
