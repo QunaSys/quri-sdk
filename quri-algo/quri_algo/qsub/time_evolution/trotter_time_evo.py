@@ -1,3 +1,5 @@
+"""Deprecated. Use :mod:`quri_algo.circuit_lib.time_evolution.trotter_time_evo`."""
+
 import warnings
 
 warnings.warn(
@@ -10,3 +12,5 @@ from quri_algo.circuit_lib.time_evolution.trotter_time_evo import (  # noqa: F40
     TrotterTimeEvo,
     TrotterTimeEvoSub,
 )
+
+__all__ = ["TrotterTimeEvo", "TrotterTimeEvoSub"]
