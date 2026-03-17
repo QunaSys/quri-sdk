@@ -53,6 +53,5 @@ jobs:
           mypy-${{ runner.os }}-${{ matrix.python_version }}-
 
     - name: Run mypy
-      # we have no `qret` package, skip
-      run: poetry run mypy quri-parts --exclude quri-parts/packages/qret
+      run: poetry run mypy quri-parts
       if: success() || failure()

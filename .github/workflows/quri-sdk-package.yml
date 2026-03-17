@@ -2,7 +2,7 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'quri-parts-qret', 'quri-parts-qret-wheel']
   release:
     types: [published]
 
@@ -90,7 +90,7 @@ jobs:
           mv packages/rust/pyproject.toml .
           mv packages/rust/quri_parts .
           mv packages/rust/MANIFEST.in .
-          rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/tensornetwork
+          rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/qret packages/tensornetwork
           echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
           poetry run python -m build --sdist
 
@@ -206,6 +206,9 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
               continue
             fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
+              continue
+            fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
               continue
             fi
@@ -220,12 +223,12 @@ jobs:
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
             if [[ "${{ matrix.python-version }}" = "14" ]]; then
-              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit,qret}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
             else
-              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor,qret}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
             fi
           elif [[ "${{ matrix.python-version }}" = "14" ]]; then
-            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit,qret}
+            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
           else
             pytest quri-parts/packages
           fi
@@ -429,6 +432,9 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
               continue
             fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
+              continue
+            fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
               continue
             fi
@@ -443,12 +449,12 @@ jobs:
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
             if [[ "${{ matrix.python-version }}" = "14" ]]; then
-              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit,qret}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
             else
-              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor,qret}
+              pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
             fi
           elif [[ "${{ matrix.python-version }}" = "14" ]]; then
-            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit,qret}
+            pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
           else
             pytest quri-parts/packages
           fi

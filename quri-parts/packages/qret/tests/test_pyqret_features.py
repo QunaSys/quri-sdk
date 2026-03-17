@@ -1,8 +1,9 @@
 import tempfile
 from typing import Any, cast
 
-import pyqret.backend as backend
 import pytest
+
+import pyqret.backend as backend  # type: ignore
 
 import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
