@@ -89,6 +89,12 @@ def _evaluate_qp_state_to_qulacs_state(
     noise_model: Optional[NoiseModel] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> Union[ql.QuantumState, ql.DensityMatrix]:
+    # Fast path for CircuitQuantumState (initial state is |0⟩): avoid allocating
+    # a full 2**n vector on every MPI rank by delegating directly to the backend.
+    # QuantumStateVector carries its own vector and is handled by the general path.
+    if noise_model is None and isinstance(state, CircuitQuantumState):
+        return _get_updated_qulacs_state_from_zero(state.circuit, backend)
+
     init_state_vector = _get_init_vector_from_state(state)
     if noise_model is None:
         return _get_updated_qulacs_state_from_vector(
@@ -97,6 +103,27 @@ def _evaluate_qp_state_to_qulacs_state(
     return _get_updated_qulacs_density_matrix_from_vector(
         state.circuit, init_state_vector, noise_model
     )
+
+
+def _get_updated_qulacs_state_from_zero(
+    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
+    backend: QulacsBackend = DEFAULT_BACKEND,
+) -> ql.QuantumState:
+    """Initialise to |0⟩ and apply circuit, without allocating a full 2**n vector.
+
+    Uses ``backend.init_zero_state`` so that MPI backends can avoid the O(2**n)
+    allocation that would otherwise happen on every rank.  Only valid when the
+    logical initial state is |0⟩ (i.e. the input is a CircuitQuantumState).
+    """
+    qulacs_state = backend.init_zero_state(circuit)
+
+    if isinstance(circuit, _QulacsCircuit):
+        qulacs_cicuit = circuit._qulacs_circuit
+    else:
+        qulacs_cicuit = convert_circuit(circuit)
+
+    qulacs_cicuit.update_quantum_state(qulacs_state)
+    return qulacs_state
 
 
 def _get_updated_qulacs_state_from_vector(
@@ -161,8 +188,9 @@ def evaluate_state_to_vector(
 
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
-    vec = out_state_vector.get_vector()
-    backend.validate_state_vector(vec, state.qubit_count)
+    # get_full_state_vector gathers distributed MPI slices so the full vector
+    # is available on every rank (MPI backends override this method).
+    vec = backend.get_state_vector(out_state_vector, state.qubit_count)
     return QuantumStateVector(state.qubit_count, vec)
 
 

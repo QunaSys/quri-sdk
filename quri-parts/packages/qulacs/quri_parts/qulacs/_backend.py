@@ -28,7 +28,15 @@ class QulacsBackend(Protocol):
     ) -> ql.QuantumState:
         ...
 
+    def init_zero_state(self, circuit: QulacsCircuitT) -> ql.QuantumState:
+        ...
+
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
+        ...
+
+    def get_state_vector(
+        self, state: ql.QuantumState, qubit_count: int
+    ) -> NDArray[complex128]:
         ...
 
     def validate_state_vector(
@@ -51,6 +59,23 @@ class DefaultQulacsBackend:
         qulacs_state = ql.QuantumState(circuit.qubit_count)
         qulacs_state.load(cast_to_list(init_state))
         return qulacs_state
+
+    def init_zero_state(self, circuit: QulacsCircuitT) -> ql.QuantumState:
+        """Create a qulacs QuantumState initialised to |0⟩ without allocating
+        a full 2**n init vector.  Backends that distribute the state across MPI
+        ranks should override this to avoid the O(2**n) allocation on every rank.
+        """
+        return ql.QuantumState(circuit.qubit_count)
+
+    def get_state_vector(
+        self, state: ql.QuantumState, qubit_count: int
+    ) -> NDArray[complex128]:
+        """Return the full 2**n state vector.
+
+        Backends may override this to reconstruct the vector from a
+        non-standard internal representation before returning it.
+        """
+        return state.get_vector()
 
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
         return n_shots > int(2 ** max(int(qubit_count), 10))
