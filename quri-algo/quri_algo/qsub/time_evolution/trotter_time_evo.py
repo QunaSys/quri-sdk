@@ -1,4 +1,7 @@
-"""Deprecated. Use :mod:`quri_algo.circuit_lib.time_evolution.trotter_time_evo`."""
+"""Deprecated.
+
+Use :mod:`quri_algo.circuit_lib.time_evolution.trotter_time_evo`.
+"""
 
 import warnings
 
