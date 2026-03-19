@@ -1,9 +1,13 @@
 import pytest
 
 import quri_parts.qsub.lib.std as std
-from quri_parts.qret.convert_qsub import create_module_from_qsub_op
+from quri_parts.qret.convert_qsub import (
+    create_module_from_qsub_op,
+    create_module_from_qsub_sub,
+)
 from quri_parts.qsub.lib.qpe import QPE
 from quri_parts.qsub.opsub import UnitarySubDef, opsub
+from quri_parts.qsub.resolve import resolve_sub
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -39,14 +43,8 @@ class TestCreateModuleFromQsubOp:
         module = create_module_from_qsub_op(qpe_u_op)
 
         circuits = module.get_circuit_list()
-        assert len(circuits) > 0
-
-        # Verify expected circuit names are present
-        circuit_names = set(circuits)
-        assert any("QPE" in name for name in circuit_names)
-        assert any("LineH" in name for name in circuit_names)
-        assert any("Controlled" in name for name in circuit_names)
-        assert any("QFTdag" in name for name in circuit_names)
+        assert len(circuits) == 1
+        assert any("QPE" in name for name in circuits)
 
     def test_circuit_ir_structure(self) -> None:
         qpe_u_op = QPE(4, U)
@@ -65,7 +63,7 @@ class TestCreateModuleFromQsubOp:
         module = create_module_from_qsub_op(UMCX)
 
         circuits = module.get_circuit_list()
-        assert len(circuits) > 0
+        assert len(circuits) == 1
         assert any("UMCX" in name for name in circuits)
 
     @pytest.mark.parametrize("control_bits", [2, 3, 4])
@@ -81,5 +79,31 @@ class TestCreateModuleFromQsubOp:
         module = create_module_from_qsub_op(single_mcx)
 
         circuits = module.get_circuit_list()
-        assert len(circuits) > 0
+        assert len(circuits) == 1
         assert any(f"SingleMCX{control_bits}" in name for name in circuits)
+
+    def test_create_module_from_qsub_op_uses_sub_entry(self) -> None:
+        qpe_u_op = QPE(3, U)
+        qpe_u_sub = resolve_sub(qpe_u_op)
+        assert qpe_u_sub is not None
+
+        module_from_op = create_module_from_qsub_op(qpe_u_op)
+        module_from_sub = create_module_from_qsub_sub(
+            qpe_u_sub, module_name=qpe_u_op.id.to_str()
+        )
+
+        op_circuits = module_from_op.get_circuit_list()
+        sub_circuits = module_from_sub.get_circuit_list()
+        assert op_circuits == sub_circuits
+
+        name = op_circuits[0]
+        assert name == qpe_u_op.id.to_str()
+        assert (
+            module_from_op.get_circuit(name).get_ir().gen_cfg()
+            == module_from_sub.get_circuit(name).get_ir().gen_cfg()
+        )
+        assert module_from_op.get_circuit(name).get_ir().gen_call_graph(
+            display_num_calls=True
+        ) == module_from_sub.get_circuit(name).get_ir().gen_call_graph(
+            display_num_calls=True
+        )
