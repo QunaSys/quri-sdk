@@ -11,6 +11,8 @@ from quri_parts.qsub.sub import SubBuilder
 
 from quri_algo.problem import QubitHamiltonian
 
+__all__ = ["TrotterTimeEvo", "TrotterTimeEvoSub"]
+
 
 class _TrotterTimeEvo(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):
     name = "TrotterTimeEvolution"
@@ -54,4 +56,11 @@ class _TrotterTimeEvo(ParamUnitarySubDef[QubitHamiltonian, float, int, int]):
                 builder.add_op(op, q)
 
 
-TrotterTimeEvo, TrotterTimeEvoSub = param_opsub(_TrotterTimeEvo)
+__trottertimeevo_result = param_opsub(_TrotterTimeEvo)
+#: TrotterTimeEvo subroutine factory.
+TrotterTimeEvo = __trottertimeevo_result[0]
+TrotterTimeEvoSub = __trottertimeevo_result[1]
+
+# Fix __module__ so Sphinx autodoc picks up factory objects
+TrotterTimeEvo.__module__ = __name__
+TrotterTimeEvoSub.__module__ = __name__
