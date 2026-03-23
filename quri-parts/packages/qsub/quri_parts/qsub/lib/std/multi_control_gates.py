@@ -12,6 +12,8 @@ import math
 from contextlib import AbstractContextManager
 from typing import Callable
 
+import numpy as np
+
 from quri_parts.qsub.op import (
     BaseIdent,
     Op,
@@ -257,7 +259,7 @@ def MultiControlledNamedMCGatesSub(
             # Extract angle parameter from target_op
             mc_gate_factory = _mc_gate_mapping_param[target_op.base_id]
             angle = target_op.id.params[0]
-            assert isinstance(angle, float)
+            assert isinstance(angle, (float, np.float64))
             builder.add_op(mc_gate_factory(control_bits, angle), qubits)
         else:
             # Non-parametrized gates
