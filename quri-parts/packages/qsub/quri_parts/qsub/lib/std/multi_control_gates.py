@@ -375,6 +375,8 @@ def generate_multicontrolled_to_mc_sub_resolver(
         assert isinstance(control_bits, int)
         assert isinstance(control_value, int)
 
+        # replace directly to MC? gates for named gates
+        # ex) MultiControlled[X] -> MCX
         named_sub = MultiControlledNamedMCGatesSub(
             target_op, control_bits, control_value
         )
@@ -386,7 +388,10 @@ def generate_multicontrolled_to_mc_sub_resolver(
         if target_sub_resolver is not None:
             target_sub = target_sub_resolver(target_op, repository)
 
+        # U is not found in the repository
         if target_sub is None:
+            # expand the control bits with s_and
+            # ex) MultiControlled[U] -> Toffoli + Controlled[U] + Toffoli
             return _multi_controlled_sub(target_op, control_bits, control_value, s_and)
 
         builder = SubBuilder(op.qubit_count, op.reg_count)
@@ -403,6 +408,8 @@ def generate_multicontrolled_to_mc_sub_resolver(
             zip(target_sub.aux_registers, target_ar)
         )
 
+        # expand U and emit multiple MultiControlled ops
+        # ex) MultiControlled[U] -> MultiControlled[U1] + MultiControlled[U2] + ...
         for o, qs, rs in target_sub.operations:
             if not o.unitary:
                 raise ValueError(f"Unsupported operation, {o} in multi-controlled sub")
@@ -413,12 +420,23 @@ def generate_multicontrolled_to_mc_sub_resolver(
                 tuple(reg_map[r] for r in rs),
             )
 
+        # decompose MultiControlled[theta]
+        # Controlled-theta (true condition) is decomposed as follows:
+        #   |0><0| x I + e^{i theta} |1><1> x I
+        #   = diag(1, 1, e^{i theta}, e^{i theta}) x I
+        #   = Phase(theta) x I
+        # Controlled-theta (false condition) is decomposed as follows
+        #   e^{i theta} |0><0| x I + |1><1> x I
+        #   = diag(e^{i theta}, e^{i theta}, 1, 1) x I
+        #   = e^{i theta} Phase(-theta) x I
         phase = target_sub.phase % (2 * math.pi)
         if phase != 0:
-            builder.add_phase(phase / 2.0)
             if (control_value & (1 << (control_bits - 1))) == 0:
                 # use diag(e^i(phase), 1)  instead of diag(1, e^i(phase))
+                builder.add_phase(phase)
                 phase = (-phase) % (2 * math.pi)
+
+            # generate Phase(theta)
             if phase == math.pi:
                 phase_op = Z
             elif phase == math.pi / 2:
@@ -426,7 +444,7 @@ def generate_multicontrolled_to_mc_sub_resolver(
             elif phase == 3 * math.pi / 2:
                 phase_op = Sdag
             else:
-                phase_op = RZ(phase)
+                phase_op = Phase(phase)
 
             if control_bits == 1:
                 builder.add_op(phase_op, qubits=control_q)

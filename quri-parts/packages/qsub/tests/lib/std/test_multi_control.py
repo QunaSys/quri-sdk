@@ -1034,7 +1034,7 @@ class TestPhaseHandlingInResolver:
         op_1 = (MultiControlled(Z, 1, 0b1), resolved_sub.qubits[:2], ())
         assert resolved_sub.operations[1] == op_1
         # Global phase π is added
-        assert resolved_sub.phase == math.pi / 2.0
+        assert resolved_sub.phase == math.pi
 
     def test_phase_pi_half_with_msb_set(self) -> None:
         """Test phase π/2 handling when MSB is set in control_value."""
@@ -1130,7 +1130,7 @@ class TestPhaseHandlingInResolver:
         assert len(resolved_sub.operations) == 2
         op_0 = (MultiControlled(X, 2, 0b11), resolved_sub.qubits[:3], ())
         assert resolved_sub.operations[0] == op_0
-        expected_phase_op = MultiControlled(RZ(arbitrary_phase), 1, 0b1)
+        expected_phase_op = MultiControlled(Phase(arbitrary_phase), 1, 0b1)
         op_1 = (expected_phase_op, resolved_sub.qubits[:2], ())
         assert resolved_sub.operations[1] == op_1
 
