@@ -61,6 +61,14 @@ class AuxQubitCountEvaluatorHooks(EvaluatorHooks[int]):
 
 
 class TotalQubitCountEvaluatorHooks(EvaluatorHooks[int]):
+    """Evaluate the total qubit requirement of a machine subroutine.
+
+    This counts the root subroutine's data qubits plus the maximum additional
+    auxiliary qubits required along the expanded call graph. In other words,
+    this represents the peak qubit requirement during execution, not a
+    cumulative sum over all subcall occurrences.
+    """
+
     def __init__(self) -> None:
         self.reset()
 
