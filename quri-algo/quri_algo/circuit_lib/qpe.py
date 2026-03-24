@@ -22,6 +22,17 @@ from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
 
+__all__ = [
+    "QFTdag",
+    "QFTdagSub",
+    "LineH",
+    "LineHSub",
+    "QPE",
+    "QPESub",
+    "QPEListUk",
+    "QPEListUkSub",
+]
+
 
 class _QFTdag(ParamUnitarySubDef[int]):
     name = "QFTdag"
@@ -43,7 +54,10 @@ class _QFTdag(ParamUnitarySubDef[int]):
             builder.add_op(H, (qubits[k],))
 
 
-QFTdag, QFTdagSub = param_opsub(_QFTdag)
+__qftdag_result = param_opsub(_QFTdag)
+#: QFTdag subroutine factory.
+QFTdag = __qftdag_result[0]
+QFTdagSub = __qftdag_result[1]
 
 
 class _LineH(ParamUnitarySubDef[int]):
@@ -59,7 +73,10 @@ class _LineH(ParamUnitarySubDef[int]):
             builder.add_op(H, (qubits[k],))
 
 
-LineH, LineHSub = param_opsub(_LineH)
+__lineh_result = param_opsub(_LineH)
+#: LineH subroutine factory.
+LineH = __lineh_result[0]
+LineHSub = __lineh_result[1]
 
 
 class _QPE(ParamUnitarySubDef[int, Op]):
@@ -92,7 +109,10 @@ class _QPE(ParamUnitarySubDef[int, Op]):
 #: ancilla qubit in accordance with the standard formulation of QPE, where the
 #: op is applied a number of times corresponding to the binary power
 #: represented by its controlling ancilla bit.
-QPE, QPESub = param_opsub(_QPE)
+__qpe_result = param_opsub(_QPE)
+#: QPE subroutine factory.
+QPE = __qpe_result[0]
+QPESub = __qpe_result[1]
 
 
 class _QPEListUk(ParamUnitarySubDef[int, tuple[Op]]):
@@ -123,4 +143,17 @@ class _QPEListUk(ParamUnitarySubDef[int, tuple[Op]]):
 #:
 #: ops is a sequence of unitary operators that are applied, controlled by each
 #: ancilla bit in sequence. Each op in the sequence is applied only once.
-QPEListUk, QPEListUkSub = param_opsub(_QPEListUk)
+__qpelistuk_result = param_opsub(_QPEListUk)
+#: QPEListUk subroutine factory.
+QPEListUk = __qpelistuk_result[0]
+QPEListUkSub = __qpelistuk_result[1]
+
+# Fix __module__ so Sphinx autodoc picks up factory objects
+QFTdag.__module__ = __name__
+QFTdagSub.__module__ = __name__
+LineH.__module__ = __name__
+LineHSub.__module__ = __name__
+QPE.__module__ = __name__
+QPESub.__module__ = __name__
+QPEListUk.__module__ = __name__
+QPEListUkSub.__module__ = __name__
