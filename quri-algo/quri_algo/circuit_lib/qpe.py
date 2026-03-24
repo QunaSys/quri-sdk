@@ -1,7 +1,7 @@
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the MIT License (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-#      http://www.apache.org/licenses/LICENSE-2.0
+#      https://mit-license.org/
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -9,13 +9,12 @@
 # limitations under the License.
 
 # =============================================================================
-# DEPRECATED: This module is deprecated and feature-frozen.
-# Please develop on the identically named module under quri_algo.qsub instead.
-#
-# This module should only receive critical bug fixes.
+# NOTE: This module has a deprecated counterpart at quri_algo/qsub/qpe.py
+# which re-exports from here. In the event that you need to add a critical bug
+# fix here, consider also adding it to the deprecated module at
+# quri_parts/packages/qsub/quri_parts/qsub/lib/qpe.py as well.
 # =============================================================================
 
-import warnings
 from cmath import pi
 
 from quri_parts.qsub.lib.std import SWAP, Controlled, H, Phase
@@ -23,11 +22,16 @@ from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.sub import SubBuilder
 
-warnings.warn(
-    "quri_parts.qsub.lib.qpe is deprecated and no longer maintained. Please import with quri_algo.qsub.qpe instead.",
-    FutureWarning,
-    stacklevel=2,
-)
+__all__ = [
+    "QFTdag",
+    "QFTdagSub",
+    "LineH",
+    "LineHSub",
+    "QPE",
+    "QPESub",
+    "QPEListUk",
+    "QPEListUkSub",
+]
 
 
 class _QFTdag(ParamUnitarySubDef[int]):
@@ -50,7 +54,10 @@ class _QFTdag(ParamUnitarySubDef[int]):
             builder.add_op(H, (qubits[k],))
 
 
-QFTdag, QFTdagSub = param_opsub(_QFTdag)
+__qftdag_result = param_opsub(_QFTdag)
+#: QFTdag subroutine factory.
+QFTdag = __qftdag_result[0]
+QFTdagSub = __qftdag_result[1]
 
 
 class _LineH(ParamUnitarySubDef[int]):
@@ -66,7 +73,10 @@ class _LineH(ParamUnitarySubDef[int]):
             builder.add_op(H, (qubits[k],))
 
 
-LineH, LineHSub = param_opsub(_LineH)
+__lineh_result = param_opsub(_LineH)
+#: LineH subroutine factory.
+LineH = __lineh_result[0]
+LineHSub = __lineh_result[1]
 
 
 class _QPE(ParamUnitarySubDef[int, Op]):
@@ -99,7 +109,10 @@ class _QPE(ParamUnitarySubDef[int, Op]):
 #: ancilla qubit in accordance with the standard formulation of QPE, where the
 #: op is applied a number of times corresponding to the binary power
 #: represented by its controlling ancilla bit.
-QPE, QPESub = param_opsub(_QPE)
+__qpe_result = param_opsub(_QPE)
+#: QPE subroutine factory.
+QPE = __qpe_result[0]
+QPESub = __qpe_result[1]
 
 
 class _QPEListUk(ParamUnitarySubDef[int, tuple[Op]]):
@@ -130,4 +143,17 @@ class _QPEListUk(ParamUnitarySubDef[int, tuple[Op]]):
 #:
 #: ops is a sequence of unitary operators that are applied, controlled by each
 #: ancilla bit in sequence. Each op in the sequence is applied only once.
-QPEListUk, QPEListUkSub = param_opsub(_QPEListUk)
+__qpelistuk_result = param_opsub(_QPEListUk)
+#: QPEListUk subroutine factory.
+QPEListUk = __qpelistuk_result[0]
+QPEListUkSub = __qpelistuk_result[1]
+
+# Fix __module__ so Sphinx autodoc picks up factory objects
+QFTdag.__module__ = __name__
+QFTdagSub.__module__ = __name__
+LineH.__module__ = __name__
+LineHSub.__module__ = __name__
+QPE.__module__ = __name__
+QPESub.__module__ = __name__
+QPEListUk.__module__ = __name__
+QPEListUkSub.__module__ = __name__

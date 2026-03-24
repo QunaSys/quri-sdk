@@ -10,6 +10,7 @@ on:
       - poetry.lock
       - .github/workflows/quri-algo-test.yml
       - .github/actions/python-poetry-install/action.yml
+      - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
 
@@ -40,7 +41,7 @@ jobs:
         poetry env use $PYTHON_VERSION
 
         # prevent `no quri_parts.rust.quri_parts_rust module` error occuring with wrong cache
-        poetry run pip install quri-parts/packages/rust
+        poetry run pip install -vvv -e quri-parts/packages/rust
 
         poetry install --only main,dev
 

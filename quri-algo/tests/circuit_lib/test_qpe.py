@@ -10,9 +10,10 @@
 
 from cmath import pi
 
-from quri_parts.qsub.lib.qpe import QPE, LineH, QFTdag, QPEListUk
 from quri_parts.qsub.lib.std import SWAP, Controlled, H, Phase
 from quri_parts.qsub.resolve import default_repository
+
+from quri_algo.circuit_lib.qpe import QPE, LineH, QFTdag, QPEListUk
 
 _repository = default_repository()
 
