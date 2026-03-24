@@ -96,6 +96,47 @@ def test_aux_qubits() -> None:
     assert hook.result() == 5
 
 
+def test_total_qubits_simple_local_aux() -> None:
+    builder = SubBuilder(2)
+    builder.add_aux_qubit()
+    sub = builder.build()
+    msub = compile_sub(sub, AllBasicSet)
+
+    hook = TotalQubitCountEvaluatorHooks()
+    Evaluator(hook).run(msub)
+
+    # 2 input qubits + 1 local aux qubit
+    assert hook.result() == 3
+
+
+def test_total_qubits_simple_nested_aux() -> None:
+    NS = NameSpace("test_simple_nested")
+    F = Op(Ident(NS, "F"), 1, 0)
+
+    fb = SubBuilder(1)
+    (fq0,) = fb.qubits
+    fa0 = fb.add_aux_qubit()
+    fb.add_op(X, (fq0,))
+    fb.add_op(X, (fa0,))
+    fsub = fb.build()
+
+    builder = SubBuilder(2)
+    (q0, _q1) = builder.qubits
+    builder.add_aux_qubit()
+    builder.add_op(F, (q0,))
+    sub = builder.build()
+
+    codegen = CodeGenerator([X])
+    msub = codegen.lower(sub)
+    linked_msub = Linker({F: codegen.lower(fsub)}).link(msub)
+
+    hook = TotalQubitCountEvaluatorHooks()
+    Evaluator(hook).run(linked_msub)
+
+    # 2 input qubits + 1 local aux qubit + 1 aux qubit needed inside F = 4 total qubits
+    assert hook.result() == 4
+
+
 def test_total_qubits() -> None:
     NS = NameSpace("test")
     F = Op(Ident(NS, "F"), 1, 0)
