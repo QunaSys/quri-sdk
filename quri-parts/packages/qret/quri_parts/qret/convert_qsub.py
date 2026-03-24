@@ -72,6 +72,14 @@ _mc_instr_map = {
 }
 
 
+def generate_qubits(qubit_list: Sequence[QretQubit]) -> QretQubits:
+    "Thus pyqret does not support unification, so touch the internal object"
+    assert len(qubit_list) > 0
+    ret = QretQubits()
+    ret._impl = sum([q._impl for q in qubit_list[1:]], qubit_list[0]._impl)
+    return ret
+
+
 def _add_intrinsic(
     mop: MachineOp, qs: Sequence[QretQubit], rs: Sequence[QretRegister]
 ) -> None:
@@ -89,9 +97,7 @@ def _add_intrinsic(
     elif op in _ternary_instr_map:
         _ternary_instr_map[op](qs[2], qs[0], qs[1])
     elif base_id in _mc_instr_map:
-        qubits = QretQubits()
-        for q in qs[:-1]:
-            qubits = qubits + q
+        qubits = generate_qubits(qs[:-1])
         _mc_instr_map[base_id](qs[-1], qubits)
     else:
         raise ValueError(f"Unsupported op: {op}")
