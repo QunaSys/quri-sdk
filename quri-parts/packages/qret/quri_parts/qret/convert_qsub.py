@@ -18,7 +18,6 @@ from quri_parts.qsub.machineinst import (
 )
 from quri_parts.qsub.op import AbstractOp, Op
 from quri_parts.qsub.resolve import SubCollector, SubRepository, default_repository
-from quri_parts.qsub.sub import Sub, SubBuilder
 
 QRETInstrSet: Iterable[AbstractOp] = (
     std.M,
@@ -71,16 +70,6 @@ _ternary_instr_map = {
 _mc_instr_map = {
     std.MCX.base_id: intrinsic.mcx,
 }
-
-
-def _phase_sub(phase: float) -> Sub:
-    b = SubBuilder(1)
-    b.add_op(std.RZ(phase), b.qubits)
-    b.add_phase(phase / 2)
-    return b.build()
-
-
-default_repository().register_sub(std.Phase, _phase_sub)
 
 
 def _add_intrinsic(
@@ -155,19 +144,7 @@ def _create_circuit_gen(
                 mapped_qs = tuple(qubit_map[q] for q in qs)
                 mapped_rs = tuple(register_map[r] for r in rs)
                 if is_primitive(mop):
-                    if mop.op.base_id == std.MCX.base_id:
-                        control_qubits = QretQubits()
-                        control_qubits._impl = (
-                            mapped_qs[0]._impl
-                            + mapped_qs[
-                                1
-                            ]._impl  # pyright: ignore[reportAttributeAccessIssue]
-                        )
-                        for q in mapped_qs[2:-1]:
-                            control_qubits += q
-                        intrinsic.mcx(mapped_qs[-1], control_qubits)
-                    else:
-                        _add_intrinsic(mop, mapped_qs, mapped_rs)
+                    _add_intrinsic(mop, mapped_qs, mapped_rs)
                 elif is_subcall(mop):
                     _add_funcall(mop, mapped_qs, mapped_rs, op_circuit_gen_map)
 
