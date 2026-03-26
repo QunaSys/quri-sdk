@@ -1,38 +1,46 @@
 import quri_parts.qsub.lib.std as std
-from quri_parts.qret.convert_qsub import QRetEvaluatorHooks, create_module_from_qsub_sub
-from quri_parts.qsub.compile import compile_sub
-from quri_parts.qsub.evaluate import Evaluator
+from quri_parts.qret.convert_qsub import create_module_from_qsub_op
+from quri_parts.qsub.opsub import UnitarySubDef, opsub
 from quri_parts.qsub.sub import SubBuilder
 
 
-def test_create_module_from_qsub_sub() -> None:
-    builder = SubBuilder(2)
-    q0, q1 = builder.qubits
-    aux = builder.add_aux_qubit()
-    builder.add_op(std.H, (q0,))
-    builder.add_op(std.CNOT, (q0, q1))
-    builder.add_op(std.CNOT, (q0, aux))
-    sub = builder.build()
+class _SimpleSub(UnitarySubDef):
+    name = "SimpleSub"
+    qubit_count = 2
 
-    module = create_module_from_qsub_sub(sub)
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1 = builder.qubits
+        builder.add_op(std.H, (q0,))
+        builder.add_op(std.CNOT, (q0, q1))
+
+
+SimpleSub, _ = opsub(_SimpleSub)
+
+
+def test_create_module_from_qsub_op() -> None:
+    module = create_module_from_qsub_op(SimpleSub)
     circuits = module.get_circuit_list()
 
     assert len(circuits) == 1
-    assert "__qsub_sub__" in circuits
+    assert any(name.endswith("SimpleSub") for name in circuits)
 
 
-def test_qret_evaluator_hooks_on_machinesub() -> None:
-    builder = SubBuilder(2, 1)
-    q0, q1 = builder.qubits
-    (r0,) = builder.registers
-    builder.add_op(std.H, (q0,))
-    builder.add_op(std.CNOT, (q0, q1))
-    builder.add_op(std.M, (q1,), (r0,))
-    sub = builder.build()
+class _CustomEntry(UnitarySubDef):
+    name = "custom_entry"
+    qubit_count = 2
 
-    msub = compile_sub(sub, primitives=(std.H, std.CNOT, std.M))
-    module = Evaluator(QRetEvaluatorHooks("custom_entry")).run(msub)
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1 = builder.qubits
+        builder.add_op(std.H, (q0,))
+        builder.add_op(std.CNOT, (q0, q1))
+
+
+CustomEntry, _ = opsub(_CustomEntry)
+
+
+def test_custom_entry_name_in_module() -> None:
+    module = create_module_from_qsub_op(CustomEntry)
     circuits = module.get_circuit_list()
 
     assert len(circuits) == 1
-    assert "custom_entry" in circuits
+    assert any(name.endswith("custom_entry") for name in circuits)

@@ -1,6 +1,5 @@
-import itertools
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Optional, cast
+from typing import cast
 
 from pyqret.frontend import Argument, CircuitBuilder, CircuitGenerator, Context, Module
 from pyqret.frontend import Qubit as QretQubit
@@ -9,9 +8,7 @@ from pyqret.frontend import Register as QretRegister
 from pyqret.frontend.gate import intrinsic
 
 from quri_parts.qsub.codegen import CodeGenerator
-from quri_parts.qsub.allocate import QubitAllocator, RegisterAllocator
-from quri_parts.qsub.compile import compile_sub
-from quri_parts.qsub.evaluate import Evaluator, EvaluatorHooks
+from quri_parts.qsub.evaluate import EvaluatorHooks
 from quri_parts.qsub.lib import std
 from quri_parts.qsub.link import link
 from quri_parts.qsub.machineinst import (
@@ -26,10 +23,7 @@ from quri_parts.qsub.machineinst import (
 from quri_parts.qsub.op import AbstractOp, Op
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
-from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
 from quri_parts.qsub.resolve import SubCollector, SubRepository, default_repository
-from quri_parts.qsub.sub import Sub
-from quri_parts.qsub.trans import SubTranspiler
 
 QRETInstrSet: Iterable[AbstractOp] = (
     std.M,
@@ -132,9 +126,12 @@ def _create_circuit_gen(
     op_circuit_gen_map: Mapping[Op, CircuitGenerator],
     builder: CircuitBuilder,
     msubs: Mapping[Op, MachineSub],
-    ancilla_map: dict[MachineSub, int],
+    ancilla_counts: Mapping[Op, int],
+    aux_register_counts: Mapping[Op, int],
 ) -> CircuitGenerator:
-    local_ancilla_count = ancilla_map[msub]
+    local_ancilla_count = ancilla_counts[op]
+    local_aux_register_count = aux_register_counts[op]
+
     class _Gen(CircuitGenerator):  # type: ignore
         def name(self) -> str:
             return op.id.to_str()
@@ -145,25 +142,29 @@ def _create_circuit_gen(
                 ret.add_operate(f"q{q.uid}")
             for i in range(local_ancilla_count):
                 ret.add_clean_ancilla(f"a{i}")
-            # TODO distinguish input/output registers
             for r in msub.registers:
                 ret.add_input(f"r{r.uid}")
-            for r in msub.aux_registers:
-                ret.add_input(f"r{r.uid}")
+            for i in range(local_aux_register_count):
+                ret.add_input(f"ar{i}")
             return ret
 
         def logic(self, arg: Argument) -> None:
-            qubit_map = {
-                q: cast(QretQubit, arg[f"a{q.uid}"])
-                for q in msub.qubits
-            }
+            qubit_map = {q: cast(QretQubit, arg[f"q{q.uid}"]) for q in msub.qubits}
             for i, q in enumerate(msub.aux_qubits):
                 qubit_map[q] = cast(QretQubit, arg[f"a{i}"])
-            register_map = {
-                r: cast(QretRegister, arg[f"r{r.uid}"])
-                for r in list(msub.registers) + list(msub.aux_registers)
+            register_map: dict[Register, QretRegister] = {
+                r: cast(QretRegister, arg[f"r{r.uid}"]) for r in list(msub.registers)
             }
-            ancillas = [cast(QretQubit, arg[f"a{i}"]) for i in range(len(msub.aux_registers), local_ancilla_count)]
+            for i, r in enumerate(msub.aux_registers):
+                register_map[r] = cast(QretRegister, arg[f"ar{i}"])
+            ancillas = [
+                cast(QretQubit, arg[f"a{i}"])
+                for i in range(len(msub.aux_qubits), local_ancilla_count)
+            ]
+            aux_registers = [
+                cast(QretRegister, arg[f"ar{i}"])
+                for i in range(len(msub.aux_registers), local_aux_register_count)
+            ]
 
             for mop, qs, rs in msub.instructions:
                 mapped_qs = tuple(qubit_map[q] for q in qs)
@@ -171,24 +172,25 @@ def _create_circuit_gen(
                 if is_primitive(mop):
                     _add_intrinsic(mop, mapped_qs, mapped_rs)
                 elif is_subcall(mop):
-                    ancilla_count = ancilla_map[msubs[mop.op]]
+                    ancilla_count = ancilla_counts[mop.op]
+                    aux_register_count = aux_register_counts[mop.op]
                     _add_funcall(
                         mop,
                         list(mapped_qs) + ancillas[:ancilla_count],
-                        mapped_rs,
+                        list(mapped_rs) + aux_registers[:aux_register_count],
                         op_circuit_gen_map,
                     )
 
     return _Gen(builder)
 
 
-class AncillaCountEvaluatorHooks(EvaluatorHooks[dict[MachineSub, int]]):
+class AncillaCountEvaluatorHooks(EvaluatorHooks[list[tuple[MachineSub, int]]]):
     def __init__(self) -> None:
         self.reset()
 
     def reset(self) -> None:
         self._ancilla_counts: list[int] = []
-        self._functions: dict[MachineSub, int] = {}
+        self._functions: list[tuple[MachineSub, int]] = []
 
     def enter_sub(
         self,
@@ -204,7 +206,7 @@ class AncillaCountEvaluatorHooks(EvaluatorHooks[dict[MachineSub, int]]):
         self, sub: MachineSub, enter_sub: bool, call_stack: list[SubId]
     ) -> None:
         count = self._ancilla_counts.pop() + len(sub.aux_qubits)
-        self._functions[sub] = count
+        self._functions.append((sub, count))
         if len(self._ancilla_counts) >= 2:
             self._ancilla_counts[-1] = max(self._ancilla_counts[-1], count)
 
@@ -217,13 +219,62 @@ class AncillaCountEvaluatorHooks(EvaluatorHooks[dict[MachineSub, int]]):
     ) -> None:
         pass
 
-    def result(self) -> Module:
+    def result(self) -> list[tuple[MachineSub, int]]:
         return self._functions
 
 
-def _generate_fn_name(op: Op, msub: MachineSub) -> str:
-    ns, ident = op.base_id
-    return ident
+def _compute_ancilla_counts(msubs: Mapping[Op, MachineSub]) -> dict[Op, int]:
+    memo: dict[Op, int] = {}
+    visiting: set[Op] = set()
+
+    def _dfs(op: Op) -> int:
+        if op in memo:
+            return memo[op]
+        if op in visiting:
+            raise ValueError(f"Recursive subcall detected for op {op.id.to_str()}")
+        visiting.add(op)
+
+        msub = msubs[op]
+        child_max = 0
+        for mop, _, _ in msub.instructions:
+            if is_subcall(mop):
+                child_max = max(child_max, _dfs(mop.op))
+
+        total = len(msub.aux_qubits) + child_max
+        memo[op] = total
+        visiting.remove(op)
+        return total
+
+    for op in msubs:
+        _dfs(op)
+    return memo
+
+
+def _compute_aux_register_counts(msubs: Mapping[Op, MachineSub]) -> dict[Op, int]:
+    memo: dict[Op, int] = {}
+    visiting: set[Op] = set()
+
+    def _dfs(op: Op) -> int:
+        if op in memo:
+            return memo[op]
+        if op in visiting:
+            raise ValueError(f"Recursive subcall detected for op {op.id.to_str()}")
+        visiting.add(op)
+
+        msub = msubs[op]
+        child_max = 0
+        for mop, _, _ in msub.instructions:
+            if is_subcall(mop):
+                child_max = max(child_max, _dfs(mop.op))
+
+        total = len(msub.aux_registers) + child_max
+        memo[op] = total
+        visiting.remove(op)
+        return total
+
+    for op in msubs:
+        _dfs(op)
+    return memo
 
 
 def create_module_from_qsub_op(
@@ -244,8 +295,8 @@ def create_module_from_qsub_op(
     entry_msub = msubs[entry_op]
     link(entry_msub, msubs)
 
-    evaluator = Evaluator(hooks = AncillaCountEvaluatorHooks())
-    ancilla_map = evaluator.run(entry_msub)
+    ancilla_counts = _compute_ancilla_counts(msubs)
+    aux_register_counts = _compute_aux_register_counts(msubs)
 
     if module_name is None:
         module_name = f"__qsub__{entry_op.id.to_str()}"
@@ -257,7 +308,13 @@ def create_module_from_qsub_op(
     op_circuit_gen_map: dict[Op, CircuitGenerator] = {}
     for op, msub in msubs.items():
         op_circuit_gen_map[op] = _create_circuit_gen(
-            op, msub, op_circuit_gen_map, builder, msubs, ancilla_map
+            op,
+            msub,
+            op_circuit_gen_map,
+            builder,
+            msubs,
+            ancilla_counts,
+            aux_register_counts,
         )
     # Explicitly generate the entry circuit so the module is populated.
     op_circuit_gen_map[entry_op].generate()
