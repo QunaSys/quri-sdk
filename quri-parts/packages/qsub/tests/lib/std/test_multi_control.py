@@ -112,6 +112,18 @@ class TestMultiControlled:
             (Controlled(Y), (i0, i1), ()),
             (X, (i0,), ()),
         )
+    
+
+    def test_one_control_on_zero(self) -> None:
+        toffoli_sub = MultiControlledSub(CNOT, 1, 0b0)
+
+        assert len(toffoli_sub.qubits) == 3
+        assert len(toffoli_sub.aux_qubits) == 0
+
+        i0, i1, i2 = toffoli_sub.qubits
+        assert toffoli_sub.operations == (            
+            (Toffoli, (i0, i1, i2), ()),
+        )
 
     def test_two_controls(self) -> None:
         mcy_sub = MultiControlledSub(Y, 2, 0b11)
