@@ -438,7 +438,6 @@ def generate_multicontrolled_to_mc_sub_resolver(
                 builder.add_phase(phase)
                 phase = (-phase) % (2 * math.pi)
 
-            # generate Phase(theta)
             if phase == math.pi:
                 phase_op = Z
             elif phase == math.pi / 2:

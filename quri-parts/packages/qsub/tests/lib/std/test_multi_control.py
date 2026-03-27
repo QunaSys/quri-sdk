@@ -1635,19 +1635,10 @@ def test_mcswap_with_control_negation() -> None:
     assert sub is not None
 
 
-def test_opsub_with_multi_control_gates_in_qpe() -> None:
-    """Test creating an OpSub with CZ, Z, X, Toffoli gates and using it in
-    QPE."""
-    import numpy as np
+def test_opsub_with_multi_control_gates_recursive_subcall() -> None:
+    """Test exact circuit construction for an OpSub with recursive
+    MultiControlled subcalls."""
 
-    from quri_parts.qsub.compile import compile_sub
-    from quri_parts.qsub.eval.quriparts import QURIPartsEvaluatorHooks
-    from quri_parts.qsub.evaluate import Evaluator
-    from quri_parts.qsub.lib.qpe import QPE
-    from quri_parts.qsub.primitive import AllBasicSet, SimulatorBasicSet
-    from quri_parts.qulacs.simulator import run_circuit
-
-    # Create a custom OpSubDef with CZ, Z, X, Toffoli gates
     class MultiControlGatesOpSubDef(OpSubDef):
         name = "MultiControlGatesOp"
         qubit_count = 3
@@ -1659,42 +1650,22 @@ def test_opsub_with_multi_control_gates_in_qpe() -> None:
             builder.add_op(X, (q1,))
             builder.add_op(Toffoli, (q0, q1, q2))
 
-    # Create Op and Sub from the definition and register in repository
     repo = default_repository().copy()
-    multi_control_op, multi_control_sub = opsub(MultiControlGatesOpSubDef, repo)
-
-    # Create QPE circuit with the custom operation
-    bits = 2
-    qpe = QPE(bits, multi_control_op)
-
-    builder = SubBuilder(qpe.qubit_count)
-    builder.add_op(qpe, builder.qubits)
-    qpe_sub = builder.build()
-
-    # compile using AllBasicSet
-    compiled_qpe_sub_all = compile_sub(qpe_sub, AllBasicSet, repository=repo)
-    qp_circuit_all = (
-        Evaluator(QURIPartsEvaluatorHooks()).run(compiled_qpe_sub_all).freeze()
-    )
-
-    # compile using SimulatorBasicSet
-    repo_sim = repo.copy()
-    repo_sim.register_sub_resolver(
+    multi_control_op, _ = opsub(MultiControlGatesOpSubDef, repo)
+    repo.register_sub_resolver(
         MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
     )
-    compiled = compile_sub(qpe_sub, SimulatorBasicSet, repository=repo_sim)
-    qp_circuit_sim = Evaluator(QURIPartsEvaluatorHooks()).run(compiled).freeze()
+    op = MultiControlled(multi_control_op, 2, 0b11)
+    resolved_sub = resolve_sub(op, repo)
+    assert resolved_sub is not None
+    assert len(resolved_sub.qubits) == 5
+    assert len(resolved_sub.aux_qubits) == 0
+    assert len(resolved_sub.aux_registers) == 0
 
-    # Execute both circuits using qulacs and compare state vectors
-    n_qubits_all = qp_circuit_all.qubit_count
-    initial_state_all = np.zeros(2**n_qubits_all, dtype=np.complex128)
-    initial_state_all[0] = 1.0  # |0...0⟩ state
-
-    n_qubits_sim = qp_circuit_sim.qubit_count
-    initial_state_sim = np.zeros(2**n_qubits_sim, dtype=np.complex128)
-    initial_state_sim[0] = 1.0  # |0...0⟩ state
-
-    state_vector_all = run_circuit(qp_circuit_all, initial_state_all)
-    state_vector_sim = run_circuit(qp_circuit_sim, initial_state_sim)
-
-    assert all(np.isclose(a, b) for a, b in zip(state_vector_all, state_vector_sim))
+    q0, q1, q2, q3, q4 = resolved_sub.qubits
+    assert resolved_sub.operations == (
+        (MultiControlled(CZ, 2, 0b11), (q0, q1, q2, q3), ()),
+        (MultiControlled(Z, 2, 0b11), (q0, q1, q2), ()),
+        (MultiControlled(X, 2, 0b11), (q0, q1, q3), ()),
+        (MultiControlled(Toffoli, 2, 0b11), (q0, q1, q2, q3, q4), ()),
+    )
