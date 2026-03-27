@@ -27,9 +27,13 @@ quri-parts-core = "*"
 quri-parts-qsub = "*"
 
 pyqret = [
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1/pyqret-1.0.1-py3-none-linux_x86_64.whl", markers = "sys_platform == 'linux' and platform_machine == 'x86_64'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1/pyqret-1.0.1-py3-none-macosx_15_0_x86_64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'x86_64'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1/pyqret-1.0.1-py3-none-macosx_15_0_arm64.whl", markers = "sys_platform == 'darwin' and platform_machine == 'arm64'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1/pyqret-1.0.1-py3-none-win_amd64.whl", markers = "sys_platform == 'win32' and platform_machine == 'AMD64'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1/pyqret-1.0.1.tar.gz", markers = "sys_platform != 'linux' and sys_platform != 'darwin' and sys_platform != 'win32'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-py3-none-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version < '3.12' and sys_platform == 'linux' and platform_machine == 'x86_64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-py3-none-macosx_15_0_x86_64.whl", markers = "python_version < '3.12' and sys_platform == 'darwin' and platform_machine == 'x86_64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-py3-none-macosx_15_0_arm64.whl", markers = "python_version < '3.12' and sys_platform == 'darwin' and platform_machine == 'arm64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-py3-none-win_amd64.whl", markers = "python_version < '3.12' and sys_platform == 'win32' and platform_machine == 'AMD64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version >= '3.12' and sys_platform == 'linux' and platform_machine == 'x86_64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-cp312-abi3-macosx_15_0_x86_64.whl", markers = "python_version >= '3.12' and sys_platform == 'darwin' and platform_machine == 'x86_64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl", markers = "python_version >= '3.12' and sys_platform == 'darwin' and platform_machine == 'arm64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1-cp312-abi3-win_amd64.whl", markers = "python_version >= '3.12' and sys_platform == 'win32' and platform_machine == 'AMD64'" },
+  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-1/pyqret-1.0.1.tar.gz", markers = "sys_platform != 'linux' and sys_platform != 'darwin' and sys_platform != 'win32'" },
 ]
