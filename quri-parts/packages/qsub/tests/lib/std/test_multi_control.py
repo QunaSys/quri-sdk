@@ -113,7 +113,7 @@ class TestMultiControlled:
             (X, (i0,), ()),
         )
 
-    def test_control_cnot_on_zero(self) -> None:
+    def test_control_cnot_on_single_qubit(self) -> None:
         toffoli_sub = MultiControlledSub(CNOT, 1, 0b1)
 
         assert len(toffoli_sub.qubits) == 3
