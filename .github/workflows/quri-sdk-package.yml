@@ -134,7 +134,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-${{ runner.os }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
           
       - uses: actions/checkout@v3
 
@@ -170,7 +170,9 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-          pip install llvmlite==0.46.0
+          # Work around llvmlite build failure on Intel macOS with newer setuptools.
+          pip install "setuptools<78" wheel
+          pip install --no-build-isolation llvmlite==0.46.0
 
       - name: Install vcpkg
         if: runner.os == 'Windows' && matrix.python-version == '14'
@@ -190,6 +192,9 @@ jobs:
         shell: bash
         run: |
           pip install --upgrade pytest setuptools
+          if [[ "${{ runner.os }}" = "Windows" ]]; then
+              pip cache purge || true
+          fi
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
@@ -354,7 +359,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-${{ runner.os }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
 
       - uses: actions/checkout@v3
 
@@ -390,7 +395,9 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-          pip install llvmlite==0.46.0
+          # Work around llvmlite build failure on Intel macOS with newer setuptools.
+          pip install "setuptools<78" wheel
+          pip install --no-build-isolation llvmlite==0.46.0
 
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
@@ -409,6 +416,9 @@ jobs:
         shell: bash
         run: |
           pip install pytest
+          if [[ "${{ runner.os }}" = "Windows" ]]; then
+              pip cache purge || true
+          fi
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
@@ -720,4 +730,3 @@ jobs:
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
-
