@@ -40,9 +40,7 @@ class AuxQubitCountEvaluatorHooks(EvaluatorHooks[int]):
     ) -> bool:
         return sub.sub_id not in self._cache
 
-    def _set_root_result(
-        self, sub: MachineSub, qubits: Sequence[Qubit], regs: Sequence[Register]
-    ) -> None:
+    def _set_root_result(self, sub: MachineSub) -> None:
         self._max_aux_count = self._cache[sub.sub_id]
 
     def exit_sub(
@@ -53,7 +51,7 @@ class AuxQubitCountEvaluatorHooks(EvaluatorHooks[int]):
         if len(call_stack) > 1:
             self._merge_cache(call_stack[-2], sub.sub_id)
         else:
-            self._set_root_result(sub, (), ())
+            self._set_root_result(sub)
 
     def primitive(
         self,
@@ -68,7 +66,5 @@ class AuxQubitCountEvaluatorHooks(EvaluatorHooks[int]):
 class TotalQubitCountEvaluatorHooks(AuxQubitCountEvaluatorHooks):
     """Evaluate the peak total qubit requirement of a machine subroutine."""
 
-    def _set_root_result(
-        self, sub: MachineSub, qubits: Sequence[Qubit], regs: Sequence[Register]
-    ) -> None:
+    def _set_root_result(self, sub: MachineSub) -> None:
         self._max_aux_count = len(sub.qubits) + self._cache[sub.sub_id]
