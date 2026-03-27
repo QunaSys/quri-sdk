@@ -8,20 +8,16 @@ from pyqret.frontend import Register as QretRegister
 from pyqret.frontend.gate import intrinsic
 
 from quri_parts.qsub.codegen import CodeGenerator
-from quri_parts.qsub.evaluate import EvaluatorHooks
 from quri_parts.qsub.lib import std
 from quri_parts.qsub.link import link
 from quri_parts.qsub.machineinst import (
     MachineOp,
     MachineSub,
-    Primitive,
     SubCall,
-    SubId,
     is_primitive,
     is_subcall,
 )
 from quri_parts.qsub.op import AbstractOp, Op
-from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubCollector, SubRepository, default_repository
 
@@ -182,45 +178,6 @@ def _create_circuit_gen(
                     )
 
     return _Gen(builder)
-
-
-class AncillaCountEvaluatorHooks(EvaluatorHooks[list[tuple[MachineSub, int]]]):
-    def __init__(self) -> None:
-        self.reset()
-
-    def reset(self) -> None:
-        self._ancilla_counts: list[int] = []
-        self._functions: list[tuple[MachineSub, int]] = []
-
-    def enter_sub(
-        self,
-        sub: MachineSub,
-        qubits: Sequence[Qubit],
-        regs: Sequence[Register],
-        call_stack: list[SubId],
-    ) -> bool:
-        self._ancilla_counts.append(0)
-        return True
-
-    def exit_sub(
-        self, sub: MachineSub, enter_sub: bool, call_stack: list[SubId]
-    ) -> None:
-        count = self._ancilla_counts.pop() + len(sub.aux_qubits)
-        self._functions.append((sub, count))
-        if len(self._ancilla_counts) >= 2:
-            self._ancilla_counts[-1] = max(self._ancilla_counts[-1], count)
-
-    def primitive(
-        self,
-        mop: Primitive,
-        qubits: Sequence[Qubit],
-        regs: Sequence[Register],
-        call_stack: list[SubId],
-    ) -> None:
-        pass
-
-    def result(self) -> list[tuple[MachineSub, int]]:
-        return self._functions
 
 
 def _compute_ancilla_counts(msubs: Mapping[Op, MachineSub]) -> dict[Op, int]:
