@@ -8,6 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Measurement gate definition (:mod:`quri_parts.qsub.lib.std.measure`)
+==========================================================================
+
+Defines the single-qubit measurement operation that stores its result
+in a classical register. This is a non-unitary
+:class:`~quri_parts.qsub.op.Op`.
+"""
+
 from quri_parts.qsub.op import Ident, Op
 
 from . import NS

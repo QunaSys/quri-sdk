@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Sub collection (:mod:`quri_parts.qsub.resolve.subcollector`)
+================================================================
+
+Defines :class:`SubCollector`, which recursively resolves and collects
+every :class:`~quri_parts.qsub.sub.Sub` needed to realize an
+:class:`~quri_parts.qsub.op.Op` tree.
+
+Key classes (for quick orientation):
+
+- :class:`SubCollector` -- recursively gathers all subs for an Op tree
+"""
+
 import logging
 from dataclasses import dataclass
 from typing import Mapping, Optional

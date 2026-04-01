@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Multi-qubit Pauli operations (:mod:`quri_parts.qsub.lib.std.multipauli`)
+==============================================================================
+
+Defines tensor-product Pauli operators and Pauli-rotation gates that
+act on an arbitrary number of qubits.
+
+Key objects:
+
+- :data:`Pauli` -- multi-qubit Pauli product op
+- :data:`PauliRotation` -- multi-qubit Pauli rotation exp(-i*angle*P)
+"""
+
 from typing import Sequence
 
 from quri_parts.qsub.lib import std

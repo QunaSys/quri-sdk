@@ -8,6 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""SWAP gate definition (:mod:`quri_parts.qsub.lib.std.swap`)
+================================================================
+
+Defines the two-qubit SWAP gate as a self-inverse
+:class:`~quri_parts.qsub.op.Op`.
+"""
+
 from quri_parts.qsub.op import Ident, Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec

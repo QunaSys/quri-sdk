@@ -8,6 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Array parameter reference (:mod:`quri_parts.qsub.param`)
+==============================================================
+
+Provides :class:`ArrayRef`, a thin identity-based wrapper around NumPy
+arrays that can be used as an :class:`~quri_parts.qsub.op.Op` parameter
+without triggering expensive deep copies or element-wise comparisons.
+"""
+
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
