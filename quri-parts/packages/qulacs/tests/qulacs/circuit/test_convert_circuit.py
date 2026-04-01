@@ -29,7 +29,6 @@ from quri_parts.circuit.transpile import (
     TwoQubitUnitaryMatrixKAKTranspiler,
 )
 from quri_parts.core.state import GeneralCircuitQuantumState
-from quri_parts.qiskit.circuit import gates as qiskit_gates
 from quri_parts.qulacs.circuit import (
     _dense_matrix_gate_qulacs,
     convert_circuit,
@@ -280,7 +279,7 @@ def test_convert_circuit() -> None:
 
 def test_convert_circuit_with_ecr_gate() -> None:
     circuit = QuantumCircuit(2)
-    circuit.add_gate(qiskit_gates.ECR(0, 1))
+    circuit.add_gate(QuantumGate(name="ECR", target_indices=(0, 1)))
 
     qulacs_circuit = convert_circuit(circuit)
 
