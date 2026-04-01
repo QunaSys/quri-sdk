@@ -8,6 +8,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Identity gates
+(:mod:`quri_parts.circuit.transpile.identity_manipulation`)
+================================================================
+
+Insert or remove identity gates on idle qubits.
+
+Key classes:
+
+- :class:`IdentityInsertionTranspiler` — add Identity to idle qubits
+- :class:`IdentityEliminationTranspiler` — remove all Identity gates
+"""
+
+
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     QuantumCircuit,

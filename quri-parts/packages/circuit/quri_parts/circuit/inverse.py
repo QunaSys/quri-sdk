@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Circuit and gate inversion (:mod:`quri_parts.circuit.inverse`)
+==================================================================
+
+Utilities for computing the inverse (adjoint) of individual gates and
+of entire non-parametric circuits.
+
+Key functions (for quick orientation):
+
+- :func:`inverse_gate` -- return the adjoint of a single gate
+- :func:`inverse_circuit` -- return a circuit with reversed, inverted gates
+"""
+
 from quri_parts.rust.circuit.inverse import inverse_circuit, inverse_gate
 
 __all__ = ["inverse_gate", "inverse_circuit"]

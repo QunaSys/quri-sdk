@@ -8,6 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Pauli decomposers
+(:mod:`quri_parts.circuit.transpile.multi_pauli_decomposer`)
+===============================================================
+
+Decompose multi-qubit Pauli and PauliRotation gates into
+single- and two-qubit primitives.
+
+Key classes / functions:
+
+- :class:`PauliDecomposeTranspiler` — decompose multi-qubit Pauli gates
+- :class:`PauliRotationDecomposeTranspiler` — decompose PauliRotation gates
+- :class:`ParametricPauliRotationDecomposeTranspiler` — decompose parametric PauliRotation gates
+"""
+
+
 from collections.abc import Sequence
 
 import numpy as np

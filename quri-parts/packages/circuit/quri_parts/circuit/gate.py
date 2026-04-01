@@ -8,6 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Gate data types (:mod:`quri_parts.circuit.gate`)
+====================================================
+
+Re-exports the low-level gate value objects from the Rust backend.
+
+Key classes (for quick orientation):
+
+- :class:`QuantumGate` -- immutable non-parametric gate descriptor
+- :class:`ParametricQuantumGate` -- immutable parametric gate descriptor
+"""
+
 #: Parametric quantum gate.
 #:
 #: Not intended for direct use. Every gate is created through factory

@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Circuit core (:mod:`quri_parts.circuit.circuit`)
+====================================================
+
+Protocols and concrete classes for non-parametric quantum circuits.
+
+Key classes / functions (for quick orientation):
+
+- :class:`QuantumCircuitProtocol` -- read-only circuit interface
+- :class:`MutableQuantumCircuitProtocol` -- interface with gate-add methods
+- :class:`QuantumCircuit` -- mutable non-parametric circuit
+- :class:`ImmutableQuantumCircuit` -- frozen non-parametric circuit
+"""
+
 from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Optional, Protocol, Union
