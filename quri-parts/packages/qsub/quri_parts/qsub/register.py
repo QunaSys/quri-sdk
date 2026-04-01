@@ -8,6 +8,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Classical and quantum registers (:mod:`quri_parts.qsub.register`)
+=================================================================
+
+Defines register identifiers used throughout qsub: the lightweight,
+hashable classical :class:`Register`, and :class:`QRegSpec` /
+:class:`QuantumRegister` for naming and grouping qubits into named
+quantum registers.
+
+Key classes / functions (for quick orientation):
+
+- :class:`Register` -- hashable classical register, referenced by integer index
+- :class:`QRegSpec` -- name + qubit-count spec for a quantum register
+- :class:`QuantumRegister` -- named, indexable group of qubits
+- :func:`get_default_qreg_sequence` -- default single-qubit QRegSpecs for a circuit
+- :func:`get_qregs_from_quantum_register_map` -- derive QRegSpecs from named QuantumRegisters
+"""
+
 from dataclasses import dataclass
 from typing import NamedTuple, Sequence, overload
 

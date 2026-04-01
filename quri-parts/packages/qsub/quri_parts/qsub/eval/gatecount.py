@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Gate-count evaluator hooks (:mod:`quri_parts.qsub.eval.gatecount`)
+=======================================================================
+
+Evaluator hooks that count gate occurrences while traversing a
+:class:`~quri_parts.qsub.machineinst.MachineSub` tree, with optional
+filtering by operation type.
+
+Key classes:
+
+- :class:`GateCountEvaluatorHooks` -- counts primitives by base ident
+- :class:`TGateCountEvaluatorHooks` -- counts T gates only
+"""
+
 from collections import defaultdict
 from collections.abc import Iterable, Sequence
 

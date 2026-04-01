@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""MachineSub evaluator framework (:mod:`quri_parts.qsub.evaluate`)
+=====================================================================
+
+Generic tree-walking evaluator that traverses a
+:class:`~quri_parts.qsub.machineinst.MachineSub` hierarchy, delegating
+per-node actions to user-supplied hooks.
+
+Key classes:
+
+- :class:`EvaluatorHooks` -- abstract hook interface (enter/exit/primitive)
+- :class:`Evaluator` -- drives the traversal and returns a typed result
+"""
+
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 from dataclasses import dataclass
