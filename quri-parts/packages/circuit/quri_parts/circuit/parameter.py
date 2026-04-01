@@ -8,6 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Parameter (:mod:`quri_parts.circuit.parameter`)
+===============================================
+"""
+
+
 #: A class representing parameters in parametric quantum circuits.
 #:
 #: A ``Parameter`` is a placeholder and does not hold a concrete value in it.

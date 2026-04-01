@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Gate factory functions (:mod:`quri_parts.circuit.gates`)
+============================================================
+
+Convenience constructors that create :class:`~QuantumGate` and
+:class:`~ParametricQuantumGate` instances for every supported gate kind,
+including multi-controlled (MC) variants.
+
+Key items (for quick orientation):
+
+- :func:`H`, :func:`X`, :func:`CNOT`, ... -- standard gate factories
+- :func:`RX`, :func:`RY`, :func:`RZ` -- rotation gate factories
+- :func:`ParametricRX`, :func:`ParametricRY` -- parametric factories
+- :func:`MCX`, :func:`MCZ`, ... -- multi-controlled gate factories
+"""
+
 from typing import Any, Literal, Sequence
 
 from typing_extensions import deprecated

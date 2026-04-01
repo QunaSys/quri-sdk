@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Clifford approximation
+(:mod:`quri_parts.circuit.transpile.clifford_approximation`)
+===============================================================
+
+Approximate non-Clifford gates with Clifford sequences.
+
+Key classes:
+
+- :class:`CliffordApproximationTranspiler` — replace non-Clifford gates with Clifford approximations
+"""
+
+
 from collections.abc import Sequence
 
 import numpy as np

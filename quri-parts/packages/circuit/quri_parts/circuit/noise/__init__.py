@@ -8,6 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Noise (:mod:`quri_parts.circuit.noise`)
+========================================
+
+Noise instructions and noise models for noisy circuit simulation.
+"""
+
+
 from .noise_instruction import (
     AmplitudeDampingNoise,
     BitFlipNoise,

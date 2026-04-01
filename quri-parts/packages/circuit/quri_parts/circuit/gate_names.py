@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Gate name constants and type guards
+(:mod:`quri_parts.circuit.gate_names`)
+========================================
+
+Canonical string-literal gate names, grouped type aliases, and
+:func:`~typing.TypeGuard` predicates used throughout the circuit layer
+for gate identification and dispatch.
+
+Key items (for quick orientation):
+
+- :data:`SINGLE_QUBIT_GATE_NAMES` -- set of 1-qubit gate name strings
+- :data:`CLIFFORD_GATE_NAMES` -- set of Clifford gate name strings
+- :func:`is_gate_name` -- type-guard for any valid gate name
+"""
+
 from typing import Literal, Union
 
 from typing_extensions import TypeAlias, TypeGuard

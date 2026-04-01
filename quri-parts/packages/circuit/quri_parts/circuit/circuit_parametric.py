@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Parametric circuits (:mod:`quri_parts.circuit.circuit_parametric`)
+=====================================================================
+
+Protocols and concrete classes for parametric quantum circuits whose
+gate angles are bound at evaluation time rather than construction time.
+
+Key classes (for quick orientation):
+
+- :class:`ParametricQuantumCircuitProtocol` -- read-only interface
+- :class:`ParametricQuantumCircuit` -- mutable parametric circuit
+- :class:`ImmutableBoundParametricQuantumCircuit` -- bound snapshot
+"""
+
 from abc import abstractmethod, abstractproperty
 from collections.abc import Sequence
 from typing import Protocol, Union, runtime_checkable

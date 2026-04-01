@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Parameter mapping (:mod:`quri_parts.circuit.parameter_mapping`)
+===============================================================
+
+Maps circuit-level parameters to gate-level parameters,
+supporting arbitrary and linear (affine) transforms.
+
+Key classes:
+
+- :class:`ParameterMapping` — abstract parameter-mapping protocol
+- :class:`ParameterMappingBase` — base class for mapping implementations
+- :class:`LinearParameterMapping` — affine parameter mapping
+"""
+
+
 from abc import ABC, abstractproperty
 from collections import defaultdict
 from collections.abc import Mapping, Sequence

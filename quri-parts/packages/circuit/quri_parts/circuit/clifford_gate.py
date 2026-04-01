@@ -8,6 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Clifford gate utilities (:mod:`quri_parts.circuit.clifford_gate`)
+=====================================================================
+
+Helper for determining whether a quantum gate belongs to the Clifford
+group based on its name and rotation angles.
+
+Key functions (for quick orientation):
+
+- :func:`is_clifford` -- test if a gate is a Clifford gate
+"""
+
 import numpy as np
 
 from quri_parts.circuit.gate import QuantumGate

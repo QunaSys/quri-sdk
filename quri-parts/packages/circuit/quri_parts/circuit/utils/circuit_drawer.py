@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Circuit drawer (:mod:`quri_parts.circuit.utils.circuit_drawer`)
+===============================================================
+
+ASCII-art circuit visualisation.
+
+Key functions:
+
+- :func:`draw_circuit` — render a circuit as ASCII art
+"""
+
+
 import warnings
 
 # The implementation is originally from qulacs-visualizer
