@@ -65,7 +65,7 @@ jobs:
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run flake8 quri-parts/packages --config .flake8 --exclude quri-parts/packages/qret
+      run: poetry run flake8 quri-parts/packages --config .flake8
       if: success() || failure()
 
     - name: Run docformatter
