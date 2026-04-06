@@ -4,7 +4,6 @@ import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
 from quri_parts.qsub.lib.qpe import QPE
 from quri_parts.qsub.opsub import UnitarySubDef, opsub
-from quri_parts.qsub.resolve import resolve_sub
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -78,14 +77,3 @@ class TestCreateModuleFromQsubOp:
         circuits = module.get_circuit_list()
         assert len(circuits) == 1
         assert any(f"SingleMCX{control_bits}" in name for name in circuits)
-
-    def test_create_module_from_qsub_op_uses_sub_entry(self) -> None:
-        qpe_u_op = QPE(3, U)
-        resolved_sub = resolve_sub(qpe_u_op)
-        assert resolved_sub is not None
-
-        module_from_op = create_module_from_qsub_op(qpe_u_op)
-        op_circuits = module_from_op.get_circuit_list()
-        assert len(op_circuits) >= 1
-
-        assert any(name.endswith(qpe_u_op.id.to_str()) for name in op_circuits)

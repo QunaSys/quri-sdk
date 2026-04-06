@@ -1,15 +1,3 @@
-"""Test for create_module_from_qsub_op with auxiliary qubits.
-
-Reproduces the problem from the "qurationでのリソース推定" cell in QLSS.ipynb,
-where create_module_from_qsub_op fails with:
-  ValueError: the number of arguments (=N) does not match the number of
-  arguments in the circuit (=M)
-
-The root cause is that _add_funcall passes only the instruction's qubits/registers
-to the generated circuit, but the circuit was defined with additional arguments
-for auxiliary qubits (add_clean_ancilla) and auxiliary registers (add_input).
-"""
-
 import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
 from quri_parts.qsub.opsub import UnitarySubDef, opsub

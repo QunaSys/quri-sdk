@@ -18,7 +18,6 @@ from quri_parts.qsub.machineinst import (
     is_subcall,
 )
 from quri_parts.qsub.op import AbstractOp, Op
-from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubCollector, SubRepository, default_repository
 
 QRETInstrSet: Iterable[AbstractOp] = (
@@ -121,7 +120,6 @@ def _create_circuit_gen(
     msub: MachineSub,
     op_circuit_gen_map: Mapping[Op, CircuitGenerator],
     builder: CircuitBuilder,
-    msubs: Mapping[Op, MachineSub],
     ancilla_counts: Mapping[Op, int],
     aux_register_counts: Mapping[Op, int],
 ) -> CircuitGenerator:
@@ -148,8 +146,8 @@ def _create_circuit_gen(
             qubit_map = {q: cast(QretQubit, arg[f"q{q.uid}"]) for q in msub.qubits}
             for i, q in enumerate(msub.aux_qubits):
                 qubit_map[q] = cast(QretQubit, arg[f"a{i}"])
-            register_map: dict[Register, QretRegister] = {
-                r: cast(QretRegister, arg[f"r{r.uid}"]) for r in list(msub.registers)
+            register_map = {
+                r: cast(QretRegister, arg[f"r{r.uid}"]) for r in msub.registers
             }
             for i, r in enumerate(msub.aux_registers):
                 register_map[r] = cast(QretRegister, arg[f"ar{i}"])
@@ -269,7 +267,6 @@ def create_module_from_qsub_op(
             msub,
             op_circuit_gen_map,
             builder,
-            msubs,
             ancilla_counts,
             aux_register_counts,
         )
