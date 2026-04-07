@@ -406,6 +406,7 @@ def test_controlled_sqrtx() -> None:
         (CNOT, (q0, q1), ()),
         (RZ(math.pi / 4), (q1,), ()),
         (H, (q1,), ()),
+        (Phase(math.pi / 4), (q0,), ()),
     )
     assert sub.phase == 0
 
@@ -428,6 +429,7 @@ def test_controlled_sqrtxdag() -> None:
         (CNOT, (q0, q1), ()),
         (RZ(-math.pi / 4), (q1,), ()),
         (H, (q1,), ()),
+        (Phase(-math.pi / 4), (q0,), ()),
     )
     assert sub.phase == 0
 
@@ -448,6 +450,7 @@ def test_controlled_sqrty() -> None:
         (RY(-math.pi / 4), (q1,), ()),
         (CNOT, (q0, q1), ()),
         (RY(math.pi / 4), (q1,), ()),
+        (Phase(math.pi / 4), (q0,), ()),
     )
     assert sub.phase == 0
 
@@ -468,6 +471,7 @@ def test_controlled_sqrtydag() -> None:
         (RY(math.pi / 4), (q1,), ()),
         (CNOT, (q0, q1), ()),
         (RY(-math.pi / 4), (q1,), ()),
+        (Phase(-math.pi / 4), (q0,), ()),
     )
     assert sub.phase == 0
 
