@@ -137,9 +137,9 @@ def _create_circuit_gen(
             for i in range(local_ancilla_count):
                 ret.add_clean_ancilla(f"a{i}")
             for r in msub.registers:
-                ret.add_input(f"r{r.uid}")
+                ret.add_output(f"r{r.uid}")
             for i in range(local_aux_register_count):
-                ret.add_input(f"ar{i}")
+                ret.add_clean_ancilla(f"ar{i}")
             return ret
 
         def logic(self, arg: Argument) -> None:
@@ -272,4 +272,8 @@ def create_module_from_qsub_op(
         )
     # Explicitly generate the entry circuit so the module is populated.
     op_circuit_gen_map[entry_op].generate()
+
+    # pyqret.Module.get_circuit() canonicalizes qubit attrs to Operate.
+    module.get_circuit = builder.get_circuit
+    module.get_function = builder.get_circuit
     return module

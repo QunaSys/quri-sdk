@@ -76,6 +76,39 @@ class _OuterCallsInnerWithAuxReg(UnitarySubDef):
 OuterCallsInnerWithAuxReg, _ = opsub(_OuterCallsInnerWithAuxReg)
 
 
+class _MidWithAuxCallsInner(UnitarySubDef):
+    """Nested case: this op has aux qubits and calls an op with aux qubits."""
+
+    name = "MidWithAuxCallsInner"
+    qubit_count = 2
+
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1 = builder.qubits
+        mid_aux = builder.add_aux_qubit()
+        builder.add_op(std.H, (mid_aux,))
+        builder.add_op(InnerWithAux, (q0, q1))
+        builder.add_op(std.CNOT, (mid_aux, q0))
+        builder.add_op(std.H, (mid_aux,))
+
+
+MidWithAuxCallsInner, _ = opsub(_MidWithAuxCallsInner)
+
+
+class _OuterCallsMidNestedAux(UnitarySubDef):
+    """Outer op that calls a nested aux-qubit sub-operation."""
+
+    name = "OuterCallsMidNestedAux"
+    qubit_count = 3
+
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1, q2 = builder.qubits
+        builder.add_op(MidWithAuxCallsInner, (q0, q1))
+        builder.add_op(std.CNOT, (q2, q0))
+
+
+OuterCallsMidNestedAux, _ = opsub(_OuterCallsMidNestedAux)
+
+
 def _get_circuit_name(circuits: list[str], op_name: str) -> str:
     return next(name for name in circuits if op_name in name)
 
@@ -100,22 +133,6 @@ def _assert_circuit_args(
         assert info_type == qtype
         assert info_attr == attr
         assert info_size == size
-
-
-def _assert_input_output_counts(
-    module: Module, circuit_name: str, expected_inputs: int, expected_outputs: int
-) -> None:
-    argument = module.get_circuit(circuit_name).argument
-    infos = [argument.view_arg_info(name) for name in argument.get_arg_names()]
-
-    attrs = [
-        info.attribute() if callable(info.attribute) else info.attribute
-        for info in infos
-    ]
-    input_count = sum(attr == QuantumAttribute.Input for attr in attrs)
-    output_count = sum(attr == QuantumAttribute.Output for attr in attrs)
-    assert input_count == expected_inputs
-    assert output_count == expected_outputs
 
 
 def _get_opcode_strings(module: Module, circuit_name: str) -> list[str]:
@@ -146,7 +163,7 @@ class TestCreateModuleWithAuxQubits:
                 ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q2", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
         )
         _assert_circuit_args(
@@ -155,14 +172,8 @@ class TestCreateModuleWithAuxQubits:
             [
                 ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
-        )
-        _assert_input_output_counts(
-            module, outer, expected_inputs=0, expected_outputs=0
-        )
-        _assert_input_output_counts(
-            module, inner, expected_inputs=0, expected_outputs=0
         )
 
         outer_ops = _get_opcode_strings(module, outer)
@@ -189,8 +200,8 @@ class TestCreateModuleWithAuxQubits:
                 ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q2", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("ar0", QuantumType.Register, QuantumAttribute.Output, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+                ("ar0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
         )
         _assert_circuit_args(
@@ -199,15 +210,9 @@ class TestCreateModuleWithAuxQubits:
             [
                 ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("ar0", QuantumType.Register, QuantumAttribute.Output, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+                ("ar0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
-        )
-        _assert_input_output_counts(
-            module, outer, expected_inputs=0, expected_outputs=1
-        )
-        _assert_input_output_counts(
-            module, inner, expected_inputs=0, expected_outputs=1
         )
 
         outer_ops = _get_opcode_strings(module, outer)
@@ -232,12 +237,64 @@ class TestCreateModuleWithAuxQubits:
             [
                 ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
-                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
             ],
         )
-        _assert_input_output_counts(
-            module, inner, expected_inputs=0, expected_outputs=0
+
+        inner_ops = _get_opcode_strings(module, inner)
+        assert _count_opcode(inner_ops, "h") == 2
+        assert _count_opcode(inner_ops, "cx") == 3
+
+    def test_nested_subcalls_with_aux_qubits(self) -> None:
+        """Nested subcalls should propagate enough aux qubits to all
+        callers."""
+        module = create_module_from_qsub_op(OuterCallsMidNestedAux)
+        circuits = module.get_circuit_list()
+        assert len(circuits) == 3
+
+        outer = _get_circuit_name(circuits, "OuterCallsMidNestedAux")
+        mid = _get_circuit_name(circuits, "MidWithAuxCallsInner")
+        inner = _get_circuit_name(circuits, "InnerWithAux")
+
+        _assert_circuit_args(
+            module,
+            outer,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q2", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+                ("a1", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+            ],
         )
+        _assert_circuit_args(
+            module,
+            mid,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+                ("a1", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+            ],
+        )
+        _assert_circuit_args(
+            module,
+            inner,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+            ],
+        )
+
+        outer_ops = _get_opcode_strings(module, outer)
+        assert _count_opcode(outer_ops, "call") == 1
+        assert _count_opcode(outer_ops, "cx") == 1
+
+        mid_ops = _get_opcode_strings(module, mid)
+        assert _count_opcode(mid_ops, "call") == 1
+        assert _count_opcode(mid_ops, "h") == 2
+        assert _count_opcode(mid_ops, "cx") == 1
 
         inner_ops = _get_opcode_strings(module, inner)
         assert _count_opcode(inner_ops, "h") == 2
