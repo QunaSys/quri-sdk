@@ -1,3 +1,5 @@
+from pyqret.frontend import Module, QuantumAttribute, QuantumType
+
 import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
 from quri_parts.qsub.opsub import UnitarySubDef, opsub
@@ -28,15 +30,7 @@ InnerWithAux, _ = opsub(_InnerWithAux)
 
 
 class _OuterCallsInner(UnitarySubDef):
-    """An op that calls InnerWithAux as a sub-operation.
-
-    When create_module_from_qsub_op processes this, it:
-    1. Creates a circuit for InnerWithAux with 3 arguments
-       (2 operate + 1 clean_ancilla)
-    2. In OuterCallsInner's logic, encounters a SubCall to InnerWithAux
-       with only 2 qubits (the instruction's qubits)
-    3. _add_funcall calls circuit(q0, q1) but circuit expects 3 args
-    """
+    """An op that calls InnerWithAux as a sub-operation."""
 
     name = "OuterCallsInner"
     qubit_count = 3
@@ -82,26 +76,169 @@ class _OuterCallsInnerWithAuxReg(UnitarySubDef):
 OuterCallsInnerWithAuxReg, _ = opsub(_OuterCallsInnerWithAuxReg)
 
 
+def _get_circuit_name(circuits: list[str], op_name: str) -> str:
+    return next(name for name in circuits if op_name in name)
+
+
+def _assert_circuit_args(
+    module: Module,
+    circuit_name: str,
+    expected: list[tuple[str, QuantumType, QuantumAttribute, int]],
+) -> None:
+    circuit = module.get_circuit(circuit_name)
+    argument = circuit.argument
+
+    expected_names = [name for name, _, _, _ in expected]
+    assert argument.get_arg_names() == expected_names
+    assert argument.get_num_args() == len(expected)
+
+    for name, qtype, attr, size in expected:
+        info = argument.view_arg_info(name)
+        info_type = info.type() if callable(info.type) else info.type
+        info_attr = info.attribute() if callable(info.attribute) else info.attribute
+        info_size = info.size() if callable(info.size) else info.size
+        assert info_type == qtype
+        assert info_attr == attr
+        assert info_size == size
+
+
+def _assert_input_output_counts(
+    module: Module, circuit_name: str, expected_inputs: int, expected_outputs: int
+) -> None:
+    argument = module.get_circuit(circuit_name).argument
+    infos = [argument.view_arg_info(name) for name in argument.get_arg_names()]
+
+    attrs = [
+        info.attribute() if callable(info.attribute) else info.attribute
+        for info in infos
+    ]
+    input_count = sum(attr == QuantumAttribute.Input for attr in attrs)
+    output_count = sum(attr == QuantumAttribute.Output for attr in attrs)
+    assert input_count == expected_inputs
+    assert output_count == expected_outputs
+
+
+def _get_opcode_strings(module: Module, circuit_name: str) -> list[str]:
+    circuit = module.get_circuit(circuit_name)
+    return [
+        str(inst.get_opcode()).lower() for block in circuit.get_ir() for inst in block
+    ]
+
+
+def _count_opcode(opcodes: list[str], needle: str) -> int:
+    return sum(1 for op in opcodes if needle in op)
+
+
 class TestCreateModuleWithAuxQubits:
     def test_subcall_with_aux_qubits(self) -> None:
-        """Reproduces the QLSS notebook bug: argument count mismatch when a
-        sub-operation has auxiliary qubits."""
+        """bug: argument count mismatch when a sub-operation has auxiliary qubits."""
         module = create_module_from_qsub_op(OuterCallsInner)
         circuits = module.get_circuit_list()
-        assert len(circuits) >= 1
-        assert any("OuterCallsInner" in name for name in circuits)
+        assert len(circuits) == 2
+
+        outer = _get_circuit_name(circuits, "OuterCallsInner")
+        inner = _get_circuit_name(circuits, "InnerWithAux")
+
+        _assert_circuit_args(
+            module,
+            outer,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q2", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+            ],
+        )
+        _assert_circuit_args(
+            module,
+            inner,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+            ],
+        )
+        _assert_input_output_counts(
+            module, outer, expected_inputs=0, expected_outputs=0
+        )
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=0
+        )
+
+        outer_ops = _get_opcode_strings(module, outer)
+        assert _count_opcode(outer_ops, "call") == 1
+        assert _count_opcode(outer_ops, "cx") == 1
+
+        inner_ops = _get_opcode_strings(module, inner)
+        assert _count_opcode(inner_ops, "h") == 2
+        assert _count_opcode(inner_ops, "cx") == 3
 
     def test_subcall_with_aux_qubits_and_registers(self) -> None:
         """Same bug with both auxiliary qubits and auxiliary registers."""
         module = create_module_from_qsub_op(OuterCallsInnerWithAuxReg)
         circuits = module.get_circuit_list()
-        assert len(circuits) >= 1
-        assert any("OuterCallsInnerAuxReg" in name for name in circuits)
+        assert len(circuits) == 2
+
+        outer = _get_circuit_name(circuits, "OuterCallsInnerAuxReg")
+        inner = _get_circuit_name(circuits, "InnerWithAuxReg")
+
+        _assert_circuit_args(
+            module,
+            outer,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q2", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("ar0", QuantumType.Register, QuantumAttribute.Output, 1),
+            ],
+        )
+        _assert_circuit_args(
+            module,
+            inner,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("ar0", QuantumType.Register, QuantumAttribute.Output, 1),
+            ],
+        )
+        _assert_input_output_counts(
+            module, outer, expected_inputs=0, expected_outputs=1
+        )
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=1
+        )
+
+        outer_ops = _get_opcode_strings(module, outer)
+        assert _count_opcode(outer_ops, "call") == 1
+        assert _count_opcode(outer_ops, "cx") == 1
+
+        inner_ops = _get_opcode_strings(module, inner)
+        assert _count_opcode(inner_ops, "h") == 2
+        assert _count_opcode(inner_ops, "cx") == 2
 
     def test_inner_with_aux_as_entry(self) -> None:
         """When the entry op itself has aux qubits but no SubCalls, it should
         work fine (no _add_funcall involved)."""
         module = create_module_from_qsub_op(InnerWithAux)
         circuits = module.get_circuit_list()
-        assert len(circuits) >= 1
-        assert any("InnerWithAux" in name for name in circuits)
+        assert len(circuits) == 1
+        inner = _get_circuit_name(circuits, "InnerWithAux")
+
+        _assert_circuit_args(
+            module,
+            inner,
+            [
+                ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+                ("a0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
+            ],
+        )
+        _assert_input_output_counts(
+            module, inner, expected_inputs=0, expected_outputs=0
+        )
+
+        inner_ops = _get_opcode_strings(module, inner)
+        assert _count_opcode(inner_ops, "h") == 2
+        assert _count_opcode(inner_ops, "cx") == 3
