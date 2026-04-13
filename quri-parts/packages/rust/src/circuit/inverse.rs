@@ -68,15 +68,11 @@ fn py_inverse_gate(gate: QuantumGate) -> QuantumGate {
     signature = (circuit),
     text_signature = "(circuit: ImmutableQuantumCircuit)",
 )]
-fn py_inverse_circuit(circuit: &Bound<'_, ImmutableQuantumCircuit>) -> PyResult<Py<QuantumCircuit>> {
+fn py_inverse_circuit(
+    circuit: &Bound<'_, ImmutableQuantumCircuit>,
+) -> PyResult<Py<QuantumCircuit>> {
     let inverse = inverse_circuit(&circuit.borrow());
-    Py::new(
-        circuit.py(),
-        (
-            QuantumCircuit(),
-            inverse,
-        ),
-    )
+    Py::new(circuit.py(), (QuantumCircuit(), inverse))
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {

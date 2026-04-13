@@ -194,13 +194,7 @@ impl ImmutableQuantumCircuit {
 
     fn inverse(slf: PyRefMut<'_, Self>) -> PyResult<Py<QuantumCircuit>> {
         let inverse = crate::circuit::inverse::inverse_circuit(&slf);
-        Py::new(
-            slf.py(),
-            (
-                QuantumCircuit(),
-                inverse,
-            ),
-        )
+        Py::new(slf.py(), (QuantumCircuit(), inverse))
     }
 }
 
