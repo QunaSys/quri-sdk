@@ -201,7 +201,7 @@ class TestCreateModuleWithAuxQubits:
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q2", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
-                ("ar0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+                ("ar0", QuantumType.Register, QuantumAttribute.Input, 1),
             ],
         )
         _assert_circuit_args(
@@ -211,7 +211,7 @@ class TestCreateModuleWithAuxQubits:
                 ("q0", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("q1", QuantumType.Qubit, QuantumAttribute.Operate, 1),
                 ("a0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
-                ("ar0", QuantumType.Qubit, QuantumAttribute.CleanAncilla, 1),
+                ("ar0", QuantumType.Register, QuantumAttribute.Input, 1),
             ],
         )
 
