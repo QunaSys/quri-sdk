@@ -39,14 +39,8 @@ class TestCreateModuleFromQsubOp:
         module = create_module_from_qsub_op(qpe_u_op)
 
         circuits = module.get_circuit_list()
-        assert len(circuits) > 0
-
-        # Verify expected circuit names are present
-        circuit_names = set(circuits)
-        assert any("QPE" in name for name in circuit_names)
-        assert any("LineH" in name for name in circuit_names)
-        assert any("Controlled" in name for name in circuit_names)
-        assert any("QFTdag" in name for name in circuit_names)
+        assert len(circuits) >= 1
+        assert any("QPE" in name for name in circuits)
 
     def test_circuit_ir_structure(self) -> None:
         qpe_u_op = QPE(4, U)
@@ -65,7 +59,7 @@ class TestCreateModuleFromQsubOp:
         module = create_module_from_qsub_op(UMCX)
 
         circuits = module.get_circuit_list()
-        assert len(circuits) > 0
+        assert len(circuits) == 1
         assert any("UMCX" in name for name in circuits)
 
     @pytest.mark.parametrize("control_bits", [2, 3, 4])
@@ -81,5 +75,5 @@ class TestCreateModuleFromQsubOp:
         module = create_module_from_qsub_op(single_mcx)
 
         circuits = module.get_circuit_list()
-        assert len(circuits) > 0
+        assert len(circuits) == 1
         assert any(f"SingleMCX{control_bits}" in name for name in circuits)
