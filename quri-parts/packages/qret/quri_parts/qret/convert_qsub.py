@@ -137,9 +137,9 @@ def _create_circuit_gen(
             for i in range(local_ancilla_count):
                 ret.add_clean_ancilla(f"a{i}")
             for r in msub.registers:
-                ret.add_input(f"r{r.uid}")
+                ret.add_output(f"r{r.uid}")
             for i in range(local_aux_register_count):
-                ret.add_input(f"ar{i}")
+                ret.add_output(f"ar{i}")
             return ret
 
         def logic(self, arg: Argument) -> None:
