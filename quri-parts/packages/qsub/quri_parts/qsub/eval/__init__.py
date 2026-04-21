@@ -9,11 +9,12 @@
 # limitations under the License.
 
 from .gatecount import GateCountEvaluatorHooks
-from .qubitcount import AuxQubitCountEvaluatorHooks
+from .qubitcount import AuxQubitCountEvaluatorHooks, TotalQubitCountEvaluatorHooks
 from .quriparts import QURIPartsEvaluatorHooks
 
 __all__ = [
     "AuxQubitCountEvaluatorHooks",
+    "TotalQubitCountEvaluatorHooks",
     "GateCountEvaluatorHooks",
     "QURIPartsEvaluatorHooks",
 ]
