@@ -2,7 +2,8 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main]
+    branches: [main, kaz/total-qubit-counter]
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -109,15 +110,16 @@ jobs:
       fail-fast: false
       matrix:
         system:
-          - os: "ubuntu-latest"
-            target: "x86_64-unknown-linux-gnu"
           - os: "macos-15-intel"
             target: "x86_64-apple-darwin"
-          - os: "macos-latest"
-            target: "aarch64-apple-darwin"
-          - os: "windows-latest"
-            target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "11", "14" ]
+          # - os: "ubuntu-latest"
+          #   target: "x86_64-unknown-linux-gnu"
+          # - os: "macos-latest"
+          #   target: "aarch64-apple-darwin"
+          # - os: "windows-latest"
+          #   target: "x86_64-pc-windows-msvc"
+        python-version: [ "11" ]
+        # python-version: [ "9", "11", "14" ]
         # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
@@ -326,15 +328,16 @@ jobs:
       fail-fast: false
       matrix:
         system:
-          - os: "ubuntu-latest"
-            target: "x86_64-unknown-linux-gnu"
           - os: "macos-15-intel"
             target: "x86_64-apple-darwin"
-          - os: "macos-latest"
-            target: "aarch64-apple-darwin"
-          - os: "windows-latest"
-            target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12", "13", "14" ]
+          # - os: "ubuntu-latest"
+          #   target: "x86_64-unknown-linux-gnu"
+          # - os: "macos-latest"
+          #   target: "aarch64-apple-darwin"
+          # - os: "windows-latest"
+          #   target: "x86_64-pc-windows-msvc"
+        python-version: [ "11" ]
+        # python-version: [ "9", "10", "11", "12", "13", "14" ]
         # Currentl, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
