@@ -170,7 +170,7 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-          pip install llvmlite==0.46.0
+          pip install "setuptools<72" llvmlite==0.46.0
 
       - name: Install vcpkg
         if: runner.os == 'Windows' && matrix.python-version == '14'
@@ -387,7 +387,7 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-          pip install llvmlite==0.46.0
+          pip install "setuptools<72" llvmlite==0.46.0
 
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
