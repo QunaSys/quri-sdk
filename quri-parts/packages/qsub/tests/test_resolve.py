@@ -90,9 +90,9 @@ class TestSubRepository:
         assert repository.find_resolver(mc21_cy) == mcc_resolver
 
     def test_with_override(self) -> None:
-        op1 = Op(Ident(NS, "op1"), 1)
-        op2 = Op(Ident(NS, "op2"), 1)
-        op3 = Op(Ident(NS, "op3"), 1)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 1)
 
         # Create parent repository with resolvers for op1 and op2
         parent_repo = SimpleSubRepository()
@@ -153,10 +153,10 @@ class TestSubRepository:
         assert sub3 == child_op3_sub()
 
     def test_composite_base_and_addition(self) -> None:
-        op0 = Op(Ident(NS, "op0"), 1)
-        op1 = Op(Ident(NS, "op1"), 1)
-        op2 = Op(Ident(NS, "op2"), 1)
-        op3 = Op(Ident(NS, "op3"), 1)
+        op0 = Op.from_qubit_count(Ident(NS, "op0"), 1)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 1)
 
         # Create base repository with op0
         override0_repo = SimpleSubRepository()
@@ -238,10 +238,10 @@ class TestSubRepository:
         assert resolver0(op0, final_composite) == override0_op0_sub()
 
     def test_both_base_and_addition_composite(self) -> None:
-        op0 = Op(Ident(NS, "op0"), 1)
-        op1 = Op(Ident(NS, "op1"), 1)
-        op2 = Op(Ident(NS, "op2"), 1)
-        op3 = Op(Ident(NS, "op3"), 1)
+        op0 = Op.from_qubit_count(Ident(NS, "op0"), 1)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 1)
 
         override0_repo = SimpleSubRepository()
 
@@ -314,8 +314,8 @@ class TestSubRepository:
         assert resolver0(op0, final_composite) == override0_op0_sub()
 
     def test_root_as_addition(self) -> None:
-        op1 = Op(Ident(NS, "op1"), 1)
-        op2 = Op(Ident(NS, "op2"), 1)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
 
         repo_1 = SimpleSubRepository()
 
@@ -380,9 +380,9 @@ class TestSubRepository:
 
 class TestCollectSubs:
     def test_collect_subs(self) -> None:
-        op1 = Op(Ident(NS, "op1"), 1)
-        op2 = Op(Ident(NS, "op2"), 2)
-        op3 = Op(Ident(NS, "op3"), 3)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 2)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 3)
 
         repository = SimpleSubRepository()
 
@@ -420,7 +420,7 @@ class TestCollectSubs:
         assert collected_subs == {op3: op3_sub(), op2: op2_sub()}
 
     def test_collect_subs_parametric(self) -> None:
-        op = Op(Ident(NS, "op"), 1)
+        op = Op.from_qubit_count(Ident(NS, "op"), 1)
 
         indexed_op1: OpFactory[int] = SimpleParamOp((NS, "indexed_op1"), 1)
 
@@ -481,8 +481,8 @@ class TestCollectSubs:
         }
 
     def test_collect_subs_custom_resolver(self) -> None:
-        op = Op(Ident(NS, "op"), 2)
-        op1 = Op(Ident(NS, "op1"), 1)
+        op = Op.from_qubit_count(Ident(NS, "op"), 2)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
         control: OpFactory[Op] = SimpleParamOp((NS, "control"), 2)
 
         repository = SimpleSubRepository()

@@ -30,7 +30,8 @@ from quri_parts.qsub.lib.std import (
 from quri_parts.qsub.lib.std.inverse import inverse_sub_resolver
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
-from quri_parts.qsub.resolve import SimpleSubRepository, default_repository
+from quri_parts.qsub.register import QRegSpec
+from quri_parts.qsub.resolve import SimpleSubRepository, default_repository, resolve_sub
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -52,7 +53,7 @@ _repo = default_repository()
 
 class TestInverseSub:
     def test_inverse_sub(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 2, 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 2, 1)
         builder = SubBuilder(2, 1)
         q0, q1 = builder.qubits
         (r,) = builder.registers
@@ -82,7 +83,7 @@ class TestInverseSub:
         assert sub.phase == 0
 
     def test_inverse_sub_with_aux_qubits(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         (q,) = builder.qubits
         a = builder.add_aux_qubit()
@@ -107,8 +108,37 @@ class TestInverseSub:
         )
         assert sub.phase == 0
 
+    def test_inverse_sub_with_aux_qreg(self) -> None:
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
+        builder = SubBuilder(1)
+        (q,) = builder.qubits
+        builder.add_aux_qreg("aaa", 1)
+        builder.add_op(H, (q,))
+        builder.add_op(S, builder.aux_qregs["aaa"][:])
+        f_sub = builder.build()
+        repository = SimpleSubRepository()
+        repository.register_sub(F, f_sub)
+
+        fdag = Inverse(F)
+        sub = inverse_sub_resolver(fdag, repository)
+        assert sub
+        assert sub.aux_qregs is not None
+        assert len(sub.qubits) == 1
+        assert len(sub.aux_qubits) == 1
+        assert len(sub.registers) == 0
+        assert len(sub.aux_registers) == 0
+        assert len(sub.aux_qregs) == 1
+        assert next(iter(sub.aux_qregs)) == "aaa"
+        (q,) = sub.qubits
+        (a,) = sub.aux_qregs["aaa"][:]
+        assert tuple(sub.operations) == (
+            (Inverse(S), (a,), ()),
+            (H, (q,), ()),
+        )
+        assert sub.phase == 0
+
     def test_inverse_sub_with_aux_registers(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         (q,) = builder.qubits
         r = builder.add_aux_register()
@@ -136,7 +166,7 @@ class TestInverseSub:
         assert sub.phase == 0
 
     def test_inverse_global_phase(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1, 0)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1, 0)
         builder = SubBuilder(1)
         qs = builder.qubits
         builder.add_op(T, qs)
@@ -232,3 +262,64 @@ def test_inverse_op() -> None:
         assert len(sub.aux_registers) == 0
         assert tuple(sub.operations) == ((expect, sub.qubits, ()),)
         assert sub.phase == 0
+
+
+class TestInverseQRegs:
+    def test_inverse_qregs_preservation(self) -> None:
+        """Inverse(op) should have the same qregs as op."""
+        for op in [
+            X,
+            Y,
+            Z,
+            H,
+            S,
+            Sdag,
+            SqrtX,
+            SqrtXdag,
+            SqrtY,
+            SqrtYdag,
+            RX(0.5),
+            RY(0.5),
+            RZ(0.5),
+            Phase(0.5),
+            T,
+            Tdag,
+            CNOT,
+            CZ,
+            SWAP,
+            Toffoli,
+            Controlled(X),
+            Controlled(Controlled(X)),
+            Controlled(CNOT),
+            MultiControlled(X, 2, 0b11),
+        ]:
+            inv_op = Inverse(op)
+            assert inv_op.qregs == op.qregs
+
+    def test_inverse_resolved_sub_qregs(self) -> None:
+        """resolve_sub(Inverse(op)) should have the same qregs as
+        Inverse(op)"""
+
+        def _check_op_inv(op: Op) -> None:
+            inv_op = Inverse(op)
+            sub = resolve_sub(inv_op, repo)
+            assert sub is not None
+            assert sub.qregs is not None
+
+            expected_names = [qr.name for qr in op.qregs]
+            assert list(sub.qregs.keys()) == expected_names
+            for spec in op.qregs:
+                assert sub.qregs[spec.name].name == spec.name
+                assert len(sub.qregs[spec.name].qubits) == spec.qubit_count
+
+        A = Op.from_qregs(Ident(NameSpace("test"), "A"), qregs=(QRegSpec("a_reg", 2),))
+        builder = SubBuilder.from_qregs(A.qregs)
+        builder.add_op(X, (builder.qubits[0],))
+        builder.add_op(X, (builder.qubits[1],))
+        a_sub = builder.build()
+
+        repo = _repo.copy()
+        repo.register_sub(A, a_sub)
+
+        for op in [A, Controlled(A), MultiControlled(A, 2, 0b11)]:
+            _check_op_inv(op)

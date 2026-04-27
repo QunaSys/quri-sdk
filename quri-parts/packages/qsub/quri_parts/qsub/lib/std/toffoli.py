@@ -9,7 +9,9 @@
 # limitations under the License.
 
 from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.register import CTRL_QNAME, TARGET_QNAME, QRegSpec
 
 from . import NS
 
-Toffoli = Op(Ident(NS, "Toffoli"), 3, self_inverse=True)
+toff_qregs = (QRegSpec(CTRL_QNAME, 2), QRegSpec(TARGET_QNAME, 1))
+Toffoli = Op(Ident(NS, "Toffoli"), 3, self_inverse=True, qregs=toff_qregs)
