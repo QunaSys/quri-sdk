@@ -9,7 +9,8 @@
 # limitations under the License.
 
 from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 
 from . import NS
 
-SWAP = Op(Ident(NS, "SWAP"), 2, self_inverse=True)
+SWAP = Op(Ident(NS, "SWAP"), 2, self_inverse=True, qregs=(QRegSpec(DEFAULT_QNAME, 2),))

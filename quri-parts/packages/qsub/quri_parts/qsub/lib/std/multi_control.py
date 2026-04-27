@@ -10,7 +10,7 @@
 
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from typing import Optional
+from typing import Optional, Sequence
 
 from quri_parts.qsub.op import (
     Op,
@@ -20,11 +20,12 @@ from quri_parts.qsub.op import (
     param_op,
 )
 from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.register import CTRL_QNAME, QRegSpec
 from quri_parts.qsub.resolve import SubRepository, default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 from . import NS
-from .control import Controlled, control_target_condition
+from .control import Controlled, control_target_condition, get_new_ctrl_label
 from .logic import scoped_and, scoped_and_clifford_t, scoped_and_single_toffoli
 from .single_clifford import X
 
@@ -42,6 +43,13 @@ class _MultiControlled(ParamUnitaryDef[Op, int, int]):
 
     def reg_count_fn(self, target_op: Op, control_bits: int, control_value: int) -> int:
         return target_op.reg_count
+
+    def qregs_fn(
+        self, target_op: Op, control_bits: int, control_value: int
+    ) -> Sequence[QRegSpec]:
+        ctrl_label = get_new_ctrl_label(target_op.qregs)
+        ctrl_name = f"{CTRL_QNAME}_{ctrl_label}" if ctrl_label > 0 else CTRL_QNAME
+        return (QRegSpec(ctrl_name, control_bits), *target_op.qregs)
 
     def validate_params(
         self, target_op: Op, control_bits: int, control_value: int
@@ -68,7 +76,9 @@ def _multi_controlled_sub(
     control_value: Optional[int],
     s_and: Callable[[SubBuilder, Qubit, Qubit], AbstractContextManager[Qubit]],
 ) -> Sub:
-    builder = SubBuilder(op.qubit_count + control_bits)
+    builder = SubBuilder.from_qregs(
+        MultiControlled(op, control_bits, control_value).qregs, op.reg_count
+    )
     qubits = builder.qubits
 
     if control_value is None:
@@ -140,7 +150,7 @@ def controlled_multicontrolled_resolver(op: Op, repository: SubRepository) -> Su
     assert isinstance(control_value, int)
     control_bits += 1
     control_value = (control_value << 1) + 1
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder.from_qregs(op.qregs, op.reg_count)
     builder.add_op(
         MultiControlled(inner_op, control_bits, control_value), builder.qubits
     )

@@ -35,6 +35,7 @@ from quri_parts.qsub.lib.std.control import (
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, ParameterValidationError
 from quri_parts.qsub.opsub import OpSubDef, opsub
+from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 from quri_parts.qsub.resolve import (
     SimpleSubRepository,
     SubRepository,
@@ -57,6 +58,92 @@ class TestControlledOp:
             Controlled(M)
 
 
+class TestControlledQRegs:
+    def test_controlled_single_level_qregs(self) -> None:
+        """Controlled(X) should have qregs: (ctrl, qs)"""
+        cx = Controlled(X)
+        assert len(cx.qregs) == 2
+        assert cx.qregs[0] == QRegSpec("ctrl", 1)
+        assert cx.qregs[1] == QRegSpec("qs", 1)
+
+    def test_controlled_nested_two_level_qregs(self) -> None:
+        """Controlled(Controlled(X)) should have qregs: (ctrl_1, ctrl, qs)"""
+        ccx = Controlled(Controlled(X))
+        assert len(ccx.qregs) == 3
+        assert ccx.qregs[0] == QRegSpec("ctrl_1", 1)
+        assert ccx.qregs[1] == QRegSpec("ctrl", 1)
+        assert ccx.qregs[2] == QRegSpec("qs", 1)
+
+    def test_controlled_nested_three_level_qregs(self) -> None:
+        """Controlled(Controlled(Controlled(X))) should have qregs: (ctrl_2,
+        ctrl_1, ctrl, qs)"""
+        cccx = Controlled(Controlled(Controlled(X)))
+        assert len(cccx.qregs) == 4
+        assert cccx.qregs[0] == QRegSpec("ctrl_2", 1)
+        assert cccx.qregs[1] == QRegSpec("ctrl_1", 1)
+        assert cccx.qregs[2] == QRegSpec("ctrl", 1)
+        assert cccx.qregs[3] == QRegSpec("qs", 1)
+
+    def test_controlled_single_qubit_gate_qregs(self) -> None:
+        """All single-qubit Cliffords should have controlled qregs: (ctrl,
+        qs)"""
+        for op in [
+            X,
+            Y,
+            Z,
+            H,
+            S,
+            Sdag,
+            SqrtX,
+            SqrtXdag,
+            SqrtY,
+            SqrtYdag,
+            RX(0.5),
+            RY(0.5),
+            RZ(0.5),
+            Phase(0.5),
+            T,
+            Tdag,
+        ]:
+            c_op = Controlled(op)
+            assert c_op.qregs == (QRegSpec("ctrl", 1), QRegSpec(DEFAULT_QNAME, 1))
+
+    def test_controlled_cnot_qregs(self) -> None:
+        """Controlled(CNOT) should have qregs: (ctrl_1, ctrl, target)"""
+        c_cnot = Controlled(CNOT)
+        assert c_cnot.qregs == (
+            QRegSpec("ctrl_1", 1),
+            QRegSpec("ctrl", 1),
+            QRegSpec("target", 1),
+        )
+
+    def test_controlled_cz_qregs(self) -> None:
+        """Controlled(CZ) should have qregs: (ctrl_1, ctrl, target)"""
+        c_cz = Controlled(CZ)
+        assert c_cz.qregs == (
+            QRegSpec("ctrl_1", 1),
+            QRegSpec("ctrl", 1),
+            QRegSpec("target", 1),
+        )
+
+    def test_controlled_swap_qregs(self) -> None:
+        """Controlled(SWAP) should have qregs: (ctrl, qs)"""
+        c_swap = Controlled(SWAP)
+        assert c_swap.qregs == (
+            QRegSpec("ctrl", 1),
+            QRegSpec("qs", 2),
+        )
+
+    def test_controlled_toffoli_qregs(self) -> None:
+        """Controlled(Toffoli) should have qregs: (ctrl_1, ctrl, target)"""
+        c_toff = Controlled(Toffoli)
+        assert c_toff.qregs == (
+            QRegSpec("ctrl_1", 1),
+            QRegSpec("ctrl", 2),
+            QRegSpec("target", 1),
+        )
+
+
 _repo = default_repository()
 
 
@@ -67,7 +154,7 @@ class TestControlledSub:
         assert sub is None
 
     def test_expand_sub(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 2, 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 2, 1)
         builder = SubBuilder(2, 1)
         q0, q1 = builder.qubits
         (r,) = builder.registers
@@ -97,7 +184,7 @@ class TestControlledSub:
         assert sub.phase == 0
 
     def test_expand_sub_with_aux_qubits(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         (q,) = builder.qubits
         a = builder.add_aux_qubit()
@@ -122,8 +209,37 @@ class TestControlledSub:
         )
         assert sub.phase == 0
 
+    def test_expand_sub_with_aux_register(self) -> None:
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
+        builder = SubBuilder(1)
+        (q,) = builder.qubits
+        builder.add_aux_qreg("aaa", 1)
+        builder.add_op(H, (q,))
+        builder.add_op(Y, builder.aux_qregs["aaa"][:])
+        f_sub = builder.build()
+        repository = SimpleSubRepository()
+        repository.register_sub(F, f_sub)
+
+        cf = Controlled(F)
+        sub = controlled_sub_resolver(cf, repository)
+        assert sub
+        assert sub.aux_qregs is not None
+        assert len(sub.qubits) == 2
+        assert len(sub.aux_qubits) == 1
+        assert len(sub.registers) == 0
+        assert len(sub.aux_registers) == 0
+        assert len(sub.aux_qregs) == 1
+        assert next(iter(sub.aux_qregs)) == "aaa"
+        q0, q1 = sub.qubits
+        (a,) = sub.aux_qregs["aaa"][:]
+        assert tuple(sub.operations) == (
+            (Controlled(H), (q0, q1), ()),
+            (Controlled(Y), (q0, a), ()),
+        )
+        assert sub.phase == 0
+
     def test_expand_sub_with_aux_registers(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         (q,) = builder.qubits
         r = builder.add_aux_register()
@@ -149,7 +265,7 @@ class TestControlledSub:
         assert sub.phase == 0
 
     def test_expand_sub_with_phase(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         (q,) = builder.qubits
         builder.add_op(H, (q,))
@@ -173,7 +289,7 @@ class TestControlledSub:
         assert sub.phase == 0
 
     def test_expand_sub_with_pi_phase(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         builder.add_op(H, builder.qubits)
         builder.add_phase(math.pi)
@@ -196,7 +312,7 @@ class TestControlledSub:
         assert sub.phase == 0
 
     def test_expand_sub_with_half_pi_phase(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         builder.add_op(H, builder.qubits)
         builder.add_phase(math.pi / 2)
@@ -219,7 +335,7 @@ class TestControlledSub:
         assert sub.phase == 0
 
     def test_expand_sub_with_minus_half_pi_phase(self) -> None:
-        F = Op(Ident(NameSpace("test"), "F"), 1)
+        F = Op.from_qubit_count(Ident(NameSpace("test"), "F"), 1)
         builder = SubBuilder(1)
         builder.add_op(H, builder.qubits)
         builder.add_phase(-math.pi / 2)
@@ -653,6 +769,7 @@ def test_inverse_optimized_controlled() -> None:
     class _HCXH(OpSubDef):
         name = "HCXH"
         qubit_count = 2
+        qregs = (QRegSpec("qs", 2),)
 
         def sub(self, builder: SubBuilder) -> None:
             aux_q = builder.add_aux_qubit()
@@ -698,3 +815,42 @@ def test_inverse_optimized_controlled() -> None:
         (Inverse(Controlled(H)), (qs[0], qs[1]), ()),
     )
     assert tuple(ctrl_inv_sub.operations) == expected_resolved_sub
+
+
+def test_inverse_optimized_controlled_qregs() -> None:
+    class _HCXH(OpSubDef):
+        name = "HCXH"
+        qubit_count = 2
+        qregs = (QRegSpec("my_reg", 2),)
+
+        def sub(self, builder: SubBuilder) -> None:
+            builder.add_op(H, (builder.qubits[0],))
+            builder.add_op(H, (builder.qubits[1],))
+            builder.add_op(CNOT, (builder.qubits[0], builder.qubits[1]))
+            builder.add_op(H, (builder.qubits[0],))
+            builder.add_op(H, (builder.qubits[1],))
+
+    HCXH, _ = opsub(_HCXH)
+
+    def controlled_h_h_resolver(op: Op, repository: SubRepository) -> Sub:
+        builder = SubBuilder.from_qregs(op.qregs, op.reg_count)
+        qs = builder.qubits
+        builder.add_op(H, (qs[1],))
+        builder.add_op(H, (qs[2],))
+        builder.add_op(Controlled(CNOT), (qs[0], qs[1], qs[2]))
+        builder.add_op(H, (qs[2],))
+        builder.add_op(H, (qs[1],))
+        return builder.build()
+
+    test_sub_repository = SimpleSubRepository()
+    register_controlled_resolver(test_sub_repository, controlled_h_h_resolver, HCXH)
+
+    inv_op = Controlled(Inverse(HCXH))
+    assert inv_op.qregs == (QRegSpec("ctrl", 1), QRegSpec("my_reg", 2))
+
+    ctrl_inv_sub = resolve_sub(inv_op, test_sub_repository)
+    assert ctrl_inv_sub is not None
+    assert ctrl_inv_sub.qregs is not None
+    assert "ctrl" in ctrl_inv_sub.qregs
+    assert "my_reg" in ctrl_inv_sub.qregs
+    assert ctrl_inv_sub.qregs["my_reg"].name == "my_reg"

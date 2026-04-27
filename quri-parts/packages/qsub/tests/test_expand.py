@@ -6,10 +6,10 @@ from quri_parts.qsub.op import Ident, Op
 from quri_parts.qsub.qubit import Qubit
 
 NS = NameSpace("test")
-F = Op(Ident(NS, "F"), 3, 0)
-G = Op(Ident(NS, "G"), 3, 0)
-H = Op(Ident(NS, "H"), 2, 0)
-K = Op(Ident(NS, "K"), 2, 0)
+F = Op.from_qubit_count(Ident(NS, "F"), 3, 0)
+G = Op.from_qubit_count(Ident(NS, "G"), 3, 0)
+H = Op.from_qubit_count(Ident(NS, "H"), 2, 0)
+K = Op.from_qubit_count(Ident(NS, "K"), 2, 0)
 
 
 def test_expand() -> None:

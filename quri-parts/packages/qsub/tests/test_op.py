@@ -20,7 +20,9 @@ class TestOpDef:
             qubit_count = 3
 
         FooBar = op(_D)
-        assert FooBar == Op(Ident(DEFAULT, "FooBar", ()), qubit_count=3, unitary=True)
+        assert FooBar == Op.from_qubit_count(
+            Ident(DEFAULT, "FooBar", ()), qubit_count=3, unitary=True
+        )
 
     def test_unitary(self) -> None:
         class _D(UnitaryDef):
@@ -28,7 +30,9 @@ class TestOpDef:
             qubit_count = 3
 
         FooBar = op(_D)
-        assert FooBar == Op(Ident(DEFAULT, "FooBar", ()), qubit_count=3, unitary=True)
+        assert FooBar == Op.from_qubit_count(
+            Ident(DEFAULT, "FooBar", ()), qubit_count=3, unitary=True
+        )
 
     def test_non_unitary(self) -> None:
         class _D(NonUnitaryDef):
@@ -36,7 +40,9 @@ class TestOpDef:
             qubit_count = 3
 
         FooBar = op(_D)
-        assert FooBar == Op(Ident(DEFAULT, "FooBar", ()), qubit_count=3, unitary=False)
+        assert FooBar == Op.from_qubit_count(
+            Ident(DEFAULT, "FooBar", ()), qubit_count=3, unitary=False
+        )
 
     def test_op_full(self) -> None:
         namespace = NameSpace("foo")
@@ -50,7 +56,7 @@ class TestOpDef:
             unitary = False
 
         FooBar = op(_D)
-        assert FooBar == Op(
+        assert FooBar == Op.from_qubit_count(
             Ident(namespace, "FooBar", (1, 2)),
             qubit_count=3,
             reg_count=2,

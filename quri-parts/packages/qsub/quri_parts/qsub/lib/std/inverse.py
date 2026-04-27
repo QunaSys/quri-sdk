@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 
 from quri_parts.qsub.lib.std import Controlled, MultiControlled
 from quri_parts.qsub.op import (
@@ -21,7 +21,11 @@ from quri_parts.qsub.op import (
     param_op,
 )
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.register import Register
+from quri_parts.qsub.register import (
+    QRegSpec,
+    Register,
+    get_qregs_from_quantum_register_map,
+)
 from quri_parts.qsub.resolve import (
     SubRepository,
     SubResolver,
@@ -46,6 +50,9 @@ class _Inverse(ParamUnitaryDef[Op]):
     def reg_count_fn(self, target_op: Op) -> int:
         return target_op.reg_count
 
+    def qregs_fn(self, target_op: Op) -> Sequence[QRegSpec]:
+        return target_op.qregs
+
     def validate_params(self, target_op: Op) -> None:
         if not target_op.unitary:
             raise ParameterValidationError(f"target_op {target_op} is not unitary")
@@ -55,7 +62,7 @@ Inverse = param_op(_Inverse)
 
 
 def _single_op_sub(op: Op) -> Sub:
-    b = SubBuilder(op.qubit_count, op.reg_count)
+    b = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     b.add_op(op, b.qubits, b.registers)
     return b.build()
 
@@ -65,9 +72,17 @@ def _copy_sub_skeleton(
 ) -> tuple[SubBuilder, dict[Qubit, Qubit], dict[Register, Register]]:
     qubit_count = len(target_sub.qubits)
     reg_count = len(target_sub.registers)
-    builder = SubBuilder(qubit_count, reg_count)
+
+    qregs = None
+    if target_sub.qregs is not None:
+        qregs = get_qregs_from_quantum_register_map(target_sub.qregs)
+
+    builder = SubBuilder(qubit_count, reg_count, qregs)
     target_q = builder.qubits
-    target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
+    if target_sub.aux_qregs is not None:
+        for qr in target_sub.aux_qregs.values():
+            builder.add_aux_qreg(qr.name, qr.size)
+    target_aq = builder.aux_qubits
     qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
         zip(target_sub.aux_qubits, target_aq)
     )
@@ -129,7 +144,7 @@ def _inverse_rotation_resolver_gen(op_factory: OpFactory[float]) -> SubResolver:
         assert isinstance(target, Op)
         angle = target.id.params[0]
         assert isinstance(angle, float)
-        builder = SubBuilder(op.qubit_count, op.reg_count)
+        builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
         builder.add_op(op_factory(-angle), builder.qubits)
         return builder.build()
 
@@ -140,7 +155,7 @@ def _inverse_op_resolver_gen(inverse_op: Op) -> SubResolver:
     def resolver(op: Op, repository: SubRepository) -> Sub:
         target = op.id.params[0]
         assert isinstance(target, Op)
-        builder = SubBuilder(op.qubit_count, op.reg_count)
+        builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
         builder.add_op(inverse_op, builder.qubits)
         return builder.build()
 
@@ -153,7 +168,7 @@ def inverse_controlled_resolver(op: Op, repository: SubRepository) -> Sub:
     assert target.base_id == Controlled.base_id
     inner_op = target.id.params[0]
     assert isinstance(inner_op, Op)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(Controlled(Inverse(inner_op)), builder.qubits)
     return builder.build()
 
@@ -164,7 +179,7 @@ def inverse_multicontrolled_resolver(op: Op, repository: SubRepository) -> Sub:
     assert target.base_id == MultiControlled.base_id
     inner_op, control_bits, control_value = target.id.params
     assert isinstance(inner_op, Op)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(
         MultiControlled(Inverse(inner_op), control_bits, control_value), builder.qubits
     )
@@ -177,7 +192,7 @@ def inverse_inverse_resolver(op: Op, repository: SubRepository) -> Sub:
     assert target.base_id == Inverse.base_id
     inner_op = target.id.params[0]
     assert isinstance(inner_op, Op)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(inner_op, builder.qubits)
     return builder.build()
 
