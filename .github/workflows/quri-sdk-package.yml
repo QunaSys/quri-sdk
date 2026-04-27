@@ -2,7 +2,7 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main, kaz/total-qubit-counter]
+    branches: [main, kaz/fix-release-workflow]
   workflow_dispatch:
   release:
     types: [published]
