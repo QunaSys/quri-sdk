@@ -9,7 +9,9 @@
 # limitations under the License.
 
 from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.register import CTRL_QNAME, TARGET_QNAME, QRegSpec
 
 from . import NS
 
-CZ: Op = Op(Ident(NS, "CZ"), 2, self_inverse=True)
+cz_qreg_specs = (QRegSpec(CTRL_QNAME, 1), QRegSpec(TARGET_QNAME, 1))
+CZ: Op = Op(Ident(NS, "CZ"), 2, self_inverse=True, qregs=cz_qreg_specs)

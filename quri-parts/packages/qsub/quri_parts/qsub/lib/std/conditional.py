@@ -18,8 +18,8 @@ from quri_parts.qsub.sub import SubBuilder
 from . import NS
 
 # Compare and branch on zero.
-Cbz = Op(Ident(NS, "Cbz"), 0, 2, unitary=False)
-Label = Op(Ident(NS, "Label"), 0, 1, unitary=False)
+Cbz = Op(Ident(NS, "Cbz"), 0, (), 2, unitary=False)
+Label = Op(Ident(NS, "Label"), 0, (), 1, unitary=False)
 
 
 @contextmanager

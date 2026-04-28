@@ -9,10 +9,13 @@
 # limitations under the License.
 
 import logging
+from abc import abstractmethod
 from collections import defaultdict
-from collections.abc import Callable, Mapping
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Generic, Optional, Protocol, TypeAlias, cast
+from typing import Any, Generic, Protocol, TypeAlias, cast
+
+from typing_extensions import Self
 
 from quri_parts.qsub.op import BaseIdent, Ident, Op, OpFactory, Params
 from quri_parts.qsub.sub import Sub, SubFactory
@@ -46,7 +49,21 @@ def _get_base_id(op: Op | OpFactory[Params] | BaseIdent) -> BaseIdent:
 SubResolverCondition: TypeAlias = Callable[[Ident], bool]
 
 
-class SubRepository:
+class SubRepository(Protocol):
+    @abstractmethod
+    def find_resolver(self, op: Op) -> SubResolver | None:
+        ...
+
+    @abstractmethod
+    def copy(self) -> Self:
+        ...
+
+    @abstractmethod
+    def with_override(self, addition: "SubRepository") -> "SubRepository":
+        ...
+
+
+class SimpleSubRepository(SubRepository):
     def __init__(self) -> None:
         self._mapping: dict[
             BaseIdent, list[tuple[SubResolver, SubResolverCondition | None]]
@@ -74,18 +91,55 @@ class SubRepository:
     ) -> None:
         self._mapping[_get_base_id(op)].append((resolver, condition))
 
-    def copy(self) -> "SubRepository":
-        ret = SubRepository()
+    def copy(self) -> "SimpleSubRepository":
+        ret = SimpleSubRepository()
         for k, v in self._mapping.items():
             ret._mapping[k] = [item for item in v]
         return ret
 
+    def with_override(self, addition: "SubRepository") -> "SubRepository":
+        """Creates a new SubRepository that overrides the."""
+        return CompositeSubRepository(self, addition)
 
-_DEFAULT = SubRepository()
+
+_DEFAULT = SimpleSubRepository()
 
 
-def default_repository() -> SubRepository:
+def default_repository() -> SimpleSubRepository:
     return _DEFAULT
+
+
+class CompositeSubRepository(SubRepository):
+    """A :class:`SubRepositoryProtocol` that holds the base repo and an
+    additional `SubRepository`."""
+
+    def __init__(self, base_repo: SubRepository, addition_repo: SubRepository):
+        self._base_repo = base_repo
+        self._addition_repo = addition_repo
+
+    @property
+    def base_repo(self) -> SubRepository:
+        return self._base_repo
+
+    @property
+    def addition_repo(self) -> SubRepository:
+        return self._addition_repo
+
+    def find_resolver(self, op: Op) -> SubResolver | None:
+        """Finds the resolver starting from the addition repo.
+
+        If none exists in the addition, it finds from the base repo.
+        """
+        resolver = self._addition_repo.find_resolver(op)
+        return resolver if resolver else self._base_repo.find_resolver(op)
+
+    def copy(self) -> "CompositeSubRepository":
+        return CompositeSubRepository(
+            self._base_repo.copy(), self._addition_repo.copy()
+        )
+
+    def with_override(self, addition: SubRepository) -> SubRepository:
+        return CompositeSubRepository(self, addition)
 
 
 def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub | None:
@@ -94,40 +148,3 @@ def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub
         return resolver(op, repository)
     else:
         return None
-
-
-@dataclass
-class SubCollector:
-    _repository: SubRepository
-
-    def resolve_sub(self, op: Op) -> Sub | None:
-        return resolve_sub(op, self._repository)
-
-    def collect_subs(self, op: Op | Sub) -> Mapping[Op, Sub]:
-        sub_map: dict[Op, Optional[Sub]] = {}
-
-        def _collect(op: Op | Sub) -> None:
-            if isinstance(op, Op):
-                if op in sub_map:
-                    return
-                logger.info("Resolving: %s", op.id)
-                sub = self.resolve_sub(op)
-            else:
-                sub = op
-
-            if sub is not None:
-                logger.debug("Resolved: %s", sub)
-                if isinstance(op, Op):
-                    sub_map[op] = sub
-
-                not_computed = set(o for o, _, _ in sub.operations) - set(
-                    sub_map.keys()
-                )
-                for o in not_computed:
-                    _collect(o)
-            elif isinstance(op, Op):
-                logger.debug("Not found: %s", op.id)
-                sub_map[op] = None
-
-        _collect(op)
-        return {op: sub for op, sub in sub_map.items() if sub is not None}

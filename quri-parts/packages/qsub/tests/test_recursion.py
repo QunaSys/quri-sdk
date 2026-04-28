@@ -14,9 +14,9 @@ from quri_parts.qsub.sub import SubBuilder
 
 def _recursive_msub_with_primitives() -> tuple[MachineSub, set[Op]]:
     NS = NameSpace("test")
-    F = Op(Ident(NS, "F"), 1)
-    G = Op(Ident(NS, "G"), 2)
-    H = Op(Ident(NS, "H"), 1)
+    F = Op.from_qubit_count(Ident(NS, "F"), 1)
+    G = Op.from_qubit_count(Ident(NS, "G"), 2)
+    H = Op.from_qubit_count(Ident(NS, "H"), 1)
 
     fb = SubBuilder(2)
     (q0, q1) = fb.qubits
