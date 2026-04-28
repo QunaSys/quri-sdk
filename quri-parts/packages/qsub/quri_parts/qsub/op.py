@@ -37,6 +37,20 @@ def _param_short_str(p: Param) -> str:
         return str(p)
 
 
+def _param_hash(p: object) -> int:
+    try:
+        return hash(p)
+    except TypeError as e:
+        if isinstance(p, tuple):
+            return hash(tuple(_param_hash(v) for v in p))
+        elif isinstance(p, Op):
+            return hash(p.id)
+        elif isinstance(p, OpFactory):
+            return hash(p.base_id)
+        else:
+            raise e
+
+
 class Ident(NamedTuple):
     ns: NameSpace
     local_name: str
@@ -63,6 +77,9 @@ class Ident(NamedTuple):
 
     def __str__(self) -> str:
         return self.to_str(full=True)
+
+    def __hash__(self) -> int:
+        return hash((self.ns, self.local_name, tuple(_param_hash(p) for p in self.params)))
 
 
 class AbstractOp(Protocol):

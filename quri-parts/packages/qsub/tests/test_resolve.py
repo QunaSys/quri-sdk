@@ -3,6 +3,7 @@ from typing import Optional, cast
 from quri_parts.qsub.lib.std import MCX, H, MultiControlled, Pauli, X, Y
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, OpFactory, SimpleParamOp
+from quri_parts.qsub.opsub import ParamOpSubDef, param_opsub
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.resolve import (
     CompositeSubRepository,
@@ -10,6 +11,7 @@ from quri_parts.qsub.resolve import (
     SimpleSubResolver,
     SubCollector,
     SubRepository,
+    resolve_sub,
 )
 from quri_parts.qsub.resolve.simulator_repo import simulator_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
@@ -379,6 +381,41 @@ class TestSubRepository:
 
 
 class TestCollectSubs:
+    def test_resolve_param_opsub_with_op_param(self) -> None:
+        inner_op = Op.from_qubit_count(Ident(NS, "inner", (X,)), 1)
+
+        repository = SimpleSubRepository()
+
+        def inner_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        repository.register_sub(inner_op, inner_sub())
+
+        class _Wrapper(ParamOpSubDef[Op]):
+            ns = NS
+            name = "Wrapper"
+            qubit_count = 1
+
+            def sub(self, builder: SubBuilder, target_op: Op) -> None:
+                (q,) = builder.qubits
+                builder.add_op(target_op, (q,))
+
+        Wrapper, WrapperSub = param_opsub(_Wrapper, repository)
+        wrapped_op = Wrapper(inner_op)
+
+        resolved = resolve_sub(wrapped_op, repository)
+        assert resolved == WrapperSub(inner_op)
+
+        collector = SubCollector(repository)
+        collected_subs = collector.collect_subs(wrapped_op)
+        assert collected_subs == {
+            wrapped_op: WrapperSub(inner_op),
+            inner_op: inner_sub(),
+        }
+
     def test_collect_subs(self) -> None:
         op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
         op2 = Op.from_qubit_count(Ident(NS, "op2"), 2)
