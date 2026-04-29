@@ -76,13 +76,13 @@ def _multi_controlled_sub(
     control_value: Optional[int],
     s_and: Callable[[SubBuilder, Qubit, Qubit], AbstractContextManager[Qubit]],
 ) -> Sub:
+    if control_value is None:
+        control_value = (1 << control_bits) - 1
+
     builder = SubBuilder.from_qregs(
         MultiControlled(op, control_bits, control_value).qregs, op.reg_count
     )
     qubits = builder.qubits
-
-    if control_value is None:
-        control_value = (1 << control_bits) - 1
 
     if not control_bits >= 1:
         raise ValueError(
