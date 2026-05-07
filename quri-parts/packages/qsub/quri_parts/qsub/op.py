@@ -45,7 +45,7 @@ def _param_hash(p: object) -> int:
             return hash(tuple(_param_hash(v) for v in p))
         elif isinstance(p, Op):
             return hash(p.id)
-        elif isinstance(p, OpFactory):
+        elif hasattr(p, "base_id"):  # p is OpFactory
             return hash(p.base_id)
         else:
             raise e
@@ -79,7 +79,9 @@ class Ident(NamedTuple):
         return self.to_str(full=True)
 
     def __hash__(self) -> int:
-        return hash((self.ns, self.local_name, tuple(_param_hash(p) for p in self.params)))
+        return hash(
+            (self.ns, self.local_name, tuple(_param_hash(p) for p in self.params))
+        )
 
 
 class AbstractOp(Protocol):
