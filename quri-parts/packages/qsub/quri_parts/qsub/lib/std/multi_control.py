@@ -88,7 +88,7 @@ def _multi_controlled_sub(
 
     if control_bits == 1:
         add_neg()
-        builder.add_op(Controlled(op), (qubits[0], qubits[1]))
+        builder.add_op(Controlled(op), (qubits[0], *qubits[1:]))
         add_neg()
         return builder.build()
 

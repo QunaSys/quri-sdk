@@ -10,6 +10,7 @@ packages = [{ include = "quri_vm" }]
 python = "<4,>=3.10"
 quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
+matplotlib = "^3.10.1"
 
 [build-system]
 requires = ["poetry-core"]

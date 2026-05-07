@@ -1,6 +1,8 @@
 import math
 from typing import Sequence
 
+import pytest
+
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -112,6 +114,15 @@ class TestMultiControlled:
             (Controlled(Y), (i0, i1), ()),
             (X, (i0,), ()),
         )
+
+    def test_control_cnot_on_single_qubit(self) -> None:
+        toffoli_sub = MultiControlledSub(CNOT, 1, 0b1)
+
+        assert len(toffoli_sub.qubits) == 3
+        assert len(toffoli_sub.aux_qubits) == 0
+
+        i0, i1, i2 = toffoli_sub.qubits
+        assert toffoli_sub.operations == ((Controlled(CNOT), (i0, i1, i2), ()),)
 
     def test_two_controls(self) -> None:
         mcy_sub = MultiControlledSub(Y, 2, 0b11)
@@ -1633,3 +1644,56 @@ def test_mcswap_with_control_negation() -> None:
     # Since MCSWAP is not implemented, this should use default behavior
     sub = resolve_sub(mc_swap_mixed, repo)
     assert sub is not None
+
+
+@pytest.mark.parametrize(
+    ("phase_angle", "expected_global_phase", "expected_phase_gate"),
+    (
+        (0.0, 0.0, None),
+        (math.pi, math.pi, MultiControlled(Z, 1, 0b1)),
+        (math.pi / 2, math.pi / 2, MultiControlled(Sdag, 1, 0b1)),
+        (3 * math.pi / 2, 3 * math.pi / 2, MultiControlled(S, 1, 0b1)),
+        (1.23, 1.23, MultiControlled(Phase((-1.23) % (2 * math.pi)), 1, 0b1)),
+    ),
+)
+def test_opsub_with_multi_control_gates_recursive_subcall(
+    phase_angle: float, expected_global_phase: float, expected_phase_gate: Op | None
+) -> None:
+    """Test exact circuit construction for an OpSub with recursive
+    MultiControlled subcalls."""
+
+    class MultiControlGatesOpSubDef(OpSubDef):
+        name = "MultiControlGatesOp"
+        qubit_count = 3
+
+        def sub(self, builder: SubBuilder) -> None:
+            q0, q1, q2 = builder.qubits
+            builder.add_op(CZ, (q0, q1))
+            builder.add_op(Z, (q0,))
+            builder.add_op(X, (q1,))
+            builder.add_op(Toffoli, (q0, q1, q2))
+            builder.add_phase(phase_angle)
+
+    repo = default_repository().copy()
+    multi_control_op, _ = opsub(MultiControlGatesOpSubDef, repo)
+    repo.register_sub_resolver(
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+    )
+    op = MultiControlled(multi_control_op, 2, 0b01)
+    resolved_sub = resolve_sub(op, repo)
+    assert resolved_sub is not None
+    assert len(resolved_sub.qubits) == 5
+    assert len(resolved_sub.aux_qubits) == 0
+    assert len(resolved_sub.aux_registers) == 0
+    assert math.isclose(resolved_sub.phase, expected_global_phase)
+
+    q0, q1, q2, q3, q4 = resolved_sub.qubits
+    expected_operations = [
+        (MultiControlled(CZ, 2, 0b01), (q0, q1, q2, q3), ()),
+        (MultiControlled(Z, 2, 0b01), (q0, q1, q2), ()),
+        (MultiControlled(X, 2, 0b01), (q0, q1, q3), ()),
+        (MultiControlled(Toffoli, 2, 0b01), (q0, q1, q2, q3, q4), ()),
+    ]
+    if expected_phase_gate is not None:
+        expected_operations.append((expected_phase_gate, (q0, q1), ()))
+    assert resolved_sub.operations == tuple(expected_operations)
