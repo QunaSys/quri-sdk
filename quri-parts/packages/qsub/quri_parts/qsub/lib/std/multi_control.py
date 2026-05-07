@@ -32,6 +32,12 @@ from .single_clifford import X
 # Parametric Op definitions
 
 
+def _get_multi_ctrl_qregs(target_op: Op, control_bits: int) -> Sequence[QRegSpec]:
+    ctrl_label = get_new_ctrl_label(target_op.qregs)
+    ctrl_name = f"{CTRL_QNAME}_{ctrl_label}" if ctrl_label > 0 else CTRL_QNAME
+    return (QRegSpec(ctrl_name, control_bits), *target_op.qregs)
+
+
 class _MultiControlled(ParamUnitaryDef[Op, int, int]):
     ns = NS
     name = "MultiControlled"
@@ -47,9 +53,7 @@ class _MultiControlled(ParamUnitaryDef[Op, int, int]):
     def qregs_fn(
         self, target_op: Op, control_bits: int, control_value: int
     ) -> Sequence[QRegSpec]:
-        ctrl_label = get_new_ctrl_label(target_op.qregs)
-        ctrl_name = f"{CTRL_QNAME}_{ctrl_label}" if ctrl_label > 0 else CTRL_QNAME
-        return (QRegSpec(ctrl_name, control_bits), *target_op.qregs)
+        return _get_multi_ctrl_qregs(target_op, control_bits)
 
     def validate_params(
         self, target_op: Op, control_bits: int, control_value: int
@@ -80,7 +84,7 @@ def _multi_controlled_sub(
         control_value = (1 << control_bits) - 1
 
     builder = SubBuilder.from_qregs(
-        MultiControlled(op, control_bits, control_value).qregs, op.reg_count
+        _get_multi_ctrl_qregs(op, control_bits), op.reg_count
     )
     qubits = builder.qubits
 
