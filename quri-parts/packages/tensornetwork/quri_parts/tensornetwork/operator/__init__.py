@@ -313,15 +313,15 @@ def pauli_label_to_tensor(
     tensor_map = {}
     input_edges = []
     output_edges = []
-    for qb, p in zip(*pl):
+    for qb, p in pl:
         arr = np.array(_PAULI_OPERATOR_DATA_MAP[p], dtype=np.complex128)
         if coefficient is not None:
             arr *= coefficient
         tensor_map[qb] = Node(arr, backend=backend)
 
     for qb in sorted([t[0] for t in pl]):
-        input_edges.append(tensor_map[qb])
-        output_edges.append(tensor_map[qb])
+        input_edges.append(tensor_map[qb][0])
+        output_edges.append(tensor_map[qb][1])
 
     return TensorNetworkOperator(
         input_edges, output_edges, set(tensor_map.values()), [tensor_map]
