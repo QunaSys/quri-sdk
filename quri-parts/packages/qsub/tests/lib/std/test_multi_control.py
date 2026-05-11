@@ -2,6 +2,7 @@ import math
 from typing import Sequence
 
 import numpy as np
+import numpy.typing as npt
 import pytest
 
 from quri_parts.core.state import ComputationalBasisState
@@ -1785,7 +1786,8 @@ def test_opsub_with_multi_control_gates_recursive_subcall(
 
 
 def test_multi_controlled_matrix_consistency() -> None:
-    """Test MultiControlled phase handling consistency using matrix comparison."""
+    """Test MultiControlled phase handling consistency using matrix
+    comparison."""
     phi = math.pi / 2
     X_mat_l = np.array([[0, 1], [1, 0]], dtype=complex)
     inner_U = np.exp(1j * phi) * X_mat_l
@@ -1805,7 +1807,7 @@ def test_multi_controlled_matrix_consistency() -> None:
         generate_multicontrolled_to_mc_sub_resolver(),
     )
 
-    def matrix_of_op(op: Op) -> np.ndarray:
+    def matrix_of_op(op: Op) -> npt.NDArray[np.complex128]:
         bb = SubBuilder(op.qubit_count)
         bb.add_op(op, bb.qubits)
         qpc = Evaluator(QURIPartsEvaluatorHooks()).run(
@@ -1820,12 +1822,14 @@ def test_multi_controlled_matrix_consistency() -> None:
             m[:, j] = evaluate_state_to_vector(final_state).vector
         return m
 
-    def mc_matrix_expected(n_ctrl: int, ctrl_val: int) -> np.ndarray:
+    def mc_matrix_expected(n_ctrl: int, ctrl_val: int) -> npt.NDArray[np.complex128]:
         dim_c = 1 << n_ctrl
         P_eq = np.zeros((dim_c, dim_c), dtype=complex)
         P_eq[ctrl_val, ctrl_val] = 1.0
         P_neq = np.eye(dim_c, dtype=complex) - P_eq
-        return np.kron(inner_U, P_eq) + np.kron(np.eye(2, dtype=complex), P_neq)
+        return (
+            np.kron(inner_U, P_eq) + np.kron(np.eye(2, dtype=complex), P_neq)
+        ).astype(np.complex128)
 
     for n_ctrl, ctrl_val in [
         (1, 0),
