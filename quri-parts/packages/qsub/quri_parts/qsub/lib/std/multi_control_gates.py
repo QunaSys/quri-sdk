@@ -448,11 +448,6 @@ def generate_multicontrolled_to_mc_sub_resolver(
         #   = e^{i theta} Phase(-theta) x I
         phase = target_sub.phase % (2 * math.pi)
         if phase != 0:
-            if (control_value & (1 << (control_bits - 1))) == 0:
-                # use diag(e^i(phase), 1)  instead of diag(1, e^i(phase))
-                builder.add_phase(phase)
-                phase = (-phase) % (2 * math.pi)
-
             if phase == math.pi:
                 phase_op = Z
             elif phase == math.pi / 2:
@@ -462,9 +457,17 @@ def generate_multicontrolled_to_mc_sub_resolver(
             else:
                 phase_op = Phase(phase)
 
+            mask = 1 << (control_bits - 1)
+            x_gate_insertion = (control_value & mask) == 0
             if control_bits == 1:
+                if x_gate_insertion:
+                    builder.add_op(X, control_q)
                 builder.add_op(phase_op, qubits=control_q)
+                if x_gate_insertion:
+                    builder.add_op(X, control_q)
             elif control_bits > 1:
+                if x_gate_insertion:
+                    builder.add_op(X, (control_q[-1],))
                 builder.add_op(
                     MultiControlled(
                         phase_op,
@@ -473,6 +476,8 @@ def generate_multicontrolled_to_mc_sub_resolver(
                     ),
                     qubits=control_q,
                 )
+                if x_gate_insertion:
+                    builder.add_op(X, (control_q[-1],))
             else:
                 raise ValueError("unreachable")
 
