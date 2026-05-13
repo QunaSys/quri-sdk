@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import math
-from collections.abc import Collection
+from collections.abc import Collection, Sequence
 from typing import Any
 
 from quri_parts.qsub.lib import std
@@ -23,7 +23,9 @@ from quri_parts.qsub.op import (
     param_op,
 )
 from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.register import CTRL_QNAME, QRegSpec
 from quri_parts.qsub.resolve import (
+    SimpleSubRepository,
     SubRepository,
     SubResolver,
     SubResolverCondition,
@@ -40,7 +42,11 @@ from .swap import SWAP
 from .t import T, Tdag
 from .toffoli import Toffoli
 
+
 # Parametric Op definitions
+def get_new_ctrl_label(inner_reg_specs: Sequence[QRegSpec]) -> int:
+    n_sub_ctrls = sum([int(CTRL_QNAME in rs.name) for rs in inner_reg_specs])
+    return n_sub_ctrls
 
 
 class _Controlled(ParamUnitaryDef[Op]):
@@ -52,6 +58,11 @@ class _Controlled(ParamUnitaryDef[Op]):
 
     def reg_count_fn(self, target_op: Op) -> int:
         return target_op.reg_count
+
+    def qregs_fn(self, target_op: Op) -> Sequence[QRegSpec]:
+        ctrl_label = get_new_ctrl_label(target_op.qregs)
+        ctrl_name = CTRL_QNAME if ctrl_label == 0 else f"{CTRL_QNAME}_{ctrl_label}"
+        return (QRegSpec(ctrl_name, 1), *target_op.qregs)
 
     def validate_params(self, target_op: Op) -> None:
         if not target_op.unitary:
@@ -75,10 +86,13 @@ def controlled_sub_resolver(op: Op, repository: SubRepository) -> Sub | None:
     if not target_sub:
         return None
 
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     c, *target_q = builder.qubits
 
-    target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
+    if target_sub.aux_qregs is not None:
+        for qr in target_sub.aux_qregs.values():
+            builder.add_aux_qreg(qr.name, qr.size)
+    target_aq = builder.aux_qubits
     qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
         zip(target_sub.aux_qubits, target_aq)
     )
@@ -128,13 +142,13 @@ def control_target_condition(op: AbstractOp) -> SubResolverCondition:
 
 
 def controlled_x_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(CNOT, builder.qubits)
     return builder.build()
 
 
 def controlled_y_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     c, t = builder.qubits
     builder.add_op(Sdag, (t,))
     builder.add_op(CNOT, (c, t))
@@ -143,13 +157,13 @@ def controlled_y_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_z_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(CZ, builder.qubits)
     return builder.build()
 
 
 def controlled_h_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     builder.add_op(RY(-math.pi / 4), (q1,))
     builder.add_op(CZ, (q0, q1))
@@ -171,7 +185,7 @@ def controlled_rx_resolver(op: Op, repository: SubRepository) -> Sub:
     assert isinstance(target, Op)
     angle = target.id.params[0]
     assert isinstance(angle, float)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _crx(builder, q0, q1, angle)
     return builder.build()
@@ -189,7 +203,7 @@ def controlled_ry_resolver(op: Op, repository: SubRepository) -> Sub:
     assert isinstance(target, Op)
     angle = target.id.params[0]
     assert isinstance(angle, float)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _cry(builder, q0, q1, angle)
     return builder.build()
@@ -207,7 +221,7 @@ def controlled_rz_resolver(op: Op, repository: SubRepository) -> Sub:
     assert isinstance(target, Op)
     angle = target.id.params[0]
     assert isinstance(angle, float)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _crz(builder, q0, q1, angle)
     return builder.build()
@@ -218,7 +232,7 @@ def controlled_phase_resolver(op: Op, repository: SubRepository) -> Sub:
     assert isinstance(target, Op)
     angle = target.id.params[0]
     assert isinstance(angle, float)
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _crz(builder, q0, q1, angle)
     builder.add_op(Phase(angle / 2), (q0,))
@@ -226,7 +240,7 @@ def controlled_phase_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_sqrtx_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _crx(builder, q0, q1, math.pi / 2)
     builder.add_op(Phase(math.pi / 4), (q0,))
@@ -234,7 +248,7 @@ def controlled_sqrtx_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_sqrtxdag_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _crx(builder, q0, q1, -math.pi / 2)
     builder.add_op(Phase(-math.pi / 4), (q0,))
@@ -242,7 +256,7 @@ def controlled_sqrtxdag_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_sqrty_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _cry(builder, q0, q1, math.pi / 2)
     builder.add_op(Phase(math.pi / 4), (q0,))
@@ -250,7 +264,7 @@ def controlled_sqrty_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_sqrtydag_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     _cry(builder, q0, q1, -math.pi / 2)
     builder.add_op(Phase(-math.pi / 4), (q0,))
@@ -258,7 +272,7 @@ def controlled_sqrtydag_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_s_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     builder.add_op(CNOT, (q0, q1))
     builder.add_op(Tdag, (q1,))
@@ -269,7 +283,7 @@ def controlled_s_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_sdag_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     builder.add_op(CNOT, (q0, q1))
     builder.add_op(T, (q1,))
@@ -280,7 +294,7 @@ def controlled_sdag_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_t_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     builder.add_op(CNOT, (q0, q1))
     builder.add_op(Phase(-math.pi / 8), (q1,))
@@ -291,7 +305,7 @@ def controlled_t_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_tdag_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1 = builder.qubits
     builder.add_op(CNOT, (q0, q1))
     builder.add_op(Phase(math.pi / 8), (q1,))
@@ -302,7 +316,7 @@ def controlled_tdag_resolver(op: Op, repository: SubRepository) -> Sub:
 
 
 def controlled_cnot_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(Toffoli, builder.qubits)
     return builder.build()
 
@@ -310,13 +324,13 @@ def controlled_cnot_resolver(op: Op, repository: SubRepository) -> Sub:
 def controlled_cz_resolver(op: Op, repository: SubRepository) -> Sub:
     from .multi_control import MultiControlled
 
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(MultiControlled(Z, 2, 0b11), builder.qubits)
     return builder.build()
 
 
 def controlled_swap_resolver(op: Op, repository: SubRepository) -> Sub:
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     q0, q1, q2 = builder.qubits
     builder.add_op(CNOT, (q2, q1))
     builder.add_op(Toffoli, (q0, q1, q2))
@@ -327,7 +341,7 @@ def controlled_swap_resolver(op: Op, repository: SubRepository) -> Sub:
 def controlled_toffoli_resolver(op: Op, repository: SubRepository) -> Sub:
     from .multi_control import MultiControlled
 
-    builder = SubBuilder(op.qubit_count, op.reg_count)
+    builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
     builder.add_op(MultiControlled(X, 3, 0b111), builder.qubits)
     return builder.build()
 
@@ -378,7 +392,7 @@ def _get_inv_target_condition(op: AbstractOp) -> SubResolverCondition:
 
 
 def register_controlled_resolver(
-    sub_repository: SubRepository,
+    sub_repository: SimpleSubRepository,
     control_resolver: SubResolver,
     op: Op | OpFactory[Any],
 ) -> None:

@@ -9,13 +9,14 @@
 # limitations under the License.
 
 from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 from quri_parts.qsub.resolve import default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 from . import NS
 from .cnot import CNOT
 
-SWAP = Op(Ident(NS, "SWAP"), 2, self_inverse=True)
+SWAP = Op(Ident(NS, "SWAP"), 2, self_inverse=True, qregs=(QRegSpec(DEFAULT_QNAME, 2),))
 
 
 def _swap_sub() -> Sub:

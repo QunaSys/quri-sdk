@@ -53,10 +53,10 @@ def test_t_count() -> None:
 
 def test_aux_qubits() -> None:
     NS = NameSpace("test")
-    F = Op(Ident(NS, "F"), 1, 0)
-    G = Op(Ident(NS, "G"), 3, 0)
-    H = Op(Ident(NS, "H"), 2, 0)
-    K = Op(Ident(NS, "K"), 2, 0)
+    F = Op.from_qubit_count(Ident(NS, "F"), 1, 0)
+    G = Op.from_qubit_count(Ident(NS, "G"), 3, 0)
+    H = Op.from_qubit_count(Ident(NS, "H"), 2, 0)
+    K = Op.from_qubit_count(Ident(NS, "K"), 2, 0)
 
     fb = SubBuilder(1)
     (fq0,) = fb.qubits
@@ -111,7 +111,7 @@ def test_total_qubits_simple_local_aux() -> None:
 
 def test_total_qubits_simple_nested_aux() -> None:
     NS = NameSpace("test_simple_nested")
-    F = Op(Ident(NS, "F"), 1, 0)
+    F = Op.from_qubit_count(Ident(NS, "F"), 1, 0)
 
     fb = SubBuilder(1)
     (fq0,) = fb.qubits
@@ -139,10 +139,10 @@ def test_total_qubits_simple_nested_aux() -> None:
 
 def test_total_qubits() -> None:
     NS = NameSpace("test")
-    F = Op(Ident(NS, "F"), 1, 0)
-    G = Op(Ident(NS, "G"), 3, 0)
-    H = Op(Ident(NS, "H"), 2, 0)
-    K = Op(Ident(NS, "K"), 2, 0)
+    F = Op.from_qubit_count(Ident(NS, "F"), 1, 0)
+    G = Op.from_qubit_count(Ident(NS, "G"), 3, 0)
+    H = Op.from_qubit_count(Ident(NS, "H"), 2, 0)
+    K = Op.from_qubit_count(Ident(NS, "K"), 2, 0)
 
     fb = SubBuilder(1)
     (fq0,) = fb.qubits

@@ -1,10 +1,17 @@
 from typing import Optional, cast
 
-from quri_parts.qsub.lib.std import H, X, Y
+from quri_parts.qsub.lib.std import MCX, H, MultiControlled, Pauli, X, Y
 from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op, OpFactory, SimpleParamOp
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.resolve import SimpleSubResolver, SubCollector, SubRepository
+from quri_parts.qsub.resolve import (
+    CompositeSubRepository,
+    SimpleSubRepository,
+    SimpleSubResolver,
+    SubCollector,
+    SubRepository,
+)
+from quri_parts.qsub.resolve.simulator_repo import simulator_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 NS = NameSpace("test")
@@ -21,7 +28,7 @@ class TestSubRepository:
         c_mc21y = cont(mc21y.id)
         mc21_cy = mcont(cy.id, 2, 1)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         def dummy_sub(i: int) -> Sub:
             return Sub((Qubit(i),), (), (), (), ())
@@ -82,14 +89,302 @@ class TestSubRepository:
         assert repository.find_resolver(c_mc21y) == cmc_resolver
         assert repository.find_resolver(mc21_cy) == mcc_resolver
 
+    def test_with_override(self) -> None:
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 1)
+
+        # Create parent repository with resolvers for op1 and op2
+        parent_repo = SimpleSubRepository()
+
+        def parent_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        def parent_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        parent_repo.register_sub(op1, parent_op1_sub())
+        parent_repo.register_sub(op2, parent_op2_sub())
+
+        # Create child repository that overrides op1 and adds op3
+        child_repo = SimpleSubRepository()
+
+        def child_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(H, (q,))
+            return builder.build()
+
+        def child_op3_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        child_repo.register_sub(op1, child_op1_sub())
+        child_repo.register_sub(op3, child_op3_sub())
+
+        # Create composite repository using with_override
+        composite_repo = parent_repo.with_override(child_repo)
+
+        # Test that child overrides parent for op1
+        resolver1 = composite_repo.find_resolver(op1)
+        assert resolver1 is not None
+        sub1 = resolver1(op1, composite_repo)
+        assert sub1 == child_op1_sub()  # Should use child's resolver
+
+        # Test that parent resolver is used for op2 (not overridden)
+        resolver2 = composite_repo.find_resolver(op2)
+        assert resolver2 is not None
+        sub2 = resolver2(op2, composite_repo)
+        assert sub2 == parent_op2_sub()  # Should use parent's resolver
+
+        # Test that child's new resolver works for op3
+        resolver3 = composite_repo.find_resolver(op3)
+        assert resolver3 is not None
+        sub3 = resolver3(op3, composite_repo)
+        assert sub3 == child_op3_sub()
+
+    def test_composite_base_and_addition(self) -> None:
+        op0 = Op.from_qubit_count(Ident(NS, "op0"), 1)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 1)
+
+        # Create base repository with op0
+        override0_repo = SimpleSubRepository()
+
+        def override0_op0_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        override0_repo.register_sub(op0, override0_op0_sub())
+
+        # Create first override repository with op1
+        override1_repo = SimpleSubRepository()
+
+        def override1_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override1_repo.register_sub(op1, override1_op1_sub())
+
+        parent_composite = override0_repo.with_override(override1_repo)
+        assert isinstance(parent_composite, CompositeSubRepository)
+
+        override2_repo = SimpleSubRepository()
+
+        def override2_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(H, (q,))
+            return builder.build()
+
+        override2_repo.register_sub(op2, override2_op2_sub())
+
+        child_composite = parent_composite.with_override(override2_repo)
+        assert isinstance(child_composite, CompositeSubRepository)
+
+        override3_repo = SimpleSubRepository()
+
+        def override3_op3_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override3_repo.register_sub(op3, override3_op3_sub())
+
+        # This creates a CompositeSubRepository where:
+        # - base is child_composite (which is itself a CompositeSubRepository)
+        # - addition is override3_repo (SimpleSubRepository)
+        final_composite = child_composite.with_override(override3_repo)
+
+        assert isinstance(final_composite, CompositeSubRepository)
+        assert isinstance(final_composite.base_repo, CompositeSubRepository)
+        assert isinstance(final_composite.addition_repo, SimpleSubRepository)
+
+        # Verify resolution works correctly through the hierarchy
+        # op3 should come from override3_repo
+        resolver3 = final_composite.find_resolver(op3)
+        assert resolver3 is not None
+        assert resolver3(op3, final_composite) == override3_op3_sub()
+
+        # op2 should come from override2_repo (through child_composite)
+        resolver2 = final_composite.find_resolver(op2)
+        assert resolver2 is not None
+        assert resolver2(op2, final_composite) == override2_op2_sub()
+
+        # op1 should come from override1_repo (through parent_composite)
+        resolver1 = final_composite.find_resolver(op1)
+        assert resolver1 is not None
+        assert resolver1(op1, final_composite) == override1_op1_sub()
+
+        # op0 should come from override0_repo
+        resolver0 = final_composite.find_resolver(op0)
+        assert resolver0 is not None
+        assert resolver0(op0, final_composite) == override0_op0_sub()
+
+    def test_both_base_and_addition_composite(self) -> None:
+        op0 = Op.from_qubit_count(Ident(NS, "op0"), 1)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 1)
+
+        override0_repo = SimpleSubRepository()
+
+        def override0_op0_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        override0_repo.register_sub(op0, override0_op0_sub())
+
+        override1_repo = SimpleSubRepository()
+
+        def override1_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override1_repo.register_sub(op1, override1_op1_sub())
+
+        parent_composite = override0_repo.with_override(override1_repo)
+        assert isinstance(parent_composite, CompositeSubRepository)
+
+        override2_repo = SimpleSubRepository()
+
+        def override2_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(H, (q,))
+            return builder.build()
+
+        override2_repo.register_sub(op2, override2_op2_sub())
+
+        override3_repo = SimpleSubRepository()
+
+        def override3_op3_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        override3_repo.register_sub(op3, override3_op3_sub())
+
+        child_composite = override2_repo.with_override(override3_repo)
+        assert isinstance(child_composite, CompositeSubRepository)
+
+        final_composite = parent_composite.with_override(child_composite)
+
+        assert isinstance(final_composite, CompositeSubRepository)
+        assert isinstance(final_composite.base_repo, CompositeSubRepository)
+        assert isinstance(final_composite.addition_repo, CompositeSubRepository)
+
+        # Verify resolution works correctly
+        resolver3 = final_composite.find_resolver(op3)
+        assert resolver3 is not None
+        assert resolver3(op3, final_composite) == override3_op3_sub()
+
+        resolver2 = final_composite.find_resolver(op2)
+        assert resolver2 is not None
+        assert resolver2(op2, final_composite) == override2_op2_sub()
+
+        resolver1 = final_composite.find_resolver(op1)
+        assert resolver1 is not None
+        assert resolver1(op1, final_composite) == override1_op1_sub()
+
+        resolver0 = final_composite.find_resolver(op0)
+        assert resolver0 is not None
+        assert resolver0(op0, final_composite) == override0_op0_sub()
+
+    def test_root_as_addition(self) -> None:
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+
+        repo_1 = SimpleSubRepository()
+
+        def repo1_op1_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(X, (q,))
+            return builder.build()
+
+        repo_1.register_sub(op1, repo1_op1_sub())
+
+        repo_2 = SimpleSubRepository()
+
+        def repo2_op2_sub() -> Sub:
+            builder = SubBuilder(1)
+            (q,) = builder.qubits
+            builder.add_op(Y, (q,))
+            return builder.build()
+
+        repo_2.register_sub(op2, repo2_op2_sub())
+
+        comp = repo_1.with_override(repo_2)
+        assert isinstance(comp, CompositeSubRepository)
+
+        final_comp = comp.with_override(repo_1)
+
+        assert isinstance(final_comp, CompositeSubRepository)
+        assert final_comp.base_repo is comp
+        assert final_comp.addition_repo is repo_1
+        assert comp.base_repo is repo_1
+        assert comp.addition_repo is repo_2
+
+        resolver1 = final_comp.find_resolver(op1)
+        assert resolver1 is not None
+        assert resolver1(op1, final_comp) == repo1_op1_sub()
+
+        resolver2 = final_comp.find_resolver(op2)
+        assert resolver2 is not None
+        assert resolver2(op2, final_comp) == repo2_op2_sub()
+
+    def test_simulator_repository_resolves_multicontrolled(self) -> None:
+        repo = simulator_repository()
+
+        # Test simple MultiControlled operation
+        mc_x = MultiControlled(X, 2, 0b11)
+        resolver = repo.find_resolver(mc_x)
+        assert resolver is not None
+        sub = resolver(mc_x, repo)
+        assert sub is not None
+        assert sub.operations == ((MCX(2), sub.qubits, ()),)
+
+        pauli = Pauli((1, 1))
+        resolver = repo.find_resolver(pauli)
+        assert resolver is not None
+        sub = resolver(pauli, repo)
+        assert sub is not None
+        assert sub.operations == (
+            (X, (sub.qubits[0],), ()),
+            (X, (sub.qubits[1],), ()),
+        )
+
 
 class TestCollectSubs:
     def test_collect_subs(self) -> None:
-        op1 = Op(Ident(NS, "op1"), 1)
-        op2 = Op(Ident(NS, "op2"), 2)
-        op3 = Op(Ident(NS, "op3"), 3)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 2)
+        op3 = Op.from_qubit_count(Ident(NS, "op3"), 3)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         # op3 uses op2 and X
         def op3_sub() -> Sub:
@@ -125,13 +420,13 @@ class TestCollectSubs:
         assert collected_subs == {op3: op3_sub(), op2: op2_sub()}
 
     def test_collect_subs_parametric(self) -> None:
-        op = Op(Ident(NS, "op"), 1)
+        op = Op.from_qubit_count(Ident(NS, "op"), 1)
 
         indexed_op1: OpFactory[int] = SimpleParamOp((NS, "indexed_op1"), 1)
 
         indexed_op2: OpFactory[int] = SimpleParamOp((NS, "indexed_op2"), 1)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         # op uses indexed_op1(2), indexed_op1(4)
         def op_sub() -> Sub:
@@ -186,11 +481,11 @@ class TestCollectSubs:
         }
 
     def test_collect_subs_custom_resolver(self) -> None:
-        op = Op(Ident(NS, "op"), 2)
-        op1 = Op(Ident(NS, "op1"), 1)
+        op = Op.from_qubit_count(Ident(NS, "op"), 2)
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
         control: OpFactory[Op] = SimpleParamOp((NS, "control"), 2)
 
-        repository = SubRepository()
+        repository = SimpleSubRepository()
 
         # op uses control_op1
         def op_sub() -> Sub:

@@ -13,7 +13,7 @@ from quri_parts.qsub.opsub import (
 from quri_parts.qsub.resolve import default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
-X = Op(Ident(DEFAULT, "X", ()), qubit_count=1)
+X = Op.from_qubit_count(Ident(DEFAULT, "X", ()), qubit_count=1)
 
 
 class TestOpSubDef:
@@ -29,7 +29,9 @@ class TestOpSubDef:
                 builder.add_op(X, (c,))
 
         Foo, FooSub = opsub(_D, None)
-        assert Foo == Op(Ident(DEFAULT, "Foo", ()), qubit_count=3, unitary=True)
+        assert Foo == Op.from_qubit_count(
+            Ident(DEFAULT, "Foo", ()), qubit_count=3, unitary=True
+        )
         assert isinstance(FooSub, Sub)
         assert len(FooSub.qubits) == 3
         assert len(FooSub.operations) == 3
@@ -46,7 +48,9 @@ class TestOpSubDef:
                 builder.add_op(X, (c,))
 
         Foo, FooSub = opsub(_D, None)
-        assert Foo == Op(Ident(DEFAULT, "Foo", ()), qubit_count=3, unitary=True)
+        assert Foo == Op.from_qubit_count(
+            Ident(DEFAULT, "Foo", ()), qubit_count=3, unitary=True
+        )
         assert isinstance(FooSub, Sub)
         assert len(FooSub.qubits) == 3
         assert len(FooSub.operations) == 3
@@ -63,7 +67,9 @@ class TestOpSubDef:
                 builder.add_op(X, (c,))
 
         Foo, FooSub = opsub(_D, None)
-        assert Foo == Op(Ident(DEFAULT, "Foo", ()), qubit_count=3, unitary=False)
+        assert Foo == Op.from_qubit_count(
+            Ident(DEFAULT, "Foo", ()), qubit_count=3, unitary=False
+        )
         assert isinstance(FooSub, Sub)
         assert len(FooSub.qubits) == 3
         assert len(FooSub.operations) == 3
@@ -86,7 +92,7 @@ class TestOpSubDef:
                 builder.add_op(X, (c,))
 
         Foo, FooSub = opsub(_D, None)
-        assert Foo == Op(
+        assert Foo == Op.from_qubit_count(
             Ident(namespace, "Foo", (1, 2)), qubit_count=3, reg_count=2, unitary=False
         )
         assert isinstance(FooSub, Sub)
@@ -127,7 +133,7 @@ class TestParamOpSubDef:
         Foo, FooSub = param_opsub(_D, None)
         assert Foo.base_id == (DEFAULT, "Foo")
 
-        assert Foo(2) == Op(Ident(DEFAULT, "Foo", (2,)), qubit_count=3)
+        assert Foo(2) == Op.from_qubit_count(Ident(DEFAULT, "Foo", (2,)), qubit_count=3)
 
         assert isinstance(FooSub(2), Sub)
         assert len(FooSub(2).qubits) == 3
@@ -148,7 +154,9 @@ class TestParamOpSubDef:
         Foo, FooSub = param_opsub(_D, None)
         assert Foo.base_id == (DEFAULT, "Foo")
 
-        assert Foo(2) == Op(Ident(DEFAULT, "Foo", (2,)), qubit_count=3, unitary=True)
+        assert Foo(2) == Op.from_qubit_count(
+            Ident(DEFAULT, "Foo", (2,)), qubit_count=3, unitary=True
+        )
 
         assert isinstance(FooSub(2), Sub)
         assert len(FooSub(2).qubits) == 3
@@ -169,7 +177,9 @@ class TestParamOpSubDef:
         Foo, FooSub = param_opsub(_D, None)
         assert Foo.base_id == (DEFAULT, "Foo")
 
-        assert Foo(2) == Op(Ident(DEFAULT, "Foo", (2,)), qubit_count=3, unitary=False)
+        assert Foo(2) == Op.from_qubit_count(
+            Ident(DEFAULT, "Foo", (2,)), qubit_count=3, unitary=False
+        )
 
         assert isinstance(FooSub(2), Sub)
         assert len(FooSub(2).qubits) == 3
@@ -197,7 +207,7 @@ class TestParamOpSubDef:
         Foo, FooSub = param_opsub(_D, None)
         assert Foo.base_id == (namespace, "Foo")
 
-        assert Foo(2) == Op(
+        assert Foo(2) == Op.from_qubit_count(
             Ident(namespace, "Foo", (2,)), qubit_count=4, reg_count=6, unitary=False
         )
 
