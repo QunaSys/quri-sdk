@@ -39,7 +39,10 @@ jobs:
     - name: Install dependencies
       run: |
         poetry env use $PYTHON_VERSION
+
+        # prevent `no quri_parts.rust.quri_parts_rust module` error occuring with wrong cache
         poetry run pip install -vvv -e quri-parts/packages/rust
+
         poetry install --only main,dev
 
     - name: Run pytest
