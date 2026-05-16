@@ -1,5 +1,7 @@
 # QURI SDK
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/QunaSys/quri-parts)
+
 
 QURI SDK is an open source library suite for creating and executing quantum algorithms on various quantum computers and simulators. QURI SDK focuses on the followings:
 
