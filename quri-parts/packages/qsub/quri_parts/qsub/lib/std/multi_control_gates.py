@@ -437,15 +437,6 @@ def generate_multicontrolled_to_mc_sub_resolver(
                 tuple(reg_map[r] for r in rs),
             )
 
-        # decompose MultiControlled[theta]
-        # Controlled-theta (true condition) is decomposed as follows:
-        #   |0><0| x I + e^{i theta} |1><1> x I
-        #   = diag(1, 1, e^{i theta}, e^{i theta}) x I
-        #   = Phase(theta) x I
-        # Controlled-theta (false condition) is decomposed as follows
-        #   e^{i theta} |0><0| x I + |1><1> x I
-        #   = diag(e^{i theta}, e^{i theta}, 1, 1) x I
-        #   = e^{i theta} Phase(-theta) x I
         phase = target_sub.phase % (2 * math.pi)
         if phase != 0:
             if phase == math.pi:
@@ -457,26 +448,25 @@ def generate_multicontrolled_to_mc_sub_resolver(
             else:
                 phase_op = Phase(phase)
 
-            mask = 1 << (control_bits - 1)
-            x_gate_insertion = (control_value & mask) == 0
+            msb_mask = 1 << (control_bits - 1)
+            msb_is_zero = (control_value & msb_mask) == 0
             if control_bits == 1:
-                if x_gate_insertion:
+                if msb_is_zero:
                     builder.add_op(X, control_q)
                 builder.add_op(phase_op, qubits=control_q)
-                if x_gate_insertion:
+                if msb_is_zero:
                     builder.add_op(X, control_q)
             elif control_bits > 1:
-                if x_gate_insertion:
+                if msb_is_zero:
                     builder.add_op(X, (control_q[-1],))
+                nmsb_mask = (1 << (control_bits - 1)) - 1
                 builder.add_op(
                     MultiControlled(
-                        phase_op,
-                        control_bits - 1,
-                        control_value & ((1 << (control_bits - 1)) - 1),
+                        phase_op, control_bits - 1, control_value & nmsb_mask
                     ),
                     qubits=control_q,
                 )
-                if x_gate_insertion:
+                if msb_is_zero:
                     builder.add_op(X, (control_q[-1],))
             else:
                 raise ValueError("unreachable")
