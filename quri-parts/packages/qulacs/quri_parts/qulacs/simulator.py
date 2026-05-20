@@ -115,7 +115,7 @@ def _get_updated_qulacs_state_from_zero(
     allocation that would otherwise happen on every rank.  Only valid when the
     logical initial state is |0⟩ (i.e. the input is a CircuitQuantumState).
     """
-    qulacs_state = backend.init_zero_state(circuit)
+    qulacs_state = backend.init_zero_state(circuit.qubit_count)
 
     if isinstance(circuit, _QulacsCircuit):
         qulacs_cicuit = circuit._qulacs_circuit
@@ -131,7 +131,7 @@ def _get_updated_qulacs_state_from_vector(
     init_state: NDArray[complex128],
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.QuantumState:
-    qulacs_state = backend.init_state(circuit, init_state)
+    qulacs_state = backend.init_state(circuit.qubit_count, init_state)
 
     if isinstance(circuit, _QulacsCircuit):
         qulacs_cicuit = circuit._qulacs_circuit

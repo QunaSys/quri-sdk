@@ -9,26 +9,22 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Protocol, Union
+from typing import Protocol
 
 import qulacs as ql
 from numpy import complex128
 from numpy.typing import NDArray
 
-from quri_parts.circuit import ImmutableQuantumCircuit
-from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 from quri_parts.qulacs.utils import cast_to_list
-
-QulacsCircuitT = Union[ImmutableQuantumCircuit, _QulacsCircuit]
 
 
 class QulacsBackend(Protocol):
     def init_state(
-        self, circuit: QulacsCircuitT, init_state: NDArray[complex128]
+        self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.QuantumState:
         ...
 
-    def init_zero_state(self, circuit: QulacsCircuitT) -> ql.QuantumState:
+    def init_zero_state(self, qubit_count: int) -> ql.QuantumState:
         ...
 
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
@@ -51,21 +47,21 @@ class QulacsBackend(Protocol):
 @dataclass(frozen=True)
 class DefaultQulacsBackend:
     def init_state(
-        self, circuit: QulacsCircuitT, init_state: NDArray[complex128]
+        self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.QuantumState:
-        if len(init_state) != 2**circuit.qubit_count:
+        if len(init_state) != 2**qubit_count:
             raise ValueError("Inconsistent qubit length between circuit and state")
 
-        qulacs_state = ql.QuantumState(circuit.qubit_count)
+        qulacs_state = ql.QuantumState(qubit_count)
         qulacs_state.load(cast_to_list(init_state))
         return qulacs_state
 
-    def init_zero_state(self, circuit: QulacsCircuitT) -> ql.QuantumState:
+    def init_zero_state(self, qubit_count: int) -> ql.QuantumState:
         """Create a qulacs QuantumState initialised to |0⟩ without allocating
         a full 2**n init vector.  Backends that distribute the state across MPI
         ranks should override this to avoid the O(2**n) allocation on every rank.
         """
-        return ql.QuantumState(circuit.qubit_count)
+        return ql.QuantumState(qubit_count)
 
     def get_state_vector(
         self, state: ql.QuantumState, qubit_count: int
