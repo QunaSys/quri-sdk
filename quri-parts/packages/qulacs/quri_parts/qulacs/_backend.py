@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from dataclasses import dataclass
 from typing import Protocol
 
 import qulacs as ql
@@ -39,7 +38,6 @@ class QulacsBackend(Protocol):
         ...
 
 
-@dataclass(frozen=True)
 class DefaultQulacsBackend:
     def init_state(
         self, qubit_count: int, init_state: NDArray[complex128]
