@@ -188,8 +188,6 @@ def evaluate_state_to_vector(
 
     # We need to disable type check due to an error in qulacs type annotation
     # https://github.com/qulacs/qulacs/issues/537
-    # get_full_state_vector gathers distributed MPI slices so the full vector
-    # is available on every rank (MPI backends override this method).
     vec = backend.get_state_vector(out_state_vector, state.qubit_count)
     return QuantumStateVector(state.qubit_count, vec)
 
