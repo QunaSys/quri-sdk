@@ -35,11 +35,6 @@ class QulacsBackend(Protocol):
     ) -> NDArray[complex128]:
         ...
 
-    def validate_state_vector(
-        self, vector: NDArray[complex128], qubit_count: int
-    ) -> None:
-        ...
-
     def check_support(self, context: str) -> None:
         ...
 
@@ -75,11 +70,6 @@ class DefaultQulacsBackend:
 
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
         return n_shots > int(2 ** max(int(qubit_count), 10))
-
-    def validate_state_vector(
-        self, vector: NDArray[complex128], qubit_count: int
-    ) -> None:
-        return None
 
     def check_support(self, context: str) -> None:
         return None
