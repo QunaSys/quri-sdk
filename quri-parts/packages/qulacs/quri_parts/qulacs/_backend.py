@@ -75,9 +75,7 @@ class QulacsBackend(ABC):
         ...
 
     @abstractmethod
-    def get_state_vector(
-        self, state: ql.QuantumState, qubit_count: int
-    ) -> NDArray[complex128]:
+    def get_state_vector(self, state: ql.QuantumState) -> NDArray[complex128]:
         """Return the state vector held by ``state``.
 
         Backends may override this to reconstruct the vector from a
@@ -145,9 +143,7 @@ class DefaultQulacsBackend(QulacsBackend):
     ) -> ql.NoiseSimulator:
         return ql.NoiseSimulator(qs_circuit, qs_state)
 
-    def get_state_vector(
-        self, state: ql.QuantumState, qubit_count: int
-    ) -> NDArray[complex128]:
+    def get_state_vector(self, state: ql.QuantumState) -> NDArray[complex128]:
         # cast required due to incomplete qulacs type stubs
         # https://github.com/qulacs/qulacs/issues/537
         return cast(NDArray[complex128], state.get_vector())

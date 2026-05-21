@@ -170,7 +170,7 @@ def evaluate_state_to_vector(
     """Convert GeneralCircuitQuantumState or QuantumStateVector to
     QuantumStateVector that only contains the state vector."""
     out_state_vector = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
-    vec = backend.get_state_vector(out_state_vector, state.qubit_count)
+    vec = backend.get_state_vector(out_state_vector)
     return QuantumStateVector(state.qubit_count, vec)
 
 
@@ -182,7 +182,7 @@ def run_circuit(
     """Act a ImmutableQuantumCircuit onto a state vector and returns a new
     state vector."""
     qulacs_state = _get_updated_qulacs_state_from_vector(circuit, init_state, backend)
-    return backend.get_state_vector(qulacs_state, circuit.qubit_count)
+    return backend.get_state_vector(qulacs_state)
 
 
 def get_marginal_probability(
