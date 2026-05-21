@@ -24,8 +24,7 @@ def _get_qubit_count(state_vector: NDArray[complex128]) -> int:
     n_qubits = np.log2(state_vector.shape[0])
     if not n_qubits.is_integer():
         raise ValueError(
-            f"Length of state_vector ({state_vector.shape[0]}) "
-            "must be a power of 2"
+            f"Length of state_vector ({state_vector.shape[0]}) " "must be a power of 2"
         )
     return int(n_qubits)
 
@@ -101,9 +100,7 @@ class DefaultQulacsBackend(QulacsBackend):
         self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.QuantumState:
         if init_state.ndim != 1:
-            raise ValueError(
-                f"init_state must be a 1D array, got {init_state.ndim}D"
-            )
+            raise ValueError(f"init_state must be a 1D array, got {init_state.ndim}D")
         if len(init_state) != 2**qubit_count:
             raise ValueError(
                 f"Length of init_state ({len(init_state)}) does not match "
@@ -134,9 +131,7 @@ class DefaultQulacsBackend(QulacsBackend):
                     f"({expected}, {expected})"
                 )
         else:
-            raise ValueError(
-                f"init_state must be 1D or 2D, got {init_state.ndim}D"
-            )
+            raise ValueError(f"init_state must be 1D or 2D, got {init_state.ndim}D")
         density_matrix = ql.DensityMatrix(qubit_count)
         density_matrix.load(init_state)
         return density_matrix
