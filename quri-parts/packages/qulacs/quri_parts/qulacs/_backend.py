@@ -52,6 +52,11 @@ class QulacsBackend(ABC):
         ...
 
     @abstractmethod
+    def init_zero_density_matrix(self, qubit_count: int) -> ql.DensityMatrix:
+        """Create a qulacs DensityMatrix initialised to |0⟩⟨0|."""
+        ...
+
+    @abstractmethod
     def init_noise_simulator(
         self, qs_circuit: ql.QuantumCircuit, qs_state: ql.QuantumState
     ) -> ql.NoiseSimulator:
@@ -121,6 +126,9 @@ class DefaultQulacsBackend(QulacsBackend):
         density_matrix = ql.DensityMatrix(qubit_count)
         density_matrix.load(init_state)
         return density_matrix
+
+    def init_zero_density_matrix(self, qubit_count: int) -> ql.DensityMatrix:
+        return ql.DensityMatrix(qubit_count)
 
     def init_noise_simulator(
         self, qs_circuit: ql.QuantumCircuit, qs_state: ql.QuantumState

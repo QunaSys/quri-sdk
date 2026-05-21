@@ -15,7 +15,7 @@ from itertools import count
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
 
 import qulacs as ql
-from numpy import complex128, zeros
+from numpy import complex128
 from numpy.typing import NDArray
 
 from quri_parts.circuit import ImmutableQuantumCircuit
@@ -49,18 +49,61 @@ def _make_seed_list(length: int, random_seed: Optional[int]) -> list[Optional[in
     return [next(seed_generator) for _ in range(length)]
 
 
-def _get_init_vector_from_state(state: QulacsStateT) -> NDArray[complex128]:
-    n_qubits = state.qubit_count
-    if isinstance(state, QuantumStateVector):
-        return state.vector
+def _init_qulacs_state(
+    state: QulacsStateT, backend: QulacsBackend = DEFAULT_BACKEND
+) -> ql.QuantumState:
+    """Construct a qulacs QuantumState from a quri-parts state via ``backend``.
+
+    Dispatches by state type:
+
+    - :class:`CircuitQuantumState`: initialised to |0⟩ via
+      :meth:`QulacsBackend.init_zero_state`.
+    - :class:`QuantumStateVector`: built from its stored vector via
+      :meth:`QulacsBackend.init_state`.
+    """
     if isinstance(state, CircuitQuantumState):
-        init_state_vector = zeros(2**n_qubits, dtype=complex)
-        init_state_vector[0] = 1.0
-        return init_state_vector
+        return backend.init_zero_state(state.qubit_count)
+    if isinstance(state, QuantumStateVector):
+        return backend.init_state(state.qubit_count, state.vector)
     raise TypeError(
-        "the input state should be either a GeneralCircuitQuantumState\
-            or a QuantumStateVector"
+        "the input state should be either a CircuitQuantumState "
+        "or a QuantumStateVector"
     )
+
+
+def _init_qulacs_density_matrix(
+    state: QulacsStateT, backend: QulacsBackend = DEFAULT_BACKEND
+) -> ql.DensityMatrix:
+    """Construct a qulacs DensityMatrix from a quri-parts state via
+    ``backend``.
+
+    Dispatches by state type:
+
+    - :class:`CircuitQuantumState`: initialised to |0⟩⟨0| via
+      :meth:`QulacsBackend.init_zero_density_matrix`.
+    - :class:`QuantumStateVector`: built from its stored vector via
+      :meth:`QulacsBackend.init_density_matrix`.
+    """
+    if isinstance(state, CircuitQuantumState):
+        return backend.init_zero_density_matrix(state.qubit_count)
+    if isinstance(state, QuantumStateVector):
+        return backend.init_density_matrix(state.qubit_count, state.vector)
+    raise TypeError(
+        "the input state should be either a CircuitQuantumState "
+        "or a QuantumStateVector"
+    )
+
+
+def _apply_circuit_to_qulacs_state(
+    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
+    qulacs_state: Union[ql.QuantumState, ql.DensityMatrix],
+) -> None:
+    """Apply ``circuit`` in-place to ``qulacs_state``."""
+    if isinstance(circuit, _QulacsCircuit):
+        qulacs_circuit = circuit._qulacs_circuit
+    else:
+        qulacs_circuit = convert_circuit(circuit)
+    qulacs_circuit.update_quantum_state(qulacs_state)
 
 
 @overload
@@ -91,40 +134,15 @@ def _evaluate_qp_state_to_qulacs_state(
     Returns a :class:`ql.DensityMatrix` if ``noise_model`` is given, otherwise a
     :class:`ql.QuantumState`.
     """
-    # CircuitQuantumState starts from |0⟩, so we skip building an init vector
-    # and delegate to init_zero_state. QuantumStateVector carries its own
-    # vector and is handled by the general path below.
-    if noise_model is None and isinstance(state, CircuitQuantumState):
-        return _get_updated_qulacs_state_from_zero(state.circuit, backend)
-
-    init_state_vector = _get_init_vector_from_state(state)
     if noise_model is None:
-        return _get_updated_qulacs_state_from_vector(
-            state.circuit, init_state_vector, backend
-        )
-    return _get_updated_qulacs_density_matrix_from_vector(
-        state.circuit, init_state_vector, noise_model, backend
-    )
+        qulacs_state = _init_qulacs_state(state, backend)
+        _apply_circuit_to_qulacs_state(state.circuit, qulacs_state)
+        return qulacs_state
 
-
-def _get_updated_qulacs_state_from_zero(
-    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
-    backend: QulacsBackend = DEFAULT_BACKEND,
-) -> ql.QuantumState:
-    """Initialise to |0⟩ and apply circuit.
-
-    Only valid when the logical initial state is |0⟩ (i.e. the input is
-    a CircuitQuantumState).
-    """
-    qulacs_state = backend.init_zero_state(circuit.qubit_count)
-
-    if isinstance(circuit, _QulacsCircuit):
-        qulacs_cicuit = circuit._qulacs_circuit
-    else:
-        qulacs_cicuit = convert_circuit(circuit)
-
-    qulacs_cicuit.update_quantum_state(qulacs_state)
-    return qulacs_state
+    density_matrix = _init_qulacs_density_matrix(state, backend)
+    qs_circuit = convert_circuit_with_noise_model(state.circuit, noise_model)
+    qs_circuit.update_quantum_state(density_matrix)
+    return density_matrix
 
 
 def _get_updated_qulacs_state_from_vector(
@@ -134,42 +152,8 @@ def _get_updated_qulacs_state_from_vector(
 ) -> ql.QuantumState:
     """Initialise a state from ``init_state`` and apply ``circuit``."""
     qulacs_state = backend.init_state(circuit.qubit_count, init_state)
-
-    if isinstance(circuit, _QulacsCircuit):
-        qulacs_cicuit = circuit._qulacs_circuit
-    else:
-        qulacs_cicuit = convert_circuit(circuit)
-
-    qulacs_cicuit.update_quantum_state(qulacs_state)
-
+    _apply_circuit_to_qulacs_state(circuit, qulacs_state)
     return qulacs_state
-
-
-def _get_updated_qulacs_density_matrix_from_vector(
-    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
-    init_state: NDArray[complex128],
-    noise_model: NoiseModel,
-    backend: QulacsBackend = DEFAULT_BACKEND,
-) -> ql.DensityMatrix:
-    """Initialise a density matrix from ``init_state`` and apply a noisy
-    ``circuit``."""
-    qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
-    density_matrix = backend.init_density_matrix(circuit.qubit_count, init_state)
-    qs_circuit.update_quantum_state(density_matrix)
-    return density_matrix
-
-
-def _get_noise_simulator_from_vector(
-    circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
-    init_state: NDArray[complex128],
-    noise_model: NoiseModel,
-    backend: QulacsBackend = DEFAULT_BACKEND,
-) -> ql.NoiseSimulator:
-    """Build a :class:`qulacs.NoiseSimulator` from ``circuit`` and
-    ``init_state``."""
-    qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
-    qs_state = backend.init_state(circuit.qubit_count, init_state)
-    return backend.init_noise_simulator(qs_circuit, qs_state)
 
 
 def evaluate_state_to_vector(
@@ -440,13 +424,9 @@ def create_qulacs_noisesimulator_state_sampler(
     def _noise_simulator_state_sampler(
         state: QulacsStateT, shots: int
     ) -> MeasurementCounts:
-        init_vec = _get_init_vector_from_state(state)
-        noise_simulator = _get_noise_simulator_from_vector(
-            state.circuit,
-            init_vec,
-            model,
-            backend,
-        )
+        qs_state = _init_qulacs_state(state, backend)
+        qs_circuit = convert_circuit_with_noise_model(state.circuit, model)
+        noise_simulator = backend.init_noise_simulator(qs_circuit, qs_state)
         return Counter(noise_simulator.execute(shots))
 
     return _noise_simulator_state_sampler
