@@ -30,13 +30,7 @@ def _get_qubit_count(state_vector: NDArray[complex128]) -> int:
 
 
 class QulacsBackend(ABC):
-    """Abstract base class for qulacs backends.
-
-    Subclasses should either:
-    - Inherit from :class:`DefaultQulacsBackend` to reuse default implementations
-      (recommended for backends that share most behavior with the default backend)
-    - Inherit from this class directly to provide a fully custom implementation
-    """
+    """Abstract base class for qulacs backends."""
 
     @abstractmethod
     def init_state(
@@ -47,11 +41,7 @@ class QulacsBackend(ABC):
 
     @abstractmethod
     def init_zero_state(self, qubit_count: int) -> ql.QuantumState:
-        """Create a qulacs QuantumState initialised to |0⟩.
-
-        MPI-aware backends should override this to avoid the O(2**n)
-        allocation that would otherwise happen on every rank.
-        """
+        """Create a qulacs QuantumState initialised to |0⟩."""
         ...
 
     @abstractmethod
@@ -77,11 +67,7 @@ class QulacsBackend(ABC):
 
     @abstractmethod
     def get_state_vector(self, state: ql.QuantumState) -> NDArray[complex128]:
-        """Return the state vector held by ``state``.
-
-        Backends may override this to reconstruct the vector from a non-
-        standard internal representation before returning it.
-        """
+        """Return the state vector held by ``state``."""
         ...
 
     @abstractmethod

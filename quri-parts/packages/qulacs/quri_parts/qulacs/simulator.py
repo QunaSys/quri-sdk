@@ -86,9 +86,14 @@ def _evaluate_qp_state_to_qulacs_state(
     noise_model: Optional[NoiseModel] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> Union[ql.QuantumState, ql.DensityMatrix]:
-    # Fast path for CircuitQuantumState (initial state is |0⟩): avoid allocating
-    # a full 2**n vector on every MPI rank by delegating directly to the backend.
-    # QuantumStateVector carries its own vector and is handled by the general path.
+    """Convert a quri-parts state to a qulacs state with the circuit applied.
+
+    Returns a :class:`ql.DensityMatrix` if ``noise_model`` is given, otherwise a
+    :class:`ql.QuantumState`.
+    """
+    # CircuitQuantumState starts from |0⟩, so we skip building an init vector
+    # and delegate to init_zero_state. QuantumStateVector carries its own
+    # vector and is handled by the general path below.
     if noise_model is None and isinstance(state, CircuitQuantumState):
         return _get_updated_qulacs_state_from_zero(state.circuit, backend)
 
@@ -106,13 +111,10 @@ def _get_updated_qulacs_state_from_zero(
     circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.QuantumState:
-    """Initialise to |0⟩ and apply circuit, without allocating a full 2**n
-    vector.
+    """Initialise to |0⟩ and apply circuit.
 
-    Uses ``backend.init_zero_state`` so that MPI backends can avoid the
-    O(2**n) allocation that would otherwise happen on every rank.  Only
-    valid when the logical initial state is |0⟩ (i.e. the input is a
-    CircuitQuantumState).
+    Only valid when the logical initial state is |0⟩ (i.e. the input is
+    a CircuitQuantumState).
     """
     qulacs_state = backend.init_zero_state(circuit.qubit_count)
 
@@ -130,6 +132,7 @@ def _get_updated_qulacs_state_from_vector(
     init_state: NDArray[complex128],
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.QuantumState:
+    """Initialise a state from ``init_state`` and apply ``circuit``."""
     qulacs_state = backend.init_state(circuit.qubit_count, init_state)
 
     if isinstance(circuit, _QulacsCircuit):
@@ -148,6 +151,8 @@ def _get_updated_qulacs_density_matrix_from_vector(
     noise_model: NoiseModel,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.DensityMatrix:
+    """Initialise a density matrix from ``init_state`` and apply a noisy
+    ``circuit``."""
     qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
     density_matrix = backend.init_density_matrix(circuit.qubit_count, init_state)
     qs_circuit.update_quantum_state(density_matrix)
@@ -160,7 +165,8 @@ def _get_noise_simulator_from_vector(
     noise_model: NoiseModel,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.NoiseSimulator:
-    """Returns a :class:`qulacs.NoiseSimulator`"""
+    """Build a :class:`qulacs.NoiseSimulator` from ``circuit`` and
+    ``init_state``."""
     qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
     qs_state = backend.init_state(circuit.qubit_count, init_state)
     return backend.init_noise_simulator(qs_circuit, qs_state)
@@ -169,8 +175,18 @@ def _get_noise_simulator_from_vector(
 def evaluate_state_to_vector(
     state: QulacsStateT, backend: QulacsBackend = DEFAULT_BACKEND
 ) -> QuantumStateVector:
-    """Convert GeneralCircuitQuantumState or QuantumStateVector to
-    QuantumStateVector that only contains the state vector."""
+    """Apply ``state``'s circuit to its initial vector and return the resulting
+    state vector.
+
+    Args:
+        state: A quri-parts state whose circuit will be applied to its
+            initial vector.
+        backend: Backend used to construct the qulacs state and read its
+            state vector.
+
+    Returns:
+        A :class:`QuantumStateVector` holding the resulting amplitudes.
+    """
     out_state_vector = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
     vec = backend.get_state_vector(out_state_vector)
     return QuantumStateVector(state.qubit_count, vec)
@@ -181,8 +197,18 @@ def run_circuit(
     init_state: NDArray[complex128],
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> NDArray[complex128]:
-    """Act a ImmutableQuantumCircuit onto a state vector and returns a new
-    state vector."""
+    """Apply ``circuit`` to ``init_state`` and return the resulting state
+    vector.
+
+    Args:
+        circuit: Circuit to apply.
+        init_state: Initial state vector.
+        backend: Backend used to construct the qulacs state and read its
+            state vector.
+
+    Returns:
+        The state vector after applying ``circuit`` to ``init_state``.
+    """
     qulacs_state = _get_updated_qulacs_state_from_vector(circuit, init_state, backend)
     return backend.get_state_vector(qulacs_state)
 
@@ -192,15 +218,17 @@ def get_marginal_probability(
     measured_values: dict[int, int],
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> float:
-    """Compute the probability of obtaining a result when measuring on a subset
-    of the qubits.
+    """Compute the marginal probability of a partial measurement outcome.
 
-    state_vector:
-        A 1-dimensional array representing the state vector.
-    measured_values:
-        A dictionary representing the desired measurement outcome on the specified
-        qubtis. Suppose {0: 1, 2: 0} is passed in, it computes the probability of
-        obtaining 1 on the 0th qubit and 0 on the 2nd qubit.
+    Args:
+        state_vector: A 1-dimensional array representing the state vector.
+        measured_values: Desired measurement outcomes keyed by qubit index.
+            For example, ``{0: 1, 2: 0}`` requests the probability of
+            obtaining 1 on qubit 0 and 0 on qubit 2.
+        backend: Backend used to compute the marginal probability.
+
+    Returns:
+        The marginal probability of the requested outcome.
     """
     return backend.get_marginal_probability(state_vector, measured_values)
 
@@ -209,7 +237,16 @@ def create_qulacs_vector_state_sampler(
     random_seed: Optional[int] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
-    """Creates a state sampler based on Qulacs circuit execution."""
+    """Create a state sampler based on Qulacs vector simulation.
+
+    Args:
+        random_seed: Optional random seed for sampling.
+        backend: Backend used for simulation (state construction and sampling
+            strategy).
+
+    Returns:
+        A :class:`StateSampler` that samples measurement outcomes.
+    """
 
     def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
         if backend.should_use_multinomial(n_shots, state.qubit_count):
@@ -232,6 +269,19 @@ def create_concurrent_vector_state_sampler(
     random_seed: Optional[int] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentStateSampler[QulacsStateT]:
+    """Create a concurrent state sampler based on Qulacs vector simulation.
+
+    Args:
+        executor: Executor used to run samplers concurrently.
+        concurrency: Maximum number of concurrent sampler invocations.
+        random_seed: Optional random seed for sampling.
+        backend: Backend used for simulation (state construction and sampling
+            strategy).
+
+    Returns:
+        A :class:`ConcurrentStateSampler` that samples in parallel.
+    """
+
     def _sequential_vector_state_sampler(
         _: Any,
         state_shots_tuples: Sequence[tuple[QulacsStateT, int, Optional[int]]],
@@ -283,7 +333,16 @@ def create_concurrent_vector_state_sampler(
 def create_qulacs_ideal_vector_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
-    """Creates an ideal state sampler based on Qulacs circuit execution."""
+    """Create an ideal state sampler returning shot counts proportional to
+    exact probabilities.
+
+    Args:
+        backend: Backend used to construct the qulacs state and read its
+            state vector.
+
+    Returns:
+        A :class:`StateSampler` returning ideal (probability-weighted) counts.
+    """
 
     def ideal_state_sampler(
         state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
@@ -299,7 +358,16 @@ def create_qulacs_density_matrix_state_sampler(
     random_seed: Optional[int] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
-    """Creates a noisy state sampler for a specific noise model."""
+    """Create a noisy state sampler using a density matrix.
+
+    Args:
+        model: Noise model to apply.
+        random_seed: Optional random seed for sampling.
+        backend: Backend used to construct the qulacs density matrix.
+
+    Returns:
+        A :class:`StateSampler` sampling from the noisy density matrix.
+    """
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         density_matrix = _evaluate_qp_state_to_qulacs_state(
@@ -323,7 +391,16 @@ def create_qulacs_ideal_density_matrix_state_sampler(
     model: NoiseModel,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
-    """Creates a noisy state sampler for a specific noise model."""
+    """Create an ideal noisy state sampler using a density matrix.
+
+    Args:
+        model: Noise model to apply.
+        backend: Backend used to construct the qulacs density matrix.
+
+    Returns:
+        A :class:`StateSampler` returning ideal (probability-weighted) counts
+        from the noisy density matrix.
+    """
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         density_matrix = _evaluate_qp_state_to_qulacs_state(
@@ -340,8 +417,18 @@ def create_qulacs_noisesimulator_state_sampler(
     random_seed: Optional[int] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
-    """Returns a :class:`~ConcurrentSampler` that uses Qulacs
-    NoiseSimulator."""
+    """Create a state sampler that uses Qulacs ``NoiseSimulator``.
+
+    Args:
+        model: Noise model to apply.
+        random_seed: Has no effect (``NoiseSimulator`` does not support seeding);
+            a RuntimeWarning is emitted if not ``None``.
+        backend: Backend used to construct the qulacs state and the
+            ``NoiseSimulator`` instance.
+
+    Returns:
+        A :class:`StateSampler` sampling via Qulacs ``NoiseSimulator``.
+    """
     if random_seed is not None:
         warnings.warn(
             "Qulacs NoiseSimulator does not support seeding. "
