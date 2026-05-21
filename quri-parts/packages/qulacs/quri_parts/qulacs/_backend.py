@@ -20,6 +20,7 @@ from quri_parts.qulacs.utils import cast_to_list
 
 
 def _get_qubit_count(state_vector: NDArray[complex128]) -> int:
+    """Infer qubit count from a full state vector length."""
     n_qubits = np.log2(state_vector.shape[0])
     if not n_qubits.is_integer():
         raise ValueError(
