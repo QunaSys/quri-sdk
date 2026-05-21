@@ -75,7 +75,7 @@ def _evaluate_qp_state_to_qulacs_state(
 @overload
 def _evaluate_qp_state_to_qulacs_state(
     state: QulacsStateT,
-    noise_model: None = None,
+    *,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.QuantumState:
     ...
