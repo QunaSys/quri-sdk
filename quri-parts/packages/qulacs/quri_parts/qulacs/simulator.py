@@ -106,11 +106,13 @@ def _get_updated_qulacs_state_from_zero(
     circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.QuantumState:
-    """Initialise to |0⟩ and apply circuit, without allocating a full 2**n vector.
+    """Initialise to |0⟩ and apply circuit, without allocating a full 2**n
+    vector.
 
-    Uses ``backend.init_zero_state`` so that MPI backends can avoid the O(2**n)
-    allocation that would otherwise happen on every rank.  Only valid when the
-    logical initial state is |0⟩ (i.e. the input is a CircuitQuantumState).
+    Uses ``backend.init_zero_state`` so that MPI backends can avoid the
+    O(2**n) allocation that would otherwise happen on every rank.  Only
+    valid when the logical initial state is |0⟩ (i.e. the input is a
+    CircuitQuantumState).
     """
     qulacs_state = backend.init_zero_state(circuit.qubit_count)
 

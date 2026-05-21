@@ -66,20 +66,22 @@ class QulacsBackend(ABC):
     def init_noise_simulator(
         self, qs_circuit: ql.QuantumCircuit, qs_state: ql.QuantumState
     ) -> ql.NoiseSimulator:
-        """Create a qulacs NoiseSimulator for ``qs_circuit`` and ``qs_state``."""
+        """Create a qulacs NoiseSimulator for ``qs_circuit`` and
+        ``qs_state``."""
         ...
 
     @abstractmethod
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
-        """Return True when multinomial sampling is preferable over qulacs sampling."""
+        """Return True when multinomial sampling is preferable over qulacs
+        sampling."""
         ...
 
     @abstractmethod
     def get_state_vector(self, state: ql.QuantumState) -> NDArray[complex128]:
         """Return the state vector held by ``state``.
 
-        Backends may override this to reconstruct the vector from a
-        non-standard internal representation before returning it.
+        Backends may override this to reconstruct the vector from a non-
+        standard internal representation before returning it.
         """
         ...
 
@@ -89,7 +91,8 @@ class QulacsBackend(ABC):
         state_vector: NDArray[complex128],
         measured_values: dict[int, int],
     ) -> float:
-        """Compute the marginal probability of measuring ``measured_values``."""
+        """Compute the marginal probability of measuring
+        ``measured_values``."""
         ...
 
 
