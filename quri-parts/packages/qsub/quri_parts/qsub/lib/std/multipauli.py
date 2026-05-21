@@ -8,8 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Sequence
+
 from quri_parts.qsub.lib import std
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
+from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 from quri_parts.qsub.sub import SubBuilder
 
 from . import NS
@@ -21,6 +24,9 @@ class _Pauli(ParamUnitarySubDef[tuple[int, ...]]):
 
     def qubit_count_fn(self, pauli_ids: tuple[int, ...]) -> int:
         return len(pauli_ids)
+
+    def qregs_fn(self, pauli_ids: tuple[int, ...]) -> Sequence[QRegSpec]:
+        return (QRegSpec(DEFAULT_QNAME, len(pauli_ids)),)
 
     def sub(self, builder: SubBuilder, pauli_ids: tuple[int, ...]) -> None:
         for qubit, pauli in zip(builder.qubits, pauli_ids):
@@ -44,6 +50,9 @@ class _PauliRotation(ParamUnitarySubDef[tuple[int, ...], float]):
 
     def qubit_count_fn(self, pauli_ids: tuple[int, ...], angle: float) -> int:
         return len(pauli_ids)
+
+    def qregs_fn(self, pauli_ids: tuple[int, ...], angle: float) -> Sequence[QRegSpec]:
+        return (QRegSpec("qs", len(pauli_ids)),)
 
     def sub(
         self, builder: SubBuilder, pauli_ids: tuple[int, ...], angle: float

@@ -8,19 +8,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# =============================================================================
+# DEPRECATED: This module is deprecated and feature-frozen.
+# Please develop on the identically named module under quri_algo.qsub instead.
+#
+# This module should only receive critical bug fixes.
+# =============================================================================
+
+import warnings
 from cmath import pi
+from typing import Sequence
 
 from quri_parts.qsub.lib.std import SWAP, Controlled, H, Phase
+from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
+from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 from quri_parts.qsub.sub import SubBuilder
+
+from . import NS as parent_ns
+
+warnings.warn(
+    "quri_parts.qsub.lib.qpe is deprecated and no longer maintained. Please import with quri_algo.qsub.qpe instead.",
+    FutureWarning,
+    stacklevel=2,
+)
+
+NS = NameSpace("qpe", parent_ns)
 
 
 class _QFTdag(ParamUnitarySubDef[int]):
     name = "QFTdag"
+    ns = NS
 
     def qubit_count_fn(self, bits: int) -> int:
         return bits
+
+    def qregs_fn(self, bits: int) -> Sequence[QRegSpec]:
+        return (QRegSpec(DEFAULT_QNAME, bits),)
 
     def sub(self, builder: SubBuilder, bits: int) -> None:
         qubits = builder.qubits
@@ -41,9 +66,13 @@ QFTdag, QFTdagSub = param_opsub(_QFTdag)
 
 class _LineH(ParamUnitarySubDef[int]):
     name = "LineH"
+    ns = NS
 
     def qubit_count_fn(self, bits: int) -> int:
         return bits
+
+    def qregs_fn(self, bits: int) -> Sequence[QRegSpec]:
+        return (QRegSpec("qs", bits),)
 
     def sub(self, builder: SubBuilder, bits: int) -> None:
         qubits = builder.qubits
@@ -57,13 +86,17 @@ LineH, LineHSub = param_opsub(_LineH)
 
 class _QPE(ParamUnitarySubDef[int, Op]):
     name = "QPE"
+    ns = NS
 
     def qubit_count_fn(self, bits: int, op: Op) -> int:
         return bits + op.qubit_count
 
+    def qregs_fn(self, bits: int, op: Op) -> Sequence[QRegSpec]:
+        return (QRegSpec("read_out", bits), QRegSpec("system", op.qubit_count))
+
     def sub(self, builder: SubBuilder, bits: int, op: Op) -> None:
-        qubits = builder.qubits
-        pqs, sqs = qubits[:bits], qubits[bits:]
+        pqs = builder.qregs["read_out"].qubits
+        sqs = builder.qregs["system"].qubits
 
         builder.add_op(LineH(bits), pqs)
         for k in range(bits):
@@ -90,13 +123,17 @@ QPE, QPESub = param_opsub(_QPE)
 
 class _QPEListUk(ParamUnitarySubDef[int, tuple[Op]]):
     name = "QPEListUk"
+    ns = NS
 
     def qubit_count_fn(self, bits: int, ops: tuple[Op]) -> int:
         return bits + ops[0].qubit_count
 
+    def qregs_fn(self, bits: int, ops: tuple[Op]) -> Sequence[QRegSpec]:
+        return (QRegSpec("read_out", bits), QRegSpec("system", ops[0].qubit_count))
+
     def sub(self, builder: SubBuilder, bits: int, ops: tuple[Op]) -> None:
-        qubits = builder.qubits
-        pqs, sqs = qubits[:bits], qubits[bits:]
+        pqs = builder.qregs["read_out"].qubits
+        sqs = builder.qregs["system"].qubits
 
         builder.add_op(LineH(bits), pqs)
         for k in range(bits):

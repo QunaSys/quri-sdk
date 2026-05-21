@@ -6,5 +6,6 @@ if sys.version_info < (3, 10):
         [
             "packages/tket",
             "packages/qsub",
+            "packages/qret",
         ]
     )

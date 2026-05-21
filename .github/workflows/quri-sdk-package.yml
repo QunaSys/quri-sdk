@@ -2,7 +2,7 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'quri-parts-qret*']
   release:
     types: [published]
 
@@ -90,7 +90,7 @@ jobs:
           mv packages/rust/pyproject.toml .
           mv packages/rust/quri_parts .
           mv packages/rust/MANIFEST.in .
-          rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/tensornetwork
+          rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/qret packages/tensornetwork
           echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
           poetry run python -m build --sdist
 
@@ -134,7 +134,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-${{ runner.os }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
           
       - uses: actions/checkout@v3
 
@@ -170,7 +170,14 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-          pip install llvmlite==0.46.0
+<<<<<<< HEAD
+          # Work around llvmlite build failure on Intel macOS with newer setuptools.
+          pip install "setuptools<78" wheel
+          pip install --no-build-isolation llvmlite==0.46.0
+=======
+          echo "setuptools<72" > /tmp/llvmlite-constraints.txt
+          PIP_CONSTRAINT=/tmp/llvmlite-constraints.txt pip install llvmlite==0.46.0
+>>>>>>> main
 
       - name: Install vcpkg
         if: runner.os == 'Windows' && matrix.python-version == '14'
@@ -190,6 +197,9 @@ jobs:
         shell: bash
         run: |
           pip install --upgrade pytest setuptools
+          if [[ "${{ runner.os }}" = "Windows" ]]; then
+              pip cache purge || true
+          fi
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
@@ -204,6 +214,9 @@ jobs:
               continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
+              continue
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
               continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
@@ -351,7 +364,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-${{ runner.os }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
 
       - uses: actions/checkout@v3
 
@@ -387,7 +400,14 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-          pip install llvmlite==0.46.0
+<<<<<<< HEAD
+          # Work around llvmlite build failure on Intel macOS with newer setuptools.
+          pip install "setuptools<78" wheel
+          pip install --no-build-isolation llvmlite==0.46.0
+=======
+          echo "setuptools<72" > /tmp/llvmlite-constraints.txt
+          PIP_CONSTRAINT=/tmp/llvmlite-constraints.txt pip install llvmlite==0.46.0
+>>>>>>> main
 
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
@@ -406,6 +426,9 @@ jobs:
         shell: bash
         run: |
           pip install pytest
+          if [[ "${{ runner.os }}" = "Windows" ]]; then
+              pip cache purge || true
+          fi
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
@@ -427,6 +450,9 @@ jobs:
               continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
+              continue
+            fi
+            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
               continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
@@ -714,4 +740,3 @@ jobs:
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
-

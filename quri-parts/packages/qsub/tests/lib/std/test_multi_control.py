@@ -1,6 +1,8 @@
 import math
 from typing import Sequence
 
+import pytest
+
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -49,7 +51,13 @@ from quri_parts.qsub.lib.std.multi_control_gates import (
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import OpSubDef, opsub
 from quri_parts.qsub.qubit import Qubit
-from quri_parts.qsub.register import Register
+from quri_parts.qsub.register import (
+    CTRL_QNAME,
+    DEFAULT_QNAME,
+    QRegSpec,
+    QuantumRegister,
+    Register,
+)
 from quri_parts.qsub.resolve import default_repository, resolve_sub
 from quri_parts.qsub.sub import SubBuilder
 
@@ -112,6 +120,15 @@ class TestMultiControlled:
             (Controlled(Y), (i0, i1), ()),
             (X, (i0,), ()),
         )
+
+    def test_control_cnot_on_single_qubit(self) -> None:
+        toffoli_sub = MultiControlledSub(CNOT, 1, 0b1)
+
+        assert len(toffoli_sub.qubits) == 3
+        assert len(toffoli_sub.aux_qubits) == 0
+
+        i0, i1, i2 = toffoli_sub.qubits
+        assert toffoli_sub.operations == ((Controlled(CNOT), (i0, i1, i2), ()),)
 
     def test_two_controls(self) -> None:
         mcy_sub = MultiControlledSub(Y, 2, 0b11)
@@ -318,6 +335,7 @@ def test_multi_control_with_resolver_complex() -> None:
     class ComplexOpSubDef(OpSubDef):
         name = "ComplexOp"
         qubit_count = 3
+        qregs = (QRegSpec("qs", 3),)
 
         def sub(self, builder: SubBuilder) -> None:
             q0, q1, q2 = builder.qubits
@@ -356,7 +374,10 @@ def test_multi_control_with_resolver_complex() -> None:
     assert resolved_sub is not None
     assert len(resolved_sub.qubits) == 6
     assert len(resolved_sub.aux_qubits) == 0
-
+    assert resolved_sub.qregs == {
+        CTRL_QNAME: QuantumRegister(CTRL_QNAME, resolved_sub.qubits[:3]),
+        DEFAULT_QNAME: QuantumRegister(DEFAULT_QNAME, resolved_sub.qubits[3:]),
+    }
     # Check that it has the expected MultiControlled operations
     q0, q1, q2, q3, q4, q5 = resolved_sub.qubits
     assert resolved_sub.operations == (
@@ -386,6 +407,10 @@ def test_resolve_multicontrolled_various_control_values() -> None:
         mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
         sub = resolve_sub(mc_toffoli)
         assert sub is not None
+        assert sub.qregs is not None
+        assert sub.qregs["ctrl_1"].size == control_bits  # added ctrl register
+        assert sub.qregs["ctrl"].size == 2  # ctrl register of Toffoli
+        assert sub.qregs["target"].size == 1  # target register of Toffoli
 
         # Assert that the resolved control value matches expected
         assert control_value == expected_resolved_control_value
@@ -434,6 +459,11 @@ def test_resolve_multicontrolled_toffoli_control_values() -> None:
         mc_toffoli = MultiControlled(Toffoli, control_bits, control_value)
         sub = resolve_sub(mc_toffoli, repo)
         assert sub is not None
+        assert sub.qregs is not None
+
+        assert sub.qregs["ctrl_1"].size == control_bits  # added ctrl register
+        assert sub.qregs["ctrl"].size == 2  # ctrl register of Toffoli
+        assert sub.qregs["target"].size == 1  # target register of Toffoli
 
         # Assert that sub.operations consists of exactly one MultiControlled operation
         assert len(sub.operations) == 1
@@ -963,6 +993,52 @@ class TestMultiControlledNamedMCGatesSub:
         assert sub.operations[1][0].id.local_name.startswith("MC")  # MCTdag
         assert sub.operations[2][0].id.local_name == "X"  # Negation
 
+    def test_mc_op_with_aux_qreg(self) -> None:
+        """Test phase π handling when MSB is set in control_value."""
+
+        class TestOpSubDef(OpSubDef):
+            name = "TestOp"
+            qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
+
+            def sub(self, builder: SubBuilder) -> None:
+                q0 = builder.qubits[0]
+                builder.add_op(X, (q0,))
+                aux_qreg = builder.add_aux_qreg("aaa", 2)
+                builder.add_op(Z, (aux_qreg[0],))
+                builder.add_op(Z, (aux_qreg[1],))
+
+        repo = default_repository().copy()
+        test_op, _ = opsub(TestOpSubDef, repo)
+        repo.register_sub_resolver(
+            MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+        )
+
+        # Test with MSB set (control_value = 0b11, MSB is bit 1)
+        mc_phase_op = MultiControlled(test_op, 2, 0b11)
+        resolved_sub = resolve_sub(mc_phase_op, repo)
+        assert resolved_sub is not None
+        assert resolved_sub.aux_qregs is not None
+
+        assert len(resolved_sub.aux_qregs) == 1
+        assert next(iter(resolved_sub.aux_qregs)) == "aaa"
+        assert len(resolved_sub.aux_qregs["aaa"].qubits) == 2
+
+        qubits = resolved_sub.qubits
+        a_reg = resolved_sub.aux_qregs["aaa"]
+
+        assert resolved_sub.operations[0] == (MultiControlled(X, 2, 0b11), qubits, ())
+        assert resolved_sub.operations[1] == (
+            MultiControlled(Z, 2, 0b11),
+            (*qubits[:2], a_reg[0]),
+            (),
+        )
+        assert resolved_sub.operations[2] == (
+            MultiControlled(Z, 2, 0b11),
+            (*qubits[:2], a_reg[1]),
+            (),
+        )
+
 
 class TestPhaseHandlingInResolver:
     """Test phase handling in generate_multicontrolled_to_mc_sub_resolver."""
@@ -974,6 +1050,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1006,6 +1083,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1043,6 +1121,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1075,6 +1154,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1108,6 +1188,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1141,6 +1222,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1172,6 +1254,7 @@ class TestPhaseHandlingInResolver:
         class PhaseOpSubDef(OpSubDef):
             name = "PhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1204,6 +1287,7 @@ class TestPhaseHandlingInResolver:
         class ZeroPhaseOpSubDef(OpSubDef):
             name = "ZeroPhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1236,6 +1320,7 @@ class TestPhaseHandlingInResolver:
         class LargePhaseOpSubDef(OpSubDef):
             name = "LargePhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1269,6 +1354,7 @@ class TestPhaseHandlingInResolver:
         class NegativePhaseOpSubDef(OpSubDef):
             name = "NegativePhaseOp"
             qubit_count = 1
+            qregs = (QRegSpec("q", 1),)
 
             def sub(self, builder: SubBuilder) -> None:
                 q0 = builder.qubits[0]
@@ -1633,3 +1719,56 @@ def test_mcswap_with_control_negation() -> None:
     # Since MCSWAP is not implemented, this should use default behavior
     sub = resolve_sub(mc_swap_mixed, repo)
     assert sub is not None
+
+
+@pytest.mark.parametrize(
+    ("phase_angle", "expected_global_phase", "expected_phase_gate"),
+    (
+        (0.0, 0.0, None),
+        (math.pi, math.pi, MultiControlled(Z, 1, 0b1)),
+        (math.pi / 2, math.pi / 2, MultiControlled(Sdag, 1, 0b1)),
+        (3 * math.pi / 2, 3 * math.pi / 2, MultiControlled(S, 1, 0b1)),
+        (1.23, 1.23, MultiControlled(Phase((-1.23) % (2 * math.pi)), 1, 0b1)),
+    ),
+)
+def test_opsub_with_multi_control_gates_recursive_subcall(
+    phase_angle: float, expected_global_phase: float, expected_phase_gate: Op | None
+) -> None:
+    """Test exact circuit construction for an OpSub with recursive
+    MultiControlled subcalls."""
+
+    class MultiControlGatesOpSubDef(OpSubDef):
+        name = "MultiControlGatesOp"
+        qubit_count = 3
+
+        def sub(self, builder: SubBuilder) -> None:
+            q0, q1, q2 = builder.qubits
+            builder.add_op(CZ, (q0, q1))
+            builder.add_op(Z, (q0,))
+            builder.add_op(X, (q1,))
+            builder.add_op(Toffoli, (q0, q1, q2))
+            builder.add_phase(phase_angle)
+
+    repo = default_repository().copy()
+    multi_control_op, _ = opsub(MultiControlGatesOpSubDef, repo)
+    repo.register_sub_resolver(
+        MultiControlled, generate_multicontrolled_to_mc_sub_resolver()
+    )
+    op = MultiControlled(multi_control_op, 2, 0b01)
+    resolved_sub = resolve_sub(op, repo)
+    assert resolved_sub is not None
+    assert len(resolved_sub.qubits) == 5
+    assert len(resolved_sub.aux_qubits) == 0
+    assert len(resolved_sub.aux_registers) == 0
+    assert math.isclose(resolved_sub.phase, expected_global_phase)
+
+    q0, q1, q2, q3, q4 = resolved_sub.qubits
+    expected_operations = [
+        (MultiControlled(CZ, 2, 0b01), (q0, q1, q2, q3), ()),
+        (MultiControlled(Z, 2, 0b01), (q0, q1, q2), ()),
+        (MultiControlled(X, 2, 0b01), (q0, q1, q3), ()),
+        (MultiControlled(Toffoli, 2, 0b01), (q0, q1, q2, q3, q4), ()),
+    ]
+    if expected_phase_gate is not None:
+        expected_operations.append((expected_phase_gate, (q0, q1), ()))
+    assert resolved_sub.operations == tuple(expected_operations)

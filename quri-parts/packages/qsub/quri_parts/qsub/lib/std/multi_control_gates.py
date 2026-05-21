@@ -10,7 +10,9 @@
 
 import math
 from contextlib import AbstractContextManager
-from typing import Callable
+from typing import Callable, Sequence
+
+import numpy as np
 
 from quri_parts.qsub.op import (
     BaseIdent,
@@ -21,12 +23,13 @@ from quri_parts.qsub.op import (
     param_op,
 )
 from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.register import CTRL_QNAME, TARGET_QNAME, QRegSpec
 from quri_parts.qsub.resolve import SubRepository, SubResolver, default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 from . import NS
 from .cnot import CNOT
-from .control import Controlled
+from .control import Controlled, get_new_ctrl_label
 from .cz import CZ
 from .logic import scoped_and
 from .multi_control import MultiControlled, _multi_controlled_sub
@@ -58,6 +61,9 @@ class _MCBase(ParamUnitaryDef[int]):
     def reg_count_fn(self, _control_bits: int) -> int:
         return 0
 
+    def qregs_fn(self, control_bits: int) -> Sequence[QRegSpec]:
+        return (QRegSpec(CTRL_QNAME, control_bits), QRegSpec(TARGET_QNAME, 1))
+
     def validate_params(self, control_bits: int) -> None:
         if not control_bits >= 1:
             raise ParameterValidationError(
@@ -73,6 +79,9 @@ class _MCRotationBase(ParamUnitaryDef[int, float]):
 
     def reg_count_fn(self, _control_bits: int, _angle: float) -> int:
         return 0
+
+    def qregs_fn(self, control_bits: int, angle: float) -> Sequence[QRegSpec]:
+        return (QRegSpec(CTRL_QNAME, control_bits), QRegSpec(TARGET_QNAME, 1))
 
     def validate_params(self, control_bits: int, _: float) -> None:
         if not control_bits >= 1:
@@ -233,7 +242,12 @@ def MultiControlledNamedMCGatesSub(
     also resolves MultiControlled gates, generating known MC? gates and fallback
     with unknown ops.
     """
-    builder = SubBuilder(target_op.qubit_count + control_bits, target_op.reg_count)
+    ctrl_label = get_new_ctrl_label(target_op.qregs)
+    ctrl_name = CTRL_QNAME if ctrl_label == 0 else f"{CTRL_QNAME}_{ctrl_label}"
+    qregs = (QRegSpec(ctrl_name, control_bits), *target_op.qregs)
+    builder = SubBuilder(
+        target_op.qubit_count + control_bits, target_op.reg_count, qregs
+    )
     qubits = builder.qubits
 
     # Handle negation using add_neg pattern
@@ -257,7 +271,7 @@ def MultiControlledNamedMCGatesSub(
             # Extract angle parameter from target_op
             mc_gate_factory = _mc_gate_mapping_param[target_op.base_id]
             angle = target_op.id.params[0]
-            assert isinstance(angle, float)
+            assert isinstance(angle, (float, np.float64))
             builder.add_op(mc_gate_factory(control_bits, angle), qubits)
         else:
             # Non-parametrized gates
@@ -375,6 +389,8 @@ def generate_multicontrolled_to_mc_sub_resolver(
         assert isinstance(control_bits, int)
         assert isinstance(control_value, int)
 
+        # replace directly to MC? gates for named gates
+        # ex) MultiControlled[X] -> MCX
         named_sub = MultiControlledNamedMCGatesSub(
             target_op, control_bits, control_value
         )
@@ -386,14 +402,20 @@ def generate_multicontrolled_to_mc_sub_resolver(
         if target_sub_resolver is not None:
             target_sub = target_sub_resolver(target_op, repository)
 
+        # U is not found in the repository
         if target_sub is None:
+            # expand the control bits with s_and
+            # ex) MultiControlled[U] -> Toffoli + Controlled[U] + Toffoli
             return _multi_controlled_sub(target_op, control_bits, control_value, s_and)
 
-        builder = SubBuilder(op.qubit_count, op.reg_count)
+        builder = SubBuilder(op.qubit_count, op.reg_count, op.qregs)
         control_q = builder.qubits[:control_bits]
         target_q = builder.qubits[control_bits:]
 
-        target_aq = tuple(builder.add_aux_qubit() for _ in target_sub.aux_qubits)
+        if target_sub.aux_qregs is not None:
+            for qr in target_sub.aux_qregs.values():
+                builder.add_aux_qreg(qr.name, qr.size)
+        target_aq = builder.aux_qubits
         qubit_map = dict(zip(target_sub.qubits, target_q)) | dict(
             zip(target_sub.aux_qubits, target_aq)
         )
@@ -403,6 +425,8 @@ def generate_multicontrolled_to_mc_sub_resolver(
             zip(target_sub.aux_registers, target_ar)
         )
 
+        # expand U and emit multiple MultiControlled ops
+        # ex) MultiControlled[U] -> MultiControlled[U1] + MultiControlled[U2] + ...
         for o, qs, rs in target_sub.operations:
             if not o.unitary:
                 raise ValueError(f"Unsupported operation, {o} in multi-controlled sub")
@@ -413,12 +437,22 @@ def generate_multicontrolled_to_mc_sub_resolver(
                 tuple(reg_map[r] for r in rs),
             )
 
-        if target_sub.phase != 0:
-            phase = target_sub.phase % (2 * math.pi)
+        # decompose MultiControlled[theta]
+        # Controlled-theta (true condition) is decomposed as follows:
+        #   |0><0| x I + e^{i theta} |1><1> x I
+        #   = diag(1, 1, e^{i theta}, e^{i theta}) x I
+        #   = Phase(theta) x I
+        # Controlled-theta (false condition) is decomposed as follows
+        #   e^{i theta} |0><0| x I + |1><1> x I
+        #   = diag(e^{i theta}, e^{i theta}, 1, 1) x I
+        #   = e^{i theta} Phase(-theta) x I
+        phase = target_sub.phase % (2 * math.pi)
+        if phase != 0:
             if (control_value & (1 << (control_bits - 1))) == 0:
                 # use diag(e^i(phase), 1)  instead of diag(1, e^i(phase))
-                phase = (-phase) % (2 * math.pi)
                 builder.add_phase(phase)
+                phase = (-phase) % (2 * math.pi)
+
             if phase == math.pi:
                 phase_op = Z
             elif phase == math.pi / 2:

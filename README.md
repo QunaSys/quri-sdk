@@ -86,7 +86,7 @@ In fact, `quri-parts` is a meta package, a convenience method to install those i
 ## Documentation and tutorials
 
 Documentation of QURI SDK is available at <https://quri-sdk.qunasys.com/>.
-[Tutorials](https://quri-sdk.qunasys.com/docs/tutorials) would be a good starting point.
+[Tutorials](https://quri-sdk.qunasys.com/docs/tutorials/general) would be a good starting point.
 
 ## Release notes
 
