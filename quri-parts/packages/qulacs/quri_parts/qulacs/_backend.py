@@ -42,32 +42,46 @@ class QulacsBackend(ABC):
     def init_state(
         self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.QuantumState:
+        """Create a qulacs QuantumState loaded with ``init_state``."""
         ...
 
     @abstractmethod
     def init_zero_state(self, qubit_count: int) -> ql.QuantumState:
+        """Create a qulacs QuantumState initialised to |0⟩.
+
+        MPI-aware backends should override this to avoid the O(2**n)
+        allocation that would otherwise happen on every rank.
+        """
         ...
 
     @abstractmethod
     def init_density_matrix(
         self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.DensityMatrix:
+        """Create a qulacs DensityMatrix loaded with ``init_state``."""
         ...
 
     @abstractmethod
     def init_noise_simulator(
         self, qs_circuit: ql.QuantumCircuit, qs_state: ql.QuantumState
     ) -> ql.NoiseSimulator:
+        """Create a qulacs NoiseSimulator for ``qs_circuit`` and ``qs_state``."""
         ...
 
     @abstractmethod
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
+        """Return True when multinomial sampling is preferable over qulacs sampling."""
         ...
 
     @abstractmethod
     def get_state_vector(
         self, state: ql.QuantumState, qubit_count: int
     ) -> NDArray[complex128]:
+        """Return the state vector held by ``state``.
+
+        Backends may override this to reconstruct the vector from a
+        non-standard internal representation before returning it.
+        """
         ...
 
     @abstractmethod
@@ -76,6 +90,7 @@ class QulacsBackend(ABC):
         state_vector: NDArray[complex128],
         measured_values: dict[int, int],
     ) -> float:
+        """Compute the marginal probability of measuring ``measured_values``."""
         ...
 
 
@@ -98,10 +113,6 @@ class DefaultQulacsBackend(QulacsBackend):
         return qulacs_state
 
     def init_zero_state(self, qubit_count: int) -> ql.QuantumState:
-        """Create a qulacs QuantumState initialised to |0⟩ without allocating
-        a full 2**n init vector.  Backends that distribute the state across MPI
-        ranks should override this to avoid the O(2**n) allocation on every rank.
-        """
         return ql.QuantumState(qubit_count)
 
     def init_density_matrix(
@@ -136,11 +147,6 @@ class DefaultQulacsBackend(QulacsBackend):
     def get_state_vector(
         self, state: ql.QuantumState, qubit_count: int
     ) -> NDArray[complex128]:
-        """Return the full 2**n state vector.
-
-        Backends may override this to reconstruct the vector from a
-        non-standard internal representation before returning it.
-        """
         # cast required due to incomplete qulacs type stubs
         # https://github.com/qulacs/qulacs/issues/537
         return cast(NDArray[complex128], state.get_vector())
