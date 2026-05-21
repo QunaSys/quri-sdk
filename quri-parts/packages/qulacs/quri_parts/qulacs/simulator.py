@@ -14,7 +14,6 @@ from collections.abc import Sequence
 from itertools import count
 from typing import TYPE_CHECKING, Any, Iterable, Optional, Union, overload
 
-import numpy as np
 import qulacs as ql
 from numpy import complex128, zeros
 from numpy.typing import NDArray
@@ -37,9 +36,7 @@ from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
 
 from ._backend import DEFAULT_BACKEND, QulacsBackend
-from ._backend_support import SIMULATOR_CONTEXTS
 from .types import QulacsStateT
-from .utils import cast_to_list
 
 if TYPE_CHECKING:
     from concurrent.futures import Executor
@@ -101,7 +98,7 @@ def _evaluate_qp_state_to_qulacs_state(
             state.circuit, init_state_vector, backend
         )
     return _get_updated_qulacs_density_matrix_from_vector(
-        state.circuit, init_state_vector, noise_model
+        state.circuit, init_state_vector, noise_model, backend
     )
 
 
@@ -147,20 +144,11 @@ def _get_updated_qulacs_density_matrix_from_vector(
     circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     init_state: NDArray[complex128],
     noise_model: NoiseModel,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.DensityMatrix:
-    if init_state.ndim == 1 and len(init_state) != 2**circuit.qubit_count:
-        raise ValueError("Inconsistent qubit length between circuit and state")
-    if init_state.ndim == 2 and init_state.shape[0] != 2**circuit.qubit_count:
-        # Reserved for density matrix.
-        raise ValueError("Inconsistent qubit length between circuit and state")
-
     qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
-    density_matrix = ql.DensityMatrix(circuit.qubit_count)
-
-    density_matrix.load(init_state)
-
+    density_matrix = backend.init_density_matrix(circuit.qubit_count, init_state)
     qs_circuit.update_quantum_state(density_matrix)
-
     return density_matrix
 
 
@@ -168,14 +156,12 @@ def _get_noise_simulator_from_vector(
     circuit: Union[ImmutableQuantumCircuit, _QulacsCircuit],
     init_state: NDArray[complex128],
     noise_model: NoiseModel,
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ql.NoiseSimulator:
     """Returns a :class:`qulacs.NoiseSimulator`"""
-    if init_state.ndim == 1 and len(init_state) != 2**circuit.qubit_count:
-        raise ValueError("Inconsistent qubit length between circuit and state")
     qs_circuit = convert_circuit_with_noise_model(circuit, noise_model)
-    qs_state = ql.QuantumState(circuit.qubit_count)
-    qs_state.load(cast_to_list(init_state))
-    return ql.NoiseSimulator(qs_circuit, qs_state)
+    qs_state = backend.init_state(circuit.qubit_count, init_state)
+    return backend.init_noise_simulator(qs_circuit, qs_state)
 
 
 def evaluate_state_to_vector(
@@ -183,11 +169,7 @@ def evaluate_state_to_vector(
 ) -> QuantumStateVector:
     """Convert GeneralCircuitQuantumState or QuantumStateVector to
     QuantumStateVector that only contains the state vector."""
-    backend.check_support(SIMULATOR_CONTEXTS["evaluate_state_to_vector"])
     out_state_vector = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
-
-    # We need to disable type check due to an error in qulacs type annotation
-    # https://github.com/qulacs/qulacs/issues/537
     vec = backend.get_state_vector(out_state_vector, state.qubit_count)
     return QuantumStateVector(state.qubit_count, vec)
 
@@ -199,18 +181,14 @@ def run_circuit(
 ) -> NDArray[complex128]:
     """Act a ImmutableQuantumCircuit onto a state vector and returns a new
     state vector."""
-    backend.check_support(SIMULATOR_CONTEXTS["run_circuit"])
-
     qulacs_state = _get_updated_qulacs_state_from_vector(circuit, init_state, backend)
-    # We need to disable type check due to an error in qulacs type annotation
-    # https://github.com/qulacs/qulacs/issues/537
-    new_state_vector: NDArray[complex128] = qulacs_state.get_vector()
-
-    return new_state_vector
+    return backend.get_state_vector(qulacs_state, circuit.qubit_count)
 
 
 def get_marginal_probability(
-    state_vector: NDArray[complex128], measured_values: dict[int, int]
+    state_vector: NDArray[complex128],
+    measured_values: dict[int, int],
+    backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> float:
     """Compute the probability of obtaining a result when measuring on a subset
     of the qubits.
@@ -222,16 +200,7 @@ def get_marginal_probability(
         qubtis. Suppose {0: 1, 2: 0} is passed in, it computes the probability of
         obtaining 1 on the 0th qubit and 0 on the 2nd qubit.
     """
-    n_qubits: float = np.log2(state_vector.shape[0])
-    assert n_qubits.is_integer(), "Length of the state vector must be a power of 2."
-    assert (
-        max(measured_values.keys()) < n_qubits
-    ), f"The specified qubit index {max(measured_values.keys())} is out of range."
-
-    qulacs_state = ql.QuantumState(int(n_qubits))
-    qulacs_state.load(cast_to_list(state_vector))
-    measured = [measured_values.get(i, 2) for i in range(int(n_qubits))]
-    return qulacs_state.get_marginal_probability(measured)
+    return backend.get_marginal_probability(state_vector, measured_values)
 
 
 def create_qulacs_vector_state_sampler(
@@ -239,7 +208,6 @@ def create_qulacs_vector_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates a state sampler based on Qulacs circuit execution."""
-    backend.check_support(SIMULATOR_CONTEXTS["create_qulacs_vector_state_sampler"])
 
     def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
         if backend.should_use_multinomial(n_shots, state.qubit_count):
@@ -262,8 +230,6 @@ def create_concurrent_vector_state_sampler(
     random_seed: Optional[int] = None,
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentStateSampler[QulacsStateT]:
-    backend.check_support(SIMULATOR_CONTEXTS["create_concurrent_vector_state_sampler"])
-
     def _sequential_vector_state_sampler(
         _: Any,
         state_shots_tuples: Sequence[tuple[QulacsStateT, int, Optional[int]]],
@@ -316,9 +282,6 @@ def create_qulacs_ideal_vector_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates an ideal state sampler based on Qulacs circuit execution."""
-    backend.check_support(
-        SIMULATOR_CONTEXTS["create_qulacs_ideal_vector_state_sampler"]
-    )
 
     def ideal_state_sampler(
         state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
@@ -335,9 +298,6 @@ def create_qulacs_density_matrix_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates a noisy state sampler for a specific noise model."""
-    backend.check_support(
-        SIMULATOR_CONTEXTS["create_qulacs_density_matrix_state_sampler"]
-    )
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         density_matrix = _evaluate_qp_state_to_qulacs_state(
@@ -362,9 +322,6 @@ def create_qulacs_ideal_density_matrix_state_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> StateSampler[QulacsStateT]:
     """Creates a noisy state sampler for a specific noise model."""
-    backend.check_support(
-        SIMULATOR_CONTEXTS["create_qulacs_ideal_density_matrix_state_sampler"]
-    )
 
     def density_matrix_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         density_matrix = _evaluate_qp_state_to_qulacs_state(
@@ -383,9 +340,6 @@ def create_qulacs_noisesimulator_state_sampler(
 ) -> StateSampler[QulacsStateT]:
     """Returns a :class:`~ConcurrentSampler` that uses Qulacs
     NoiseSimulator."""
-    backend.check_support(
-        SIMULATOR_CONTEXTS["create_qulacs_noisesimulator_state_sampler"]
-    )
     if random_seed is not None:
         warnings.warn(
             "Qulacs NoiseSimulator does not support seeding. "
@@ -402,6 +356,7 @@ def create_qulacs_noisesimulator_state_sampler(
             state.circuit,
             init_vec,
             model,
+            backend,
         )
         return Counter(noise_simulator.execute(shots))
 
