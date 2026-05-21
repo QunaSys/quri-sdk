@@ -8,7 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Protocol, cast
+from abc import ABC, abstractmethod
+from typing import cast
 
 import numpy as np
 import qulacs as ql
@@ -28,33 +29,48 @@ def _get_qubit_count(state_vector: NDArray[complex128]) -> int:
     return int(n_qubits)
 
 
-class QulacsBackend(Protocol):
+class QulacsBackend(ABC):
+    """Abstract base class for qulacs backends.
+
+    Subclasses should either:
+    - Inherit from :class:`DefaultQulacsBackend` to reuse default implementations
+      (recommended for backends that share most behavior with the default backend)
+    - Inherit from this class directly to provide a fully custom implementation
+    """
+
+    @abstractmethod
     def init_state(
         self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.QuantumState:
         ...
 
+    @abstractmethod
     def init_zero_state(self, qubit_count: int) -> ql.QuantumState:
         ...
 
+    @abstractmethod
     def init_density_matrix(
         self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.DensityMatrix:
         ...
 
+    @abstractmethod
     def init_noise_simulator(
         self, qs_circuit: ql.QuantumCircuit, qs_state: ql.QuantumState
     ) -> ql.NoiseSimulator:
         ...
 
+    @abstractmethod
     def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
         ...
 
+    @abstractmethod
     def get_state_vector(
         self, state: ql.QuantumState, qubit_count: int
     ) -> NDArray[complex128]:
         ...
 
+    @abstractmethod
     def get_marginal_probability(
         self,
         state_vector: NDArray[complex128],
@@ -63,7 +79,7 @@ class QulacsBackend(Protocol):
         ...
 
 
-class DefaultQulacsBackend:
+class DefaultQulacsBackend(QulacsBackend):
     def init_state(
         self, qubit_count: int, init_state: NDArray[complex128]
     ) -> ql.QuantumState:
