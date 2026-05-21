@@ -192,13 +192,13 @@ def test_get_marginal_probability() -> None:
 
     # incorrect input state shape.
     with pytest.raises(
-        AssertionError, match="Length of the state vector must be a power of 2."
+        ValueError, match="must be a power of 2"
     ):
         get_marginal_probability(array([1.0, 0.0, 0.0]), {0: 0}),
 
     # incorrect measured qubit index.
     with pytest.raises(
-        AssertionError, match="The specified qubit index 2 is out of range."
+        ValueError, match="The specified qubit index 2 is out of range"
     ):
         get_marginal_probability(array([1.0, 0.0, 0.0, 0.0]), {0: 0, 2: 1}),
 
