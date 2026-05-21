@@ -24,7 +24,7 @@ def _get_qubit_count(state_vector: NDArray[complex128]) -> int:
     n_qubits = np.log2(state_vector.shape[0])
     if not n_qubits.is_integer():
         raise ValueError(
-            f"Length of state_vector ({state_vector.shape[0]}) " "must be a power of 2"
+            f"Length of state_vector ({state_vector.shape[0]}) must be a power of 2"
         )
     return int(n_qubits)
 
