@@ -162,7 +162,7 @@ class DefaultQulacsBackend(QulacsBackend):
             )
         qulacs_state = self.init_state(n_qubits, state_vector)
         measured = [measured_values.get(i, 2) for i in range(n_qubits)]
-        return cast(float, qulacs_state.get_marginal_probability(measured))
+        return qulacs_state.get_marginal_probability(measured)
 
 
 DEFAULT_BACKEND = DefaultQulacsBackend()
