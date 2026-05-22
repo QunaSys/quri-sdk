@@ -18,6 +18,8 @@ from typing import Any, Generic, Protocol, TypeAlias, cast
 from typing_extensions import Self
 
 from quri_parts.qsub.op import BaseIdent, Ident, Op, OpFactory, Params
+from quri_parts.qsub.qubit import Qubit
+from quri_parts.qsub.register import Register
 from quri_parts.qsub.sub import Sub, SubFactory
 
 logger = logging.getLogger(__name__)
@@ -145,6 +147,22 @@ class CompositeSubRepository(SubRepository):
 def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub | None:
     resolver = repository.find_resolver(op)
     if resolver:
-        return resolver(op, repository)
+        result = resolver(op, repository)
+        if result is not None:
+            actual_qubits = set(result.qubits)
+            assert actual_qubits == set(
+                Qubit(i) for i in range(len(result.qubits))
+            ), f"While resolving op {op!r}: qubits in returning Sub is not in order: {result.qubits}"
+            assert (
+                len(actual_qubits) == op.qubit_count
+            ), f"While resolving op {op!r}: expected {op.qubit_count} qubits, but got {len(actual_qubits)}."
+            actual_registers = set(result.registers)
+            assert actual_registers == set(
+                Register(i) for i in range(len(result.registers))
+            ), f"While resolving op {op!r}: registers in returning Sub is not in order: {result.registers}"
+            assert (
+                len(actual_registers) == op.reg_count
+            ), f"While resolving op {op!r}: expected {op.reg_count} registers, but got {len(actual_registers)}."
+        return result
     else:
         return None
