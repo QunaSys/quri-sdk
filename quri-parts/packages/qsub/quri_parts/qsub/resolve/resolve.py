@@ -149,15 +149,19 @@ def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub
     if resolver:
         result = resolver(op, repository)
         if result is not None:
-            expected_qubits = set(Qubit(i) for i in range(op.qubit_count))
             actual_qubits = set(result.qubits)
+            assert actual_qubits == set(
+                Qubit(i) for i in range(len(result.qubits))
+            ), f"While resolving op {op!r}: qubits in returning Sub is not in order: {result.qubits}"
             assert (
-                actual_qubits == expected_qubits
+                len(actual_qubits) == op.qubit_count
             ), f"While resolving op {op!r}: expected {op.qubit_count} qubits, but got {len(actual_qubits)}."
-            expected_registers = set(Register(i) for i in range(op.reg_count))
             actual_registers = set(result.registers)
+            assert actual_registers == set(
+                Register(i) for i in range(len(result.registers))
+            ), f"While resolving op {op!r}: registers in returning Sub is not in order: {result.registers}"
             assert (
-                actual_registers == expected_registers
+                len(actual_registers) == op.reg_count
             ), f"While resolving op {op!r}: expected {op.reg_count} registers, but got {len(actual_registers)}."
         return result
     else:
