@@ -1,8 +1,14 @@
 import math
 from typing import Sequence
 
+import numpy as np
+import numpy.typing as npt
 import pytest
 
+from quri_parts.core.state import ComputationalBasisState
+from quri_parts.qsub.compile import compile_sub
+from quri_parts.qsub.eval.quriparts import QURIPartsEvaluatorHooks
+from quri_parts.qsub.evaluate import Evaluator
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -50,6 +56,7 @@ from quri_parts.qsub.lib.std.multi_control_gates import (
 )
 from quri_parts.qsub.op import Op
 from quri_parts.qsub.opsub import OpSubDef, opsub
+from quri_parts.qsub.primitive import SimulatorBasicSet
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import (
     CTRL_QNAME,
@@ -60,6 +67,7 @@ from quri_parts.qsub.register import (
 )
 from quri_parts.qsub.resolve import default_repository, resolve_sub
 from quri_parts.qsub.sub import SubBuilder
+from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
 
 def test_multi_controlled_op() -> None:
@@ -1102,17 +1110,17 @@ class TestPhaseHandlingInResolver:
         resolved_sub = resolve_sub(mc_phase_op, repo)
         assert resolved_sub is not None
 
-        # Should have MultiControlled X and MultiControlled Z (for -π phase)
-        # When MSB is unset, phase is negated, so -π % 2π = π
-        # The control value for phase is control_value & ((1 << (control_bits - 1)) - 1)
-        # = 0b01 & 0b01 = 0b01 = 1
-        assert len(resolved_sub.operations) == 2
+        # Should have MultiControlled X and MultiControlled Z (for π phase)
+        # wrapped in X gates on the MSB control qubit (q1)
+        assert len(resolved_sub.operations) == 4
         op_0 = (MultiControlled(X, 2, 0b01), resolved_sub.qubits[:3], ())
         assert resolved_sub.operations[0] == op_0
-        op_1 = (MultiControlled(Z, 1, 0b1), resolved_sub.qubits[:2], ())
-        assert resolved_sub.operations[1] == op_1
-        # Global phase π is added
-        assert resolved_sub.phase == math.pi
+        assert resolved_sub.operations[1] == (X, (resolved_sub.qubits[1],), ())
+        op_2 = (MultiControlled(Z, 1, 0b1), resolved_sub.qubits[:2], ())
+        assert resolved_sub.operations[2] == op_2
+        assert resolved_sub.operations[3] == (X, (resolved_sub.qubits[1],), ())
+        # Global phase is now 0.0 because it's handled by X-insertion
+        assert resolved_sub.phase == 0.0
 
     def test_phase_pi_half_with_msb_set(self) -> None:
         """Test phase π/2 handling when MSB is set in control_value."""
@@ -1725,10 +1733,10 @@ def test_mcswap_with_control_negation() -> None:
     ("phase_angle", "expected_global_phase", "expected_phase_gate"),
     (
         (0.0, 0.0, None),
-        (math.pi, math.pi, MultiControlled(Z, 1, 0b1)),
-        (math.pi / 2, math.pi / 2, MultiControlled(Sdag, 1, 0b1)),
-        (3 * math.pi / 2, 3 * math.pi / 2, MultiControlled(S, 1, 0b1)),
-        (1.23, 1.23, MultiControlled(Phase((-1.23) % (2 * math.pi)), 1, 0b1)),
+        (math.pi, 0.0, MultiControlled(Z, 1, 0b1)),
+        (math.pi / 2, 0.0, MultiControlled(S, 1, 0b1)),
+        (3 * math.pi / 2, 0.0, MultiControlled(Sdag, 1, 0b1)),
+        (1.23, 0.0, MultiControlled(Phase(1.23), 1, 0b1)),
     ),
 )
 def test_opsub_with_multi_control_gates_recursive_subcall(
@@ -1770,5 +1778,70 @@ def test_opsub_with_multi_control_gates_recursive_subcall(
         (MultiControlled(Toffoli, 2, 0b01), (q0, q1, q2, q3, q4), ()),
     ]
     if expected_phase_gate is not None:
+        # x_gate_insertion for control_value=0b01, mask=0b10 is True
+        expected_operations.append((X, (q1,), ()))
         expected_operations.append((expected_phase_gate, (q0, q1), ()))
+        expected_operations.append((X, (q1,), ()))
     assert resolved_sub.operations == tuple(expected_operations)
+
+
+def test_multi_controlled_matrix_consistency() -> None:
+    """Test MultiControlled phase handling consistency using matrix
+    comparison."""
+    phi = math.pi / 2
+    X_mat_l = np.array([[0, 1], [1, 0]], dtype=complex)
+    inner_U = np.exp(1j * phi) * X_mat_l
+
+    class InnerOpSubDef(OpSubDef):
+        name = "inner_X_addphase_pi2"
+        qubit_count = 1
+
+        def sub(self, builder: SubBuilder) -> None:
+            builder.add_op(X, (builder.qubits[0],))
+            builder.add_phase(phi)
+
+    repo = default_repository().copy()
+    inner_op, _ = opsub(InnerOpSubDef, repo)
+    repo.register_sub_resolver(
+        MultiControlled,
+        generate_multicontrolled_to_mc_sub_resolver(),
+    )
+
+    def matrix_of_op(op: Op) -> npt.NDArray[np.complex128]:
+        bb = SubBuilder(op.qubit_count)
+        bb.add_op(op, bb.qubits)
+        qpc = Evaluator(QURIPartsEvaluatorHooks()).run(
+            compile_sub(bb.build(), SimulatorBasicSet, repository=repo)
+        )
+        n = qpc.qubit_count
+        dim = 1 << n
+        m = np.zeros((dim, dim), dtype=complex)
+        for j in range(dim):
+            init_state = ComputationalBasisState(n, bits=j)
+            final_state = init_state.with_gates_applied(qpc)
+            m[:, j] = evaluate_state_to_vector(final_state).vector
+        return m
+
+    def mc_matrix_expected(n_ctrl: int, ctrl_val: int) -> npt.NDArray[np.complex128]:
+        dim_c = 1 << n_ctrl
+        P_eq = np.zeros((dim_c, dim_c), dtype=complex)
+        P_eq[ctrl_val, ctrl_val] = 1.0
+        P_neq = np.eye(dim_c, dtype=complex) - P_eq
+        return (
+            np.kron(inner_U, P_eq) + np.kron(np.eye(2, dtype=complex), P_neq)
+        ).astype(np.complex128)
+
+    for n_ctrl, ctrl_val in [
+        (1, 0),
+        (1, 1),
+        (2, 0),
+        (2, 1),
+        (2, 2),
+        (2, 3),
+        (3, 0),
+        (3, 7),
+    ]:
+        mc_op = MultiControlled(inner_op, n_ctrl, ctrl_val)
+        sim_matrix = matrix_of_op(mc_op)
+        expected_matrix = mc_matrix_expected(n_ctrl, ctrl_val)
+        assert np.allclose(sim_matrix, expected_matrix, atol=1e-12)
