@@ -1,20 +1,17 @@
 from collections import Counter
-from typing import List, Mapping, Optional, Sequence, Union
+from typing import Callable, List, Mapping, Optional, Sequence, Union
 
 import numpy as np
 from numpy.typing import NDArray
 
-from quri_parts.circuit import (
-    GateSequence,
-    ImmutableQuantumCircuit,
-    QuantumCircuit,
-    QuantumGate,
-)
-from quri_parts.core.sampling import MeasurementCounts, Sampler, StateSampler
-from quri_parts.core.state import CircuitQuantumState
+from .circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
+from .gate import QuantumGate
+
+_MeasurementCounts = Mapping[int, Union[int, float]]
+_Sampler = Callable[[ImmutableQuantumCircuit, int], _MeasurementCounts]
 
 
-class ClassicalState(CircuitQuantumState):
+class ClassicalState:
     def __init__(
         self, n_qubits: int, circuit: Optional[ImmutableQuantumCircuit] = None
     ) -> None:
@@ -41,7 +38,7 @@ class ClassicalState(CircuitQuantumState):
         circuit = self.circuit + gates
         return ClassicalState(self._n_qubits, circuit)
 
-    def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
+    def sample(self, n_shots: int) -> _MeasurementCounts:
         gates: Sequence[QuantumGate] = self.circuit.gates
         state: NDArray[np.bool_] = np.zeros(self._n_qubits, dtype=np.bool_)
         for gate in gates:
@@ -111,17 +108,19 @@ def _apply_gate_to_classical_array(gate: QuantumGate, state: NDArray[np.bool_]) 
         raise ValueError(f"{gate.name} is not supported in ClassicalSimulator.")
 
 
-def state_sampler(state: ClassicalState, n_shots: int) -> MeasurementCounts:
+def state_sampler(state: ClassicalState, n_shots: int) -> _MeasurementCounts:
     return state.sample(n_shots)
 
 
-def sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> MeasurementCounts:
+def sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> _MeasurementCounts:
     return state_sampler(ClassicalState(circuit.qubit_count, circuit), n_shots)
 
 
-def create_classical_state_sampler() -> StateSampler[ClassicalState]:
+def create_classical_state_sampler() -> (
+    Callable[[ClassicalState, int], _MeasurementCounts]
+):
     return state_sampler
 
 
-def create_classical_sampler() -> Sampler:
+def create_classical_sampler() -> _Sampler:
     return sampler
