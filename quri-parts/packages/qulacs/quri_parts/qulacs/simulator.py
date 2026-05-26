@@ -263,7 +263,7 @@ def create_concurrent_vector_state_sampler(
             strategy).
 
     Returns:
-        A :class:`ConcurrentStateSampler` that samples in parallel.
+        A :class:`ConcurrentStateSampler` that samples concurrently.
     """
 
     def _sequential_vector_state_sampler(

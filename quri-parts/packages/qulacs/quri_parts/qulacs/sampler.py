@@ -105,7 +105,7 @@ def create_qulacs_vector_concurrent_sampler(
             strategy).
 
     Returns:
-        A :class:`~ConcurrentSampler` that samples in parallel.
+        A :class:`~ConcurrentSampler` that samples concurrently.
     """
 
     def _sample_sequentially(
@@ -432,7 +432,7 @@ def create_qulacs_density_matrix_concurrent_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentSampler:
     """Create a :class:`~ConcurrentSampler` that samples from a noisy density
-    matrix in parallel.
+    matrix concurrently.
 
     Args:
         model: Noise model to apply.
@@ -461,7 +461,7 @@ def create_qulacs_stochastic_state_vector_concurrent_sampler(
     backend: QulacsBackend = DEFAULT_BACKEND,
 ) -> ConcurrentSampler:
     """Create a :class:`~ConcurrentSampler` that repeats stochastic noisy state
-    vector simulation in parallel.
+    vector simulation concurrently.
 
     Args:
         model: Noise model to apply.
