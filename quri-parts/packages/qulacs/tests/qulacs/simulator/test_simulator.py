@@ -191,15 +191,11 @@ def test_get_marginal_probability() -> None:
     )
 
     # incorrect input state shape.
-    with pytest.raises(
-        AssertionError, match="Length of the state vector must be a power of 2."
-    ):
+    with pytest.raises(ValueError, match="must be a power of 2"):
         get_marginal_probability(array([1.0, 0.0, 0.0]), {0: 0}),
 
     # incorrect measured qubit index.
-    with pytest.raises(
-        AssertionError, match="The specified qubit index 2 is out of range."
-    ):
+    with pytest.raises(ValueError, match="The specified qubit index 2 is out of range"):
         get_marginal_probability(array([1.0, 0.0, 0.0, 0.0]), {0: 0, 2: 1}),
 
 
@@ -285,7 +281,9 @@ def test_create_concurrent_vector_state_sampler() -> None:
 def test_create_concurrent_vector_state_sampler_passes_random_seed() -> None:
     seeds: list[int] = []
 
-    def fake_sampler_creator(seed: int) -> Callable[[Any, int], MeasurementCounts]:
+    def fake_sampler_creator(
+        seed: int, backend: Any
+    ) -> Callable[[Any, int], MeasurementCounts]:
         seeds.append(seed)
 
         def _sampler(_: Any, shots: int) -> MeasurementCounts:
