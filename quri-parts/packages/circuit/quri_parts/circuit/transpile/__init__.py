@@ -62,6 +62,7 @@ from .gate_kind_decomposer import (
 )
 from .gateset import (
     CliffordConversionTranspiler,
+    CliffordTSetTranspiler,
     GateSetConversionTranspiler,
     ParametricRX2RZHTranspiler,
     ParametricRY2RZHTranspiler,
@@ -216,6 +217,7 @@ STARSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspile
 __all__ = [
     "CliffordConversionTranspiler",
     "CliffordRZSetTranspiler",
+    "CliffordTSetTranspiler",
     "CliffordApproximationTranspiler",
     "CircuitTranspiler",
     "CircuitTranspilerProtocol",
@@ -253,6 +255,7 @@ __all__ = [
     "RZSetTranspiler",
     "RotationSetTranspiler",
     "CliffordRZSetTranspiler",
+    "CliffordTSetTranspiler",
     "CliffordApproximationTranspiler",
     "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",

@@ -62,6 +62,7 @@ from .fuse import (
     FuseRotationTranspiler,
     NormalizeRotationTranspiler,
     Rotation2NamedTranspiler,
+    RZ2NamedTranspiler,
     ZeroRotationEliminationTranspiler,
 )
 from .gate_kind_decomposer import (
@@ -82,7 +83,9 @@ from .gate_kind_decomposer import (
     TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
+    U2ToRZSqrtXTranspiler,
     U3ToRXRZTranspiler,
+    U3ToRZSqrtXTranspiler,
     X2RXTranspiler,
     Y2RYTranspiler,
     Z2RZTranspiler,
@@ -96,6 +99,7 @@ from .transpiler import (
     CircuitTranspiler,
     CircuitTranspilerProtocol,
     GateKindDecomposer,
+    ParallelDecomposer,
     ParametricCircuitTranspilerProtocol,
     SequentialTranspiler,
 )
@@ -597,3 +601,41 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         if self._validation:
             self._validate(tr_circuit)
         return tr_circuit
+
+
+class CliffordTSetTranspiler(SequentialTranspiler):
+    """CircuitTranspiler to transpile a QuantumCircuit into another
+    QuantumCircuit containing only Clifford+T gates (H, X, Y, Z, S, Sdag,
+    SqrtX, SqrtXdag, SqrtY, SqrtYdag, CNOT, CZ, SWAP, T, Tdag).
+
+    Since this transpiler fuses rotation gates and converts them to
+    named gates with a certain precision, the action of the circuit
+    before and after the conversion may not be completely equivalent.
+    """
+
+    def __init__(self, epsilon: float = 1.0e-9):
+        super().__init__(
+            [
+                SingleQubitUnitaryMatrix2RYRZTranspiler(),
+                TwoQubitUnitaryMatrixKAKTranspiler(),
+                ParallelDecomposer(
+                    [
+                        PauliDecomposeTranspiler(),
+                        PauliRotationDecomposeTranspiler(),
+                        TOFFOLI2HTTdagCNOTTranspiler(),
+                    ]
+                ),
+                ParallelDecomposer(
+                    [
+                        RX2RZSqrtXTranspiler(),
+                        RY2RZSqrtXTranspiler(),
+                        U1ToRZTranspiler(),
+                        U2ToRZSqrtXTranspiler(),
+                        U3ToRZSqrtXTranspiler(),
+                    ]
+                ),
+                FuseRotationTranspiler(),
+                RZ2NamedTranspiler(epsilon, allow_t_tdag=True),
+                IdentityEliminationTranspiler(),
+            ]
+        )
