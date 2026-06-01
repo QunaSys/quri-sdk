@@ -13,7 +13,6 @@ from typing import NamedTuple, Optional, Union
 from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.core.state import CircuitQuantumState
-
 from quri_parts.tensornetwork.operator import TensorNetworkOperator, operator_to_tensor
 from quri_parts.tensornetwork.state import TensorNetworkState, convert_state
 
