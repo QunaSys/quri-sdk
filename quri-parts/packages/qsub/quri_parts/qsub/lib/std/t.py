@@ -9,8 +9,9 @@
 # limitations under the License.
 
 from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 
 from . import NS
 
-T = Op(Ident(NS, "T"), 1)
-Tdag = Op(Ident(NS, "Tdag"), 1)
+T = Op(Ident(NS, "T"), 1, qregs=(QRegSpec(DEFAULT_QNAME, 1),))
+Tdag = Op(Ident(NS, "Tdag"), 1, qregs=(QRegSpec(DEFAULT_QNAME, 1),))
