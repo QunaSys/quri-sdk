@@ -46,6 +46,7 @@ from .gate_kind_decomposer import (
     SWAPInsertionTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    Toffoli2CNOTTTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
@@ -145,10 +146,10 @@ RZSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspiler(
 #: CircuitTranspiler to transpile a QuntumCircuit into another
 #: QuantumCircuit containing only RX, RY, RZ, and CNOT.
 #: (UnitaryMatrix gate for 3 or more qubits are not decomposed.)
-RotationSetTranspiler: Callable[
-    [], CircuitTranspiler
-] = lambda: GateSetConversionTranspiler(
-    [gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT]
+RotationSetTranspiler: Callable[[], CircuitTranspiler] = (
+    lambda: GateSetConversionTranspiler(
+        [gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT]
+    )
 )
 
 
@@ -295,6 +296,7 @@ __all__ = [
     "STARSetTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "Toffoli2CNOTTTranspiler",
     "TOFFOLI2HTTdagCNOTTranspiler",
     "TwoQubitUnitaryMatrixKAKTranspiler",
     "U1ToRZTranspiler",
