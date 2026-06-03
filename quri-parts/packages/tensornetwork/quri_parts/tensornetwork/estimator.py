@@ -10,8 +10,6 @@
 
 from typing import NamedTuple, Optional, Union
 
-import tensornetwork as tn
-
 from quri_parts.core.estimator import Estimate, QuantumEstimator
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts.core.state import CircuitQuantumState
@@ -27,35 +25,11 @@ class _Estimate(NamedTuple):
 def tensor_network_estimate(
     operator: TensorNetworkOperator, state: TensorNetworkState
 ) -> Estimate[complex]:
-    copy_state = state.copy()
-    conj_state = copy_state.conjugate()
-    copy_operator = operator.copy()
-    operator_ordered_indices = sorted(list(operator.index_list))
-
-    for i, (e, h) in enumerate(
-        zip(
-            copy_state.edges,
-            conj_state.edges,
-        )
-    ):
-        if i in operator.index_list:
-            indx = operator_ordered_indices.index(i)
-            f = copy_operator.input_edges[indx]
-            g = copy_operator.output_edges[indx]
-            e ^ f
-            g ^ h
-        else:
-            e ^ h
-
-    contracted_node = tn.contractors.greedy(
-        copy_state._container.union(
-            conj_state._container.union(copy_operator._container)
-        )
-    )
+    contracted_node = operator.contract_with(state)
 
     return _Estimate(
         value=contracted_node.tensor.item(),
-    )  # Can we estimate the error based on the MPO truncation error?
+    )
 
 
 def create_tensornetwork_estimator(
