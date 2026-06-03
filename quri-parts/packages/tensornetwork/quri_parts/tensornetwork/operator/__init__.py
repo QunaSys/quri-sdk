@@ -8,10 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection, Sequence
-from copy import copy
 from functools import reduce
-from typing import Any, Literal, Mapping, Optional, Union
+from typing import Any, Collection, Literal, Optional, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -21,6 +19,7 @@ from typing_extensions import TypeAlias
 
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
+from quri_parts.tensornetwork.state import TensorNetworkState
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
     [[1, 0], [0, 1]],
@@ -43,14 +42,14 @@ class TensorNetworkOperator(TensorNetworkLayer):
 
     def __init__(
         self,
-        index_list: Sequence[int],
         input_edges: Sequence[Edge],
         output_edges: Sequence[Edge],
         container: Union[set[AbstractNode], list[AbstractNode]],
-        tensor_map: Sequence[Mapping[int, AbstractNode]],
+        layer_tensor_map: list[dict[int, AbstractNode]],
     ):
-        self.index_list = index_list
-        super().__init__(input_edges, output_edges, container, tensor_map)
+        all_index_lists = [set(m.keys()) for m in layer_tensor_map]
+        self.index_list = sorted(reduce(set.union, all_index_lists))  # type: ignore[arg-type]
+        super().__init__(input_edges, output_edges, container, layer_tensor_map)
 
     def copy(self) -> "TensorNetworkOperator":
         """Returns a copy of itself."""
@@ -66,17 +65,46 @@ class TensorNetworkOperator(TensorNetworkLayer):
         ]
 
         return TensorNetworkOperator(
-            copy(self.index_list),
             operator_input_edges,
             operator_output_edges,
             operator_nodes,
             tensor_map,
         )
 
+    def contract_with(self, state: TensorNetworkState) -> AbstractNode:
+        copy_state = state.copy()
+        conj_state = copy_state.conjugate()
+        copy_operator = self.copy()
+        operator_ordered_indices = sorted(list(self.index_list))
+
+        for i, (e, h) in enumerate(
+            zip(
+                copy_state.edges,
+                conj_state.edges,
+            )
+        ):
+            if i in self.index_list:
+                indx = operator_ordered_indices.index(i)
+                f = copy_operator.input_edges[indx]
+                g = copy_operator.output_edges[indx]
+                e ^ f
+                g ^ h
+            else:
+                e ^ h
+
+        contracted_node = tn.contractors.greedy(
+            copy_state._container.union(
+                conj_state._container.union(copy_operator._container)
+            )
+        )
+
+        return contracted_node
+
 
 _OperatorKey: TypeAlias = Union[PauliLabel, frozenset[tuple[PauliLabel, complex]]]
+_MpoKey: TypeAlias = tuple[_OperatorKey, Optional[int], Optional[float]]
 _operator_cache: dict[_OperatorKey, TensorNetworkOperator] = {}
-_mpo_cache: dict[_OperatorKey, TensorNetworkOperator] = {}
+_mpo_cache: dict[_MpoKey, TensorNetworkOperator] = {}
 
 
 def get_observable_data(
@@ -195,7 +223,6 @@ def tensor_to_mpo(
     nodes.add(right_node)
 
     return TensorNetworkOperator(
-        operator_copy.index_list,
         operator_copy.input_edges,
         operator_copy.output_edges,
         nodes,
@@ -215,7 +242,13 @@ def operator_to_tensor(
 
     Args:
         operator: Input operator
-        qubit_count: Number of qubits of that operator
+        convert_to_mpo: Whether or not to convert the operator to an MPO
+        backend: Backend to use for tensor operations
+    Keyword arguments:
+        max_bond_dimension: if `convert_to_mpo` is true, this sets the maximum bond
+            dimension
+        max_truncation_err: if `convert_to_mpo` is true, this sets the maximum
+            truncation error
     Outputs:
         Operator as a :class:`~TensorNetworkOperator`
     """
@@ -225,11 +258,18 @@ def operator_to_tensor(
     else:
         op_key = frozenset(operator.items())
     if convert_to_mpo:
-        cache = _mpo_cache
+        max_bond_dimension: Optional[int] = kwargs.get(
+            "max_bond_dimension", args[0] if len(args) > 0 else None
+        )
+        max_truncation_err: Optional[float] = kwargs.get(
+            "max_truncation_err", args[1] if len(args) > 1 else None
+        )
+        mpo_key: _MpoKey = (op_key, max_bond_dimension, max_truncation_err)
+        if mpo_key in _mpo_cache:
+            return _mpo_cache[mpo_key].copy()
     else:
-        cache = _operator_cache
-    if op_key in cache:
-        return cache[op_key].copy()
+        if op_key in _operator_cache:
+            return _operator_cache[op_key].copy()
 
     data: Union[npt.NDArray[np.complex128], Literal[0]]
     if isinstance(operator, PauliLabel):
@@ -255,13 +295,55 @@ def operator_to_tensor(
     op = Node(data, backend=backend)
     tensor_map = {q: op for q in all_indices_list}
     tensor = TensorNetworkOperator(
-        all_indices_list, op[:qubit_count], op[qubit_count:], {op}, [tensor_map]
+        op[:qubit_count], op[qubit_count:], {op}, [tensor_map]
     )
 
     if convert_to_mpo:
         tensor = tensor_to_mpo(tensor, *args, **kwargs)
-
-    if op_key not in cache:
-        cache[op_key] = tensor.copy()
+        _mpo_cache[mpo_key] = tensor.copy()
+    else:
+        _operator_cache[op_key] = tensor.copy()
 
     return tensor
+
+
+def pauli_label_to_tensor(
+    pl: PauliLabel, backend: str = "numpy", coefficient: Optional[complex] = None
+) -> TensorNetworkOperator:
+    tensor_map = {}
+    input_edges = []
+    output_edges = []
+    for qb, p in pl:
+        arr = np.array(_PAULI_OPERATOR_DATA_MAP[p], dtype=np.complex128)
+        if coefficient is not None:
+            arr *= coefficient
+        tensor_map[qb] = Node(arr, backend=backend)
+
+    for qb in sorted([t[0] for t in pl]):
+        input_edges.append(tensor_map[qb][0])
+        output_edges.append(tensor_map[qb][1])
+
+    return TensorNetworkOperator(
+        input_edges, output_edges, set(tensor_map.values()), [tensor_map]
+    )
+
+
+def operator_to_tensor_sequence(
+    operator: Union[Operator, PauliLabel],
+    backend: str = "numpy",
+) -> Sequence[TensorNetworkOperator]:
+    """Returns a sequence of `TensorNetworkOperator` each corresponding to a
+    single PauliLabel.
+
+    Each generated operator has a trivial bond dimension.
+
+    Args:
+        operator: Input operator
+        backend: Backend to use for tensor operations
+    Outputs:
+        Operator as a :class:`~TensorNetworkOperator`
+    """
+    if isinstance(operator, PauliLabel):
+        return [pauli_label_to_tensor(operator, backend, 1.0)]
+
+    return [pauli_label_to_tensor(pl, backend, c) for pl, c in operator.items()]
