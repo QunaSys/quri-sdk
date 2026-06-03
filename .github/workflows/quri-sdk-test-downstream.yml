@@ -82,6 +82,10 @@ jobs:
         working-directory: downstream-repo
         run: poetry install --no-interaction
 
+      - name: Install optional dependencies
+        working-directory: downstream-repo
+        run: poetry run pip install jax
+
       - name: Install quri-parts-plus-rust
         working-directory: downstream-repo
         run: |
