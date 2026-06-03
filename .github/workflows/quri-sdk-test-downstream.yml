@@ -3,7 +3,7 @@ name: Test Downstream with PR Branch
 on:
   pull_request:
     paths:
-      - .github/workflows/quri-sdk-test-downstream
+      - .github/workflows/quri-sdk-test-downstream.yml
       - quri-algo/**/*.py
       - quri-algo/pyproject.toml
       - quri-vm/**/*.py
@@ -65,7 +65,7 @@ jobs:
         with:
           virtualenvs-create: true
           virtualenvs-in-project: true
-      
+
       - name: Load cached venv
         id: cached-poetry-dependencies
         uses: actions/cache@v3
@@ -81,7 +81,13 @@ jobs:
       - name: Install project
         working-directory: downstream-repo
         run: poetry install --no-interaction
-      
+
+      - name: Install quri-parts-plus-rust
+        working-directory: downstream-repo
+        run: |
+          poetry run pip install quri-sdk/quri-parts/packages/rust
+          poetry run pip install quri-parts-plus/plus/rust
+
       - name: Run tests with pytest
         working-directory: downstream-repo
         run: |
