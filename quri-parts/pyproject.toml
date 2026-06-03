@@ -41,6 +41,7 @@ quri-parts-pyscf = { version = "*", optional = true }
 quri-parts-tensornetwork = { version = "*", optional = true }
 quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
 quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
+quri-parts-qret = { version = "*", optional = true, python = ">=3.10,<4.0" }
 
 [tool.poetry.extras]
 qulacs = ["quri-parts-qulacs"]
@@ -57,3 +58,4 @@ pyscf = ["quri-parts-pyscf"]
 tket = ["quri-parts-tket"]
 tensornetwork = ["quri-parts-tensornetwork"]
 qsub = ["quri-parts-qsub"]
+qret = ["quri-parts-qret"]

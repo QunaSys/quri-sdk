@@ -10,6 +10,8 @@
 
 from quri_parts.qsub.op import ParamUnitaryDef, param_op
 from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
+from quri_parts.qsub.resolve import default_repository
+from quri_parts.qsub.sub import Sub, SubBuilder
 
 from . import NS
 
@@ -52,3 +54,23 @@ class _Phase(ParamUnitaryDef[float]):
 
 
 Phase = param_op(_Phase)
+
+
+def _phase_to_rz_sub(phase: float) -> Sub:
+    b = SubBuilder(1)
+    b.add_op(RZ(phase), b.qubits)
+    b.add_phase(phase / 2)
+    return b.build()
+
+
+default_repository().register_sub(Phase, _phase_to_rz_sub)
+
+
+def _rz_to_phase_sub(phase: float) -> Sub:
+    b = SubBuilder(1)
+    b.add_op(Phase(phase), b.qubits)
+    b.add_phase(-phase / 2)
+    return b.build()
+
+
+default_repository().register_sub(RZ, _rz_to_phase_sub)
