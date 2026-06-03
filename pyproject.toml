@@ -90,7 +90,15 @@ quri-parts-qret = { path = "quri-parts/packages/qret", develop = true, python = 
 
 # To avoid poetry downloading hundreds versions of botocore
 # https://github.com/python-poetry/poetry/issues/7858
-botocore = ">=1.29.115"
+botocore = ">=1.34,<2.0"
+boto3 = ">=1.34,<2.0"
+
+# Preventing poetry lock overload due to protobuf multiple version ranges.
+protobuf = ">=5.26.1,<6.0.0"
+
+# Trimming version ranges for faster dependency resolution
+cryptography = ">=42.0,<49.0"
+numba = ">=0.59,<0.66"
 
 pytest = ">=7.0.1,<9.0.0"
 maturin = "^1.0"
