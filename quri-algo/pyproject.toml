@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "quri-algo"
-version = "0.25.1"
+version = "0.26.0"
 description = "Algorithm library based on QURI Parts"
 license = "MIT"
 authors = ["QunaSys"]
