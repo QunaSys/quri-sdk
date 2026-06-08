@@ -1,0 +1,30 @@
+name: scipy probe (throwaway)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['**scipy-probe**']
+
+jobs:
+  probe:
+    name: scipy ${{ matrix.scipy }} on win/py3.13
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # capped (expected: import OK) vs uncapped (expected: segfault, exit 139)
+        scipy: [">=1.11.3,<1.17", ">=1.17"]
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          # mirror the resolved env: numpy capped <2.0 (source-built on py3.13) + scipy under test
+          pip install "numpy>=1.22.0,<2.0" "scipy${{ matrix.scipy }}"
+          pip list | grep -iE "numpy|scipy"
+          python -c "import scipy.stats, numpy; print('OK', 'scipy', scipy.__version__, 'numpy', numpy.__version__)"
