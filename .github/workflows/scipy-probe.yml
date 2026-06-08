@@ -7,13 +7,13 @@ on:
 
 jobs:
   probe:
-    name: scipy ${{ matrix.scipy }} on win/py3.13
+    name: numpy ${{ matrix.numpy }} on win/py3.13
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        # capped (expected: import OK) vs uncapped (expected: segfault, exit 139)
-        scipy: [">=1.11.3,<1.17", ">=1.17"]
+        # numpy>=2.1 -> prebuilt cp313 wheel (expected OK); numpy<2.0 -> MinGW source build (expected segfault)
+        numpy: [">=2.1.0", ">=1.22.0,<2.0"]
     env:
       PYTHONUTF8: "1"
     steps:
@@ -24,7 +24,7 @@ jobs:
       - shell: bash
         run: |
           python -m pip install --upgrade pip
-          # mirror the resolved env: numpy capped <2.0 (source-built on py3.13) + scipy under test
-          pip install "numpy>=1.22.0,<2.0" "scipy${{ matrix.scipy }}"
+          # scipy unconstrained; the variable under test is the numpy version
+          pip install "numpy${{ matrix.numpy }}" scipy
           pip list | grep -iE "numpy|scipy"
           python -c "import scipy.stats, numpy; print('OK', 'scipy', scipy.__version__, 'numpy', numpy.__version__)"
