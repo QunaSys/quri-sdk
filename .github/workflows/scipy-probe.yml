@@ -7,13 +7,13 @@ on:
 
 jobs:
   probe:
-    name: numpy ${{ matrix.numpy }} on win/py3.13
+    name: ${{ matrix.dep }} +numpy2 on win/py3.13
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
-        # numpy>=2.1 -> prebuilt cp313 wheel (expected OK); numpy<2.0 -> MinGW source build (expected segfault)
-        numpy: [">=2.1.0", ">=1.22.0,<2.0"]
+        # do these transitive deps keep numpy >=2.1 (prebuilt wheel) on py3.13, or force a 1.x source build?
+        dep: ["amazon-braket-sdk", "cirq-core", "cirq-core<1.4"]
     env:
       PYTHONUTF8: "1"
     steps:
@@ -24,7 +24,8 @@ jobs:
       - shell: bash
         run: |
           python -m pip install --upgrade pip
-          # scipy unconstrained; the variable under test is the numpy version
-          pip install "numpy${{ matrix.numpy }}" scipy
-          pip list | grep -iE "numpy|scipy"
-          python -c "import scipy.stats, numpy; print('OK', 'scipy', scipy.__version__, 'numpy', numpy.__version__)"
+          # force the surgical numpy floor, then add the dep; watch if numpy gets downgraded / source-built
+          pip install "numpy>=2.1.0" "${{ matrix.dep }}" 2>&1 | grep -iE "Building wheel for numpy|Downloading numpy|Downloading cirq|Downloading numba|would result|conflict|ERROR" || true
+          echo "--- resolved versions ---"
+          pip list 2>/dev/null | grep -iE "^numpy|^scipy|^numba|^cirq-core" || true
+          python -c "import numpy; print('numpy', numpy.__version__); import scipy.stats; print('scipy ok')"
