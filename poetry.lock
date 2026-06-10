@@ -4665,7 +4665,7 @@ description = "Pexpect allows easy control of interactive console applications."
 optional = false
 python-versions = "*"
 groups = ["dev", "doc"]
-markers = "sys_platform == \"darwin\" or sys_platform == \"linux\" or sys_platform != \"win32\" and sys_platform != \"emscripten\" or sys_platform != \"win32\" and python_version < \"3.10\""
+markers = "(python_version >= \"3.10\" and python_version < \"3.14\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and sys_platform != \"emscripten\") or python_version >= \"3.14\" and sys_platform != \"win32\" and sys_platform != \"emscripten\") and python_version >= \"3.10\" or python_version < \"3.10\" and sys_platform != \"win32\""
 files = [
     {file = "pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523"},
     {file = "pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f"},
@@ -5085,7 +5085,7 @@ files = [
     {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
     {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
 ]
-markers = {dev = "sys_platform == \"darwin\" or sys_platform == \"linux\" or sys_platform != \"win32\" and sys_platform != \"emscripten\" or sys_platform != \"win32\" and python_version < \"3.10\"", doc = "sys_platform == \"darwin\" or sys_platform == \"linux\" or sys_platform != \"win32\" and sys_platform != \"emscripten\" or os_name != \"nt\" or sys_platform != \"win32\" and python_version < \"3.10\""}
+markers = {dev = "(python_version >= \"3.10\" and python_version < \"3.14\" and (sys_platform == \"linux\" or sys_platform == \"darwin\" or sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and sys_platform != \"emscripten\") or python_version >= \"3.14\" and sys_platform != \"win32\" and sys_platform != \"emscripten\") and python_version >= \"3.10\" or python_version < \"3.10\" and sys_platform != \"win32\"", doc = "os_name != \"nt\" or sys_platform == \"linux\" or sys_platform == \"darwin\" or python_version < \"3.14\" and sys_platform != \"emscripten\" and sys_platform != \"win32\" or python_version < \"3.10\" and sys_platform != \"win32\" or sys_platform != \"win32\" and sys_platform != \"emscripten\""}
 
 [[package]]
 name = "pubchempy"
@@ -5431,7 +5431,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl", hash = "sha256:2949e5e3f7a075acefb30155146b08d59a762412061b5aea11c8c73f458e7be0"},
 ]
-markers = {main = "python_version == \"3.10\" and sys_platform == \"darwin\" and platform_machine == \"arm64\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"darwin\" and platform_machine == \"arm64\""}
+markers = {main = "python_version == \"3.10\" and sys_platform == \"darwin\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"darwin\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5453,33 +5453,9 @@ optional = false
 python-versions = "*"
 groups = ["main", "dev"]
 files = [
-    {file = "pyqret-1.0.1-cp310-cp310-macosx_15_0_x86_64.whl", hash = "sha256:e98029d24b2841fc31c706bad9ff089dcc1f4b0d3dfbcf5fc6cb19424d83f12a"},
-]
-markers = {main = "python_version == \"3.10\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\""}
-
-[package.dependencies]
-typing_extensions = "*"
-
-[package.extras]
-dev = ["nb-clean", "pyqret[algorithm,docs,tests]", "ruff"]
-docs = ["breathe (>=4.28.0)", "furo", "graphviz", "ipykernel", "jupyter", "myst-nb", "myst-parser", "ortools", "sphinx (>=7.2,<8.0)", "sphinx-design", "sphinx_copybutton", "sphinxcontrib-bibtex", "sphinxcontrib-mermaid"]
-tests = ["coverage", "numpy", "pytest"]
-
-[package.source]
-type = "url"
-url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_x86_64.whl"
-
-[[package]]
-name = "pyqret"
-version = "1.0.1"
-description = "Python wrapper of QRET"
-optional = false
-python-versions = "*"
-groups = ["main", "dev"]
-files = [
     {file = "pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7ab1af344fd54f4ded20f68997a44eade10a936980eaa92e024bd453249321a4"},
 ]
-markers = {main = "python_version == \"3.10\" and sys_platform == \"linux\" and platform_machine == \"x86_64\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"linux\" and platform_machine == \"x86_64\""}
+markers = {main = "python_version == \"3.10\" and sys_platform == \"linux\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"linux\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5503,7 +5479,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1-cp310-cp310-win_amd64.whl", hash = "sha256:b69d55d4708c9e222f033e8cfc2e6fb16af0fecb063d78a75bfdb13fa6f8a4e6"},
 ]
-markers = {main = "python_version == \"3.10\" and sys_platform == \"win32\" and platform_machine == \"AMD64\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"win32\" and platform_machine == \"AMD64\""}
+markers = {main = "python_version == \"3.10\" and sys_platform == \"win32\" and extra == \"qret\"", dev = "python_version == \"3.10\" and sys_platform == \"win32\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5527,7 +5503,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1-cp311-cp311-macosx_15_0_arm64.whl", hash = "sha256:eec7aa833b4021bcf5dc51d4bc1caed8c9695ce1e4be1c873f0b1ac236495239"},
 ]
-markers = {main = "python_version == \"3.11\" and sys_platform == \"darwin\" and platform_machine == \"arm64\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"darwin\" and platform_machine == \"arm64\""}
+markers = {main = "python_version == \"3.11\" and sys_platform == \"darwin\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"darwin\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5549,33 +5525,9 @@ optional = false
 python-versions = "*"
 groups = ["main", "dev"]
 files = [
-    {file = "pyqret-1.0.1-cp311-cp311-macosx_15_0_x86_64.whl", hash = "sha256:d6aa680b32b8bec53964838f4f7413fd3ff98bd6fbf04030adab939dcb1ffc1c"},
-]
-markers = {main = "python_version == \"3.11\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\""}
-
-[package.dependencies]
-typing_extensions = "*"
-
-[package.extras]
-dev = ["nb-clean", "pyqret[algorithm,docs,tests]", "ruff"]
-docs = ["breathe (>=4.28.0)", "furo", "graphviz", "ipykernel", "jupyter", "myst-nb", "myst-parser", "ortools", "sphinx (>=7.2,<8.0)", "sphinx-design", "sphinx_copybutton", "sphinxcontrib-bibtex", "sphinxcontrib-mermaid"]
-tests = ["coverage", "numpy", "pytest"]
-
-[package.source]
-type = "url"
-url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_x86_64.whl"
-
-[[package]]
-name = "pyqret"
-version = "1.0.1"
-description = "Python wrapper of QRET"
-optional = false
-python-versions = "*"
-groups = ["main", "dev"]
-files = [
     {file = "pyqret-1.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:43f315fb6d3a4e8a9abd4a93bc2b2db1a81ae57b74720d54c5aea672f973f2c5"},
 ]
-markers = {main = "python_version == \"3.11\" and sys_platform == \"linux\" and platform_machine == \"x86_64\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"linux\" and platform_machine == \"x86_64\""}
+markers = {main = "python_version == \"3.11\" and sys_platform == \"linux\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"linux\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5599,7 +5551,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:5a37d34ae614d39c25fdde928856316e3624fd7dd897b43a176a59321f033e3c"},
 ]
-markers = {main = "python_version == \"3.11\" and sys_platform == \"win32\" and platform_machine == \"AMD64\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"win32\" and platform_machine == \"AMD64\""}
+markers = {main = "python_version == \"3.11\" and sys_platform == \"win32\" and extra == \"qret\"", dev = "python_version == \"3.11\" and sys_platform == \"win32\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5623,7 +5575,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl", hash = "sha256:6da572e95e0b2290c06551e02e13f266ce62db0a50f25f0a1cc4215ee71d7979"},
 ]
-markers = {main = "python_version >= \"3.12\" and platform_machine == \"arm64\" and extra == \"qret\" and sys_platform == \"darwin\"", dev = "python_version >= \"3.12\" and platform_machine == \"arm64\" and sys_platform == \"darwin\""}
+markers = {main = "python_version >= \"3.12\" and extra == \"qret\" and sys_platform == \"darwin\"", dev = "python_version >= \"3.12\" and sys_platform == \"darwin\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5645,33 +5597,9 @@ optional = false
 python-versions = "*"
 groups = ["main", "dev"]
 files = [
-    {file = "pyqret-1.0.1-cp312-abi3-macosx_15_0_x86_64.whl", hash = "sha256:98cbcbb94dbd80ecde41004b623d5d4f7b6e85633fb0ee2ff452853f262b85ca"},
-]
-markers = {main = "python_version >= \"3.12\" and platform_machine == \"x86_64\" and extra == \"qret\" and sys_platform == \"darwin\"", dev = "python_version >= \"3.12\" and platform_machine == \"x86_64\" and sys_platform == \"darwin\""}
-
-[package.dependencies]
-typing_extensions = "*"
-
-[package.extras]
-dev = ["nb-clean", "pyqret[algorithm,docs,tests]", "ruff"]
-docs = ["breathe (>=4.28.0)", "furo", "graphviz", "ipykernel", "jupyter", "myst-nb", "myst-parser", "ortools", "sphinx (>=7.2,<8.0)", "sphinx-design", "sphinx_copybutton", "sphinxcontrib-bibtex", "sphinxcontrib-mermaid"]
-tests = ["coverage", "numpy", "pytest"]
-
-[package.source]
-type = "url"
-url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_x86_64.whl"
-
-[[package]]
-name = "pyqret"
-version = "1.0.1"
-description = "Python wrapper of QRET"
-optional = false
-python-versions = "*"
-groups = ["main", "dev"]
-files = [
     {file = "pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5ffb3f4b8cb17a842e276ea7764f4df8485913c59b915c664e66a60821879be5"},
 ]
-markers = {main = "python_version >= \"3.12\" and platform_machine == \"x86_64\" and extra == \"qret\" and sys_platform == \"linux\"", dev = "python_version >= \"3.12\" and platform_machine == \"x86_64\" and sys_platform == \"linux\""}
+markers = {main = "python_version >= \"3.12\" and extra == \"qret\" and sys_platform == \"linux\"", dev = "python_version >= \"3.12\" and sys_platform == \"linux\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5695,7 +5623,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1-cp312-abi3-win_amd64.whl", hash = "sha256:17a097cdcd505d8d8151d1703f406fec14dce78e31c4abf912947e9b0aedf8ab"},
 ]
-markers = {main = "python_version >= \"3.12\" and platform_machine == \"AMD64\" and extra == \"qret\" and sys_platform == \"win32\"", dev = "python_version >= \"3.12\" and platform_machine == \"AMD64\" and sys_platform == \"win32\""}
+markers = {main = "python_version >= \"3.12\" and extra == \"qret\" and sys_platform == \"win32\"", dev = "python_version >= \"3.12\" and sys_platform == \"win32\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -5719,7 +5647,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1.tar.gz", hash = "sha256:0dcfc1615cab003190f1a85c759758f53daca8880868f7ac657eb2bbdc91a70d"},
 ]
-markers = {main = "extra == \"qret\" and python_version >= \"3.10\" and (sys_platform != \"darwin\" or platform_machine != \"x86_64\" and platform_machine != \"arm64\") and (sys_platform != \"win32\" or platform_machine != \"AMD64\") and (platform_machine != \"x86_64\" or sys_platform != \"darwin\" and sys_platform != \"linux\")", dev = "python_version >= \"3.10\" and (sys_platform != \"darwin\" or platform_machine != \"x86_64\" and platform_machine != \"arm64\") and (sys_platform != \"win32\" or platform_machine != \"AMD64\") and (platform_machine != \"x86_64\" or sys_platform != \"darwin\" and sys_platform != \"linux\")"}
+markers = {main = "extra == \"qret\" and sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and python_version >= \"3.10\"", dev = "python_version >= \"3.10\" and sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -6583,19 +6511,16 @@ markers = {main = "python_version >= \"3.10\" and extra == \"qret\"", dev = "pyt
 [package.dependencies]
 numpy = ">=1.22.0"
 pyqret = [
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1.tar.gz", markers = "(sys_platform != \"darwin\" or platform_machine != \"x86_64\" and platform_machine != \"arm64\") and (sys_platform != \"win32\" or platform_machine != \"AMD64\") and (platform_machine != \"x86_64\" or sys_platform != \"darwin\" and sys_platform != \"linux\")"},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl", markers = "python_version == \"3.10\" and sys_platform == \"darwin\" and platform_machine == \"arm64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_x86_64.whl", markers = "python_version == \"3.10\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == \"3.10\" and sys_platform == \"linux\" and platform_machine == \"x86_64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-win_amd64.whl", markers = "python_version == \"3.10\" and sys_platform == \"win32\" and platform_machine == \"AMD64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_arm64.whl", markers = "python_version == \"3.11\" and sys_platform == \"darwin\" and platform_machine == \"arm64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_x86_64.whl", markers = "python_version == \"3.11\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == \"3.11\" and sys_platform == \"linux\" and platform_machine == \"x86_64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-win_amd64.whl", markers = "python_version == \"3.11\" and sys_platform == \"win32\" and platform_machine == \"AMD64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"arm64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_x86_64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"darwin\" and platform_machine == \"x86_64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"linux\" and platform_machine == \"x86_64\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-win_amd64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"win32\" and platform_machine == \"AMD64\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl", markers = "python_version == \"3.10\" and sys_platform == \"darwin\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == \"3.10\" and sys_platform == \"linux\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-win_amd64.whl", markers = "python_version == \"3.10\" and sys_platform == \"win32\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_arm64.whl", markers = "python_version == \"3.11\" and sys_platform == \"darwin\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == \"3.11\" and sys_platform == \"linux\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-win_amd64.whl", markers = "python_version == \"3.11\" and sys_platform == \"win32\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"darwin\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"linux\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-win_amd64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"win32\""},
+    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1.tar.gz", markers = "sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\""},
 ]
 quri-parts-circuit = "*"
 quri-parts-core = "*"
