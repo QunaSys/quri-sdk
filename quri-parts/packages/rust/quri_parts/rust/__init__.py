@@ -21,6 +21,7 @@ sys.modules["quri_parts.rust.circuit"] = circuit
 sys.modules["quri_parts.rust.circuit.circuit"] = circuit.circuit
 sys.modules["quri_parts.rust.circuit.gate"] = circuit.gate
 sys.modules["quri_parts.rust.circuit.gates"] = circuit.gates
+sys.modules["quri_parts.rust.circuit.inverse"] = circuit.inverse
 sys.modules["quri_parts.rust.circuit.circuit"] = circuit.circuit
 sys.modules["quri_parts.rust.circuit.parameter"] = circuit.parameter
 sys.modules["quri_parts.rust.circuit.circuit_parametric"] = circuit.circuit_parametric
