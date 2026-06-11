@@ -2,7 +2,7 @@ name: QURI SDK Package and release
 
 on:
   push:
-    branches: [main, 'quri-parts-qret*', 'fix/numpy2-windows-py313']
+    branches: [main, 'quri-parts-qret*']
   release:
     types: [published]
 
