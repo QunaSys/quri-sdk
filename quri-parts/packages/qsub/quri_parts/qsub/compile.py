@@ -9,44 +9,26 @@
 # limitations under the License.
 
 from collections.abc import Iterable
-from typing import cast
 
-from quri_parts.circuit.transpile import CircuitTranspiler
-from quri_parts.circuit.transpile.transpiler import CircuitTranspilerProtocol
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.link import link
 from quri_parts.qsub.machineinst import MachineSub
 from quri_parts.qsub.op import AbstractOp, Op
 from quri_parts.qsub.resolve import SubCollector, SubRepository, default_repository
 from quri_parts.qsub.sub import Sub
-from quri_parts.qsub.trans import (
-    SeparateQURIPartsTranspiler,
-    SequentialTranspiler,
-    SubTranspiler,
-)
-
-
-def _is_circuit_transpiler(obj: object) -> bool:
-    return CircuitTranspilerProtocol in type(obj).__mro__
+from quri_parts.qsub.trans import SequentialTranspiler, SubTranspiler
 
 
 def compile(
     entry_op: Op,
     primitives: Iterable[AbstractOp],
     repository: SubRepository = default_repository(),
-    sub_transpilers: Iterable[SubTranspiler] | Iterable[CircuitTranspiler] = (),
+    sub_transpilers: Iterable[SubTranspiler] = (),
 ) -> MachineSub:
     collector = SubCollector(repository)
     subs = collector.collect_subs(entry_op)
-    _transpilers = cast(tuple[SubTranspiler, ...], tuple(sub_transpilers))
-    if len(_transpilers) > 0:
-        if _is_circuit_transpiler(_transpilers[0]):
-            _transpilers = (
-                SeparateQURIPartsTranspiler(
-                    cast(tuple[CircuitTranspiler, ...], _transpilers)
-                ),
-            )
-        trans = SequentialTranspiler(_transpilers)
+    if sub_transpilers:
+        trans = SequentialTranspiler(sub_transpilers)
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)
     msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
@@ -58,19 +40,12 @@ def compile_sub(
     entry_sub: Sub,
     primitives: Iterable[AbstractOp],
     repository: SubRepository = default_repository(),
-    sub_transpilers: Iterable[SubTranspiler] | Iterable[CircuitTranspiler] = (),
+    sub_transpilers: Iterable[SubTranspiler] = (),
 ) -> MachineSub:
     collector = SubCollector(repository)
     subs = collector.collect_subs(entry_sub)
-    _transpilers = cast(tuple[SubTranspiler, ...], tuple(sub_transpilers))
-    if len(_transpilers) > 0:
-        if _is_circuit_transpiler(_transpilers[0]):
-            _transpilers = (
-                SeparateQURIPartsTranspiler(
-                    cast(tuple[CircuitTranspiler, ...], _transpilers)
-                ),
-            )
-        trans = SequentialTranspiler(_transpilers)
+    if sub_transpilers:
+        trans = SequentialTranspiler(sub_transpilers)
         entry_sub = trans(entry_sub)
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)

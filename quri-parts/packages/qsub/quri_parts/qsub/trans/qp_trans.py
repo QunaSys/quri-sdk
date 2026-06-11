@@ -71,7 +71,7 @@ _param_op_gate_map_qp = {
     gate_names.U1: std.Phase,
 }
 
-_mc_op_get_map_qp = {
+_mc_op_gate_map_qp = {
     gate_names.MCX: std.MCX,
     gate_names.MCY: std.MCY,
     gate_names.MCZ: std.MCZ,
@@ -86,7 +86,7 @@ _mc_op_get_map_qp = {
     gate_names.MCH: std.MCH,
 }
 
-_mc_param_op_get_map_qp = {
+_mc_param_op_gate_map_qp = {
     gate_names.MCRX: std.MCRX,
     gate_names.MCRY: std.MCRY,
     gate_names.MCRZ: std.MCRZ,
@@ -106,13 +106,13 @@ def convert_from_qp(circuit: NonParametricQuantumCircuit) -> Operations:
             assert len(gate.control_indices) == 0
             op = _param_op_gate_map_qp[gate.name](gate.params[0])
             ops.append((op, qubits, ()))
-        elif gate.name in _mc_op_get_map_qp:
+        elif gate.name in _mc_op_gate_map_qp:
             assert len(gate.target_indices) == 1
-            op = _mc_op_get_map_qp[gate.name](len(gate.control_indices))
+            op = _mc_op_gate_map_qp[gate.name](len(gate.control_indices))
             ops.append((op, qubits, ()))
-        elif gate.name in _mc_param_op_get_map_qp:
+        elif gate.name in _mc_param_op_gate_map_qp:
             assert len(gate.target_indices) == 1
-            op = _mc_param_op_get_map_qp[gate.name](
+            op = _mc_param_op_gate_map_qp[gate.name](
                 len(gate.control_indices), gate.params[0]
             )
             ops.append((op, qubits, ()))
