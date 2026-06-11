@@ -26,6 +26,8 @@ quri-parts-circuit = "*"
 quri-parts-core = "*"
 quri-parts-qsub = "*"
 
+# TODO: restore platform_machine markers once we switch to uv.
+# Dropped here as a temporary workaround to speed up poetry lock.
 pyqret = [
   { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == '3.10' and sys_platform == 'linux'" },
   { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl", markers = "python_version == '3.10' and sys_platform == 'darwin'" },
