@@ -30,6 +30,6 @@ numpy = ">=1.22.0"
 quri-parts-circuit = "*"
 # cirq-core <1.4 pins numpy <2.0; Py>=3.13 needs numpy 2, so require cirq-core 1.6 there.
 cirq-core = [
-    { version = ">=1.6,<1.7", markers = "python_version >= '3.13'" },
-    { version = ">=1.0,<1.4", markers = "python_version < '3.13'" },
+    { version = ">=1.6,<1.7", markers = "python_version == '3.13'" },
+    { version = ">=1.0,<1.4", markers = "python_version != '3.13'" },
 ]
