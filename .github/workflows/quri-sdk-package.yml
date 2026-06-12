@@ -111,8 +111,6 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-15-intel"
-            target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -247,8 +245,6 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-15-intel"
-            target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -335,8 +331,6 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-15-intel"
-            target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
