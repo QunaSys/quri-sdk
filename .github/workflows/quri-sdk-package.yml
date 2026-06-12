@@ -20,7 +20,6 @@ jobs:
         fetch-depth: 0
 
     - name: check manual versioning
-      if: github.event_name == 'release'
       shell: bash
       run: |
         GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
