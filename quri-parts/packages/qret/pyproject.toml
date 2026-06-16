@@ -26,6 +26,6 @@ quri-parts-circuit = "*"
 quri-parts-core = "*"
 quri-parts-qsub = "*"
 
-# pyqret is not on PyPI; users install it manually from
-# https://github.com/QunaSys/quration/releases
+# pyqret is not on PyPI; supply it from the QunaSys release feed, e.g.
+#   pip install quri-parts-qret --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
 pyqret = "^1.0.1"
