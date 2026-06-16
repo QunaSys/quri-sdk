@@ -28,4 +28,4 @@ quri-parts-qsub = "*"
 
 # pyqret is not on PyPI; users install it manually from
 # https://github.com/QunaSys/quration/releases
-pyqret = "1.0.1"
+pyqret = "^1.0.1"
