@@ -170,14 +170,8 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-<<<<<<< HEAD
-          # Work around llvmlite build failure on Intel macOS with newer setuptools.
-          pip install "setuptools<78" wheel
-          pip install --no-build-isolation llvmlite==0.46.0
-=======
           echo "setuptools<72" > /tmp/llvmlite-constraints.txt
           PIP_CONSTRAINT=/tmp/llvmlite-constraints.txt pip install llvmlite==0.46.0
->>>>>>> main
 
       - name: Install vcpkg
         if: runner.os == 'Windows' && matrix.python-version == '14'
@@ -400,14 +394,8 @@ jobs:
           export LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm
           echo "LLVM_DIR=${LLVM_PREFIX}/lib/cmake/llvm" >> "$GITHUB_ENV"
           echo "${LLVM_PREFIX}/bin" >> "$GITHUB_PATH"
-<<<<<<< HEAD
-          # Work around llvmlite build failure on Intel macOS with newer setuptools.
-          pip install "setuptools<78" wheel
-          pip install --no-build-isolation llvmlite==0.46.0
-=======
           echo "setuptools<72" > /tmp/llvmlite-constraints.txt
           PIP_CONSTRAINT=/tmp/llvmlite-constraints.txt pip install llvmlite==0.46.0
->>>>>>> main
 
       - name: Install vcpkg
         uses: lukka/run-vcpkg@v11
