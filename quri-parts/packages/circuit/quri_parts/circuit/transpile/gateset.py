@@ -611,6 +611,11 @@ class CliffordTSetTranspiler(SequentialTranspiler):
     Since this transpiler fuses rotation gates and converts them to
     named gates with a certain precision, the action of the circuit
     before and after the conversion may not be completely equivalent.
+
+    Note that RZ gates are not approximated into a sequence of
+    Clifford+T gates. Only RZ gates whose rotation angle corresponds to
+    a Clifford+T gate (within ``epsilon``) are converted; RZ gates with
+    other angles remain as RZ gates in the output circuit.
     """
 
     def __init__(self, epsilon: float = 1.0e-9):
