@@ -15,7 +15,7 @@ pub enum MaybeUnbound {
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "circuit")?;
+    let m = PyModule::new(py, "circuit")?;
     m.add_submodule(&gate::py_module(py)?)?;
     m.add_submodule(&gates::py_module(py)?)?;
     m.add_submodule(&circuit::py_module(py)?)?;

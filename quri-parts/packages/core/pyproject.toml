@@ -27,7 +27,13 @@ style = "pep440"
 [tool.poetry.dependencies]
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
-numpy = ">=1.22.0, <2.0"
+# NumPy 2 dropped Python 3.9 (and 1.x has no cp313/cp314 wheels); pin <2 on
+# Python <3.10 and require 2.x on 3.10+ so the lock forks instead of keeping a
+# single 1.x that has no 3.13/3.14 wheels.
+numpy = [
+    { version = ">=1.22.0,<2.0", python = "<3.10" },
+    { version = ">=2.0", python = ">=3.10" },
+]
 quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
 scipy = "^1.11.3"

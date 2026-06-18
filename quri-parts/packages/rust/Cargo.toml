@@ -10,7 +10,7 @@ quri-parts = { path = "../../", version = "0.26.1", features = ["python"] }
 rayon = "1.10"
 
 [dependencies.pyo3]
-version = "0.22.6"
+version = "0.28"
 features = ["extension-module", "macros", "num-complex", "py-clone"]
 
 [lib]

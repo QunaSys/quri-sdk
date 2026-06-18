@@ -84,12 +84,12 @@ impl ImmutableQuantumCircuit {
     #[pyo3(name = "__reduce__")]
     fn py_reduce(
         slf: &Bound<'_, Self>,
-    ) -> PyResult<(PyObject, (Py<PyString>, usize, usize, Vec<QuantumGate>))> {
+    ) -> PyResult<(Py<PyAny>, (Py<PyString>, usize, usize, Vec<QuantumGate>))> {
         let borrowed = slf.borrow();
         Ok((
             slf.getattr("__class__")?.unbind(),
             (
-                PyString::new_bound(slf.py(), PICKLE_STUB_ARG).unbind(),
+                PyString::new(slf.py(), PICKLE_STUB_ARG).unbind(),
                 borrowed.qubit_count,
                 borrowed.cbit_count,
                 borrowed.gates.0.clone().into(),
@@ -99,10 +99,13 @@ impl ImmutableQuantumCircuit {
 
     #[getter]
     fn get_gates<'py>(slf: PyRef<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
-        Ok(PyTuple::new_bound(
-            slf.py(),
-            slf.gates.0.iter().map(|g| g.clone().into_py(slf.py())),
-        ))
+        let gates = slf
+            .gates
+            .0
+            .iter()
+            .map(|g| Ok(g.clone().into_pyobject(slf.py())?.into_any()))
+            .collect::<PyResult<Vec<_>>>()?;
+        PyTuple::new(slf.py(), gates)
     }
 
     #[getter]
@@ -133,10 +136,10 @@ impl ImmutableQuantumCircuit {
     }
 
     #[pyo3(name = "__add__")]
-    fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<PyObject> {
+    fn py_add(slf: &Bound<'_, Self>, gates: Bound<'_, PyAny>) -> PyResult<Py<PyAny>> {
         let py = slf.py();
         match Self::combine(slf, gates) {
-            Ok(circuit) => Ok(circuit.into_py(py)),
+            Ok(circuit) => Ok(circuit.into_pyobject(py)?.into_any().unbind()),
             Err(err) => {
                 // propagate mismatched qubit error (or any other Value Error)
                 if err.is_instance_of::<pyo3::exceptions::PyValueError>(py) {
@@ -177,7 +180,7 @@ impl ImmutableQuantumCircuit {
 
     fn sample<'py>(slf: &Bound<'py, Self>, shot_count: i32) -> PyResult<Bound<'py, PyAny>> {
         let sampling =
-            PyModule::import_bound(slf.py(), "quri_parts.core.sampling.default_sampler")?;
+            PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
         let sampling_counts = sampling
             .getattr("DEFAULT_SAMPLER")?
             .call1((slf, shot_count));
@@ -186,7 +189,7 @@ impl ImmutableQuantumCircuit {
 
     fn draw<'py>(slf: &Bound<'py, Self>) -> Result<(), PyErr> {
         let circuit_drawer =
-            PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
+            PyModule::import(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
         circuit_drawer.getattr("draw_circuit")?.call1((slf,))?;
 
         Ok(())
@@ -219,8 +222,8 @@ impl QuantumCircuit {
             if let Ok(seq) = cbit_count.downcast::<PySequence>() {
                 cbit_count
                     .py()
-                    .run_bound(
-                        r#"
+                    .run(
+                        cr#"
 import warnings
 warnings.warn(
     "QuantumCircuit initialization takes cbit_count before gates.",
@@ -234,11 +237,11 @@ warnings.warn(
                 (
                     0,
                     (0..(seq.len()?))
-                        .map(|i| FromPyObject::extract_bound(&seq.get_item(i)?))
+                        .map(|i| seq.get_item(i)?.extract())
                         .collect::<PyResult<Vec<_>>>()?,
                 )
             } else {
-                (FromPyObject::extract_bound(&cbit_count)?, gates)
+                (cbit_count.extract()?, gates)
             }
         } else {
             (0, gates)
@@ -255,7 +258,7 @@ warnings.warn(
     }
 
     #[pyo3(name = "__reduce__")]
-    fn py_reduce(slf: &Bound<'_, Self>) -> PyResult<(PyObject, (usize, usize, Vec<QuantumGate>))> {
+    fn py_reduce(slf: &Bound<'_, Self>) -> PyResult<(Py<PyAny>, (usize, usize, Vec<QuantumGate>))> {
         let borrowed = slf.borrow();
         let sup = borrowed.as_super();
         Ok((
@@ -317,7 +320,7 @@ warnings.warn(
             Ok(())
         } else if let Ok(other) = gates.downcast::<PySequence>() {
             for i in 0..other.len()? {
-                if let Ok(gate) = QuantumGate::extract_bound(&other.get_item(i)?) {
+                if let Ok(gate) = other.get_item(i)?.extract::<QuantumGate>() {
                     Self::add_gate(slf.borrow_mut(), gate, None)?;
                 }
             }
@@ -565,18 +568,18 @@ warnings.warn(
     ) -> PyResult<()> {
         let qubit_indices = if let Ok(seq) = qubit_indices.downcast::<PySequence>() {
             (0..(seq.len()?))
-                .map(|i| FromPyObject::extract_bound(&seq.get_item(i)?))
+                .map(|i| seq.get_item(i)?.extract())
                 .collect::<PyResult<Vec<_>>>()?
         } else {
-            vec![FromPyObject::extract_bound(qubit_indices)?]
+            vec![qubit_indices.extract()?]
         };
         let classical_indices: Vec<usize> =
             if let Ok(seq) = classical_indices.downcast::<PySequence>() {
                 (0..(seq.len()?))
-                    .map(|i| FromPyObject::extract_bound(&seq.get_item(i)?))
+                    .map(|i| seq.get_item(i)?.extract())
                     .collect::<PyResult<Vec<_>>>()?
             } else {
-                vec![FromPyObject::extract_bound(classical_indices)?]
+                vec![classical_indices.extract()?]
             };
 
         Self::add_gate(
@@ -613,7 +616,7 @@ warnings.warn(
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "circuit")?;
+    let m = PyModule::new(py, "circuit")?;
     m.add_class::<QuantumCircuit>()?;
     m.add_class::<ImmutableQuantumCircuit>()?;
     Ok(m)

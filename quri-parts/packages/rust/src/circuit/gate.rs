@@ -611,18 +611,21 @@ mod wrapper {
     #[derive(Clone, Debug, PartialEq)]
     struct QuantumGateWrapper(QuantumGate<f64>);
 
-    impl<T> IntoPy<T> for QuantumGate<f64>
-    where
-        QuantumGateWrapper: IntoPy<T>,
-    {
-        fn into_py(self, py: Python<'_>) -> T {
-            QuantumGateWrapper(self).into_py(py)
+    impl<'py> IntoPyObject<'py> for QuantumGate<f64> {
+        type Target = PyAny;
+        type Output = Bound<'py, Self::Target>;
+        type Error = PyErr;
+
+        fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+            Ok(QuantumGateWrapper(self).into_pyobject(py)?.into_any())
         }
     }
 
-    impl<'py> pyo3::conversion::FromPyObject<'py> for QuantumGate<f64> {
-        fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-            Ok(<QuantumGateWrapper as pyo3::conversion::FromPyObject<'py>>::extract_bound(ob)?.0)
+    impl<'a, 'py> pyo3::conversion::FromPyObject<'a, 'py> for QuantumGate<f64> {
+        type Error = PyErr;
+
+        fn extract(ob: pyo3::Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            Ok(ob.extract::<QuantumGateWrapper>()?.0)
         }
     }
 
@@ -697,14 +700,14 @@ mod wrapper {
         fn py_reduce(
             slf: &Bound<'_, Self>,
         ) -> PyResult<(
-            PyObject,
+            Py<PyAny>,
             (
                 String,
                 Vec<usize>,
                 Vec<usize>,
                 Vec<usize>,
                 Vec<f64>,
-                Vec<u8>,
+                Vec<u32>,
                 Option<Vec<Vec<Complex64>>>,
             ),
         )> {
@@ -717,7 +720,8 @@ mod wrapper {
                     data.control_indices.clone().into(),
                     data.classical_indices.clone().into(),
                     data.params.clone().into(),
-                    data.pauli_ids.clone().into(),
+                    // widen u8 -> u32 so the pickled state is list[int], not bytes
+                    data.pauli_ids.iter().map(|&p| p as u32).collect(),
                     data.unitary_matrix
                         .clone()
                         .map(|v| v.into_iter().map(Into::into).collect())
@@ -743,7 +747,7 @@ mod wrapper {
         }
 
         #[getter]
-        fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<usize> = slf
                 .get()
                 .0
@@ -752,11 +756,11 @@ mod wrapper {
                 .into_property()
                 .target_indices
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<usize> = slf
                 .get()
                 .0
@@ -765,11 +769,11 @@ mod wrapper {
                 .into_property()
                 .control_indices
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_classical_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_classical_indices<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<usize> = slf
                 .get()
                 .0
@@ -778,11 +782,11 @@ mod wrapper {
                 .into_property()
                 .classical_indices
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_params<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_params<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<f64> = slf
                 .get()
                 .0
@@ -791,11 +795,11 @@ mod wrapper {
                 .into_property()
                 .params
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<u8> = slf
                 .get()
                 .0
@@ -804,11 +808,11 @@ mod wrapper {
                 .into_property()
                 .pauli_ids
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_unitary_matrix<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_unitary_matrix<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             if let Some(mat) = slf
                 .get()
                 .0
@@ -831,17 +835,17 @@ mod wrapper {
                                 // To mitigate this, we convert Complex to Float when the imaginary value
                                 // is near zero.
                                 if c.im.abs() < 1.0e-7 {
-                                    c.re.into_py(slf.py())
+                                    Ok(c.re.into_pyobject(slf.py())?.into_any())
                                 } else {
-                                    c.into_py(slf.py())
+                                    Ok(c.into_pyobject(slf.py())?.into_any())
                                 }
                             })
-                            .collect::<Vec<_>>()
+                            .collect::<PyResult<Vec<_>>>()
                     })
-                    .collect::<Vec<_>>();
-                PyTuple::new_bound(slf.py(), mat)
+                    .collect::<PyResult<Vec<_>>>()?;
+                PyTuple::new(slf.py(), mat)
             } else {
-                PyTuple::new_bound(slf.py(), None as Option<usize>)
+                PyTuple::new(slf.py(), None as Option<usize>)
             }
         }
     }
@@ -854,18 +858,21 @@ mod wrapper {
     #[derive(Clone, Debug, PartialEq)]
     struct ParametricQuantumGateWrapper(QuantumGate<()>);
 
-    impl<T> IntoPy<T> for QuantumGate<()>
-    where
-        ParametricQuantumGateWrapper: IntoPy<T>,
-    {
-        fn into_py(self, py: Python<'_>) -> T {
-            ParametricQuantumGateWrapper(self).into_py(py)
+    impl<'py> IntoPyObject<'py> for QuantumGate<()> {
+        type Target = PyAny;
+        type Output = Bound<'py, Self::Target>;
+        type Error = PyErr;
+
+        fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
+            Ok(ParametricQuantumGateWrapper(self).into_pyobject(py)?.into_any())
         }
     }
 
-    impl<'py> pyo3::conversion::FromPyObject<'py> for QuantumGate<()> {
-        fn extract_bound(ob: &Bound<'py, PyAny>) -> PyResult<Self> {
-            Ok(<ParametricQuantumGateWrapper as pyo3::conversion::FromPyObject<'py>>::extract_bound(ob)?.0)
+    impl<'a, 'py> pyo3::conversion::FromPyObject<'a, 'py> for QuantumGate<()> {
+        type Error = PyErr;
+
+        fn extract(ob: pyo3::Borrowed<'a, 'py, PyAny>) -> Result<Self, Self::Error> {
+            Ok(ob.extract::<ParametricQuantumGateWrapper>()?.0)
         }
     }
 
@@ -923,7 +930,7 @@ mod wrapper {
         #[pyo3(name = "__reduce__")]
         fn py_reduce(
             slf: &Bound<'_, Self>,
-        ) -> PyResult<(PyObject, (String, Vec<usize>, Vec<usize>, Vec<u8>))> {
+        ) -> PyResult<(Py<PyAny>, (String, Vec<usize>, Vec<usize>, Vec<u32>))> {
             let data = &slf.get().0.clone().map_param(|_| None).into_property();
             Ok((
                 slf.getattr("__class__").unwrap().unbind(),
@@ -931,7 +938,8 @@ mod wrapper {
                     data.name.clone().into(),
                     data.target_indices.clone().into(),
                     data.control_indices.clone().into(),
-                    data.pauli_ids.clone().into(),
+                    // widen u8 -> u32 so the pickled state is list[int], not bytes
+                    data.pauli_ids.iter().map(|&p| p as u32).collect(),
                 ),
             ))
         }
@@ -969,7 +977,7 @@ mod wrapper {
         }
 
         #[getter]
-        fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_target_indices<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<usize> = slf
                 .get()
                 .0
@@ -978,11 +986,11 @@ mod wrapper {
                 .into_property()
                 .target_indices
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_control_indices<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<usize> = slf
                 .get()
                 .0
@@ -991,11 +999,11 @@ mod wrapper {
                 .into_property()
                 .control_indices
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
 
         #[getter]
-        fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> Bound<'py, PyTuple> {
+        fn get_pauli_ids<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyTuple>> {
             let v: Vec<u8> = slf
                 .get()
                 .0
@@ -1004,7 +1012,7 @@ mod wrapper {
                 .into_property()
                 .pauli_ids
                 .into();
-            PyTuple::new_bound(slf.py(), v)
+            PyTuple::new(slf.py(), v)
         }
     }
 
@@ -1016,7 +1024,7 @@ mod wrapper {
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "gate")?;
+    let m = PyModule::new(py, "gate")?;
     wrapper::add_quantum_gate(&m)?;
     Ok(m)
 }

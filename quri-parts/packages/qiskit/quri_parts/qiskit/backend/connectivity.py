@@ -8,14 +8,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Union
 
 import networkx as nx
-from qiskit.providers import BackendV1, BackendV2
+from qiskit.providers import BackendV2
+
+if TYPE_CHECKING:
+    from qiskit.providers import BackendV1
+
+try:
+    # BackendV1 was removed in qiskit 2.0 (only present on qiskit 1.x, i.e.
+    # Python <3.14). Fall back to None so the legacy branch is skipped.
+    from qiskit.providers import BackendV1 as _BackendV1
+except ImportError:
+    _BackendV1 = None
 
 
 def device_connectivity_graph(device: Union[BackendV1, BackendV2]) -> nx.Graph:
-    if isinstance(device, BackendV1):
+    if _BackendV1 is not None and isinstance(device, _BackendV1):
         config = device.configuration()
         coupling_map = getattr(config, "coupling_map", None)
 

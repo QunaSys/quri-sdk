@@ -9,7 +9,7 @@
 # limitations under the License.
 
 import numpy as np
-from qiskit.providers.fake_provider import Fake5QV1
+from qiskit.providers.fake_provider import GenericBackendV2
 from qiskit.transpiler import CouplingMap
 
 from quri_parts.circuit import QuantumCircuit, gate_names, gates
@@ -63,7 +63,11 @@ def test_optimization() -> None:
 
 
 def test_backend() -> None:
-    backend = Fake5QV1()
+    # ``Fake5QV1`` (a BackendV1 fake backend) was removed in qiskit 2.0.
+    # ``GenericBackendV2`` is the BackendV2 replacement and is available on
+    # both qiskit 1.x and 2.x.
+    coupling_map = CouplingMap.from_line(5).get_edges()
+    backend = GenericBackendV2(num_qubits=5, coupling_map=coupling_map, seed=1)
 
     circuit = QuantumCircuit(3)
     circuit.extend(
@@ -78,7 +82,10 @@ def test_backend() -> None:
     )
     target = QiskitTranspiler(backend=backend)(circuit)
 
-    coupling_map = CouplingMap(backend.configuration().coupling_map).get_edges()
+    backend_coupling_map = backend.coupling_map.get_edges()
     for gate in target.gates:
         if gate.name == gate_names.CNOT:
-            assert (gate.control_indices[0], gate.target_indices[0]) in coupling_map
+            assert (
+                gate.control_indices[0],
+                gate.target_indices[0],
+            ) in backend_coupling_map
