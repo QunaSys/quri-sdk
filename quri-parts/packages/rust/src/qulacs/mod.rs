@@ -103,7 +103,8 @@ pub fn convert_add_gate<'py>(
             // Widen pauli_ids to u32 so it converts to a Python list[int]; a
             // Vec<u8> would become `bytes` under pyo3's IntoPyObject.
             let pauli_ids: Vec<u32> = pauli_ids.iter().map(|&p| p as u32).collect();
-            qulacs_circuit.call_method1("add_multi_Pauli_gate", (Vec::from(qs.clone()), pauli_ids))?;
+            qulacs_circuit
+                .call_method1("add_multi_Pauli_gate", (Vec::from(qs.clone()), pauli_ids))?;
         }
         QuantumGate::PauliRotation(qs, pauli_ids, angle) => {
             // See above: keep pauli_ids a list[int] rather than bytes.

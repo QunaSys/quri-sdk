@@ -16,7 +16,6 @@ from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import qasm3, transpile
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit.providers.basic_provider import BasicProvider
-
 from quri_parts.backend import CompositeSamplingResult
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.qiskit.backend import (

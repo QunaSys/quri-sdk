@@ -9,16 +9,17 @@
 # limitations under the License.
 
 from collections.abc import Mapping
+from typing import cast
 
 from cirq.circuits.circuit import Circuit
+from cirq.devices.line_qubit import LineQubit
 from cirq.ops.common_gates import CNOT, CZ, H, Rx, Ry, Rz, S, T
 from cirq.ops.identity import I
 from cirq.ops.pauli_gates import X, Y, Z
-from cirq.ops.raw_types import Gate
+from cirq.ops.raw_types import Gate, Qid
 from cirq.ops.swap_gates import SWAP
 from cirq.ops.three_qubit_gates import CCX
 from cirq.protocols.unitary_protocol import unitary
-
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     QuantumCircuit,
@@ -59,10 +60,20 @@ _three_qubit_gate_quri_parts: Mapping[Gate, ThreeQubitGateNameType] = {
 }
 
 
+def _qubit_index(qubit: Qid) -> int:
+    """Returns the line index of a qubit.
+
+    The circuits handled here use :class:`cirq.LineQubit`, whose ``x``
+    attribute holds the line index. ``cirq.Qid`` itself does not expose
+    ``x``, so the qubit is cast to :class:`cirq.LineQubit`.
+    """
+    return cast(LineQubit, qubit).x
+
+
 def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
     """Converts a :class:`cirq.Circuit` to
     :class:`~ImmutableQuantumCircuit`."""
-    qubit_count = max([qubit.x for qubit in cirq_circuit.all_qubits()]) + 1
+    qubit_count = max([_qubit_index(qubit) for qubit in cirq_circuit.all_qubits()]) + 1
     circuit = QuantumCircuit(qubit_count)
 
     for operation in cirq_circuit.all_operations():
@@ -76,15 +87,15 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
             circuit.add_gate(
                 QuantumGate(
                     name=_single_qubit_gate_quri_parts[gate],
-                    target_indices=(operation.qubits[0].x,),
+                    target_indices=(_qubit_index(operation.qubits[0]),),
                 )
             )
         elif gate in [CNOT, CZ]:
             circuit.add_gate(
                 QuantumGate(
                     name=_two_qubit_gate_quri_parts[gate],
-                    target_indices=(operation.qubits[1].x,),
-                    control_indices=(operation.qubits[0].x,),
+                    target_indices=(_qubit_index(operation.qubits[1]),),
+                    control_indices=(_qubit_index(operation.qubits[0]),),
                 )
             )
         elif gate == SWAP:
@@ -92,8 +103,8 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
                 QuantumGate(
                     name=_two_qubit_gate_quri_parts[gate],
                     target_indices=(
-                        operation.qubits[0].x,
-                        operation.qubits[1].x,
+                        _qubit_index(operation.qubits[0]),
+                        _qubit_index(operation.qubits[1]),
                     ),
                 )
             )
@@ -101,7 +112,7 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
             circuit.add_gate(
                 QuantumGate(
                     name=str(operation.gate)[:2].upper(),
-                    target_indices=(operation.qubits[0].x,),
+                    target_indices=(_qubit_index(operation.qubits[0]),),
                     params=(gate._rads,),
                 )
             )
@@ -109,17 +120,17 @@ def circuit_from_cirq(cirq_circuit: Circuit) -> ImmutableQuantumCircuit:
             circuit.add_gate(
                 QuantumGate(
                     name=_three_qubit_gate_quri_parts[gate],
-                    target_indices=(operation.qubits[2].x,),
+                    target_indices=(_qubit_index(operation.qubits[2]),),
                     control_indices=(
-                        operation.qubits[0].x,
-                        operation.qubits[1].x,
+                        _qubit_index(operation.qubits[0]),
+                        _qubit_index(operation.qubits[1]),
                     ),
                 )
             )
         else:
             circuit.add_gate(
                 UnitaryMatrix(
-                    target_indices=[i.x for i in operation.qubits],
+                    target_indices=[_qubit_index(i) for i in operation.qubits],
                     unitary_matrix=unitary(gate).tolist(),
                 )
             )

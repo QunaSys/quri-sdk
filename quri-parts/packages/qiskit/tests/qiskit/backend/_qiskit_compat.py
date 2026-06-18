@@ -8,13 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Compatibility shims for tests that need to run on both qiskit 1.x and
-qiskit 2.x.
+"""Compatibility shims for tests that need to run on both qiskit 1.x and qiskit
+2.x.
 
-Several APIs were removed in qiskit 2.0 (and in the matching
-qiskit-ibm-runtime releases). This module imports the qiskit-1.x names when
-available and falls back to the qiskit-2.x equivalents (or ``None`` for names
-with no analog) so the test modules can be collected on both versions.
+Several APIs were removed in qiskit 2.0 (and in the matching qiskit-ibm-
+runtime releases). This module imports the qiskit-1.x names when
+available and falls back to the qiskit-2.x equivalents (or ``None`` for
+names with no analog) so the test modules can be collected on both
+versions.
 """
 
 from typing import Any
@@ -26,7 +27,7 @@ from typing import Any
 try:
     from qiskit.providers.backend import BackendV1
 except ImportError:  # qiskit >= 2.0
-    BackendV1 = None  # type: ignore[assignment, misc]
+    BackendV1 = None
 
 # ---------------------------------------------------------------------------
 # QasmBackendConfiguration: the ``qiskit.providers.models`` module was removed
@@ -37,7 +38,7 @@ except ImportError:  # qiskit >= 2.0
 try:
     from qiskit.providers.models import QasmBackendConfiguration
 except (ImportError, ModuleNotFoundError):  # qiskit >= 2.0
-    QasmBackendConfiguration = object  # type: ignore[assignment, misc]
+    QasmBackendConfiguration = object
 
 # ---------------------------------------------------------------------------
 # RuntimeJob: replaced by RuntimeJobV2 in qiskit-ibm-runtime; the
@@ -48,18 +49,18 @@ except (ImportError, ModuleNotFoundError):  # qiskit >= 2.0
 try:
     from qiskit_ibm_runtime import RuntimeJobV2 as RuntimeJob
 except ImportError:  # pragma: no cover - very old runtime
-    from qiskit_ibm_runtime.runtime_job import RuntimeJob  # type: ignore[no-redef]
+    from qiskit_ibm_runtime.runtime_job import RuntimeJob
 
 
 class _JobStatusFallback:
     """String-valued ``JobStatus`` substitute for qiskit-ibm-runtime >= 0.30.
 
     On qiskit-ibm-runtime < 0.30 ``JobStatus`` is an ``enum.Enum`` whose
-    members compare equal to themselves. ``RuntimeJobV2.status()`` returns a
-    plain string (e.g. ``"DONE"``) and the quri-parts source compares against
-    the string ``"DONE"``. This shim exposes the same member names as the old
-    enum but with the string value, so test assertions of the form
-    ``status() == JobStatus.DONE`` keep working.
+    members compare equal to themselves. ``RuntimeJobV2.status()``
+    returns a plain string (e.g. ``"DONE"``) and the quri-parts source
+    compares against the string ``"DONE"``. This shim exposes the same
+    member names as the old enum but with the string value, so test
+    assertions of the form ``status() == JobStatus.DONE`` keep working.
     """
 
     INITIALIZING = "INITIALIZING"
@@ -75,7 +76,7 @@ try:
     # qiskit-ibm-runtime < 0.30 (paired with qiskit 1.x).
     from qiskit_ibm_runtime.runtime_job import JobStatus
 except (ImportError, ModuleNotFoundError):  # qiskit-ibm-runtime >= 0.30
-    JobStatus = _JobStatusFallback  # type: ignore[assignment, misc]
+    JobStatus = _JobStatusFallback
 
 
 # ---------------------------------------------------------------------------
@@ -102,8 +103,8 @@ def make_mock_config(spec: Any = None, **attrs: Any) -> Any:
     """Build a ``Mock`` backend-configuration object.
 
     Uses ``QasmBackendConfiguration`` as the spec when it is available
-    (qiskit 1.x) and a plain unspecced ``Mock`` otherwise (qiskit 2.x), then
-    sets the provided attributes.
+    (qiskit 1.x) and a plain unspecced ``Mock`` otherwise (qiskit 2.x),
+    then sets the provided attributes.
     """
     from unittest.mock import Mock
 

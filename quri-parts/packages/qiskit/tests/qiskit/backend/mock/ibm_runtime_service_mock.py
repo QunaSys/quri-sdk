@@ -25,7 +25,7 @@ try:
     # qiskit 2.0. Fall back to ``object`` so the mock spec still works.
     from qiskit.providers.models import QasmBackendConfiguration
 except (ImportError, ModuleNotFoundError):  # qiskit >= 2.0
-    QasmBackendConfiguration = object  # type: ignore[assignment, misc]
+    QasmBackendConfiguration = object
 
 
 def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:

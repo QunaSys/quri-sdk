@@ -864,7 +864,9 @@ mod wrapper {
         type Error = PyErr;
 
         fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-            Ok(ParametricQuantumGateWrapper(self).into_pyobject(py)?.into_any())
+            Ok(ParametricQuantumGateWrapper(self)
+                .into_pyobject(py)?
+                .into_any())
         }
     }
 

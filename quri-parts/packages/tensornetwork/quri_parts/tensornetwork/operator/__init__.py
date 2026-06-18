@@ -14,12 +14,11 @@ from typing import Any, Collection, Literal, Optional, Sequence, Union
 import numpy as np
 import numpy.typing as npt
 import tensornetwork as tn
-from tensornetwork import AbstractNode, Edge, Node, split_node
-from typing_extensions import TypeAlias
-
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, PauliLabel
 from quri_parts.tensornetwork.circuit import TensorNetworkLayer
 from quri_parts.tensornetwork.state import TensorNetworkState
+from tensornetwork import AbstractNode, Edge, Node, split_node
+from typing_extensions import TypeAlias
 
 _PAULI_OPERATOR_DATA_MAP: Sequence[Sequence[Sequence[complex]]] = (
     [[1, 0], [0, 1]],
@@ -117,7 +116,7 @@ def get_observable_data(
 
     pauli_list_arrays = [np.array(a, dtype=np.complex128) for a in pauli_list]
     pauli_list_arrays.reverse()
-    _obs = reduce(np.kron, pauli_list_arrays)
+    _obs = reduce(np.kron, pauli_list_arrays)  # type: ignore[arg-type]
     if n is None:
         n = len(pauli_list)
     obs_data = np.reshape(_obs, [dim for _ in range(2 * n)])

@@ -13,7 +13,6 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-
 from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
 from quri_parts.qiskit.backend.tracker import Tracker
 

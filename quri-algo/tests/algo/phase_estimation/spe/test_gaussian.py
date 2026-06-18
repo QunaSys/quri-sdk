@@ -56,7 +56,9 @@ class TestGaussianPhaseEstimation(unittest.TestCase):
         cls.gaussian_algo = spe.GaussianFittingPhaseEstimation(estimator)
 
     def test_gaussian(self) -> None:
-        search_range = np.linspace(self.a - np.pi * 3, self.a + np.pi * 3, 10000)
+        search_range = np.linspace(
+            self.a - np.pi * 3, self.a + np.pi * 3, 10000
+        ).astype(np.float64)
         input_state = quantum_state(1)
         result = self.gaussian_algo(input_state, self.gaussian_param, search_range, 0.8)
         assert np.isclose(result.value, self.a, atol=1e-8)
