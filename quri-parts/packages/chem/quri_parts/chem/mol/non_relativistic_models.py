@@ -10,7 +10,7 @@
 
 from dataclasses import dataclass
 from itertools import product
-from typing import Sequence
+from typing import Sequence, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -80,13 +80,23 @@ class AO2eIntArray(AO2eInt):
         convention."""
         # Transpose back to chemist convention for computation.
         tensor = self._ao2eint_array.transpose(0, 3, 1, 2)
-        tensor = tensordot(mo_coeff, tensor, axes=([0], [0])).astype(np.complex128)
-        tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [1])).astype(
-            np.complex128
+        # The operands are complex128, so the tensordot results are too; cast is
+        # a runtime no-op that keeps mypy from widening to complexfloating.
+        tensor = cast(
+            "npt.NDArray[np.complex128]",
+            tensordot(mo_coeff, tensor, axes=([0], [0])),
         )
-        tensor = tensordot(mo_coeff, tensor, axes=([0], [2])).astype(np.complex128)
-        tensor = tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3])).astype(
-            np.complex128
+        tensor = cast(
+            "npt.NDArray[np.complex128]",
+            tensordot(mo_coeff.conjugate(), tensor, axes=([0], [1])),
+        )
+        tensor = cast(
+            "npt.NDArray[np.complex128]",
+            tensordot(mo_coeff, tensor, axes=([0], [2])),
+        )
+        tensor = cast(
+            "npt.NDArray[np.complex128]",
+            tensordot(mo_coeff.conjugate(), tensor, axes=([0], [3])),
         )
         tensor = tensor.transpose(0, 2, 3, 1)
         return SpatialMO2eIntArray(tensor)
