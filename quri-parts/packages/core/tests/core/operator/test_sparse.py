@@ -13,6 +13,7 @@ from functools import reduce
 import numpy as np
 import pytest
 import scipy.sparse as sparse
+
 from quri_parts.core.operator import (
     PAULI_IDENTITY,
     Operator,
