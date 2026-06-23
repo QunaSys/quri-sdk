@@ -111,8 +111,6 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-15-intel"
-            target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -219,7 +217,8 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
               continue
             fi
-            pip install -v $FILE
+            # pyqret is not on PyPI; supply it from the QunaSys release feed.
+            pip install -v $FILE --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
           done
 
       - name: Run test
@@ -247,8 +246,6 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-15-intel"
-            target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -335,8 +332,6 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
-          - os: "macos-15-intel"
-            target: "x86_64-apple-darwin"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -449,7 +444,8 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
               continue
             fi
-            pip install -v $FILE
+            # pyqret is not on PyPI; supply it from the QunaSys release feed.
+            pip install -v $FILE --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
           done
 
       - name: Run test

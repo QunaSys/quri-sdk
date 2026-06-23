@@ -33,7 +33,8 @@ jobs:
     - run: python -m venv venv
     - run: |
         . venv/bin/activate
-        pip install -e packages/*
+        # pyqret is not on PyPI; supply it from the QunaSys release feed.
+        pip install -e packages/* --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
 
     - uses: ruby/setup-ruby@v1
       with:
