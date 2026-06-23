@@ -66,7 +66,7 @@ from quri_parts.circuit.transpile import (
     SWAPInsertionTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
-    Toffoli2CNOTTTranspiler,
+    TOFFOLI2CNOTTTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
@@ -298,7 +298,7 @@ class TestRZSetTranspile:
     def test_toffoli2cnott_transpile(self) -> None:
         circuit = QuantumCircuit(3)
         circuit.add_gate(TOFFOLI(0, 1, 2))
-        transpiled = Toffoli2CNOTTTranspiler()(circuit)
+        transpiled = TOFFOLI2CNOTTTranspiler()(circuit)
 
         expect = QuantumCircuit(3)
         expect.extend(

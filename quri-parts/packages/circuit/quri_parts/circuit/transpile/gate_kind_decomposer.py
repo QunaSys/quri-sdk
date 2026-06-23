@@ -427,7 +427,7 @@ class TOFFOLI2HTTdagCNOTTranspiler(GateKindDecomposer):
         ]
 
 
-class Toffoli2CNOTTTranspiler(GateKindDecomposer):
+class TOFFOLI2CNOTTTranspiler(GateKindDecomposer):
     """CircuitTranspiler that decomposes Toffoli gates into sequences of H, T,
     Tdag, and CNOT gates."""
 
