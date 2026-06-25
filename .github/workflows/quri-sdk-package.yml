@@ -1,8 +1,6 @@
 name: QURI SDK Package and release
 
 on:
-  push:
-    branches: [main, 'quri-parts-qret*']
   release:
     types: [published]
 
