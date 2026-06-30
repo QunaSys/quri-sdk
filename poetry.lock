@@ -465,11 +465,12 @@ version = "26.1.0"
 description = "Classes Without Boilerplate"
 optional = false
 python-versions = ">=3.9"
-groups = ["doc"]
+groups = ["main", "dev", "doc"]
 files = [
     {file = "attrs-26.1.0-py3-none-any.whl", hash = "sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309"},
     {file = "attrs-26.1.0.tar.gz", hash = "sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32"},
 ]
+markers = {main = "python_version == \"3.13\" and (extra == \"cirq\" or extra == \"openfermion\")", dev = "python_version == \"3.13\""}
 
 [[package]]
 name = "babel"
@@ -860,7 +861,7 @@ groups = ["main", "dev"]
 files = [
     {file = "cirq_core-1.3.0-py3-none-any.whl", hash = "sha256:d46771ddf4adb0867d3fb6da8c4484b73bada5bfaa58c19e2444aa8838270fd9"},
 ]
-markers = {main = "extra == \"cirq\" or extra == \"openfermion\""}
+markers = {main = "(extra == \"cirq\" or extra == \"openfermion\") and python_version != \"3.13\"", dev = "python_version != \"3.13\""}
 
 [package.dependencies]
 duet = ">=0.2.8,<0.3.0"
@@ -878,6 +879,34 @@ typing-extensions = ">=4.2"
 contrib = ["autoray", "numba (>=0.53.0)", "opt-einsum", "ply (>=3.6)", "pylatex (>=1.3.0,<1.4.0)", "quimb"]
 
 [[package]]
+name = "cirq-core"
+version = "1.6.1"
+description = "A framework for creating, editing, and invoking Noisy Intermediate Scale Quantum (NISQ) circuits."
+optional = false
+python-versions = ">=3.11.0"
+groups = ["main", "dev"]
+files = [
+    {file = "cirq_core-1.6.1-py3-none-any.whl", hash = "sha256:fbc809d7c6a228762ad92bb7870dc16f55b76728fcc7ef4c7aaceb7e5c63e8e6"},
+]
+markers = {main = "python_version == \"3.13\" and (extra == \"cirq\" or extra == \"openfermion\")", dev = "python_version == \"3.13\""}
+
+[package.dependencies]
+attrs = ">=21.3.0"
+duet = ">=0.2.8"
+matplotlib = ">=3.8,<4.0"
+networkx = ">=3.4,<4.0"
+numpy = ">=1.26"
+pandas = ">=2.1,<3.0"
+scipy = ">=1.12,<2.0"
+sortedcontainers = ">=2.0,<3.0"
+sympy = "*"
+tqdm = ">=4.12"
+typing_extensions = ">=4.2"
+
+[package.extras]
+contrib = ["opt_einsum", "ply (>=3.6)", "pylatex (>=1.4,<2.0)", "quimb (>=1.8)"]
+
+[[package]]
 name = "cirq-google"
 version = "1.3.0"
 description = "The Cirq module that provides tools and access to the Google Quantum Computing Service"
@@ -887,13 +916,32 @@ groups = ["main", "dev"]
 files = [
     {file = "cirq_google-1.3.0-py3-none-any.whl", hash = "sha256:aa802887679f64ef8359f77d5bbd5bb98dc076c35c152c3b7f172c6e09d4e667"},
 ]
-markers = {main = "extra == \"openfermion\""}
+markers = {main = "extra == \"openfermion\" and python_version != \"3.13\"", dev = "python_version != \"3.13\""}
 
 [package.dependencies]
 cirq-core = "1.3.0"
 google-api-core = {version = ">=1.14.0", extras = ["grpc"]}
 proto-plus = ">=1.20.0"
 protobuf = ">=3.15.0"
+
+[[package]]
+name = "cirq-google"
+version = "1.6.1"
+description = "The Cirq module that provides tools and access to the Google Quantum Computing Service"
+optional = false
+python-versions = ">=3.11.0"
+groups = ["main", "dev"]
+files = [
+    {file = "cirq_google-1.6.1-py3-none-any.whl", hash = "sha256:aa87ca915a9d1eb48b505513f15fb2acf42fa136e4c1a6c2a144e232828e8b19"},
+]
+markers = {main = "python_version == \"3.13\" and extra == \"openfermion\"", dev = "python_version == \"3.13\""}
+
+[package.dependencies]
+cirq-core = "1.6.1"
+google-api-core = {version = ">=2.22,<3.0", extras = ["grpc"]}
+proto-plus = ">=1.25,<2.0"
+protobuf = ">=5.26.1,<6.0.dev0"
+typedunits = "*"
 
 [[package]]
 name = "click"
@@ -951,7 +999,28 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "python_version >= \"3.10\" and sys_platform == \"win32\" or (extra == \"cirq\" or extra == \"openfermion\") and platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\"", lint = "platform_system == \"Windows\""}
+markers = {main = "python_version >= \"3.10\" and sys_platform == \"win32\" or platform_system == \"Windows\" and (extra == \"cirq\" or extra == \"openfermion\")", dev = "platform_system == \"Windows\" or sys_platform == \"win32\"", lint = "platform_system == \"Windows\""}
+
+[[package]]
+name = "colorcet"
+version = "3.1.0"
+description = "Collection of perceptually uniform colormaps"
+optional = true
+python-versions = ">=3.7"
+groups = ["main"]
+markers = "extra == \"colorcet\""
+files = [
+    {file = "colorcet-3.1.0-py3-none-any.whl", hash = "sha256:2a7d59cc8d0f7938eeedd08aad3152b5319b4ba3bcb7a612398cc17a384cb296"},
+    {file = "colorcet-3.1.0.tar.gz", hash = "sha256:2921b3cd81a2288aaf2d63dbc0ce3c26dcd882e8c389cc505d6886bf7aa9a4eb"},
+]
+
+[package.extras]
+all = ["colorcet[doc]", "colorcet[examples]", "colorcet[tests-extra]", "colorcet[tests]"]
+doc = ["colorcet[examples]", "nbsite (>=0.8.4)", "sphinx-copybutton"]
+examples = ["bokeh", "holoviews", "matplotlib", "numpy"]
+tests = ["packaging", "pre-commit", "pytest (>=2.8.5)", "pytest-cov"]
+tests-examples = ["colorcet[examples]", "nbval"]
+tests-extra = ["colorcet[tests]", "pytest-mpl"]
 
 [[package]]
 name = "comm"
@@ -1308,6 +1377,56 @@ markers = {main = "extra == \"cirq\" or extra == \"openfermion\" or python_versi
 [package.extras]
 docs = ["ipython", "matplotlib", "numpydoc", "sphinx"]
 tests = ["pytest", "pytest-cov", "pytest-xdist"]
+
+[[package]]
+name = "cython"
+version = "3.2.5"
+description = "The Cython compiler for writing C extensions in the Python language."
+optional = false
+python-versions = ">=3.8"
+groups = ["main", "dev"]
+files = [
+    {file = "cython-3.2.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:220e8b160b2a4ddc362ad8a8c2ab885aa7156099702cdc48f6518a5de921b553"},
+    {file = "cython-3.2.5-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f4e722ceab6d795b4682d693656218671c873d4aa74119c54a2b62de0e7c48ce"},
+    {file = "cython-3.2.5-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b4bfb00baef07106a1e5e7252ace18de91225322f7fa29970995aea7c380fa21"},
+    {file = "cython-3.2.5-cp310-cp310-win_amd64.whl", hash = "sha256:45baf00cb8b222a2ca7e9c48add5dac3ceb6e65be4f591150a6b6767ce1f86b0"},
+    {file = "cython-3.2.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:5887c24ebd19604b7a76d8ea57446cb562a590f7f2557e5954a69aae38b3195e"},
+    {file = "cython-3.2.5-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:56c97c5e43782ec9d9e66c465e253d2ccde0c578c364c46445efe484965524f0"},
+    {file = "cython-3.2.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:75f5295dc1b32d084fec598f9507e6f264311d78c07da640bc9a05dc47f7ac2c"},
+    {file = "cython-3.2.5-cp311-cp311-win_amd64.whl", hash = "sha256:b8bc1325cf3e4394cc08a3c1ea7fa24f02f405eef0e8c156d5055f6f9a7a1565"},
+    {file = "cython-3.2.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:eb38b89e5a8eb2508a1a0832063826b0703dfb02be84e4aa34b8818ce0ca50fe"},
+    {file = "cython-3.2.5-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c80e1e5cba5b4b9890364e9360939fc298c474f25754bb4bb861270d24bda6d6"},
+    {file = "cython-3.2.5-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4d00e2c976ee96da4deff50506c7882ccebb4a932fc178ef27eb42bfde959839"},
+    {file = "cython-3.2.5-cp312-cp312-win_amd64.whl", hash = "sha256:29243859d6824e2d33bae92fc83d591c3671b6d9ac1b757fa264b894ae906c2b"},
+    {file = "cython-3.2.5-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:6e5d7a60835345a8bd29d3aa57070880cc3ce017ea0ade7b9f771ce4bf539b1f"},
+    {file = "cython-3.2.5-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f9b564f67b01bffa2521f475794b49f2787709cec1f91d5935a38eba37f2b359"},
+    {file = "cython-3.2.5-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0a81220817ff954eddf4512a5b82089094a2f523eb1dc4ad555efd6f07b009b4"},
+    {file = "cython-3.2.5-cp313-cp313-win_amd64.whl", hash = "sha256:3795237ab49753647e329181b140c424e8aa97543074f171f8d2c45e5014a06e"},
+    {file = "cython-3.2.5-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:a636c8b7824f3cb587eb2fdde59d8f4a14d433565508081cc290198e37567910"},
+    {file = "cython-3.2.5-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:69cd71b90d4e0f142fd15b2353982c3f9171fc5e613001f16bcb366ffb29004b"},
+    {file = "cython-3.2.5-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3864da4ca2ebe4660d8f672f2143b02840bf3045655222f6090486171c84298f"},
+    {file = "cython-3.2.5-cp314-cp314-win_amd64.whl", hash = "sha256:605c447188aecf2941709f53a2ce44862be256e54601c01b38ab710d83db8047"},
+    {file = "cython-3.2.5-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:a3a423468ee77c3c5b26494f57d9c52e9318991fb7142f4c49fb01b99373e8d6"},
+    {file = "cython-3.2.5-cp38-cp38-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:cce98a9011ac6a2560b3587db22912bd0138267669ec567b0d57eddd2d741b8b"},
+    {file = "cython-3.2.5-cp38-cp38-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:561613ddd1ee83088eb126e80a5a7d73ee6eb82e0b1aea09afbe170287e5e27f"},
+    {file = "cython-3.2.5-cp38-cp38-win_amd64.whl", hash = "sha256:677bb60fd8f5949e26c0a7898983967dbbb65f7628481d8480956b85ca766554"},
+    {file = "cython-3.2.5-cp39-abi3-macosx_10_9_x86_64.whl", hash = "sha256:224149d18d980e6ea5001b70fc7ce096c1891d59035dfa9cc5ede50f55804913"},
+    {file = "cython-3.2.5-cp39-abi3-manylinux1_i686.manylinux_2_28_i686.manylinux_2_5_i686.whl", hash = "sha256:992a50e90d01813333752f374a4405863113059ec67102ab8d6a431a171ee328"},
+    {file = "cython-3.2.5-cp39-abi3-manylinux2014_armv7l.manylinux_2_17_armv7l.manylinux_2_31_armv7l.whl", hash = "sha256:8d7b81e6a52a84a02993f01aa5873786ba1dd593c892d93d5fe9866da0bad297"},
+    {file = "cython-3.2.5-cp39-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:34d21aeb08477c9173e8be7a566b19e880a7c8109ec6bb47a4b20cb680141114"},
+    {file = "cython-3.2.5-cp39-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:c4c79e697db55f082a2d3ba97702e71881d5bb1f56f0a80fa338e69101e4c59b"},
+    {file = "cython-3.2.5-cp39-abi3-musllinux_1_2_i686.whl", hash = "sha256:39acb30eba78ba6d995d5cf3d97d57d450663d93aac6f8b93753d2b89d768c60"},
+    {file = "cython-3.2.5-cp39-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:382122de8d6b6024fc374fabc3a2b14ba5860ed981c25055ed14fe44278b9dc7"},
+    {file = "cython-3.2.5-cp39-abi3-win32.whl", hash = "sha256:0bc29c7f870b09efdb1f583fbec9592b33af81a7ce273b89c8f5163d7572d5c1"},
+    {file = "cython-3.2.5-cp39-abi3-win_arm64.whl", hash = "sha256:85b2944c3eddfc230f9082720195a2e9f869908e5a8b3185be1be832755ee7fc"},
+    {file = "cython-3.2.5-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:91cb5b9ff599612737b3fd0dddcd401acdf904b78c2caf8cd1049501d0a53f2d"},
+    {file = "cython-3.2.5-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:268aecadcabcdad9f773b8a5694746e0b9ee7894b56b84e2e3a2ccb6c929ea79"},
+    {file = "cython-3.2.5-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:05c22cd606ac8d14a9cf17e48668bb37734c803978bf4d793c7f11ef54c4451f"},
+    {file = "cython-3.2.5-cp39-cp39-win_amd64.whl", hash = "sha256:3e5e519bad217a0b96fc281666720ed7d339da618acaa012bea712980b8fe6c9"},
+    {file = "cython-3.2.5-py3-none-any.whl", hash = "sha256:dc1c8cebb7df5bce37f5f8dc1e5bf04313272a5973d50a55c0ec76c83812911b"},
+    {file = "cython-3.2.5.tar.gz", hash = "sha256:3dd42e4cf36ad15f265bdfec2337cc00c688c8eb6d374ffd13bb19437c27bba1"},
+]
+markers = {main = "python_version == \"3.13\" and extra == \"openfermion\"", dev = "python_version == \"3.13\""}
 
 [[package]]
 name = "dataclasses-json"
@@ -3892,7 +4011,6 @@ files = [
     {file = "mpmath-1.3.0-py3-none-any.whl", hash = "sha256:a0b2b9fe80bbcd81a6647ff13108738cfb482d481d826cc0e02f5b35e5c88d2c"},
     {file = "mpmath-1.3.0.tar.gz", hash = "sha256:7a28eb2a9774d00c7bc92411c19a89209d5da7c4c9a9e227be8330a23a25b91f"},
 ]
-markers = {main = "(python_version < \"3.14\" or extra == \"tket\" or extra == \"cirq\" or extra == \"openfermion\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (python_version >= \"3.10\" or extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\")"}
 
 [package.extras]
 develop = ["codecov", "pycodestyle", "pytest (>=4.6)", "pytest-cov", "wheel"]
@@ -4343,6 +4461,7 @@ description = "Fundamental package for array computing in Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
+markers = "python_version != \"3.13\""
 files = [
     {file = "numpy-1.26.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9ff0f4f29c51e2803569d7a51c2304de5554655a60c5d776e35b4a41413830d0"},
     {file = "numpy-1.26.4-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2e4ee3380d6de9c9ec04745830fd9e2eccb3e6cf790d39d7b98ffd19b0dd754a"},
@@ -4380,6 +4499,89 @@ files = [
     {file = "numpy-1.26.4-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:95a7476c59002f2f6c590b9b7b998306fba6a5aa646b1e22ddfeaf8f78c3a29c"},
     {file = "numpy-1.26.4-pp39-pypy39_pp73-win_amd64.whl", hash = "sha256:7e50d0a0cc3189f9cb0aeb3a6a6af18c16f59f004b866cd2be1c14b36134a4a0"},
     {file = "numpy-1.26.4.tar.gz", hash = "sha256:2a02aba9ed12e4ac4eb3ea9421c420301a0c6460d9830d74a9df87efa4912010"},
+]
+
+[[package]]
+name = "numpy"
+version = "2.4.6"
+description = "Fundamental package for array computing in Python"
+optional = false
+python-versions = ">=3.11"
+groups = ["main", "dev"]
+markers = "python_version == \"3.13\""
+files = [
+    {file = "numpy-2.4.6-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:0280e0356c0829a18d9de1cb7eee50ec22ca639878d7240307ca0943d73cd2c4"},
+    {file = "numpy-2.4.6-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:110f8b71aacb688ec69062bb7f6938a0f8acb01b7c1c4beb453c65b6d234584d"},
+    {file = "numpy-2.4.6-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:4cfe66903cc32a9921a6733d96b19bb6abf310397581bbad89c228f5abaf0ee8"},
+    {file = "numpy-2.4.6-cp311-cp311-macosx_14_0_x86_64.whl", hash = "sha256:8155154c7c691289fe18f510b5d4657c68c67989f293f0535a91360392ff6538"},
+    {file = "numpy-2.4.6-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:0ab0a9c4ffb1a6d95ef519fe4247dba8eb6b18ad93999f76b7f657039acabd47"},
+    {file = "numpy-2.4.6-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:89cd468399cfd2504718f0ba50e410dca55a170b61a02ad92bb18c8a65186e93"},
+    {file = "numpy-2.4.6-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:c2d37ab77531417474168eb79d6d80b14f821a966818505d03013d0833edb7a8"},
+    {file = "numpy-2.4.6-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:f407cb6b8e9d6d8c626bc73c945db1706035af8fd632295547bf1c9e46d092d6"},
+    {file = "numpy-2.4.6-cp311-cp311-win32.whl", hash = "sha256:ddea102b48f9e339f3948bf22040944184627a30fdf7f858667673b9c5f033c8"},
+    {file = "numpy-2.4.6-cp311-cp311-win_amd64.whl", hash = "sha256:1e254a00cdf42b1e4d5b3d68d33af63268d41340d8885df2ab6470f2e1500147"},
+    {file = "numpy-2.4.6-cp311-cp311-win_arm64.whl", hash = "sha256:ed9749eef4cbd126da3dc1d6bcb3a57f5eb7ac6a6484146bdbf743f552dfc577"},
+    {file = "numpy-2.4.6-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:001fbb8e08d942dd57599e781f2472269ee7f2755fae407b4f67b2f0b17da3f1"},
+    {file = "numpy-2.4.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:ebfb099f8dcf083deef3ac1ca4c1503f387cf76296fcb3816b66f5ecb5f54fdb"},
+    {file = "numpy-2.4.6-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:3213d622a0283a39a93d188f3cf72b26862df52fbb4ca3697f51705016523d41"},
+    {file = "numpy-2.4.6-cp312-cp312-macosx_14_0_x86_64.whl", hash = "sha256:357cc07a6d7b0b182ff02249616a03742827ebb1277546b5c7cd7f7620a45698"},
+    {file = "numpy-2.4.6-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5f9fb9157b4ce2971008323afe46053787b526ef624fea915b261468a8421a0f"},
+    {file = "numpy-2.4.6-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:90f9849678c75fe7afa2d348ac842c168b0a4d3d61919687216dfc547976d853"},
+    {file = "numpy-2.4.6-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:c1a2af6c6ef86344a6b0db6b97834208bf598db514f2b155042439b62605601a"},
+    {file = "numpy-2.4.6-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:e5805d5a22fd19c8ccff10a9561f9df94436b0545619ea579db2d3c35294bce2"},
+    {file = "numpy-2.4.6-cp312-cp312-win32.whl", hash = "sha256:e3eeb0aabd6bd5ce64faae67e9935203a6991b4bc2a485a767fbafb2c5125f45"},
+    {file = "numpy-2.4.6-cp312-cp312-win_amd64.whl", hash = "sha256:d8e8286dd7cea7895157318d1b91cdacac64c479f3cbc8dce548331728484751"},
+    {file = "numpy-2.4.6-cp312-cp312-win_arm64.whl", hash = "sha256:4081eb135ac24158bd51cdfbef16f1c64df7063b1143f24731387137c092bec8"},
+    {file = "numpy-2.4.6-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:511dbaf848decaaaf4b4ca48032619fb3138710c4bf7da7617765edad1ef96b0"},
+    {file = "numpy-2.4.6-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:bf162abab1c1a736333192707cef898e735a5ca00f38f27eeedf44b39d9e85eb"},
+    {file = "numpy-2.4.6-cp313-cp313-macosx_14_0_arm64.whl", hash = "sha256:043191bfa8eab18c776647b62723ac9dddece59743b13f49b2016094129c2b3f"},
+    {file = "numpy-2.4.6-cp313-cp313-macosx_14_0_x86_64.whl", hash = "sha256:6180d8b35af935aed8ece3a85e0a43f87393ae0ac87c8d2c8bd2c993f7270ef3"},
+    {file = "numpy-2.4.6-cp313-cp313-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:72fbe16c6fac95aedf5937fa873445cec2110be35d8a4e9433d7501fd98dae6b"},
+    {file = "numpy-2.4.6-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a7830bab239b79cda9c08c2da014761cafb48da6150e1da17ac06283f43b6089"},
+    {file = "numpy-2.4.6-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:ef4aea96ce4d3b074422cb4f2f64e216bf9e213004bb58ecfdf50ea02ea8eb9a"},
+    {file = "numpy-2.4.6-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:dfa20cc6ca228e6b155b11da03825975ce66aea520985dbbddf0f2a5a495c605"},
+    {file = "numpy-2.4.6-cp313-cp313-win32.whl", hash = "sha256:56b39e5e0622a09a25bf5baf62f4bcf0cb8a41ae6e2819cf49bbc5a74c083f91"},
+    {file = "numpy-2.4.6-cp313-cp313-win_amd64.whl", hash = "sha256:c4fc99836233ea196540b17ab0983aff60ed07941751930f5f4d05bc3b3b7359"},
+    {file = "numpy-2.4.6-cp313-cp313-win_arm64.whl", hash = "sha256:a7c711e21628b52034bb5ab8d1bce291f752fcc5e92accc615778acee1ff4778"},
+    {file = "numpy-2.4.6-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:112b06a867b235ef466ed3508ddf0238050df9c727cafb5301ac385b899189a1"},
+    {file = "numpy-2.4.6-cp313-cp313t-macosx_14_0_arm64.whl", hash = "sha256:eaf7fa2de5c0be8ae6ff8e9bea2ccd725e980541244521d8d4b5f3354a27babe"},
+    {file = "numpy-2.4.6-cp313-cp313t-macosx_14_0_x86_64.whl", hash = "sha256:7265a2f3d436e54ef9f2b52b5c937e6be778781bd97a590319d7348f1c1ca997"},
+    {file = "numpy-2.4.6-cp313-cp313t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:f74a575920ab21fe304421a3fc28793d82e299cae9eccb37084e9fc7f3617c20"},
+    {file = "numpy-2.4.6-cp313-cp313t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:ede83e07a75dd06bc501566c1eca2afc0d61677c1472ac9ad93fdee6e638a48d"},
+    {file = "numpy-2.4.6-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:68bb27509ac1b9a3443094260f6326150663b06abe40b73a2f81160623da5b67"},
+    {file = "numpy-2.4.6-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:a0df0043bdb289bde1f62da130d20df23d58b45429f752bc7a8fc5325a225ecd"},
+    {file = "numpy-2.4.6-cp313-cp313t-win32.whl", hash = "sha256:29a287e0cf63ff528da061de6b9f64a4618da591ca1046aafc54062e40ca7eab"},
+    {file = "numpy-2.4.6-cp313-cp313t-win_amd64.whl", hash = "sha256:25c692919ac5a01f170a3bfcd62d745b24fd095c353d50812637d6fcab442e75"},
+    {file = "numpy-2.4.6-cp313-cp313t-win_arm64.whl", hash = "sha256:1e978ec1e8bd0e0e4de6bb75de9d30cbb74db6b6a2bb727618613703ca0167dd"},
+    {file = "numpy-2.4.6-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:06ca2f61ec4385a07a6977c55ba998a4466c123642b4a32694d3128fce18c079"},
+    {file = "numpy-2.4.6-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:38efbc8de75c7a0fc1ac190162d892787f3f47b57cc291231aafee36b80982b7"},
+    {file = "numpy-2.4.6-cp314-cp314-macosx_14_0_arm64.whl", hash = "sha256:d581b735e177fdcdce6fed8e7e8880a3fb6ee4e3653a3ac6af01c6f4c03effc5"},
+    {file = "numpy-2.4.6-cp314-cp314-macosx_14_0_x86_64.whl", hash = "sha256:0a041d3d761dc3c35cc56ce0351506a02bcbc25f7b169f652435141a17db9096"},
+    {file = "numpy-2.4.6-cp314-cp314-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:40fdc1ae7125e518ea98e53e69a4ebc27e1fd50510c47b7ea130cf21e5e1d42b"},
+    {file = "numpy-2.4.6-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:a2c306dea656c12c68f51f4cea133cbe78ca7435eb28c735eac1d3ebe73be6e8"},
+    {file = "numpy-2.4.6-cp314-cp314-musllinux_1_2_aarch64.whl", hash = "sha256:33111801a01c12a8a1e3721f0a9232f8cfc8ae2c6b7098167e6f623c6073f402"},
+    {file = "numpy-2.4.6-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:ae506e6902902557576a26ff33eda8695e7ecb3cb36c3b573a0765dee114ebdb"},
+    {file = "numpy-2.4.6-cp314-cp314-win32.whl", hash = "sha256:aaf159caa35993cb1f56fb9b8e4610d35758e7ca005412eb1daa856a78c9c4b1"},
+    {file = "numpy-2.4.6-cp314-cp314-win_amd64.whl", hash = "sha256:b507f5c4c1d508876d1819b6bf9a49d365b96320b5d4993426b33a23ca4b8261"},
+    {file = "numpy-2.4.6-cp314-cp314-win_arm64.whl", hash = "sha256:6f41ae150c4e32db4f3310cdaf64b1593a03dbabe29eec77fc9b50fe64061df6"},
+    {file = "numpy-2.4.6-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:ece3d2cfe132e7d51f44a832b303895e6f2d499c5e74dfbdb06ee246147a304a"},
+    {file = "numpy-2.4.6-cp314-cp314t-macosx_14_0_arm64.whl", hash = "sha256:e3e5193ef5a3dc73bceee50f7fdc2c90dbb76c42df8d8fae3d1067a583df579e"},
+    {file = "numpy-2.4.6-cp314-cp314t-macosx_14_0_x86_64.whl", hash = "sha256:17f9ade344e7d9b464a084d69bcf18fc691cb1db67c62ed80820bf4926d78f0e"},
+    {file = "numpy-2.4.6-cp314-cp314t-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9cd5ffd25db4e7ba6a375693b3fc0fc1791ec636c17db3720da19bde7180ec43"},
+    {file = "numpy-2.4.6-cp314-cp314t-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7d92c3819208a60205a12a245c91ad70cb0a85336659b19b834205573ac8456e"},
+    {file = "numpy-2.4.6-cp314-cp314t-musllinux_1_2_aarch64.whl", hash = "sha256:e85b752a1e912b70eaad4fafbd4d1238007ab221de2009b9a2f5ae7461239895"},
+    {file = "numpy-2.4.6-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:29cb7f67d10b479ff07c17d33e39f78c07f71c40ef30d63c153d340e96cd3fb4"},
+    {file = "numpy-2.4.6-cp314-cp314t-win32.whl", hash = "sha256:260a5d70215b61ab4fadf5c7baacd64821842975eea312125ed3c39a6391b063"},
+    {file = "numpy-2.4.6-cp314-cp314t-win_amd64.whl", hash = "sha256:81a1cca95ed5bb92aa8b10dd2cdc9a0d3853a50fad926c28b5d7e8ea54389627"},
+    {file = "numpy-2.4.6-cp314-cp314t-win_arm64.whl", hash = "sha256:0c9136e14ed34a9e343a31c533d78a9813a69a3148332bce5e9821cb2f996e66"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-macosx_10_15_x86_64.whl", hash = "sha256:55cced7c52e981362f708ad635198e97a752dfba412cc03c23bbf3bd8d5cd662"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:d6da64deb6b8ed903e7560180a92f2d804ee1ba5eeb849ac2748b8c1aba1f6d7"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-macosx_14_0_arm64.whl", hash = "sha256:68a5124b13fa6cc2086764a20005d30bc0548146f7f5322f02fce212ca14317f"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-macosx_14_0_x86_64.whl", hash = "sha256:948424b06129ce883307e8cff868c31396d8dc7630a59c61d70d98dbe70f222c"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5dbbdb29840ca3d91ee0fece42fc29278886d908280bfec0a5846c6f901a3eb0"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:8ad03c0965fb3c692200e74d458ca28c1dbb4ce96f9a479a8aa041ad5fabca02"},
+    {file = "numpy-2.4.6-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:2803abfebfc990042cd494d8ce2d5f82e9d847af6d35ec486923aa19dbad5e73"},
+    {file = "numpy-2.4.6.tar.gz", hash = "sha256:f3a3570c4a2a16746ac2c31a7c7c7b0c186b95ce902e33db6f28094ed7387dda"},
 ]
 
 [[package]]
@@ -5647,7 +5849,7 @@ groups = ["main", "dev"]
 files = [
     {file = "pyqret-1.0.1.tar.gz", hash = "sha256:0dcfc1615cab003190f1a85c759758f53daca8880868f7ac657eb2bbdc91a70d"},
 ]
-markers = {main = "extra == \"qret\" and sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and python_version >= \"3.10\"", dev = "python_version >= \"3.10\" and sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\""}
+markers = {main = "sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\" and extra == \"qret\" and python_version >= \"3.10\"", dev = "sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\""}
 
 [package.dependencies]
 typing_extensions = "*"
@@ -6225,7 +6427,7 @@ temp = ">=2020.7.2,<2021.0.0"
 
 [[package]]
 name = "quri-algo"
-version = "0.26.1"
+version = "0.26.2"
 description = "Algorithm library based on QURI Parts"
 optional = false
 python-versions = ">=3.10,<4"
@@ -6323,7 +6525,10 @@ files = []
 develop = true
 
 [package.dependencies]
-numpy = ">=1.22.0, <2.0"
+numpy = [
+    {version = ">=1.22.0,<2.0", markers = "python_version != \"3.13\""},
+    {version = ">=2.1.0", markers = "python_version == \"3.13\""},
+]
 quri-parts-rust = "*"
 typing-extensions = "^4.1.1"
 
@@ -6343,7 +6548,10 @@ develop = true
 markers = {main = "extra == \"cirq\""}
 
 [package.dependencies]
-cirq-core = ">=1.0,<1.4"
+cirq-core = [
+    {version = ">=1.0,<1.4", markers = "python_version != \"3.13\""},
+    {version = ">=1.6,<1.7", markers = "python_version == \"3.13\""},
+]
 numpy = ">=1.22.0"
 quri-parts-circuit = "*"
 
@@ -6363,7 +6571,10 @@ develop = true
 
 [package.dependencies]
 networkx = "*"
-numpy = ">=1.22.0, <2.0"
+numpy = [
+    {version = ">=1.22.0,<2.0", markers = "python_version != \"3.13\""},
+    {version = ">=2.1.0", markers = "python_version == \"3.13\""},
+]
 quri-parts-circuit = "*"
 quri-parts-qulacs = "*"
 scipy = "^1.11.3"
@@ -6510,18 +6721,7 @@ markers = {main = "python_version >= \"3.10\" and extra == \"qret\"", dev = "pyt
 
 [package.dependencies]
 numpy = ">=1.22.0"
-pyqret = [
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl", markers = "python_version == \"3.10\" and sys_platform == \"darwin\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == \"3.10\" and sys_platform == \"linux\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-win_amd64.whl", markers = "python_version == \"3.10\" and sys_platform == \"win32\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_arm64.whl", markers = "python_version == \"3.11\" and sys_platform == \"darwin\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == \"3.11\" and sys_platform == \"linux\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-win_amd64.whl", markers = "python_version == \"3.11\" and sys_platform == \"win32\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"darwin\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"linux\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-win_amd64.whl", markers = "python_version >= \"3.12\" and sys_platform == \"win32\""},
-    {url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1.tar.gz", markers = "sys_platform != \"linux\" and sys_platform != \"darwin\" and sys_platform != \"win32\""},
-]
+pyqret = "^1.0.1"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 quri-parts-qsub = "*"
@@ -6592,7 +6792,7 @@ url = "quri-parts/packages/qulacs"
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.26.1"
+version = "0.26.2"
 description = "Platform-independent quantum circuit library"
 optional = false
 python-versions = "^3.9.8"
@@ -6674,7 +6874,7 @@ url = "quri-parts/packages/tket"
 
 [[package]]
 name = "quri-vm"
-version = "0.26.1"
+version = "0.26.2"
 description = ""
 optional = false
 python-versions = "<4,>=3.10"
@@ -8027,7 +8227,7 @@ files = [
     {file = "sympy-1.14.0-py3-none-any.whl", hash = "sha256:e091cc3e99d2141a0ba2847328f5479b05d94a6635cb96148ccb3f34671bd8f5"},
     {file = "sympy-1.14.0.tar.gz", hash = "sha256:d3d3fe8df1e5a0b42f0e7bdf50541697dbe7d23746e894990c030e2b05e72517"},
 ]
-markers = {main = "(python_version < \"3.14\" or extra == \"tket\" or extra == \"cirq\" or extra == \"openfermion\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (python_version >= \"3.10\" or extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\")"}
+markers = {main = "(python_version < \"3.14\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\" or extra == \"tket\") and (python_version >= \"3.10\" or extra == \"braket\" or extra == \"qiskit\" or extra == \"cirq\" or extra == \"openfermion\")"}
 
 [package.dependencies]
 mpmath = ">=1.1.0,<1.4"
@@ -8237,6 +8437,54 @@ files = [
 [package.extras]
 docs = ["myst-parser", "pydata-sphinx-theme", "sphinx"]
 test = ["argcomplete (>=3.0.3)", "mypy (>=1.7.0)", "mypy (>=1.7.0,<1.19) ; platform_python_implementation == \"PyPy\"", "pre-commit", "pytest (>=7.0,<8.2)", "pytest-mock", "pytest-mypy-testing"]
+
+[[package]]
+name = "typedunits"
+version = "0.0.2"
+description = "A fast units and dimensions library with support for static dimensionality checking and protobuffer serialization."
+optional = false
+python-versions = ">=3.10.0"
+groups = ["main", "dev"]
+files = [
+    {file = "typedunits-0.0.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:666e21abf91f477a7afe6af535d96e4c75fbf78b4bb457b1a5a4c365cfd440d1"},
+    {file = "typedunits-0.0.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:9d180c6e576e0149220e56805bc9cfc6b0d83b4eb84a407c5819210eafca31e3"},
+    {file = "typedunits-0.0.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:f3ea03bb2005a40f54b1e1026f953c6e344cf0aaff728290e4cc6e552fc52982"},
+    {file = "typedunits-0.0.2-cp310-cp310-win32.whl", hash = "sha256:666399dd90e4b57e04e315411ffbd40261f4d7dfdd9da8fde07c9887e209cd51"},
+    {file = "typedunits-0.0.2-cp310-cp310-win_amd64.whl", hash = "sha256:e59a9da833eb6d899efae373731c6cb65938d9644a8af90ce1bbefb6b095ed02"},
+    {file = "typedunits-0.0.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:f3ab5064c58038509365af401fb605410f9afd6f6cda097466b85f05b658d890"},
+    {file = "typedunits-0.0.2-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c04eac8d23bc927ca94ce7dd4ca98ab926288a57810cb4987cb028f38148e9c6"},
+    {file = "typedunits-0.0.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2e344da69381eddc928c584c7c25293e10326544d78ac906ef4c25ac440fdbaf"},
+    {file = "typedunits-0.0.2-cp311-cp311-win32.whl", hash = "sha256:dc524490037d55ecab434f6d4d0c02e711db36d11123c55d39ca484dfa4c756d"},
+    {file = "typedunits-0.0.2-cp311-cp311-win_amd64.whl", hash = "sha256:e0dd0f0d100cabb0aebd48e7bb5366df892917bd8efe9e0d605b1bfd6693093d"},
+    {file = "typedunits-0.0.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:e2f1e02d0de5b04cba9316366c35c185dcd75eb18abd12fedcc0a99566138731"},
+    {file = "typedunits-0.0.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:a008277c1cc073861d1238ebc6456750ab2fe29c0d008c6f7dad9d6d0d4d7edb"},
+    {file = "typedunits-0.0.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3d6b03ec6fe1676c870875cc302b3034064ab22889cc11bda9ad0c2b110a1025"},
+    {file = "typedunits-0.0.2-cp312-cp312-win32.whl", hash = "sha256:8e3f9d829054842d8d528b46f5b311a17e581bf3204f17a22b904bb23adc5bfe"},
+    {file = "typedunits-0.0.2-cp312-cp312-win_amd64.whl", hash = "sha256:7a38732f9f8b8c1e4586b74647aba12337b7adbc240d6be7cf806133fa7a4403"},
+    {file = "typedunits-0.0.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:5a86d87149c90082be2203fbc952ad12ccb344581943762d451975a4eac6b543"},
+    {file = "typedunits-0.0.2-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:6b0ddb8e9d3e2e5831cb4a3b6c5c329d8ecf60020c5c07f916cae45359b8fc69"},
+    {file = "typedunits-0.0.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b561776c9c0105fb61d21c00784114b8f6cb4a3cd5059d2260d19a5495c69e27"},
+    {file = "typedunits-0.0.2-cp313-cp313-win32.whl", hash = "sha256:08ccc81be3663b05550a0e88719f07dfbe5f956f0f3b21554a75bb5d3cf33b2f"},
+    {file = "typedunits-0.0.2-cp313-cp313-win_amd64.whl", hash = "sha256:9ed57f0a9fa2f6bf2ba2f2e2cc27672935faf380bd6978d39f2324a78fe87017"},
+    {file = "typedunits-0.0.2-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:98c4fc14e6854cefcc794609fa6710de918d469c8662a04fb8e533aff356786b"},
+    {file = "typedunits-0.0.2-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:71bcd5d77a75be2f86fec17739f3f4f5d542fe4f51e6400cd6e989853ecc1f81"},
+    {file = "typedunits-0.0.2-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5f6faca980dda2220c57681375d0131dff9e174bc68db5e88a970f274a2dfc7e"},
+    {file = "typedunits-0.0.2-cp314-cp314-win32.whl", hash = "sha256:cb8c47da0b6faf5da8ec990b3ef297e83aefc85a74b83f6839ecf1c2e3560f93"},
+    {file = "typedunits-0.0.2-cp314-cp314-win_amd64.whl", hash = "sha256:c32e68e9e2d24d8223ba0ab89ca684e16f786c50d4538b5d9c4b37acf255d566"},
+    {file = "typedunits-0.0.2-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:702f40f0a5e64262d5de4a5e5182edbcd1aae7262f1ea8fab6e86710f91d9df3"},
+    {file = "typedunits-0.0.2-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:fb30e321cf3f56df5590cdffa229ef0e933e51096d93a29d44b9af3254225302"},
+    {file = "typedunits-0.0.2-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:cb7bbd55650e7479d7b7d848b4851236adf0f9fc00e5119dd14e930bc8cc9d7e"},
+    {file = "typedunits-0.0.2-cp314-cp314t-win32.whl", hash = "sha256:fbea15a29e62c29fdb615db14dbb16a982e447197ae036f4209c83d55c3730ba"},
+    {file = "typedunits-0.0.2-cp314-cp314t-win_amd64.whl", hash = "sha256:bb9164a2572fc65d5ec31d425aff693304c47f49057c420558f006f697d5ead2"},
+]
+markers = {main = "python_version == \"3.13\" and extra == \"openfermion\"", dev = "python_version == \"3.13\""}
+
+[package.dependencies]
+attrs = "*"
+cython = ">=3.0.0"
+numpy = ">=1.23.0"
+protobuf = ">=4.25"
+pyparsing = "*"
 
 [[package]]
 name = "typing-extensions"
@@ -8452,6 +8700,7 @@ type = ["pytest-mypy"]
 [extras]
 braket = ["quri-parts-braket"]
 cirq = ["quri-parts-cirq"]
+colorcet = ["colorcet"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 openfermion = ["quri-parts-openfermion"]
@@ -8469,4 +8718,4 @@ tket = ["quri-parts-tket"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9.8"
-content-hash = "af72106e9cab5345a3cc61a2072cf12495e605a9d9866c1f7e552ce233a7559b"
+content-hash = "093ef49f02d21ec230089745caf1bb2266c38d13bfd47f0a4b41a95f72c0f425"

@@ -1,4 +1,4 @@
-from quri_parts.circuit import QuantumCircuit
+from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.qsub.compile import compile, compile_sub
 from quri_parts.qsub.eval.quriparts import (
     QURIPartsEvaluatorHooks,
@@ -88,6 +88,38 @@ def test_compare_to_expand() -> None:
     evaluated_circuit = Evaluator(QURIPartsEvaluatorHooks()).run(compiled_msub)
 
     assert expanded_evaluated_circuit == evaluated_circuit
+
+
+def test_sub_cache_respects_qubit_argument_order() -> None:
+    """The gate cache must not reuse results across calls to the same sub with
+    different qubit argument orders.
+
+    Regression: the cache key was derived from the call-site qubit sequence rather
+    than the sub's own qubit-to-physical mapping, so F(q0, q1) and F(q1, q0)
+    produced the same key and the second call incorrectly reused the first call's gates.
+    """
+
+    class FDef(OpSubDef):
+        name = "F"
+        qubit_count = 2
+
+        def sub(self, builder: SubBuilder) -> None:
+            q = builder.qubits[0]
+            builder.add_op(X, (q,))
+
+    F, _ = opsub(FDef)
+
+    builder = SubBuilder(2)
+    q0, q1 = builder.qubits
+    builder.add_op(F, (q0, q1))  # X(0)
+    builder.add_op(F, (q1, q0))  # X(1)
+
+    compiled = compile_sub(builder.build(), (X,))
+    circ = Evaluator(QURIPartsEvaluatorHooks()).run(compiled)
+
+    expected = [gates.X(0), gates.X(1)]
+    for i, g in enumerate(expected):
+        assert circ.gates[i] == g, f"{i}-th gate doesn't match"
 
 
 def test_reuse_evaluator() -> None:
