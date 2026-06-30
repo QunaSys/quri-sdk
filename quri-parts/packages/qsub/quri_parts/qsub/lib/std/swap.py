@@ -33,6 +33,14 @@ default_repository().register_sub(SWAP, _swap_sub())
 
 
 class _Rot(ParamUnitarySubDef[int]):
+    """Cyclically rotates the states of an ``n``-qubit register by one
+    position.
+
+    The rotation is implemented as a ladder of adjacent :data:`SWAP`
+    operations, moving the state of the first qubit to the last qubit while
+    shifting every other qubit one position toward the first.
+    """
+
     name = "Rot"
     unitary = True
 
