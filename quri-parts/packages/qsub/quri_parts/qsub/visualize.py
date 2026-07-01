@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Circuit visualisation helpers (:mod:`quri_parts.qsub.visualize`)
+"""Circuit visualization helpers (:mod:`quri_parts.qsub.visualize`)
 =====================================================================
 
 Converts :class:`~quri_parts.qsub.sub.Sub` and

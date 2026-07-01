@@ -21,7 +21,7 @@ line-of-H helper, and two QPE variants (standard and list-Uk).
 Key objects:
 
 - :data:`QPE` -- standard QPE circuit op
-- :data:`QPEListUk` -- generalised QPE with per-ancilla unitaries
+- :data:`QPEListUk` -- generalized QPE with per-ancilla unitaries
 - :data:`QFTdag` -- inverse quantum Fourier transform
 """
 
