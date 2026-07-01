@@ -37,8 +37,8 @@ class _Rot(ParamUnitarySubDef[int]):
     position.
 
     The rotation is implemented as a ladder of adjacent :data:`SWAP`
-    operations, moving the state of the first qubit to the last qubit while
-    shifting every other qubit one position toward the first.
+    operations, moving the state of the first qubit to the last qubit
+    while shifting every other qubit one position toward the first.
     """
 
     name = "Rot"
