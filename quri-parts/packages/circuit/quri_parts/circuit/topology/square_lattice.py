@@ -17,8 +17,8 @@ transpiler for routing two-qubit gates.
 
 Key classes:
 
-- :class:`SquareLattice` — rectangular qubit connectivity graph
-- :class:`SquareLatticeSWAPInsertionTranspiler` — route gates via SWAP insertion
+- :class:`SquareLattice` -- rectangular qubit connectivity graph
+- :class:`SquareLatticeSWAPInsertionTranspiler` -- route gates via SWAP insertion
 """
 
 

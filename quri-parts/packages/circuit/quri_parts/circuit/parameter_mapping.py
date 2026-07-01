@@ -17,9 +17,9 @@ supporting arbitrary and linear (affine) transforms.
 
 Key classes:
 
-- :class:`ParameterMapping` — abstract parameter-mapping protocol
-- :class:`ParameterMappingBase` — base class for mapping implementations
-- :class:`LinearParameterMapping` — affine parameter mapping
+- :class:`ParameterMapping` -- abstract parameter-mapping protocol
+- :class:`ParameterMappingBase` -- base class for mapping implementations
+- :class:`LinearParameterMapping` -- affine parameter mapping
 """
 
 

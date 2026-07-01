@@ -17,10 +17,10 @@ and multi-qubit noise channels.
 
 Key classes / functions:
 
-- :func:`BitFlipNoise` — Single qubit bit flip noise.
-- :func:`PhaseFlipNoise` — Single qubit phase flip noise.
-- :func:`BitPhaseFlipNoise` — Single qubit bit and phase flip noise.
-- :func:`DepolarizingNoise` — Single qubit depolarizing noise.
+- :func:`BitFlipNoise` -- Single qubit bit flip noise.
+- :func:`PhaseFlipNoise` -- Single qubit phase flip noise.
+- :func:`BitPhaseFlipNoise` -- Single qubit bit and phase flip noise.
+- :func:`DepolarizingNoise` -- Single qubit depolarizing noise.
 """
 
 

@@ -17,10 +17,10 @@ transpilation passes.
 
 Key classes:
 
-- :class:`CircuitTranspilerProtocol` — callable protocol for transpilers
-- :class:`SequentialTranspiler` — chain transpilers in sequence
-- :class:`GateDecomposer` — per-gate decomposition base class
-- :class:`GateKindDecomposer` — gate-kind-based decomposition base class
+- :class:`CircuitTranspilerProtocol` -- callable protocol for transpilers
+- :class:`SequentialTranspiler` -- chain transpilers in sequence
+- :class:`GateDecomposer` -- per-gate decomposition base class
+- :class:`GateKindDecomposer` -- gate-kind-based decomposition base class
 """
 
 

@@ -18,9 +18,9 @@ single- and two-qubit primitives.
 
 Key classes / functions:
 
-- :class:`PauliDecomposeTranspiler` — decompose multi-qubit Pauli gates
-- :class:`PauliRotationDecomposeTranspiler` — decompose PauliRotation gates
-- :class:`ParametricPauliRotationDecomposeTranspiler` — decompose parametric PauliRotation gates
+- :class:`PauliDecomposeTranspiler` -- decompose multi-qubit Pauli gates
+- :class:`PauliRotationDecomposeTranspiler` -- decompose PauliRotation gates
+- :class:`ParametricPauliRotationDecomposeTranspiler` -- decompose parametric PauliRotation gates
 """
 
 

@@ -17,7 +17,7 @@ mapping.
 
 Key classes / functions:
 
-- :class:`QubitRemappingTranspiler` — Remap qubits in the circuit with the specified mapping.
+- :class:`QubitRemappingTranspiler` -- Remap qubits in the circuit with the specified mapping.
 """
 
 

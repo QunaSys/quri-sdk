@@ -17,7 +17,7 @@ Approximate non-Clifford gates with Clifford sequences.
 
 Key classes:
 
-- :class:`CliffordApproximationTranspiler` — replace non-Clifford gates with Clifford approximations
+- :class:`CliffordApproximationTranspiler` -- replace non-Clifford gates with Clifford approximations
 """
 
 

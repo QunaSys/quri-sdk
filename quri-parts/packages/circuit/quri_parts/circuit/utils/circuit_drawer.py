@@ -16,7 +16,7 @@ ASCII-art circuit visualisation.
 
 Key functions:
 
-- :func:`draw_circuit` — render a circuit as ASCII art
+- :func:`draw_circuit` -- render a circuit as ASCII art
 """
 
 

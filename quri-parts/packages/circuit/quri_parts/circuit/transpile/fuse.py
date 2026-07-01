@@ -17,10 +17,10 @@ circuit depth and gate count.
 
 Key classes:
 
-- :class:`AdjacentGateFuser` — abstract base for gate-fusing passes
-- :class:`CNOTHCNOTFusingTranspiler` — fuse CNOT-H-CNOT patterns
-- :class:`FuseRotationTranspiler` — merge consecutive same-axis rotations
-- :class:`NormalizeRotationTranspiler` — normalise rotation angles to [0, 2pi)
+- :class:`AdjacentGateFuser` -- abstract base for gate-fusing passes
+- :class:`CNOTHCNOTFusingTranspiler` -- fuse CNOT-H-CNOT patterns
+- :class:`FuseRotationTranspiler` -- merge consecutive same-axis rotations
+- :class:`NormalizeRotationTranspiler` -- normalise rotation angles to [0, 2pi)
 """
 
 
