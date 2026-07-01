@@ -11,6 +11,13 @@
 """
 Parameter (:mod:`quri_parts.circuit.parameter`)
 ===============================================
+
+Parameter placeholders used to build parametric quantum circuits.
+
+Key items:
+
+- :class:`Parameter` -- placeholder for a circuit parameter without a concrete value
+- :data:`CONST` -- placeholder representing a constant term
 """
 
 

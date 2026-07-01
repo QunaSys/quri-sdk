@@ -17,10 +17,10 @@ equivalent sequences of other gates.
 
 Key classes:
 
-- :class:`CNOT2CZHTranspiler` — CNOT to CZ + H
-- :class:`CZ2CNOTHTranspiler` — CZ to CNOT + H
-- :class:`CZ2RXRYCNOTTranspiler` — CZ to RX + RY + CNOT
-- :class:`H2RZSqrtXTranspiler` — H to RZ + SqrtX
+- :class:`CNOT2CZHTranspiler` -- CNOT to CZ + H
+- :class:`CZ2CNOTHTranspiler` -- CZ to CNOT + H
+- :class:`CZ2RXRYCNOTTranspiler` -- CZ to RX + RY + CNOT
+- :class:`H2RZSqrtXTranspiler` -- H to RZ + SqrtX
 """
 
 

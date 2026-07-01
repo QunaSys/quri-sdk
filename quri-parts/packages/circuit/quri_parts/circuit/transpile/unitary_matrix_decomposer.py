@@ -18,10 +18,10 @@ entanglement gates via analytic matrix decompositions.
 
 Key classes / functions:
 
-- :class:`SingleQubitUnitaryMatrix2RYRZTranspiler` — 1-qubit unitary to RY + RZ
-- :class:`TwoQubitUnitaryMatrixKAKTranspiler` — 2-qubit unitary via KAK decomposition
-- :func:`su2_decompose` — SU(2) to (RY, RZ) angles
-- :func:`su4_decompose` — SU(4) KAK decomposition
+- :class:`SingleQubitUnitaryMatrix2RYRZTranspiler` -- 1-qubit unitary to RY + RZ
+- :class:`TwoQubitUnitaryMatrixKAKTranspiler` -- 2-qubit unitary via KAK decomposition
+- :func:`su2_decompose` -- SU(2) to (RY, RZ) angles
+- :func:`su4_decompose` -- SU(4) KAK decomposition
 """
 
 

@@ -17,10 +17,10 @@ rotation axes) to target-native equivalents.
 
 Key classes:
 
-- :class:`CliffordConversionTranspiler` — rewrite Clifford gates to a target set
-- :class:`RZ2RXRYTranspiler` — RZ to RX + RY
-- :class:`RY2RXRZTranspiler` — RY to RX + RZ
-- :class:`RX2RYRZTranspiler` — RX to RY + RZ
+- :class:`CliffordConversionTranspiler` -- rewrite Clifford gates to a target set
+- :class:`RZ2RXRYTranspiler` -- RZ to RX + RY
+- :class:`RY2RXRZTranspiler` -- RY to RX + RZ
+- :class:`RX2RYRZTranspiler` -- RX to RY + RZ
 """
 
 

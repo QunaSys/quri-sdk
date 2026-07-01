@@ -17,8 +17,8 @@ to parametric quantum circuits.
 
 Key classes:
 
-- :class:`ParameterShiftsAndCoef` — shift vector paired with its coefficient
-- :class:`ShiftedParameters` — collection of shifts for one parameter
+- :class:`ParameterShiftsAndCoef` -- shift vector paired with its coefficient
+- :class:`ShiftedParameters` -- collection of shifts for one parameter
 """
 
 
