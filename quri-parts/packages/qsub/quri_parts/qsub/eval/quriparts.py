@@ -212,7 +212,7 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
         self._update_qubit_map()
 
         assert self._qubit_map is not None
-        mapped_qs = tuple(self._qubit_map[q].uid for q in qubits)
+        mapped_qs = tuple(self._qubit_map[q].uid for q in sub.qubits)
         k = (sub.sub_id, mapped_qs, regs, self._allocator.total())
         if k in self._cache:
             gates = self._cache[k]
