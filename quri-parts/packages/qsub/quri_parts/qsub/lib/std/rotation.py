@@ -16,7 +16,7 @@ Parametric single-qubit rotation ops that take a float angle parameter.
 Key objects:
 
 - :data:`RX`, :data:`RY`, :data:`RZ` -- Pauli-axis rotations
-- :data:`Phase` -- global phase / U1 gate
+- :data:`Phase` -- relative phase / U1 gate
 """
 
 from quri_parts.qsub.op import ParamUnitaryDef, param_op
