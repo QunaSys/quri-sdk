@@ -71,10 +71,11 @@ def driver_cli(up_to_phase: bool = True) -> GridsynthDriver:
     """Build a gridsynth driver that shells out to the external ``gridsynth``
     command-line tool (an alternative to :func:`driver_pygridsynth`).
 
-    The executable is taken from the ``GRIDSYNTH_PATH`` environment variable
-    when set, otherwise the ``gridsynth`` command on ``PATH`` is used. It is
-    invoked with ``-p`` so the decomposition is only up to a global phase (the
-    phase is recovered separately by :meth:`RZ2HSTTranspiler.__call__`).
+    The executable is taken from the ``GRIDSYNTH_PATH`` environment
+    variable when set, otherwise the ``gridsynth`` command on ``PATH``
+    is used. It is invoked with ``-p`` so the decomposition is only up
+    to a global phase (the phase is recovered separately by
+    :meth:`RZ2HSTTranspiler.__call__`).
     """
 
     def driver(theta: float, epsilon: float) -> "tuple[str, float]":
@@ -153,13 +154,16 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
                 qubit = gate.target_indices[0]
                 theta = gate.params[0]
                 gates, phase = self._gridsynth(theta, self._epsilon)
-                unitary: NDArray[np.complex128] = np.eye(2, dtype=np.complex128)
                 for symbol in gates:
                     if symbol == "W":
                         continue
                     _add_gridsynth_gate(result, qubit, symbol)
-                    unitary = _GATE_MATRICES[symbol] @ unitary
                 if np.isnan(phase):
+                    unitary: NDArray[np.complex128] = np.eye(2, dtype=np.complex128)
+                    for symbol in gates:
+                        if symbol == "W":
+                            continue
+                        unitary = _GATE_MATRICES[symbol] @ unitary
                     phase = float(np.angle(np.vdot(unitary, _rz_matrix(theta))))
                 self.phase += phase
             else:
