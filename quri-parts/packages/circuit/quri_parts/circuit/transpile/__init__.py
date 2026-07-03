@@ -217,6 +217,7 @@ STARSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspile
 
 __all__ = [
     "CliffordConversionTranspiler",
+    "CliffordTSetTranspiler",
     "CliffordRZSetTranspiler",
     "CliffordTSetTranspiler",
     "CliffordApproximationTranspiler",

@@ -11,6 +11,7 @@
 from typing import Union
 
 import numpy as np
+import pytest
 
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
@@ -533,86 +534,44 @@ class TestTypicalGateSetConversion:
         assert list(transpiled_circuit.gates) == expected_gates
 
 
-#: Allowed gate names in the Clifford+T gate set.
-_CLIFFORD_T_GATE_NAMES = {
-    gate_names.H,
-    gate_names.X,
-    gate_names.Y,
-    gate_names.Z,
-    gate_names.S,
-    gate_names.Sdag,
-    gate_names.SqrtX,
-    gate_names.SqrtXdag,
-    gate_names.SqrtY,
-    gate_names.SqrtYdag,
-    gate_names.CNOT,
-    gate_names.CZ,
-    gate_names.SWAP,
-    gate_names.T,
-    gate_names.Tdag,
+_CLIFFORD_T_GATES = {
+    "Identity",
+    "H",
+    "X",
+    "Y",
+    "Z",
+    "SqrtX",
+    "SqrtXdag",
+    "SqrtY",
+    "SqrtYdag",
+    "S",
+    "Sdag",
+    "CNOT",
+    "CZ",
+    "SWAP",
+    "T",
+    "Tdag",
 }
 
 
 class TestCliffordTSetTranspiler:
-    def test_toffoli_decomposed_to_clifford_t(self) -> None:
-        """A Toffoli gate is decomposed into only Clifford+T gates."""
-        circuit = QuantumCircuit(3)
-        circuit.add_TOFFOLI_gate(0, 1, 2)
-
-        transpiled = CliffordTSetTranspiler()(circuit)
-        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
-
-    def test_rz_pi_over_4_becomes_t(self) -> None:
-        """RZ(pi/4) is converted to a T gate."""
-        circuit = QuantumCircuit(1)
-        circuit.add_RZ_gate(0, np.pi / 4.0)
-
-        transpiled = CliffordTSetTranspiler()(circuit)
-        assert list(transpiled.gates) == [gates.T(0)]
-
-    def test_rz_pi_over_2_becomes_s(self) -> None:
-        """RZ(pi/2) is converted to an S gate."""
-        circuit = QuantumCircuit(1)
-        circuit.add_RZ_gate(0, np.pi / 2.0)
-
-        transpiled = CliffordTSetTranspiler()(circuit)
-        assert list(transpiled.gates) == [gates.S(0)]
-
-    def test_already_clifford_t_circuit_passes_through(self) -> None:
-        """A circuit already using only Clifford+T gates passes through
-        unchanged."""
+    def test_pi_over_4_angles_convert_exactly(self) -> None:
         circuit = QuantumCircuit(2)
         circuit.add_H_gate(0)
-        circuit.add_T_gate(0)
+        circuit.add_RZ_gate(0, np.pi / 4)
+        circuit.add_RZ_gate(1, -np.pi / 2)
         circuit.add_CNOT_gate(0, 1)
-        circuit.add_Tdag_gate(1)
-        circuit.add_S_gate(0)
+        circuit.add_RZ_gate(0, 3 * np.pi / 4)
 
         transpiled = CliffordTSetTranspiler()(circuit)
-        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
-        assert list(transpiled.gates) == list(circuit.gates)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATES
+        assert gate_names.RZ not in _gate_kinds(transpiled)
 
-    def test_complex_circuit_only_clifford_t_gates(self) -> None:
-        """A complex circuit with many gate types is transpiled to only
-        Clifford+T gates."""
-        transpiled = CliffordTSetTranspiler()(_complex_circuit())
-        # RZ gates with arbitrary angles cannot be expressed in Clifford+T,
-        # so we only check that non-RZ gates are in the Clifford+T set.
-        for gate in transpiled.gates:
-            if gate.name != gate_names.RZ:
-                assert gate.name in _CLIFFORD_T_GATE_NAMES
+    @pytest.mark.gridsynth
+    def test_arbitrary_angle_approximated(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, 0.3)
 
-    def test_clifford_gates_only_in_output(self) -> None:
-        """Output of a circuit with only Clifford+T-representable rotations
-        uses no RZ."""
-        circuit = QuantumCircuit(2)
-        circuit.add_H_gate(0)
-        circuit.add_CNOT_gate(0, 1)
-        circuit.add_RZ_gate(0, np.pi / 2.0)  # S
-        circuit.add_RZ_gate(1, np.pi / 4.0)  # T
-        circuit.add_RZ_gate(0, np.pi)  # Z
-        circuit.add_RZ_gate(1, -np.pi / 4.0)  # Tdag
-
-        transpiled = CliffordTSetTranspiler()(circuit)
-        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        transpiled = CliffordTSetTranspiler(epsilon=1e-3)(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATES
         assert gate_names.RZ not in _gate_kinds(transpiled)

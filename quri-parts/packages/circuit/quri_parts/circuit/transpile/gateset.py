@@ -95,6 +95,7 @@ from .multi_pauli_decomposer import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
 )
+from .rz2hst import RZ2HSTTranspiler
 from .transpiler import (
     CircuitTranspiler,
     CircuitTranspilerProtocol,
@@ -612,10 +613,11 @@ class CliffordTSetTranspiler(SequentialTranspiler):
     named gates with a certain precision, the action of the circuit
     before and after the conversion may not be completely equivalent.
 
-    Note that RZ gates are not approximated into a sequence of
-    Clifford+T gates. Only RZ gates whose rotation angle corresponds to
-    a Clifford+T gate (within ``epsilon``) are converted; RZ gates with
-    other angles remain as RZ gates in the output circuit.
+    RZ gates whose rotation angle corresponds to a Clifford+T gate
+    (within ``epsilon``) are converted to named gates directly; every
+    remaining RZ gate is approximated into a sequence of {H, S, T} gates
+    with the gridsynth algorithm to a precision of ``epsilon``. The
+    latter requires the pygridsynth package.
     """
 
     def __init__(self, epsilon: float = 1.0e-9):
@@ -641,6 +643,7 @@ class CliffordTSetTranspiler(SequentialTranspiler):
                 ),
                 FuseRotationTranspiler(),
                 RZ2NamedTranspiler(epsilon, allow_t_tdag=True),
+                RZ2HSTTranspiler(epsilon),
                 IdentityEliminationTranspiler(),
             ]
         )
