@@ -22,9 +22,6 @@ class RZ2HSTTranspiler(SubTranspilerProtocol):
     into a sequence of H, S, T (and X) gates using gridsynth, to a target
     precision ``epsilon`` (default ``1e-5``, the gridsynth approximation
     error).
-
-    The decomposition requires the external gridsynth command (provided
-    by ``pyqret``).
     """
 
     def __init__(self, epsilon: float = 1.0e-5) -> None:

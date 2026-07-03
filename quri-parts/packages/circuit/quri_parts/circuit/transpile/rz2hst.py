@@ -1,3 +1,5 @@
+import os
+import subprocess
 from typing import Callable, Optional
 
 import mpmath  # type: ignore[import-untyped]
@@ -22,44 +24,79 @@ def _rz_matrix(theta: float) -> NDArray[np.complex128]:
     )
 
 
-def call_gridsynth(theta: float, epsilon: float) -> str:
-    """Synthesize an ``RZ(theta)`` rotation into a gridsynth gate-sequence
-    string over ``H``, ``S``, ``T``, ``X``, up to a global phase.
+#: A gridsynth driver maps ``(theta, epsilon)`` to a gate-sequence string over
+#: ``H``, ``S``, ``T``, ``X`` approximating ``RZ(theta)`` up to a global phase.
+GridsynthDriver = Callable[[float, float], str]
 
-    This is the default decomposition backend of :class:`RZ2HSTTranspiler` and
-    requires the optional ``pygridsynth`` package.
+#: Environment variable that may point to the external ``gridsynth`` executable.
+_GRIDSYNTH_ENV_KEY = "GRIDSYNTH_PATH"
 
-    Args:
-        theta: Rotation angle (radians) of the ``RZ`` gate to approximate.
-        epsilon: Target approximation precision passed to gridsynth.
 
-    Returns:
-        A string of gate symbols (each one of ``H``, ``S``, ``T``, ``X``) whose
-        product approximates ``RZ(theta)`` up to a global phase, to within
-        ``epsilon``.
+def driver_pygridsynth() -> GridsynthDriver:
+    """Build the default gridsynth driver, backed by the pure-Python
+    ``pygridsynth`` package.
+
+    The returned callable maps ``(theta, epsilon)`` to a gate-sequence string
+    over ``H``, ``S``, ``T``, ``X`` approximating ``RZ(theta)`` up to a global
+    phase, to within ``epsilon`` (the global phase is recovered separately by
+    :meth:`RZ2HSTTranspiler.__call__`).
     """
-    import inspect
 
-    from pygridsynth.gridsynth import gridsynth_gates
+    def driver(theta: float, epsilon: float) -> str:
+        import inspect
 
-    # We always synthesize up to a global phase (up_to_phase=True). With
-    # up_to_phase=False gridsynth would also have to reproduce the exact global
-    # phase using W tokens, and since the required phase is generally not a
-    # multiple of pi/4 (the only phase a W token can supply) it must be
-    # approximated by a much longer H/S/T sequence. Synthesizing only up to a
-    # phase keeps the sequence short; the exact global phase is recovered
-    # separately (see RZ2HSTTranspiler.__call__).
-    #
-    # pygridsynth >= 2 accepts ``up_to_phase`` (via **kwargs); pygridsynth 1.x
-    # (the last Python 3.9-compatible line) has no such parameter but already
-    # synthesizes up to a global phase by default. Pass it only when supported.
-    params = inspect.signature(gridsynth_gates).parameters
-    supports_up_to_phase = "up_to_phase" in params or any(
-        p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
-    )
-    kwargs = {"up_to_phase": True} if supports_up_to_phase else {}
-    result: str = gridsynth_gates(mpmath.mpf(theta), mpmath.mpf(epsilon), **kwargs)
-    return result
+        from pygridsynth.gridsynth import gridsynth_gates
+
+        # We always synthesize up to a global phase (up_to_phase=True). With
+        # up_to_phase=False gridsynth would also have to reproduce the exact
+        # global phase using W tokens, and since the required phase is generally
+        # not a multiple of pi/4 (the only phase a W token can supply) it must be
+        # approximated by a much longer H/S/T sequence. Synthesizing only up to a
+        # phase keeps the sequence short.
+        #
+        # pygridsynth >= 2 accepts ``up_to_phase`` (via **kwargs); pygridsynth 1.x
+        # (the last Python 3.9-compatible line) has no such parameter but already
+        # synthesizes up to a global phase by default. Pass it only when supported.
+        params = inspect.signature(gridsynth_gates).parameters
+        supports_up_to_phase = "up_to_phase" in params or any(
+            p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
+        )
+        kwargs = {"up_to_phase": True} if supports_up_to_phase else {}
+        result: str = gridsynth_gates(mpmath.mpf(theta), mpmath.mpf(epsilon), **kwargs)
+        return result
+
+    return driver
+
+
+def driver_cli() -> GridsynthDriver:
+    """Build a gridsynth driver that shells out to the external ``gridsynth``
+    command-line tool (an alternative to :func:`driver_pygridsynth`).
+
+    The executable is taken from the ``GRIDSYNTH_PATH`` environment variable
+    when set, otherwise the ``gridsynth`` command on ``PATH`` is used. It is
+    invoked with ``-p`` so the decomposition is only up to a global phase (the
+    phase is recovered separately by :meth:`RZ2HSTTranspiler.__call__`).
+    """
+
+    def driver(theta: float, epsilon: float) -> str:
+        executable = os.environ.get(_GRIDSYNTH_ENV_KEY, "gridsynth")
+        command = [executable, "-e", str(epsilon), "-p", "--", str(theta)]
+        try:
+            proc = subprocess.run(command, check=False, capture_output=True, text=True)
+        except FileNotFoundError as e:
+            raise RuntimeError(f"gridsynth command was not found: {executable}") from e
+        if proc.returncode != 0:
+            stderr = proc.stderr.strip()
+            raise RuntimeError(
+                f"gridsynth failed with code {proc.returncode}: "
+                f"{stderr or '<no stderr>'}"
+            )
+        word = proc.stdout.strip()
+        if not word:
+            raise RuntimeError("gridsynth returned an empty decomposition.")
+        return word
+
+    return driver
 
 
 def _add_gridsynth_gate(circuit: QuantumCircuit, qubit: int, symbol: str) -> None:
@@ -84,11 +121,12 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
 
     Args:
         epsilon: Precision of the decomposition. Defaults to 1.0e-5.
-        gridsynth: An optional callable with signature
+        gridsynth: An optional :data:`GridsynthDriver` with signature
             ``(theta: float, epsilon: float) -> str`` that returns a gate
             sequence string (e.g. ``"HSTX"``) over ``H``, ``S``, ``T``, ``X``.
-            When *None* (the default),
-            :func:`pygridsynth.gridsynth.gridsynth_gates` is used.
+            When *None* (the default), :func:`driver_pygridsynth` is used;
+            :func:`driver_cli` is an alternative backed by the external
+            ``gridsynth`` command.
     """
 
     def __init__(
@@ -97,9 +135,7 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
         gridsynth: Optional[Callable[[float, float], str]] = None,
     ):
         self._epsilon = epsilon
-        self._gridsynth = gridsynth if gridsynth is not None else call_gridsynth
-        #: Global phase (radians) accumulated in the most recent call, such that
-        #: ``exp(i * phase)`` times the emitted circuit equals the input RZ gates.
+        self._gridsynth = gridsynth if gridsynth is not None else driver_pygridsynth()
         self.phase: float = 0.0
 
     def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
@@ -111,8 +147,6 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
                 theta = gate.params[0]
                 unitary: NDArray[np.complex128] = np.eye(2, dtype=np.complex128)
                 for symbol in self._gridsynth(theta, self._epsilon):
-                    # pygridsynth 1.x emits a global-phase 'W' token; it carries
-                    # no gate and is subsumed by the phase recovered below.
                     if symbol == "W":
                         continue
                     _add_gridsynth_gate(result, qubit, symbol)
