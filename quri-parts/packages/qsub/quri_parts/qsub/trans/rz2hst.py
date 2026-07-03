@@ -8,6 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
+from quri_parts.circuit.transpile.rz2hst import GridsynthDriver
 from quri_parts.circuit.transpile.rz2hst import (
     RZ2HSTTranspiler as _CircuitRZ2HSTTranspiler,
 )
@@ -22,11 +25,20 @@ class RZ2HSTTranspiler(SubTranspilerProtocol):
     into a sequence of H, S, T (and X) gates using gridsynth, to a target
     precision ``epsilon`` (default ``1e-5``, the gridsynth approximation
     error).
+
+    Args:
+        epsilon: Precision of the decomposition.
+        gridsynth: An optional :data:`GridsynthDriver` passed through to the
+            wrapped circuit-level ``RZ2HSTTranspiler``.
     """
 
-    def __init__(self, epsilon: float = 1.0e-5) -> None:
+    def __init__(
+        self,
+        epsilon: float = 1.0e-5,
+        gridsynth: Optional[GridsynthDriver] = None,
+    ) -> None:
         self._transpiler = SeparateQURIPartsTranspiler(
-            [_CircuitRZ2HSTTranspiler(epsilon)]
+            [_CircuitRZ2HSTTranspiler(epsilon, gridsynth)]
         )
 
     def __call__(self, sub: Sub) -> Sub:
