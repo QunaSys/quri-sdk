@@ -9,7 +9,6 @@ from numpy.typing import NDArray
 from quri_parts.circuit import ImmutableQuantumCircuit, QuantumCircuit, gate_names
 from quri_parts.circuit.transpile.transpiler import CircuitTranspilerProtocol
 
-#: 2x2 unitaries of the gates gridsynth emits, used to recover the global phase.
 _GATE_MATRICES: dict[str, NDArray[np.complex128]] = {
     "H": np.array([[1, 1], [1, -1]], dtype=np.complex128) / np.sqrt(2),
     "S": np.array([[1, 0], [0, 1j]], dtype=np.complex128),
@@ -24,11 +23,6 @@ def _rz_matrix(theta: float) -> NDArray[np.complex128]:
     )
 
 
-#: A gridsynth driver maps ``(theta, epsilon)`` to ``(gates, phase)``: a
-#: gate-sequence string over ``H``, ``S``, ``T``, ``X`` approximating
-#: ``RZ(theta)`` up to a global phase, and that global phase in radians (or
-#: ``nan`` when the driver does not provide it, in which case
-#: :class:`RZ2HSTTranspiler` recovers it from the gate matrices).
 GridsynthDriver = Callable[[float, float], "tuple[str, float]"]
 
 _GRIDSYNTH_ENV_KEY = "GRIDSYNTH_PATH"
@@ -45,29 +39,34 @@ def driver_pygridsynth(up_to_phase: bool = True) -> GridsynthDriver:
     """
 
     def driver(theta: float, epsilon: float) -> "tuple[str, float]":
+        import importlib
         import inspect
 
-        from pygridsynth.gridsynth import gridsynth_gates
+        gridsynth = importlib.import_module("pygridsynth.gridsynth")
+        theta_mp, epsilon_mp = mpmath.mpf(theta), mpmath.mpf(epsilon)
 
-        # We always synthesize up to a global phase (up_to_phase=True). With
-        # up_to_phase=False gridsynth would also have to reproduce the exact
-        # global phase using W tokens, and since the required phase is generally
-        # not a multiple of pi/4 (the only phase a W token can supply) it must be
-        # approximated by a much longer H/S/T sequence. Synthesizing only up to a
-        # phase keeps the sequence short.
-        #
-        # pygridsynth >= 2 accepts ``up_to_phase`` (via **kwargs); pygridsynth 1.x
-        # (the last Python 3.9-compatible line) has no such parameter but already
-        # synthesizes up to a global phase by default. Pass it only when supported.
-        params = inspect.signature(gridsynth_gates).parameters
+        # pygridsynth >= 2 exposes gridsynth_circuit, which reports the global
+        # phase directly.
+        if up_to_phase and hasattr(gridsynth, "gridsynth_circuit"):
+            circuit = gridsynth.gridsynth_circuit(
+                theta_mp, epsilon_mp, up_to_phase=True
+            )
+            return str(circuit.to_simple_str()), float(circuit.phase)
+
+        params = inspect.signature(gridsynth.gridsynth_gates).parameters
         supports_up_to_phase = "up_to_phase" in params or any(
             p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
         )
         kwargs = {"up_to_phase": up_to_phase} if supports_up_to_phase else {}
-        result: str = gridsynth_gates(mpmath.mpf(theta), mpmath.mpf(epsilon), **kwargs)
-        # gridsynth_gates does not report the global phase; signal "not
-        # provided" so the transpiler recovers it from the gate matrices.
-        return result, float("nan")
+        gates: str = gridsynth.gridsynth_gates(theta_mp, epsilon_mp, **kwargs)
+        if up_to_phase:
+            # The phase is unknown here (pygridsynth 1.x); the transpiler
+            # recovers it from the gate matrices.
+            return gates, float("nan")
+        # up_to_phase=False reproduces the exact operator: each global-phase
+        # "W" token contributes a factor omega = exp(i * pi / 4).
+        phase = gates.count("W") * float(np.pi / 4)
+        return gates, phase
 
     return driver
 
