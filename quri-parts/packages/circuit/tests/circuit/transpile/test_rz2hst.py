@@ -11,7 +11,9 @@ from quri_parts.qulacs.circuit import convert_circuit
 
 
 def test_rz2hst_generates_hstx_only() -> None:
-    transpiler = RZ2HSTTranspiler(epsilon=1e-3, gridsynth=lambda *_: "HSTX")
+    transpiler = RZ2HSTTranspiler(
+        epsilon=1e-3, gridsynth=lambda *_: ("HSTX", float("nan"))
+    )
     circuit = QuantumCircuit(1)
     circuit.add_RZ_gate(0, 0.3)
     out = transpiler(circuit)

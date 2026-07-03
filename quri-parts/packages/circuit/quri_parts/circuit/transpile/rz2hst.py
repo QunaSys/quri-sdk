@@ -24,15 +24,17 @@ def _rz_matrix(theta: float) -> NDArray[np.complex128]:
     )
 
 
-#: A gridsynth driver maps ``(theta, epsilon)`` to a gate-sequence string over
-#: ``H``, ``S``, ``T``, ``X`` approximating ``RZ(theta)`` up to a global phase.
-GridsynthDriver = Callable[[float, float], str]
+#: A gridsynth driver maps ``(theta, epsilon)`` to ``(gates, phase)``: a
+#: gate-sequence string over ``H``, ``S``, ``T``, ``X`` approximating
+#: ``RZ(theta)`` up to a global phase, and that global phase in radians (or
+#: ``nan`` when the driver does not provide it, in which case
+#: :class:`RZ2HSTTranspiler` recovers it from the gate matrices).
+GridsynthDriver = Callable[[float, float], "tuple[str, float]"]
 
-#: Environment variable that may point to the external ``gridsynth`` executable.
 _GRIDSYNTH_ENV_KEY = "GRIDSYNTH_PATH"
 
 
-def driver_pygridsynth() -> GridsynthDriver:
+def driver_pygridsynth(up_to_phase: bool = True) -> GridsynthDriver:
     """Build the default gridsynth driver, backed by the pure-Python
     ``pygridsynth`` package.
 
@@ -42,7 +44,7 @@ def driver_pygridsynth() -> GridsynthDriver:
     :meth:`RZ2HSTTranspiler.__call__`).
     """
 
-    def driver(theta: float, epsilon: float) -> str:
+    def driver(theta: float, epsilon: float) -> "tuple[str, float]":
         import inspect
 
         from pygridsynth.gridsynth import gridsynth_gates
@@ -61,14 +63,16 @@ def driver_pygridsynth() -> GridsynthDriver:
         supports_up_to_phase = "up_to_phase" in params or any(
             p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()
         )
-        kwargs = {"up_to_phase": True} if supports_up_to_phase else {}
+        kwargs = {"up_to_phase": up_to_phase} if supports_up_to_phase else {}
         result: str = gridsynth_gates(mpmath.mpf(theta), mpmath.mpf(epsilon), **kwargs)
-        return result
+        # gridsynth_gates does not report the global phase; signal "not
+        # provided" so the transpiler recovers it from the gate matrices.
+        return result, float("nan")
 
     return driver
 
 
-def driver_cli() -> GridsynthDriver:
+def driver_cli(up_to_phase: bool = True) -> GridsynthDriver:
     """Build a gridsynth driver that shells out to the external ``gridsynth``
     command-line tool (an alternative to :func:`driver_pygridsynth`).
 
@@ -78,9 +82,12 @@ def driver_cli() -> GridsynthDriver:
     phase is recovered separately by :meth:`RZ2HSTTranspiler.__call__`).
     """
 
-    def driver(theta: float, epsilon: float) -> str:
+    def driver(theta: float, epsilon: float) -> "tuple[str, float]":
         executable = os.environ.get(_GRIDSYNTH_ENV_KEY, "gridsynth")
-        command = [executable, "-e", str(epsilon), "-p", "--", str(theta)]
+        command = [executable, "-e", str(epsilon)]
+        if up_to_phase:
+            command.append("-p")
+        command += ["--", str(theta)]
         try:
             proc = subprocess.run(command, check=False, capture_output=True, text=True)
         except FileNotFoundError as e:
@@ -94,7 +101,8 @@ def driver_cli() -> GridsynthDriver:
         word = proc.stdout.strip()
         if not word:
             raise RuntimeError("gridsynth returned an empty decomposition.")
-        return word
+        # The CLI does not report the global phase; signal "not provided".
+        return word, float("nan")
 
     return driver
 
@@ -122,9 +130,11 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
     Args:
         epsilon: Precision of the decomposition. Defaults to 1.0e-5.
         gridsynth: An optional :data:`GridsynthDriver` with signature
-            ``(theta: float, epsilon: float) -> str`` that returns a gate
-            sequence string (e.g. ``"HSTX"``) over ``H``, ``S``, ``T``, ``X``.
-            When *None* (the default), :func:`driver_pygridsynth` is used;
+            ``(theta: float, epsilon: float) -> tuple[str, float]`` returning a
+            gate-sequence string (e.g. ``"HSTX"``) over ``H``, ``S``, ``T``,
+            ``X`` and the global phase in radians (``nan`` if not provided, in
+            which case the phase is recovered from the gate matrices). When
+            *None* (the default), :func:`driver_pygridsynth` is used;
             :func:`driver_cli` is an alternative backed by the external
             ``gridsynth`` command.
     """
@@ -132,7 +142,7 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
     def __init__(
         self,
         epsilon: float = 1.0e-5,
-        gridsynth: Optional[Callable[[float, float], str]] = None,
+        gridsynth: Optional[GridsynthDriver] = None,
     ):
         self._epsilon = epsilon
         self._gridsynth = gridsynth if gridsynth is not None else driver_pygridsynth()
@@ -145,16 +155,19 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
             if gate.name == gate_names.RZ:
                 qubit = gate.target_indices[0]
                 theta = gate.params[0]
+                gates, phase = self._gridsynth(theta, self._epsilon)
                 unitary: NDArray[np.complex128] = np.eye(2, dtype=np.complex128)
-                for symbol in self._gridsynth(theta, self._epsilon):
+                for symbol in gates:
                     if symbol == "W":
                         continue
                     _add_gridsynth_gate(result, qubit, symbol)
                     unitary = _GATE_MATRICES[symbol] @ unitary
-                # gridsynth matched RZ(theta) only up to a global phase, so
-                # recover that phase by aligning the synthesized unitary with the
-                # exact RZ(theta) matrix (exp(i * phase) * unitary == RZ(theta)).
-                self.phase += float(np.angle(np.vdot(unitary, _rz_matrix(theta))))
+                if np.isnan(phase):
+                    # The driver did not report the global phase; recover it by
+                    # aligning the synthesized unitary with the exact RZ(theta)
+                    # matrix (exp(i * phase) * unitary == RZ(theta)).
+                    phase = float(np.angle(np.vdot(unitary, _rz_matrix(theta))))
+                self.phase += phase
             else:
                 result.add_gate(gate)
         return result
