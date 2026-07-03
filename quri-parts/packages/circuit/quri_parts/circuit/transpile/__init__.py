@@ -46,6 +46,7 @@ from .gate_kind_decomposer import (
     SWAPInsertionTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    Tdag2STTranspiler,
     TOFFOLI2CNOTTTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
@@ -217,7 +218,6 @@ STARSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspile
 
 __all__ = [
     "CliffordConversionTranspiler",
-    "CliffordTSetTranspiler",
     "CliffordRZSetTranspiler",
     "CliffordTSetTranspiler",
     "CliffordApproximationTranspiler",
@@ -300,6 +300,7 @@ __all__ = [
     "STARSetTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "Tdag2STTranspiler",
     "TOFFOLI2CNOTTTranspiler",
     "TOFFOLI2HTTdagCNOTTranspiler",
     "TwoQubitUnitaryMatrixKAKTranspiler",
