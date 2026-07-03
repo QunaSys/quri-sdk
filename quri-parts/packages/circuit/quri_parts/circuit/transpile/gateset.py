@@ -548,9 +548,6 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
 
     def _construct_rotation_decomposer(self) -> list[CircuitTranspiler]:
         if T in self._gateset and not self._target_rotation:
-            # Reduce RX/RY to RZ (using gates from the target gate set), turn RZ
-            # gates with Clifford+T angles into named gates, and approximate the
-            # remaining RZ gates into H/S/T sequences via gridsynth.
             return [
                 RotationConversionTranspiler(
                     target_rotation=(RZ,),

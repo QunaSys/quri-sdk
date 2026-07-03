@@ -642,7 +642,11 @@ class TestCliffordTSetTranspiler:
     ) -> None:
         """A complex circuit with many gate types, including arbitrary-angle
         rotations, is transpiled to only Clifford+T gates."""
-        monkeypatch.setattr(rz2hst, "call_gridsynth", lambda theta, eps: "HSTX")
+        monkeypatch.setattr(
+            rz2hst,
+            "driver_pygridsynth",
+            lambda *a, **k: lambda theta, eps: ("HSTX", float("nan")),
+        )
         transpiled = CliffordTSetTranspiler()(_complex_circuit())
         # Arbitrary-angle RZ gates are approximated into {H, S, T} gates, so
         # no RZ should remain in the output.
@@ -654,7 +658,11 @@ class TestCliffordTSetTranspiler:
     ) -> None:
         """An RZ whose angle is not a Clifford+T gate is approximated into a
         sequence of Clifford+T gates."""
-        monkeypatch.setattr(rz2hst, "call_gridsynth", lambda theta, eps: "HSTX")
+        monkeypatch.setattr(
+            rz2hst,
+            "driver_pygridsynth",
+            lambda *a, **k: lambda theta, eps: ("HSTX", float("nan")),
+        )
         circuit = QuantumCircuit(1)
         circuit.add_RZ_gate(0, 0.3)
 
