@@ -609,15 +609,10 @@ class CliffordTSetTranspiler(SequentialTranspiler):
     QuantumCircuit containing only Clifford+T gates (H, X, Y, Z, S, Sdag,
     SqrtX, SqrtXdag, SqrtY, SqrtYdag, CNOT, CZ, SWAP, T, Tdag).
 
-    Since this transpiler fuses rotation gates and converts them to
-    named gates with a certain precision, the action of the circuit
-    before and after the conversion may not be completely equivalent.
-
     RZ gates whose rotation angle corresponds to a Clifford+T gate
     (within ``epsilon``) are converted to named gates directly; every
     remaining RZ gate is approximated into a sequence of {H, S, T} gates
-    with the gridsynth algorithm to a precision of ``epsilon``. The
-    latter requires the pygridsynth package.
+    with the gridsynth algorithm to a precision of ``epsilon``.
     """
 
     def __init__(self, epsilon: float = 1.0e-9):
