@@ -51,7 +51,7 @@ def driver_pygridsynth(up_to_phase: bool = True) -> GridsynthDriver:
             circuit = gridsynth.gridsynth_circuit(
                 theta_mp, epsilon_mp, up_to_phase=True
             )
-            return str(circuit.to_simple_str()), float(circuit.phase)
+            return str(circuit.to_simple_str()).replace("W", ""), float(circuit.phase)
 
         params = inspect.signature(gridsynth.gridsynth_gates).parameters
         supports_up_to_phase = "up_to_phase" in params or any(
@@ -60,13 +60,9 @@ def driver_pygridsynth(up_to_phase: bool = True) -> GridsynthDriver:
         kwargs = {"up_to_phase": up_to_phase} if supports_up_to_phase else {}
         gates: str = gridsynth.gridsynth_gates(theta_mp, epsilon_mp, **kwargs)
         if up_to_phase:
-            # The phase is unknown here (pygridsynth 1.x); the transpiler
-            # recovers it from the gate matrices.
-            return gates, float("nan")
-        # up_to_phase=False reproduces the exact operator: each global-phase
-        # "W" token contributes a factor omega = exp(i * pi / 4).
+            return gates.replace("W", ""), float("nan")
         phase = gates.count("W") * float(np.pi / 4)
-        return gates, phase
+        return gates.replace("W", ""), phase
 
     return driver
 
@@ -100,8 +96,10 @@ def driver_cli(up_to_phase: bool = True) -> GridsynthDriver:
         word = proc.stdout.strip()
         if not word:
             raise RuntimeError("gridsynth returned an empty decomposition.")
-        # The CLI does not report the global phase; signal "not provided".
-        return word, float("nan")
+        if up_to_phase:
+            return word.replace("W", ""), float("nan")
+        phase = word.count("W") * float(np.pi / 4)
+        return word.replace("W", ""), phase
 
     return driver
 
@@ -131,8 +129,8 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
         gridsynth: An optional :data:`GridsynthDriver` with signature
             ``(theta: float, epsilon: float) -> tuple[str, float]`` returning a
             gate-sequence string (e.g. ``"HSTX"``) over ``H``, ``S``, ``T``,
-            ``X`` and the global phase in radians (``nan`` if not provided, in
-            which case the phase is recovered from the gate matrices). When
+            ``X`` and the global phase in radians (``nan`` if not provided).
+            When
             *None* (the default), :func:`driver_pygridsynth` is used;
             :func:`driver_cli` is an alternative backed by the external
             ``gridsynth`` command.
@@ -162,9 +160,6 @@ class RZ2HSTTranspiler(CircuitTranspilerProtocol):
                     _add_gridsynth_gate(result, qubit, symbol)
                     unitary = _GATE_MATRICES[symbol] @ unitary
                 if np.isnan(phase):
-                    # The driver did not report the global phase; recover it by
-                    # aligning the synthesized unitary with the exact RZ(theta)
-                    # matrix (exp(i * phase) * unitary == RZ(theta)).
                     phase = float(np.angle(np.vdot(unitary, _rz_matrix(theta))))
                 self.phase += phase
             else:
