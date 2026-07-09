@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 from quri_parts.qsub.resolve import default_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
@@ -29,3 +30,27 @@ def _swap_sub() -> Sub:
 
 
 default_repository().register_sub(SWAP, _swap_sub())
+
+
+class _Rot(ParamUnitarySubDef[int]):
+    """Cyclically rotates the states of an ``n``-qubit register by one
+    position.
+
+    The rotation is implemented as a ladder of adjacent :data:`SWAP`
+    operations, moving the state of the first qubit to the last qubit
+    while shifting every other qubit one position toward the first.
+    """
+
+    name = "Rot"
+    unitary = True
+
+    def qubit_count_fn(self, n: int) -> int:
+        return n
+
+    def sub(self, builder: SubBuilder, n: int) -> None:
+        qubits = builder.qubits
+        for i in reversed(range(1, n)):
+            builder.add_op(SWAP, (qubits[i - 1], qubits[i]))
+
+
+Rot, RotSub = param_opsub(_Rot)
