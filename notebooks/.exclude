@@ -6,3 +6,5 @@ quri_sdk_notebooks/examples/1_quri-parts/1_Intermediate/0_DJ/0._dj_algorithm.ipy
 quri_sdk_notebooks/examples/0_quri-algo-vm/5_page_curve/5_page_curve.ipynb
 quri_sdk_notebooks/examples/1_quri-parts/1_Intermediate/2_simons/2._simons.ipynb
 quri_sdk_notebooks/examples/0_quri-algo-vm/3_scalar_field_theory/3_scalar_field_theory.ipynb
+quri_sdk_notebooks/tutorials/3_quri-parts/1_advanced/4_quration/basic.ipynb
+quri_sdk_notebooks/tutorials/3_quri-parts/1_advanced/4_quration/multi-param.ipynb

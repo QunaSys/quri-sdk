@@ -49,7 +49,7 @@ from .single_clifford import (
     Y,
     Z,
 )
-from .swap import SWAP
+from .swap import SWAP, Rot, RotSub
 from .t import T, Tdag
 from .toffoli import Toffoli
 
@@ -96,6 +96,8 @@ __all__ = [
     "SqrtY",
     "SqrtYdag",
     "SWAP",
+    "Rot",
+    "RotSub",
     "T",
     "Tdag",
     "Toffoli",
