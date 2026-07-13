@@ -217,10 +217,9 @@ class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
         # assembling the rotation from it directly yields the tensor form of
         # exp(-i angle P / 2); transposing the result here would undo that and
         # incorrectly store the matrix form instead.
-        return (
-            np.cos(angles[0] / 2.0) * np.eye(2, dtype=np.complex128)
-            - 1j * np.sin(angles[0] / 2.0) * np.array(self.pauli, dtype=np.complex128)
-        )
+        return np.cos(angles[0] / 2.0) * np.eye(2, dtype=np.complex128) - 1j * np.sin(  # type: ignore
+            angles[0] / 2.0
+        ) * np.array(self.pauli, dtype=np.complex128)
 
     def __init__(
         self, angle: float, qubit_indices: Sequence[int], name: str, backend: str

@@ -9,6 +9,7 @@
 # limitations under the License.
 
 import numpy as np
+import numpy.typing as npt
 import tensornetwork as tn
 from numpy.testing import assert_almost_equal
 
@@ -71,7 +72,7 @@ def test_convert_circuit() -> None:
         assert_almost_equal(contracted_state.tensor, t)
 
 
-def _ry_matrix(theta: float) -> np.ndarray:
+def _ry_matrix(theta: float) -> npt.NDArray[np.complex128]:
     return np.array(
         [
             [np.cos(theta / 2), -np.sin(theta / 2)],
@@ -81,12 +82,12 @@ def _ry_matrix(theta: float) -> np.ndarray:
     )
 
 
-def _u1_matrix(lam: float) -> np.ndarray:
+def _u1_matrix(lam: float) -> npt.NDArray[np.complex128]:
     return np.diag([1.0, np.exp(1j * lam)]).astype(np.complex128)
 
 
-def _u2_matrix(phi: float, lam: float) -> np.ndarray:
-    return np.array(
+def _u2_matrix(phi: float, lam: float) -> npt.NDArray[np.complex128]:
+    return np.array(  # type: ignore
         [
             [1.0, -np.exp(1j * lam)],
             [np.exp(1j * phi), np.exp(1j * (phi + lam))],
@@ -95,7 +96,7 @@ def _u2_matrix(phi: float, lam: float) -> np.ndarray:
     ) / np.sqrt(2)
 
 
-def _u3_matrix(theta: float, phi: float, lam: float) -> np.ndarray:
+def _u3_matrix(theta: float, phi: float, lam: float) -> npt.NDArray[np.complex128]:
     return np.array(
         [
             [np.cos(theta / 2), -np.exp(1j * lam) * np.sin(theta / 2)],
