@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "quri-sdk-docs"
+version = "0.1.0"
+description = ""
+authors = ["QunaSys"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^7.3"
+furo = "^2024.5"
+myst-nb = "^1.1"
+sphinx-external-toc = "^1.0"
+sphinx-copybutton = "^0.5"
+sphinx-design = "^0.6"
+sphinx-intl = "^2.2"
+sphinx-notfound-page = "^1.0"
+linkify-it-py = "^2.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
