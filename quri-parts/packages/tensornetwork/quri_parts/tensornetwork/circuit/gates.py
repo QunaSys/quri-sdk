@@ -219,7 +219,9 @@ class SingleQubitPauliRotationGate(SingleQubitRotationGate, ABC):
         # incorrectly store the matrix form instead.
         return np.cos(angles[0] / 2.0) * np.eye(2, dtype=np.complex128) - 1j * np.sin(  # type: ignore
             angles[0] / 2.0
-        ) * np.array(self.pauli, dtype=np.complex128)
+        ) * np.array(
+            self.pauli, dtype=np.complex128
+        )
 
     def __init__(
         self, angle: float, qubit_indices: Sequence[int], name: str, backend: str
