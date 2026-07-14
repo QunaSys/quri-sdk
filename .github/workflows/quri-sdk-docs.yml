@@ -1,0 +1,149 @@
+name: QURI SDK Docs Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - docs/**
+      - quri-parts/packages/**/*.py
+      - quri-parts/docs/**
+      - quri-parts/pyproject.toml
+      - pyproject.toml
+      - poetry.lock
+      - .github/workflows/quri-sdk-docs.yml
+      - .github/actions/python-poetry-install/action.yml
+
+permissions: {}
+
+concurrency:
+  group: quri-sdk-docs-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    if: >-
+      github.repository == 'QunaSys/quri-sdk-internal' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: pull request
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout the PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Reject internal history
+        run: |
+          internal_sentinel=59c26148fdb797a4573379fd027f730052dcbb19
+          if git merge-base --is-ancestor "$internal_sentinel" HEAD; then
+            echo "The preview branch contains internal-only history."
+            exit 1
+          fi
+
+          common_base=$(git merge-base HEAD origin/internal-main)
+          if ! git merge-base --is-ancestor "$common_base" origin/main; then
+            echo "The preview branch is not derived from public main history."
+            exit 1
+          fi
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: ./.github/actions/python-poetry-install
+        with:
+          poetry-version: "1.8.5"
+          python-version: "3.10"
+
+      - name: Use in-project Poetry environments
+        run: poetry config virtualenvs.in-project true
+
+      - name: Cache Poetry environments
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pypoetry
+            .venv
+            docs/.venv
+          key: poetry-${{ runner.os }}-py310-quri-sdk-docs-${{ hashFiles('poetry.lock', 'docs/poetry.lock') }}
+
+      - name: Install SDK and API Reference dependencies
+        run: |
+          poetry env use 3.10
+          poetry install --with dev,doc --sync
+
+      - name: Cache Julia environment
+        uses: actions/cache@v4
+        with:
+          path: ~/.julia/
+          key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+          restore-keys: ci-${{ runner.os }}-julia-
+
+      - name: Install pandoc
+        run: |
+          wget https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
+          yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
+
+      - name: Install Julia dependency
+        run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+
+      - name: Install documentation dependencies
+        run: |
+          poetry -C docs env use 3.10
+          poetry -C docs install --only docs --sync
+
+      - name: Build documentation
+        run: make -C docs api
+
+      - name: Verify clean build and preview output
+        run: |
+          git diff --exit-code
+          test -f docs/_build/html/index.html
+          test -f docs/_build/html/api/index.html
+          test -f docs/_build/html/api/objects.inv
+          if rg -n 'quri-sdk-internal|internal-main' docs/_build/html; then
+            echo "Generated documentation contains an internal repository reference."
+            exit 1
+          fi
+
+      - name: Verify Netlify credentials
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "Missing Netlify auth token"; exit 1; }
+
+      - name: Deploy preview to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        working-directory: docs
+        run: |
+          npx -y netlify-cli@26.2.0 deploy --no-build \
+            --site quri-sdk-doc \
+            --dir _build/html \
+            --alias "deploy-preview-${{ github.event.pull_request.number }}" \
+            --message "Docs preview from ${{ github.event.pull_request.head.ref }} (${{ github.event.pull_request.head.sha }})"
+
+      - name: Comment preview URL on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          marker="<!-- netlify-deploy-preview -->"
+          url="https://deploy-preview-${{ github.event.pull_request.number }}--quri-sdk-doc.netlify.app"
+          body="$(printf '%s\nDocs preview: %s' "$marker" "$url")"
+          comment_id=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq "[.[] | select(.body | startswith(\"$marker\"))][0].id // empty")
+          if [ -n "$comment_id" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$comment_id" -f body="$body"
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --repo "${{ github.repository }}" \
+              --body "$body"
+          fi
