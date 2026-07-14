@@ -60,7 +60,7 @@ jobs:
 
       - uses: ./.github/actions/python-poetry-install
         with:
-          poetry-version: "1.8.5"
+          poetry-version: "2.3.3"
           python-version: "3.10"
 
       - name: Use in-project Poetry environments
