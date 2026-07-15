@@ -8,7 +8,7 @@ How to convert circuits between gate sets and reduce their cost.
 
 Convert a circuit to a semantically equivalent one, e.g. for a device gate set.
 
-### [Compile Circuits Variationally (QAQC)](../../examples/quri-algo-vm/qaqc/index.md)
+### [Compile Circuits Variationally (QAQC)](../../examples/quri-algo-vm/qaqc/2_qaqc.ipynb)
 
 Approximate a deep circuit by a fixed-depth variational circuit.
 

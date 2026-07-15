@@ -47,14 +47,14 @@ parts:
           - file: docs/howto/circuit_compilation/index
             sections:
               - file: docs/tutorials/quri-parts/basics/transpiler/index
-              - file: docs/examples/quri-algo-vm/qaqc/index
+              - file: docs/examples/quri-algo-vm/qaqc/2_qaqc
           - file: docs/howto/applying_algorithms/index
             sections:
-              - file: docs/examples/quri-algo-vm/qsci/index
-              - file: docs/examples/quri-algo-vm/spe/index
-              - file: docs/examples/quri-algo-vm/transverse_field_ising_model/index
-              - file: docs/examples/quri-algo-vm/scalar_field_theory/index
-              - file: docs/examples/quri-algo-vm/page_curve/index
+              - file: docs/examples/quri-algo-vm/qsci/0_qsci
+              - file: docs/examples/quri-algo-vm/spe/1_spe
+              - file: docs/examples/quri-algo-vm/transverse_field_ising_model/6_TFIM
+              - file: docs/examples/quri-algo-vm/scalar_field_theory/3_scalar_field_theory
+              - file: docs/examples/quri-algo-vm/page_curve/5_page_curve
           - file: docs/tutorials/quri-parts/quantum-chemistry/index
             sections:
               - file: docs/tutorials/quri-parts/quantum-chemistry/introduction/index
@@ -67,14 +67,14 @@ parts:
         sections:
           - file: docs/examples/quri-parts/index
             sections:
-              - file: docs/examples/quri-parts/Basics/bell/index
-              - file: docs/examples/quri-parts/Basics/toffoli/index
-              - file: docs/examples/quri-parts/Intermediate/DJ/index
-              - file: docs/examples/quri-parts/Intermediate/BV/index
-              - file: docs/examples/quri-parts/Intermediate/simons/index
-              - file: docs/examples/quri-parts/Intermediate/QFT/index
-              - file: docs/examples/quri-parts/Intermediate/QPE/index
-              - file: docs/examples/quri-algo-vm/surface_code/index
+              - file: docs/examples/quri-parts/Basics/bell/0_bell
+              - file: docs/examples/quri-parts/Basics/toffoli/1_toffoli
+              - file: docs/examples/quri-parts/Intermediate/DJ/0._dj_algorithm
+              - file: docs/examples/quri-parts/Intermediate/BV/1._bv_algorithm
+              - file: docs/examples/quri-parts/Intermediate/simons/2._simons
+              - file: docs/examples/quri-parts/Intermediate/QFT/0_qft
+              - file: docs/examples/quri-parts/Intermediate/QPE/0_qpe
+              - file: docs/examples/quri-algo-vm/surface_code/4_surface_code
           - file: ecosystem
           - file: reference
           - file: release-notes/index

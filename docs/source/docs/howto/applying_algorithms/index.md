@@ -10,22 +10,22 @@ Learning how a textbook algorithm works (QFT, QPE, and more)? See
 
 ## Contents
 
-### [Quantum Selected Configuration Interaction (QSCI)](../../examples/quri-algo-vm/qsci/index.md)
+### [Quantum Selected Configuration Interaction (QSCI)](../../examples/quri-algo-vm/qsci/0_qsci.ipynb)
 
 Apply QSCI to a chemistry problem in the context of early fault-tolerant quantum computing.
 
-### [Statistical Phase Estimation](../../examples/quri-algo-vm/spe/index.md)
+### [Statistical Phase Estimation](../../examples/quri-algo-vm/spe/1_spe.ipynb)
 
 Execute statistical phase estimation using QURI Algo and QURI VM.
 
-### [Transverse-field Ising Model](../../examples/quri-algo-vm/transverse_field_ising_model/index.md)
+### [Transverse-field Ising Model](../../examples/quri-algo-vm/transverse_field_ising_model/6_TFIM.ipynb)
 
 Approximate the TFIM ground state with VQE and improve it with SPE and QSCI.
 
-### [Scalar Field Theory](../../examples/quri-algo-vm/scalar_field_theory/index.md)
+### [Scalar Field Theory](../../examples/quri-algo-vm/scalar_field_theory/3_scalar_field_theory.ipynb)
 
 Simulate lattice scalar field theory on a quantum computer.
 
-### [Black Hole Evaporation (Page Curve)](../../examples/quri-algo-vm/page_curve/index.md)
+### [Black Hole Evaporation (Page Curve)](../../examples/quri-algo-vm/page_curve/5_page_curve.ipynb)
 
 Use qsub to simulate the Page curve of an evaporating black hole.

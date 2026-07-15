@@ -41,6 +41,6 @@ Implement the quantum Fourier transform and algorithms built on it.
 
 Estimate the eigenvalue (phase) of a unitary operator for one of its eigenstates.
 
-### [Surface Code and Quantum Error Correction](../quri-algo-vm/surface_code/index.md)
+### [Surface Code and Quantum Error Correction](../quri-algo-vm/surface_code/4_surface_code.ipynb)
 
 The planar surface code: definitions, terminology and a hands-on implementation.
