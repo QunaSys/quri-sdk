@@ -3,10 +3,17 @@ name: QURI SDK Package and release
 on:
   release:
     types: [published]
+  # Also run the build/test matrix on release PRs so failures surface before
+  # the release is published. The version-check step and all `release-*` upload
+  # jobs stay release-only. Gated to `release-*` branches via the pre-check job
+  # `if`, so ordinary PRs skip the whole (expensive) matrix.
+  pull_request:
+    branches: [main]
 
 jobs:
   pre-check:
     name: 🔎 Check project versions
+    if: github.event_name == 'release' || startsWith(github.head_ref, 'release-')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,6 +25,9 @@ jobs:
         fetch-depth: 0
 
     - name: check manual versioning
+      # On a release PR the new tag does not exist yet, so this would compare
+      # against the previous tag and fail. Enforce it only at release time.
+      if: github.event_name == 'release'
       shell: bash
       run: |
         GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
