@@ -8,16 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Qubit remapping (:mod:`quri_parts.circuit.transpile.qubit_remapping`)
-=====================================================================
+"""Qubit remapping (:mod:`quri_parts.circuit.transpile.qubit_remapping`)
+========================================================================
 
 Remap qubit indices in a circuit according to a user-defined
 mapping.
 
-Key classes / functions:
+Key classes / functions (for quick orientation):
 
-- :class:`QubitRemappingTranspiler` -- Remap qubits in the circuit with the specified mapping.
+- :class:`QubitRemappingTranspiler` -- remap qubits in a circuit per a given mapping
 """
 
 

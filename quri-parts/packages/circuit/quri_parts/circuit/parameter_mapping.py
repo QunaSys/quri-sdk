@@ -8,14 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Parameter mapping (:mod:`quri_parts.circuit.parameter_mapping`)
-===============================================================
+"""Parameter mapping (:mod:`quri_parts.circuit.parameter_mapping`)
+==================================================================
 
 Maps circuit-level parameters to gate-level parameters,
 supporting arbitrary and linear (affine) transforms.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`ParameterMapping` -- abstract parameter-mapping protocol
 - :class:`ParameterMappingBase` -- base class for mapping implementations

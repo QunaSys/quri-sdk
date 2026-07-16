@@ -8,14 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Transpiler (:mod:`quri_parts.circuit.transpile.transpiler`)
-===========================================================
+"""Transpiler (:mod:`quri_parts.circuit.transpile.transpiler`)
+==============================================================
 
 Base protocols and combinators for composing circuit
 transpilation passes.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`CircuitTranspilerProtocol` -- callable protocol for transpilers
 - :class:`SequentialTranspiler` -- chain transpilers in sequence

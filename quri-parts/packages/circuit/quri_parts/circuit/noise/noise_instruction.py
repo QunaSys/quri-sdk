@@ -8,19 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Noise instructions (:mod:`quri_parts.circuit.noise.noise_instruction`)
-======================================================================
+"""Noise instructions (:mod:`quri_parts.circuit.noise.noise_instruction`)
+=========================================================================
 
-Concrete noise instruction types representing common single-
-and multi-qubit noise channels.
+Factory functions constructing common single- and multi-qubit
+noise instructions.
 
-Key classes / functions:
+Key classes / functions (for quick orientation):
 
-- :func:`BitFlipNoise` -- Single qubit bit flip noise.
-- :func:`PhaseFlipNoise` -- Single qubit phase flip noise.
-- :func:`BitPhaseFlipNoise` -- Single qubit bit and phase flip noise.
-- :func:`DepolarizingNoise` -- Single qubit depolarizing noise.
+- :func:`BitFlipNoise` -- single-qubit bit flip noise
+- :func:`PhaseFlipNoise` -- single-qubit phase flip noise
+- :func:`BitPhaseFlipNoise` -- single-qubit bit and phase flip noise
+- :func:`DepolarizingNoise` -- single-qubit depolarizing noise
 """
 
 

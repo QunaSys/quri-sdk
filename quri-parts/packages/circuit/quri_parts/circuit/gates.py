@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Gate factory functions (:mod:`quri_parts.circuit.gates`)
-============================================================
+===========================================================
 
 Convenience constructors that create :class:`~QuantumGate` and
 :class:`~ParametricQuantumGate` instances for every supported gate kind,

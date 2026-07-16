@@ -8,15 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Pauli decomposers
-(:mod:`quri_parts.circuit.transpile.multi_pauli_decomposer`)
-===============================================================
+"""Pauli decomposers (:mod:`quri_parts.circuit.transpile.multi_pauli_decomposer`)
+=================================================================================
 
 Decompose multi-qubit Pauli and PauliRotation gates into
 single- and two-qubit primitives.
 
-Key classes / functions:
+Key classes / functions (for quick orientation):
 
 - :class:`PauliDecomposeTranspiler` -- decompose multi-qubit Pauli gates
 - :class:`PauliRotationDecomposeTranspiler` -- decompose PauliRotation gates

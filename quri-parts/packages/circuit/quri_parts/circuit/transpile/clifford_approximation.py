@@ -8,14 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Clifford approximation
-(:mod:`quri_parts.circuit.transpile.clifford_approximation`)
-===============================================================
+"""Clifford approximation (:mod:`quri_parts.circuit.transpile.clifford_approximation`)
+======================================================================================
 
 Approximate non-Clifford gates with Clifford sequences.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`CliffordApproximationTranspiler` -- replace non-Clifford gates with Clifford approximations
 """

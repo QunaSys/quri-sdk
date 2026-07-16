@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Circuit and gate inversion (:mod:`quri_parts.circuit.inverse`)
-==================================================================
+=================================================================
 
 Utilities for computing the inverse (adjoint) of individual gates and
 of entire non-parametric circuits.
