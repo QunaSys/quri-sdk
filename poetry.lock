@@ -6968,7 +6968,6 @@ temp = ">=2020.7.2,<2021.0.0"
 
 [[package]]
 name = "quri-algo"
-version = "0.26.2.post5.dev0+bdb7e3d7"
 version = "0.26.3"
 description = "Algorithm library based on QURI Parts"
 optional = false
