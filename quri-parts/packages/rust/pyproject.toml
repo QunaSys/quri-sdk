@@ -27,7 +27,7 @@ description = "Platform-independent quantum circuit library"
 license = { text = "Apache-2.0" }
 
 authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
-requires-python = ">=3.9.8,<4.0.0"
+requires-python = ">=3.10,<4.0.0"
 keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
 
@@ -50,7 +50,7 @@ classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
 packages = [{ include = "quri_parts" }]
 
 [tool.poetry.dependencies]
-python = "^3.9.8"
+python = "^3.10"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
 

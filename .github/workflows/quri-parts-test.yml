@@ -26,7 +26,6 @@ jobs:
       fail-fast: false
       matrix:
         python_version:
-          - '3.9'
           - '3.10'
           - '3.11'
           - '3.12'
@@ -77,15 +76,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends cmake libboost-dev zlib1g-dev libjpeg-dev
-    - name: Install legacy dependency
-      if: matrix.python_version == '3.9'
-      # We need to provide older setuptools (<82) for building ibm-cloud-sdk-core and ibm-platfrom-services for Python 3.9
-      # We cannot upgrade ibm-cloud-sdk-core or ibm-platform-services since they are constrainted from Python 3.9
-      # More details: https://github.com/QunaSys/quri-sdk/pull/507
-      run: |
-        echo "setuptools<82" > /tmp/constraints.txt
-        poetry run pip install -vvv "ibm-cloud-sdk-core==3.18.0" --build-constraint /tmp/constraints.txt
-        poetry run pip install -vvv "ibm-platform-services==0.48.0" --build-constraint /tmp/constraints.txt
     - name: Install dependencies
       run: |
         poetry run pip install -vvv -e quri-parts/packages/rust
