@@ -41,7 +41,7 @@ class GaussianParam:
 
 def get_kn(T: float, N: int) -> npt.NDArray[np.float64]:
     n = np.arange(N)
-    return -T + 2 * T / N * n
+    return (-T + 2 * T / N * n).astype(np.float64)
 
 
 def get_classical_samples(distributions: list[float], n_samples: int) -> Counter[int]:

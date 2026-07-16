@@ -27,12 +27,12 @@ style = "pep440"
 [tool.poetry.dependencies]
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
-# numpy 1.x has no cp313/cp314 wheel; pip source-builds it (MinGW on Windows) and that
-# build segfaults on import. Require numpy 2 on Py>=3.13 (prebuilt wheels exist); stay on
-# numpy <2.0 below (typecheck runs on Py3.10, so mypy is unaffected).
+# NumPy 2 dropped Python 3.9 (and 1.x has no cp313/cp314 wheels); pin <2 on
+# Python <3.10 and require 2.x on 3.10+ so the lock forks instead of keeping a
+# single 1.x that has no 3.13/3.14 wheels.
 numpy = [
-    { version = ">=2.1.0", markers = "python_version == '3.13'" },
-    { version = ">=1.22.0,<2.0", markers = "python_version != '3.13'" },
+    { version = ">=1.22.0,<2.0", python = "<3.10" },
+    { version = ">=2.0", python = ">=3.10" },
 ]
 mpmath = "^1.3.0"
 quri-parts-circuit = "*"

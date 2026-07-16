@@ -11,7 +11,15 @@
 import warnings
 from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 
-from qiskit.providers.backend import Backend, BackendV1, BackendV2
+from qiskit.providers.backend import Backend, BackendV2
+
+try:
+    # BackendV1 was removed in qiskit 2.0 (qiskit 1.x / Python <3.14).
+    from qiskit.providers.backend import BackendV1
+
+    _SUPPORTED_BACKENDS: tuple[type, ...] = (BackendV1, BackendV2)
+except ImportError:
+    _SUPPORTED_BACKENDS = (BackendV2,)
 
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
@@ -70,7 +78,7 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
         )
         return DEFAULT_MAX_SHOT
 
-    if not isinstance(backend, (BackendV1, BackendV2)):
+    if not isinstance(backend, _SUPPORTED_BACKENDS):
         raise BackendError("Backend not supported.")
 
     if hasattr(backend, "max_shots"):
