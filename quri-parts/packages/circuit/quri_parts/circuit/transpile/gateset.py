@@ -615,7 +615,7 @@ class CliffordTSetTranspiler(SequentialTranspiler):
     with the gridsynth algorithm to a precision of ``epsilon``.
     """
 
-    def __init__(self, epsilon: float = 1.0e-9):
+    def __init__(self, epsilon: float = 1.0e-6):
         super().__init__(
             [
                 SingleQubitUnitaryMatrix2RYRZTranspiler(),
