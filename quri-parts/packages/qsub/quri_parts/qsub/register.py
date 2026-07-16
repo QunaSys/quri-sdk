@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Classical and quantum registers (:mod:`quri_parts.qsub.register`)
-=================================================================
+====================================================================
 
 Defines register identifiers used throughout qsub: the lightweight,
 hashable classical :class:`Register`, and :class:`QRegSpec` /

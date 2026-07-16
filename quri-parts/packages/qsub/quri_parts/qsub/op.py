@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """Operation identifiers and factories (:mod:`quri_parts.qsub.op`)
-=====================================================================
+==================================================================
 
 Core type system for quantum operations: fixed ops, parametric op
 factories, and the :class:`Ident` naming scheme that combines a
 namespace, local name, and optional parameters.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`Op` -- a concrete (frozen) quantum operation descriptor
 - :class:`OpFactory` -- protocol for parametric op constructors

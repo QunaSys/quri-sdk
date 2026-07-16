@@ -9,14 +9,14 @@
 # limitations under the License.
 
 """QURI Parts circuit transpiler bridge (:mod:`quri_parts.qsub.trans.qp_trans`)
-==================================================================================
+===============================================================================
 
 Bridges qsub sub-routines to QURI Parts circuit transpilers by
 converting operation chunks to
 :class:`~quri_parts.circuit.QuantumCircuit`, running external
 transpiler passes, and converting back.
 
-Key classes / functions:
+Key classes / functions (for quick orientation):
 
 - :class:`SeparateQURIPartsTranspiler` -- chunk-based QURI Parts bridge
 - :func:`convert_to_qp` -- operations to QuantumCircuit

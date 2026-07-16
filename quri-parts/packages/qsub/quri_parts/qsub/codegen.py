@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """Code generation (:mod:`quri_parts.qsub.codegen`)
-======================================================
+===================================================
 
 Lowers high-level :class:`~quri_parts.qsub.sub.Sub` definitions into
 :class:`~quri_parts.qsub.machineinst.MachineSub` sequences by
 classifying each operation as either a primitive or a sub-call.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`CodeGenerator` -- converts a Sub into a MachineSub
 """

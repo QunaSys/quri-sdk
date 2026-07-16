@@ -9,11 +9,11 @@
 # limitations under the License.
 
 """Single-qubit rotation gates (:mod:`quri_parts.qsub.lib.std.rotation`)
-===========================================================================
+========================================================================
 
 Parametric single-qubit rotation ops that take a float angle parameter.
 
-Key objects:
+Key objects (for quick orientation):
 
 - :data:`RX`, :data:`RY`, :data:`RZ` -- Pauli-axis rotations
 - :data:`Phase` -- relative phase / U1 gate

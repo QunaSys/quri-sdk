@@ -9,12 +9,12 @@
 # limitations under the License.
 
 """Transpiler protocol and combinators (:mod:`quri_parts.qsub.trans.transpiler`)
-==================================================================================
+================================================================================
 
 Defines the :class:`SubTranspilerProtocol` callable interface and
 concrete combinators for composing sub-routine rewrites.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`SequentialTranspiler` -- runs transpilers in sequence
 - :class:`SeparateTranspiler` -- applies a pass to contiguous op chunks

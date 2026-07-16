@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """MachineSub evaluator framework (:mod:`quri_parts.qsub.evaluate`)
-=====================================================================
+===================================================================
 
 Generic tree-walking evaluator that traverses a
 :class:`~quri_parts.qsub.machineinst.MachineSub` hierarchy, delegating
 per-node actions to user-supplied hooks.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`EvaluatorHooks` -- abstract hook interface (enter/exit/primitive)
 - :class:`Evaluator` -- drives the traversal and returns a typed result

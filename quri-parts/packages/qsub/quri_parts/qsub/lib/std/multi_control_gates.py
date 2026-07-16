@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """Named multi-controlled gates (:mod:`quri_parts.qsub.lib.std.multi_control_gates`)
-=======================================================================================
+====================================================================================
 
 Defines parametric op factories for every standard multi-controlled gate
 (MCX, MCY, MCZ, MCS, MCT, MCH, MCRX, etc.) with variable control-bit
 count, together with their sub-resolvers.
 
-Key objects:
+Key objects (for quick orientation):
 
 - :data:`MCX`, :data:`MCY`, :data:`MCZ` -- multi-controlled Paulis
 - :data:`MCS`, :data:`MCT`, :data:`MCH` -- multi-controlled Clifford gates

@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """Sub-routine data model and builder (:mod:`quri_parts.qsub.sub`)
-====================================================================
+==================================================================
 
 Defines the high-level :class:`Sub` (sub-routine) data structure --
 a sequence of :class:`~quri_parts.qsub.op.Op` applications on qubits
 and registers -- together with a builder API for constructing them.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`Sub` -- immutable sub-routine of op applications
 - :class:`SubBuilder` -- imperative builder with aux-qubit management

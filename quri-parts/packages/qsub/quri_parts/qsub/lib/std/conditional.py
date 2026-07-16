@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """Classical-conditional branching (:mod:`quri_parts.qsub.lib.std.conditional`)
-=================================================================================
+===============================================================================
 
 Provides compare-and-branch-on-zero (Cbz) and label primitives, plus a
 context-manager helper for inserting classically conditioned blocks into
 a :class:`~quri_parts.qsub.sub.SubBuilder`.
 
-Key objects:
+Key objects (for quick orientation):
 
 - :data:`Cbz` -- compare-and-branch-on-zero op
 - :data:`Label` -- branch target label op

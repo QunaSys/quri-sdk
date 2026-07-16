@@ -9,14 +9,14 @@
 # limitations under the License.
 
 """MachineSub inline expansion (:mod:`quri_parts.qsub.expand`)
-================================================================
+==============================================================
 
 Inlines sub-calls in a
 :class:`~quri_parts.qsub.machineinst.MachineSub`, allocating fresh
 qubits and registers for auxiliary operands, optionally recursing
 through the full call tree.
 
-Key functions:
+Key functions (for quick orientation):
 
 - :func:`expand` -- one-level or recursive inline expansion
 - :func:`full_expand` -- convenience wrapper for recursive expansion

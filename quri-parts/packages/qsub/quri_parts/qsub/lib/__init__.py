@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Gate libraries root namespace (:mod:`quri_parts.qsub.lib`)
-===============================================================
+=============================================================
 
 Defines the ``lib`` :class:`~quri_parts.qsub.namespace.NameSpace` that
 parents all shipped gate-library modules such as

@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Quantum Phase Estimation (deprecated) (:mod:`quri_parts.qsub.lib.qpe`)
-============================================================================
+=========================================================================
 
 .. deprecated::
    This module is deprecated and feature-frozen. Use
@@ -18,7 +18,7 @@
 Provides QPE circuit constructions including the inverse QFT, a
 line-of-H helper, and two QPE variants (standard and list-Uk).
 
-Key objects:
+Key objects (for quick orientation):
 
 - :data:`QPE` -- standard QPE circuit op
 - :data:`QPEListUk` -- generalized QPE with per-ancilla unitaries
