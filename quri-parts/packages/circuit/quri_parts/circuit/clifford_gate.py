@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Clifford gate utilities (:mod:`quri_parts.circuit.clifford_gate`)
-=====================================================================
+====================================================================
 
 Helper for determining whether a quantum gate belongs to the Clifford
 group based on its name and rotation angles.

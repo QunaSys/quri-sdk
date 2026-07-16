@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Circuit core (:mod:`quri_parts.circuit.circuit`)
-====================================================
+===================================================
 
 Protocols and concrete classes for non-parametric quantum circuits.
 

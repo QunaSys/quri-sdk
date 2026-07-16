@@ -8,14 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Noise model (:mod:`quri_parts.circuit.noise.noise_model`)
-=========================================================
+"""Noise model (:mod:`quri_parts.circuit.noise.noise_model`)
+============================================================
 
 Types for assembling a circuit-level noise model from individual
 noise instructions for use in noisy circuit simulation.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`NoiseModel` -- collection of noise instructions applied to a circuit
 - :class:`CircuitNoiseInstance` -- a noise instruction acting at the circuit level

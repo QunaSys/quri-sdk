@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Gate data types (:mod:`quri_parts.circuit.gate`)
-====================================================
+===================================================
 
 Re-exports the low-level gate value objects from the Rust backend.
 

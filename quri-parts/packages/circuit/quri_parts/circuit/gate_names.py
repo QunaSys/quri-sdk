@@ -8,9 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Gate name constants and type guards
-(:mod:`quri_parts.circuit.gate_names`)
-========================================
+"""Gate name constants and type guards (:mod:`quri_parts.circuit.gate_names`)
+=============================================================================
 
 Canonical string-literal gate names, grouped type aliases, and
 :func:`~typing.TypeGuard` predicates used throughout the circuit layer

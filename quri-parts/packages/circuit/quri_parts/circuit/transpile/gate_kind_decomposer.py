@@ -8,14 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Gate-kind decomposer (:mod:`quri_parts.circuit.transpile.gate_kind_decomposer`)
-===============================================================================
+"""Gate-kind decomposer (:mod:`quri_parts.circuit.transpile.gate_kind_decomposer`)
+==================================================================================
 
 Transpilers that decompose specific gate kinds into
 equivalent sequences of other gates.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`CNOT2CZHTranspiler` -- CNOT to CZ + H
 - :class:`CZ2CNOTHTranspiler` -- CZ to CNOT + H

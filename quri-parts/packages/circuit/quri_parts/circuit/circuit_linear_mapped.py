@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Linear-mapped circuits (:mod:`quri_parts.circuit.circuit_linear_mapped`)
-=============================================================================
+===========================================================================
 
 Parametric quantum circuits whose gate parameters are linear (affine)
 functions of the circuit-level parameters.

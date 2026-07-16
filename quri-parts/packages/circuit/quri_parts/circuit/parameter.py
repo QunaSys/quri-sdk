@@ -8,13 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-Parameter (:mod:`quri_parts.circuit.parameter`)
-===============================================
+"""Parameter (:mod:`quri_parts.circuit.parameter`)
+==================================================
 
 Parameter placeholders used to build parametric quantum circuits.
 
-Key items:
+Key items (for quick orientation):
 
 - :class:`Parameter` -- placeholder for a circuit parameter without a concrete value
 - :data:`CONST` -- placeholder representing a constant term
