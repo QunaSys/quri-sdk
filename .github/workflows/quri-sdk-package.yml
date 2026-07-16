@@ -4,11 +4,12 @@ on:
   release:
     types: [published]
   # Also run the build/test matrix on release PRs so failures surface before
-  # the release is published. The version-check step and all `release-*` upload
-  # jobs stay release-only. Gated to `release-*` branches via the pre-check job
-  # `if`, so ordinary PRs skip the whole (expensive) matrix.
+  # the release is published. Gated to `release-*` head branches via the
+  # pre-check job `if` (ordinary PRs skip the expensive matrix); no base-branch
+  # filter, so it still fires when a release PR is stacked on another branch
+  # (e.g. based on `drop-py39` rather than `main`). The version-check step and
+  # all `release-*` upload jobs stay release-only.
   pull_request:
-    branches: [main]
 
 jobs:
   pre-check:
