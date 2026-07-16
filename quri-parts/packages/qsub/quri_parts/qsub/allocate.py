@@ -9,12 +9,12 @@
 # limitations under the License.
 
 """Qubit and register allocation (:mod:`quri_parts.qsub.allocate`)
-=====================================================================
+==================================================================
 
 Allocation strategies for assigning logical qubits and classical
 registers during circuit expansion and evaluation.
 
-Key classes:
+Key classes (for quick orientation):
 
 - :class:`Allocator` -- abstract base for allocation strategies
 - :class:`HierarchicalReuseAllocator` -- stack-based allocator

@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """SWAP gate definition (:mod:`quri_parts.qsub.lib.std.swap`)
-================================================================
+=============================================================
 
 Defines the two-qubit SWAP gate as a self-inverse
 :class:`~quri_parts.qsub.op.Op`.

@@ -9,14 +9,14 @@
 # limitations under the License.
 
 """Joint Op + Sub definitions (:mod:`quri_parts.qsub.opsub`)
-===============================================================
+============================================================
 
 Helpers that simultaneously create an :class:`~quri_parts.qsub.op.Op`
 (or :class:`~quri_parts.qsub.op.OpFactory`) and its corresponding
 :class:`~quri_parts.qsub.sub.Sub`, optionally registering both in the
 default repository.
 
-Key functions:
+Key functions (for quick orientation):
 
 - :func:`opsub` -- create a fixed Op + Sub pair and register it
 - :func:`param_opsub` -- create a parametric OpFactory + SubFactory pair

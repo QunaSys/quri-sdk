@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Sub-routine transpiler framework (:mod:`quri_parts.qsub.trans`)
-====================================================================
+==================================================================
 
 Re-exports the transpiler protocol and combinators used to rewrite
 :class:`~quri_parts.qsub.sub.Sub` instances before code generation.

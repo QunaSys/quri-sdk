@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Simulator sub-repository (:mod:`quri_parts.qsub.resolve.simulator_repo`)
-============================================================================
+===========================================================================
 
 Module-global :class:`~quri_parts.qsub.resolve.resolve.CompositeSubRepository`
 used for simulation, layering a multi-controlled-gate resolver on top of

@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Sub-routine resolvers and repositories (:mod:`quri_parts.qsub.resolve.resolve`)
-====================================================================================
+==================================================================================
 
 Defines the :class:`SubResolver` protocol and the :class:`SubRepository`
 registries that map an :class:`~quri_parts.qsub.op.Op` to its

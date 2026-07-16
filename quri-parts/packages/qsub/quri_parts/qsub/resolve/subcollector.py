@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Sub collection (:mod:`quri_parts.qsub.resolve.subcollector`)
-================================================================
+===============================================================
 
 Defines :class:`SubCollector`, which recursively resolves and collects
 every :class:`~quri_parts.qsub.sub.Sub` needed to realize an

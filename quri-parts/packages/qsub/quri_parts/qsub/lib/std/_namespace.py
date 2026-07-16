@@ -9,7 +9,7 @@
 # limitations under the License.
 
 """Internal namespace for std (:mod:`quri_parts.qsub.lib.std._namespace`)
-===========================================================================
+=========================================================================
 
 Defines the ``lib.std``
 :class:`~quri_parts.qsub.namespace.NameSpace` used to scope all

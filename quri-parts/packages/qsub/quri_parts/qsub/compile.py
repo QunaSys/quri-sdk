@@ -9,14 +9,14 @@
 # limitations under the License.
 
 """End-to-end compilation pipeline (:mod:`quri_parts.qsub.compile`)
-=====================================================================
+===================================================================
 
 Orchestrates sub-resolution, transpilation, code generation, and
 linking to produce a fully linked
 :class:`~quri_parts.qsub.machineinst.MachineSub` from a high-level
 :class:`~quri_parts.qsub.op.Op`.
 
-Key functions:
+Key functions (for quick orientation):
 
 - :func:`compile` -- compile an Op into a linked MachineSub
 - :func:`compile_sub` -- compile a Sub into a linked MachineSub

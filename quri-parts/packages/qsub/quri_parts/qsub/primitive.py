@@ -9,12 +9,12 @@
 # limitations under the License.
 
 """Pre-defined primitive gate sets (:mod:`quri_parts.qsub.primitive`)
-=======================================================================
+=====================================================================
 
 Curated tuples of standard-library ops used as primitive sets during
 compilation, targeting common hardware / simulator instruction sets.
 
-Key objects:
+Key objects (for quick orientation):
 
 - :data:`Clifford` -- all single- and two-qubit Clifford gates
 - :data:`CliffordT` -- Clifford + T/Tdag

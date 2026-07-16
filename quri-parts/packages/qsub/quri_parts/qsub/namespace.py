@@ -9,12 +9,12 @@
 # limitations under the License.
 
 """Hierarchical namespace identifiers (:mod:`quri_parts.qsub.namespace`)
-==========================================================================
+========================================================================
 
 Provides a lightweight, hashable namespace type used to scope operation
 identifiers across gate libraries.
 
-Key classes / objects:
+Key classes / objects (for quick orientation):
 
 - :class:`NameSpace` -- immutable (local_name, parent) pair
 - :data:`DEFAULT` -- sentinel namespace for unscoped identifiers

@@ -9,13 +9,13 @@
 # limitations under the License.
 
 """MachineSub linker (:mod:`quri_parts.qsub.link`)
-=====================================================
+==================================================
 
 Resolves :class:`~quri_parts.qsub.machineinst.SubCall` references in a
 :class:`~quri_parts.qsub.machineinst.MachineSub` by binding them to
 concrete MachineSub instances via a call table.
 
-Key classes / functions:
+Key classes / functions (for quick orientation):
 
 - :class:`Linker` -- reusable linker with a pre-linked call table
 - :func:`link` -- one-shot linking of a MachineSub

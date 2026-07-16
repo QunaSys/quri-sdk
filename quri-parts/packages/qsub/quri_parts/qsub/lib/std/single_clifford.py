@@ -9,11 +9,11 @@
 # limitations under the License.
 
 """Single-qubit Clifford gates (:mod:`quri_parts.qsub.lib.std.single_clifford`)
-==================================================================================
+===============================================================================
 
 Fixed (non-parametric) single-qubit Clifford gates.
 
-Key objects:
+Key objects (for quick orientation):
 
 - :data:`H`, :data:`X`, :data:`Y`, :data:`Z` -- Pauli + Hadamard
 - :data:`S`, :data:`Sdag` -- phase gates
