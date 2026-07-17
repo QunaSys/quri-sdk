@@ -62,7 +62,6 @@ from .fuse import (
     FuseRotationTranspiler,
     NormalizeRotationTranspiler,
     Rotation2NamedTranspiler,
-    RZ2NamedTranspiler,
     ZeroRotationEliminationTranspiler,
 )
 from .gate_kind_decomposer import (
@@ -637,7 +636,7 @@ class CliffordTSetTranspiler(SequentialTranspiler):
                     ]
                 ),
                 FuseRotationTranspiler(),
-                RZ2NamedTranspiler(epsilon, allow_t_tdag=True),
+                # RZ2NamedTranspiler(epsilon, allow_t_tdag=True),
                 RZ2HSTTranspiler(epsilon),
                 IdentityEliminationTranspiler(),
             ]
