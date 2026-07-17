@@ -163,11 +163,15 @@ def test_gate_creation() -> None:
 
 
 @pytest.mark.parametrize("factory", (MCRX, MCRY, MCRZ, MCU1))
-def test_mc_rotation_gate_accepts_numpy_scalar_angle(
+def test_mc_rotation_gate_angle_types(
     factory: Callable[..., QuantumGate],
 ) -> None:
-    gate = factory(1, np.float64(0.5), [0])
-    assert gate.params == (0.5,)
+    for angle in (0.5, 1, np.float32(0.5), np.float64(0.5)):
+        gate = factory(1, angle, [0])
+        assert gate.params == (float(angle),)
+
+    with pytest.raises(TypeError):
+        factory(1, "0.5", [0])
 
 
 def test_gate_addition() -> None:
