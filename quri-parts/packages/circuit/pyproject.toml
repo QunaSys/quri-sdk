@@ -35,3 +35,5 @@ numpy = [
     { version = ">=2.0", python = ">=3.10" },
 ]
 quri-parts-rust = "*"
+mpmath = ">=1.3.0"
+pygridsynth = ">=1.0.0"
