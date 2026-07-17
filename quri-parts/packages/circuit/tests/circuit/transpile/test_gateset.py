@@ -555,6 +555,7 @@ _CLIFFORD_T_GATES = {
 
 
 class TestCliffordTSetTranspiler:
+    @pytest.mark.gridsynth
     def test_pi_over_4_angles_convert_exactly(self) -> None:
         circuit = QuantumCircuit(2)
         circuit.add_H_gate(0)
