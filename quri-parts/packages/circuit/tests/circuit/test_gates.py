@@ -166,14 +166,10 @@ def test_gate_creation() -> None:
 def test_mc_rotation_gate_angle_types(
     factory: Callable[..., QuantumGate],
 ) -> None:
-    for angle, expected in (
-        (0.5, 0.5),
-        (1, 1.0),
-        (np.float32(0.5), 0.5),
-        (np.float64(0.5), 0.5),
-    ):
-        gate = factory(1, angle, [0])
-        assert gate.params == (expected,)
+    assert factory(1, 0.5, [0]).params == (0.5,)
+    assert factory(1, 1, [0]).params == (1.0,)
+    assert factory(1, np.float32(0.5), [0]).params == (0.5,)
+    assert factory(1, np.float64(0.5), [0]).params == (0.5,)
 
     with pytest.raises(TypeError):
         factory(1, "0.5", [0])
