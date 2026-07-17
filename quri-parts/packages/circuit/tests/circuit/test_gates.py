@@ -43,6 +43,7 @@ from quri_parts.circuit import (
     Z,
     gate_names,
 )
+from quri_parts.circuit.gates import MCRX, MCRY, MCRZ, MCU1
 
 _factory_name_map: Mapping[Callable[[int], QuantumGate], str] = {
     Identity: gate_names.Identity,
@@ -159,6 +160,14 @@ def test_gate_creation() -> None:
     assert Measurement([5], [7]) == QuantumGate(
         gate_names.Measurement, target_indices=(5,), classical_indices=(7,)
     )
+
+
+@pytest.mark.parametrize("factory", (MCRX, MCRY, MCRZ, MCU1))
+def test_mc_rotation_gate_accepts_numpy_scalar_angle(
+    factory: Callable[..., QuantumGate],
+) -> None:
+    gate = factory(1, np.float64(0.5), [0])
+    assert gate.params == (0.5,)
 
 
 def test_gate_addition() -> None:

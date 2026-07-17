@@ -409,9 +409,6 @@ class MCRXFactory:
     def __call__(
         self, target_index: int, angle: float, control_indices: Sequence[int] = []
     ) -> QuantumGate:
-        assert (
-            type(angle) is float
-        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
         if len(control_indices) == 0:
             return QuantumGate(
                 name=self.name, params=(angle,), target_indices=(target_index,)
@@ -434,9 +431,6 @@ class MCRYFactory:
     def __call__(
         self, target_index: int, angle: float, control_indices: Sequence[int] = []
     ) -> QuantumGate:
-        assert (
-            type(angle) is float
-        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
         if len(control_indices) == 0:
             return QuantumGate(
                 name=self.name, params=(angle,), target_indices=(target_index,)
@@ -459,9 +453,6 @@ class MCRZFactory:
     def __call__(
         self, target_index: int, angle: float, control_indices: Sequence[int] = []
     ) -> QuantumGate:
-        assert (
-            type(angle) is float
-        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
         if len(control_indices) == 0:
             return QuantumGate(
                 name=self.name, params=(angle,), target_indices=(target_index,)
@@ -484,9 +475,6 @@ class MCU1Factory:
     def __call__(
         self, target_index: int, angle: float, control_indices: Sequence[int] = []
     ) -> QuantumGate:
-        assert (
-            type(angle) is float
-        ), f"angle must be a float, {type(angle),angle=}"  # noqa: E231
         if len(control_indices) == 0:
             return QuantumGate(
                 name=self.name, params=(angle,), target_indices=(target_index,)
