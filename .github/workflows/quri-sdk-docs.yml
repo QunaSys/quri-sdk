@@ -2,8 +2,6 @@ name: QURI SDK Docs Preview
 
 on:
   pull_request:
-    branches:
-      - main
     paths:
       - docs/**
       - quri-parts/packages/**/*.py
