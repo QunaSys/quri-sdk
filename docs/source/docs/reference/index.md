@@ -4,18 +4,18 @@ Facts to look up while you work.
 
 ## Contents
 
-### [Quantum Algorithms](../examples/quri-parts/index.md)
+### [Quantum Algorithms](quantum_algorithms/index.md)
 
 Complete implementations of textbook algorithms to consult and adapt.
 
-### [Ecosystem](../../ecosystem.md)
+### [Ecosystem](ecosystem.md)
 
 The repositories, documentation and community channels around QURI SDK.
 
-### [API Reference](../../reference.md)
+### [API Reference](api_reference.md)
 
 Classes, functions and parameters of every QURI SDK package.
 
-### [Release Notes](../../release-notes/index.md)
+### [Release Notes](release-notes/index.md)
 
 What changed in each release.

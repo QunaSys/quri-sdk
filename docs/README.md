@@ -51,7 +51,12 @@ $ make api
 ```
 
 ### Rules, Conventions
-- Please use Jupyter notebooks for creating/updating a page for Tutorials and Examples.
-- Save notebook and markdown (name it `index.md`) files in the same directory.
+- Please use Jupyter notebooks for creating or updating notebook-based documentation pages.
+- Place each notebook directly in its section directory and use a descriptive, lowercase `snake_case` filename without a numeric prefix.
+- Do not create a directory solely for a single notebook.
+- Store external assets in `_assets/<notebook_stem>/` under the same section directory.
+- Reserve `index.md` for section landing pages.
+- Add notebooks directly to [`source/_toc.yml`](source/_toc.yml).
+- Do not commit generated `index.md` files or notebook output assets.
 - Page ordering and the site structure are defined in [`source/_toc.yml`](source/_toc.yml).
 - Wrap the output cell of a Jupyter notebook in three backticks (` ``` `).

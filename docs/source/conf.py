@@ -47,7 +47,7 @@ html_css_files = ["landing-cards.css"]
 html_favicon = "_static/favicon.ico"
 # The quri-parts API reference is built separately (autodoc) and staged into
 # _api_staged/api/ by CI; serve it verbatim under /api/. Absent on local builds,
-# where the `has_api_ref` tag stays unset so reference.md shows a note instead of
+# where the `has_api_ref` tag stays unset so api_reference.md shows a note instead of
 # redirecting to a missing page.
 _conf_dir = os.path.dirname(os.path.abspath(__file__))
 if os.path.isdir(os.path.join(_conf_dir, "_api_staged")):
@@ -80,8 +80,8 @@ intersphinx_disabled_reftypes = ["std:doc"]
 exclude_patterns = [
     "**/.ipynb_checkpoints",
     # Per-version release notes are content sources, inlined into
-    # release-notes/index.md; they are not standalone build pages.
-    "release-notes/[0-9]*.md",
+    # docs/reference/release-notes/index.md; they are not standalone build pages.
+    "docs/reference/release-notes/[0-9]*.md",
 ]
 
 suppress_warnings = ["mystnb.unknown_mime_type"]

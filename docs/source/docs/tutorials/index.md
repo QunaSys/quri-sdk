@@ -6,12 +6,12 @@ them in order if you are new.
 
 ## Contents
 
-### [Quick Start](../../quick_start.md)
+### [Quick Start](quick_start.md)
 
 Install QURI SDK, build your first quantum circuit, and take your first
 resource estimate.
 
-### [QURI SDK Introduction](general/index.md)
+### [QURI SDK Introduction](quri_sdk_introduction.ipynb)
 
 How the pieces of QURI SDK appear in a typical research workflow.
 
