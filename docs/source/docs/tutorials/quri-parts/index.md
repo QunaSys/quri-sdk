@@ -40,3 +40,7 @@ Putting parametric circuits and estimators together into variational algorithms.
 ### [Qsub Quick Overview](qsub.ipynb)
 
 Qsub, the DSL for describing structured quantum programs that represent FTQC algorithms.
+
+### [Quration Resource Estimation](quration/index.md)
+
+Compile qsub circuits for surface-code and lattice-surgery architectures, then estimate their FTQC resources with Quration.

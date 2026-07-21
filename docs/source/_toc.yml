@@ -21,6 +21,10 @@ parts:
                   - file: docs/tutorials/quri-parts/parametric/gradient_estimators
               - file: docs/tutorials/quri-parts/variational_algorithms
               - file: docs/tutorials/quri-parts/qsub
+              - file: docs/tutorials/quri-parts/quration/index
+                sections:
+                  - file: docs/tutorials/quri-parts/quration/basic_resource_estimation
+                  - file: docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation
           - file: docs/tutorials/quri-algo/index
             sections:
               - file: docs/tutorials/quri-algo/time_evolution

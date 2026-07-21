@@ -19,8 +19,7 @@ outside this site.
 
 - **[QURI Parts QSCI](https://github.com/QunaSys/quri-parts-qsci)**: the QSCI
   (Quantum-Selected Configuration Interaction) algorithm built on QURI Parts.
-- **[QURI SDK Notebooks](https://github.com/QunaSys/quri-sdk-notebooks)**: the
-  source notebooks behind the tutorials and examples on this site.
+- **[QURI SDK documentation sources](https://github.com/QunaSys/quri-sdk/tree/main/docs/source/docs)**: the source notebooks and pages behind this site.
 
 ```{note}
 Not sure which library you need? See the

@@ -51,6 +51,7 @@ $ make api
 ```
 
 ### Rules, Conventions
+- Keep all tutorial and example notebook sources under `source/docs/`; this directory is their canonical location.
 - Please use Jupyter notebooks for creating or updating notebook-based documentation pages.
 - Place each notebook directly in its section directory and use a descriptive, lowercase `snake_case` filename without a numeric prefix.
 - Do not create a directory solely for a single notebook.
