@@ -113,7 +113,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "11", "14" ]
+        python-version: [ "10", "14" ]
         # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
@@ -199,15 +199,6 @@ jobs:
                 # We cannot run tests on native Windows, since pyscf does not support it.
                 continue
               fi
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_tket"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
-              continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
               continue
@@ -334,7 +325,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12", "13", "14" ]
+        python-version: [ "10", "11", "12", "13", "14" ]
         # Currentl, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
@@ -426,15 +417,6 @@ jobs:
                 # We cannot run tests on native Windows, since pyscf does not support it.
                 continue
               fi
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_tket"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
-              continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
               continue
