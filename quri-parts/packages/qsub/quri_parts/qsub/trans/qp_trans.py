@@ -8,12 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection, Sequence
-from typing import cast
+from collections.abc import Collection, Mapping
+from typing import Any, Iterable
 
 import quri_parts.circuit.transpile as qt
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit, gate_names
 from quri_parts.qsub.eval.quriparts import (
+    convert_op,
     primitive_op_gate_mapping,
     primitive_param_op_gate_mapping,
 )
@@ -24,22 +25,22 @@ from quri_parts.qsub.qubit import Qubit
 from .transpiler import Operations, SeparateTranspiler
 
 
+class _Identity(Mapping[Qubit, Qubit]):
+    def __getitem__(self, key: Qubit) -> Qubit:
+        return key
+
+    def __iter__(self) -> Any:
+        raise NotImplementedError()
+
+    def __len__(self) -> Any:
+        raise NotImplementedError()
+
+
 def convert_to_qp(ops: Operations) -> NonParametricQuantumCircuit:
     qc = 1 + max(max(qubit.uid for qubit in qs) for _, qs, _ in ops)
     circ = QuantumCircuit(qc)
     for op, qubits, regs in ops:
-        if op.base_id in primitive_op_gate_mapping:
-            circ.add_gate(
-                primitive_op_gate_mapping[op.base_id](*[q.uid for q in qubits])
-            )
-        elif op.base_id in primitive_param_op_gate_mapping:
-            circ.add_gate(
-                primitive_param_op_gate_mapping[op.base_id](
-                    qubits[0].uid, cast(float, op.id.params[0])
-                )
-            )
-        else:
-            raise ValueError(f"Conversion of {op.base_id} to qp is no supported.")
+        circ.add_gate(convert_op(op, qubits, regs, _Identity()))
     return circ
 
 
@@ -67,27 +68,61 @@ _param_op_gate_map_qp = {
     gate_names.RX: std.RX,
     gate_names.RY: std.RY,
     gate_names.RZ: std.RZ,
+    gate_names.U1: std.Phase,
+}
+
+_mc_op_gate_map_qp = {
+    gate_names.MCX: std.MCX,
+    gate_names.MCY: std.MCY,
+    gate_names.MCZ: std.MCZ,
+    gate_names.MCS: std.MCS,
+    gate_names.MCSdag: std.MCSdag,
+    gate_names.MCT: std.MCT,
+    gate_names.MCTdag: std.MCTdag,
+    gate_names.MCSqrtX: std.MCSqrtX,
+    gate_names.MCSqrtXdag: std.MCSqrtXdag,
+    gate_names.MCSqrtY: std.MCSqrtY,
+    gate_names.MCSqrtYdag: std.MCSqrtYdag,
+    gate_names.MCH: std.MCH,
+}
+
+_mc_param_op_gate_map_qp = {
+    gate_names.MCRX: std.MCRX,
+    gate_names.MCRY: std.MCRY,
+    gate_names.MCRZ: std.MCRZ,
+    gate_names.MCU1: std.MCPhase,
 }
 
 
 def convert_from_qp(circuit: NonParametricQuantumCircuit) -> Operations:
     ops = []
     for gate in circuit.gates:
+        qubits = tuple(
+            Qubit(i) for i in tuple(gate.control_indices) + tuple(gate.target_indices)
+        )
         if gate.name in _op_gate_map_qp:
-            qubits = tuple(gate.control_indices) + tuple(gate.target_indices)
-            ops.append(
-                (_op_gate_map_qp[gate.name], tuple(Qubit(i) for i in qubits), ())
-            )
+            ops.append((_op_gate_map_qp[gate.name], qubits, ()))
         elif gate.name in _param_op_gate_map_qp:
+            assert len(gate.control_indices) == 0
             op = _param_op_gate_map_qp[gate.name](gate.params[0])
-            ops.append((op, tuple(Qubit(i) for i in gate.target_indices), ()))
+            ops.append((op, qubits, ()))
+        elif gate.name in _mc_op_gate_map_qp:
+            assert len(gate.target_indices) == 1
+            op = _mc_op_gate_map_qp[gate.name](len(gate.control_indices))
+            ops.append((op, qubits, ()))
+        elif gate.name in _mc_param_op_gate_map_qp:
+            assert len(gate.target_indices) == 1
+            op = _mc_param_op_gate_map_qp[gate.name](
+                len(gate.control_indices), gate.params[0]
+            )
+            ops.append((op, qubits, ()))
         else:
             raise ValueError(f"Conversion of {gate.name} from qp is not supported.")
     return ops
 
 
 class SeparateQURIPartsTranspiler(SeparateTranspiler):
-    def __init__(self, qp_trans: Sequence[qt.CircuitTranspiler]) -> None:
+    def __init__(self, qp_trans: Iterable[qt.CircuitTranspiler]) -> None:
         self._transpilers = qp_trans
 
     @property

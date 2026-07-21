@@ -31,7 +31,7 @@ Z = np.array([[1, 0], [0, -1]], dtype=np.complex128)
 class TestGetSparseMatrix:
     def test_get_sparse_matrix_pauli_label(self) -> None:
         test_pauli_label = pauli_label("X0 X1 Y3 Z4")
-        expected_matrix = reduce(np.kron, [Z, Y, I, X, X])
+        expected_matrix = reduce(np.kron, [Z, Y, I, X, X])  # type: ignore[arg-type]
         assert np.allclose(
             get_sparse_matrix(test_pauli_label).toarray(), expected_matrix
         )
@@ -67,7 +67,7 @@ class TestGetSparseMatrix:
 
     def test_get_sparse_matrix_nqubit_specified(self) -> None:
         test_pauli_label = pauli_label("X0 X1 Y3 Z4")
-        expected_matrix = reduce(np.kron, [I, Z, Y, I, X, X])
+        expected_matrix = reduce(np.kron, [I, Z, Y, I, X, X])  # type: ignore[arg-type]
         assert np.allclose(
             get_sparse_matrix(test_pauli_label, 6).toarray(), expected_matrix
         )
@@ -83,7 +83,8 @@ class TestGetSparseMatrix:
 
     def test_get_sparse_matrix_for_operator(self) -> None:
         operator = Operator({pauli_label("X0 Y3"): -3, PAULI_IDENTITY: 8})
-        expected_matrix = -3 * reduce(np.kron, [Y, I, I, X]) + 8 * np.eye(16)
+        paulis = reduce(np.kron, [Y, I, I, X])  # type: ignore[arg-type]
+        expected_matrix = -3 * paulis + 8 * np.eye(16)
         assert np.allclose(get_sparse_matrix(operator).toarray(), expected_matrix)
 
     def test_get_sparse_matrix_for_zero(self) -> None:

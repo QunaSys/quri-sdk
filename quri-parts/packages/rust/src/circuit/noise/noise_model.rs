@@ -11,7 +11,7 @@ use crate::circuit::noise::noise_instruction::{
 
 #[pyclass(module = "quri_parts.rust.circuit.noise")]
 pub struct CircuitNoiseInstance {
-    resolvers: Vec<Box<dyn CircuitNoiseResolver + Send>>,
+    resolvers: Vec<Box<dyn CircuitNoiseResolver + Send + Sync>>,
     index: usize,
     depths: HashMap<usize, usize>,
 }
@@ -64,7 +64,7 @@ pub struct NoiseModel {
     gate_noises_for_all_qubits_specified_gates: HashMap<String, Vec<usize>>,
     gate_noises_for_all: Vec<usize>,
 
-    circuit_noises: Vec<Box<dyn CircuitNoiseInstruction + Send>>,
+    circuit_noises: Vec<Box<dyn CircuitNoiseInstruction + Send + Sync>>,
 
     custom_gate_filters: HashMap<usize, Py<PyAny>>,
 }
@@ -105,7 +105,7 @@ impl NoiseModel {
     pub fn noises_for_gate<'py>(
         slf: &Bound<'py, Self>,
         gate: QuantumGate,
-    ) -> Vec<(Bound<'py, PyTuple>, Py<GateNoiseInstruction>)> {
+    ) -> PyResult<Vec<(Bound<'py, PyTuple>, Py<GateNoiseInstruction>)>> {
         let py = slf.py();
         let slf_ = slf.borrow();
         let mut pairs = vec![];
@@ -133,7 +133,7 @@ impl NoiseModel {
 
         pairs
             .into_iter()
-            .map(|(qs, nid)| (PyTuple::new_bound(py, qs), slf_.gate_noises[nid].clone()))
+            .map(|(qs, nid)| Ok((PyTuple::new(py, qs)?, slf_.gate_noises[nid].clone())))
             .collect()
     }
 
@@ -424,7 +424,7 @@ impl NoiseModel {
         nid
     }
 
-    fn add_circuit_noise_instr(&mut self, noise: Box<dyn CircuitNoiseInstruction + Send>) {
+    fn add_circuit_noise_instr(&mut self, noise: Box<dyn CircuitNoiseInstruction + Send + Sync>) {
         self.circuit_noises.push(noise);
     }
 }

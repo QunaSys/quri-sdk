@@ -29,9 +29,12 @@ python = "^3.9.8"
 quri-parts-circuit = "*"
 quri-parts-core = "*"
 tensornetwork-ng = "^0.5.1"
-tensorflow = "^2.0"
-jax = "^0.4"
-jaxlib = "^0.4"
+# tensorflow/jax/jaxlib have no cp314 wheels and are not imported by
+# quri-parts (tensornetwork-ng defaults to the NumPy backend); keep them on
+# Python <3.14 so the package itself still installs on 3.14.
+tensorflow = [{ version = "^2.0", python = "<3.14" }]
+jax = [{ version = "^0.4", python = "<3.14" }]
+jaxlib = [{ version = "^0.4", python = "<3.14" }]
 
 [tool.poetry.extras]
 tensorflow = ["tensorflow"]

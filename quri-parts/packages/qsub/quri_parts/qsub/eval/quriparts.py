@@ -18,8 +18,8 @@ from ..codegen import CodeGenerator
 from ..evaluate import EvaluatorHooks
 from ..lib import std
 from ..link import Linker
-from ..machineinst import MachineOp, MachineSub, Primitive, SubId
-from ..op import BaseIdent
+from ..machineinst import MachineSub, Primitive, SubId
+from ..op import BaseIdent, Op
 from ..qubit import Qubit
 from ..register import Register
 
@@ -125,62 +125,35 @@ mc_param_op_gate_mapping: Dict[
     std.MCPhase.base_id: gates.MCU1,
 }
 
-mc_primitive_op_gate_mapping: Mapping[
-    BaseIdent, Callable[[int, list[int]], QuantumGate]
-] = {
-    # TODO:
-    std.X.base_id: gates.MCX,
-    std.Y.base_id: gates.MCY,
-    std.Z.base_id: gates.MCZ,
-    std.H.base_id: gates.MCH,
-    std.S.base_id: gates.MCS,
-    std.Sdag.base_id: gates.MCSdag,
-    std.T.base_id: gates.MCT,
-    std.Tdag.base_id: gates.MCTdag,
-    std.SqrtX.base_id: gates.MCSqrtX,
-    std.SqrtXdag.base_id: gates.MCSqrtXdag,
-    std.SqrtY.base_id: gates.MCSqrtY,
-    std.SqrtYdag.base_id: gates.MCSqrtYdag,
-}
-mc_primitive_param_op_gate_mapping: Mapping[
-    BaseIdent,
-    Callable[[int, float, list[int]], QuantumGate],
-] = {
-    std.RX.base_id: gates.MCRX,
-    std.RY.base_id: gates.MCRY,
-    std.RZ.base_id: gates.MCRZ,
-    std.Phase.base_id: gates.MCU1,
-}
 
-
-def _convert_op(
-    mop: MachineOp,
+def convert_op(
+    op: Op,
     qubits: Sequence[Qubit],
     regs: Sequence[Register],
     qubit_map: Mapping[Qubit, Qubit],
 ) -> QuantumGate:
-    if mop.op.base_id in primitive_op_gate_mapping:
-        return primitive_op_gate_mapping[mop.op.base_id](
+    if op.base_id in primitive_op_gate_mapping:
+        return primitive_op_gate_mapping[op.base_id](
             *[qubit_map[q].uid for q in qubits]
         )
-    elif mop.op.base_id in primitive_param_op_gate_mapping:
-        param_float = mop.op.id.params[0]
+    elif op.base_id in primitive_param_op_gate_mapping:
+        param_float = op.id.params[0]
         assert isinstance(param_float, float)
-        return primitive_param_op_gate_mapping[mop.op.id.base](
+        return primitive_param_op_gate_mapping[op.id.base](
             qubit_map[qubits[0]].uid, param_float
         )
-    elif mop.op.base_id in mc_op_gate_mapping:
+    elif op.base_id in mc_op_gate_mapping:
         full_qubits = [qubit_map[q].uid for q in qubits]
-        return mc_op_gate_mapping[mop.op.base_id](full_qubits[-1], full_qubits[:-1])
-    elif mop.op.base_id in mc_param_op_gate_mapping:
+        return mc_op_gate_mapping[op.base_id](full_qubits[-1], full_qubits[:-1])
+    elif op.base_id in mc_param_op_gate_mapping:
         full_qubits = [qubit_map[q].uid for q in qubits]
-        angle = mop.op.id.params[1]
+        angle = op.id.params[1]
         assert isinstance(angle, float)
-        return mc_param_op_gate_mapping[mop.op.base_id](
+        return mc_param_op_gate_mapping[op.base_id](
             full_qubits[-1], angle, full_qubits[:-1]
         )
     else:
-        raise ValueError(f"Op mapping to QuantumGate is not supported for {mop.op.id}.")
+        raise ValueError(f"Op mapping to QuantumGate is not supported for {op.id}.")
 
 
 class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
@@ -278,7 +251,7 @@ class QURIPartsEvaluatorHooks(EvaluatorHooks[QuantumCircuit]):
         if self._qubit_map is None:
             raise ValueError("Uninitialized qubit mapping")
 
-        g = _convert_op(mop, qubits, regs, self._qubit_map)
+        g = convert_op(mop.op, qubits, regs, self._qubit_map)
         self._gates.append(g)
 
         self._gate_stack[-1].append(g)

@@ -427,6 +427,36 @@ class TOFFOLI2HTTdagCNOTTranspiler(GateKindDecomposer):
         ]
 
 
+class TOFFOLI2CNOTTTranspiler(GateKindDecomposer):
+    """CircuitTranspiler that decomposes Toffoli gates into sequences of H, T,
+    Tdag, and CNOT gates."""
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.TOFFOLI]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        control1, control2 = gate.control_indices
+        target = gate.target_indices[0]
+        return [
+            gates.H(target),
+            gates.CNOT(control2, target),
+            gates.Tdag(target),
+            gates.CNOT(control1, target),
+            gates.T(target),
+            gates.CNOT(control2, target),
+            gates.Tdag(target),
+            gates.CNOT(control1, target),
+            gates.T(control2),
+            gates.T(target),
+            gates.H(target),
+            gates.CNOT(control1, control2),
+            gates.T(control1),
+            gates.Tdag(control2),
+            gates.CNOT(control1, control2),
+        ]
+
+
 class U1ToRZTranspiler(GateKindDecomposer):
     """CircuitTranspiler, which decomposes U1 gates into RZ gates."""
 

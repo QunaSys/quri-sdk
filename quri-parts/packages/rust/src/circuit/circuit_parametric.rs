@@ -3,7 +3,6 @@ use crate::circuit::gate::QuantumGate;
 use crate::circuit::parameter::Parameter;
 use crate::circuit::MaybeUnbound;
 use num_complex::Complex64;
-use pyo3::conversion::FromPyObject;
 use pyo3::prelude::*;
 use pyo3::types::{PyMapping, PySequence};
 use quri_parts::BasicBlock;
@@ -224,13 +223,13 @@ impl ImmutableParametricQuantumCircuit {
     }
 
     #[getter]
-    fn get_gates<'py>(slf: PyRef<'py, Self>) -> PyResult<Vec<PyObject>> {
+    fn get_gates<'py>(slf: PyRef<'py, Self>) -> PyResult<Vec<Py<PyAny>>> {
         slf.gates
             .0
             .iter()
             .map(|g| match g.clone().instantiate()? {
-                Ok(g) => Ok(QuantumGate::into_py(g, slf.py())),
-                Err(g) => Ok(g.0.into_py(slf.py()).into_any()),
+                Ok(g) => Ok(g.into_pyobject(slf.py())?.into_any().unbind()),
+                Err(g) => Ok(g.0.into_pyobject(slf.py())?.into_any().unbind()),
             })
             .collect()
     }
@@ -241,8 +240,8 @@ impl ImmutableParametricQuantumCircuit {
             .0
             .iter()
             .map(|g| match g.clone().instantiate()? {
-                Ok(g) => Ok((QuantumGate::into_py(g, slf.py()), None)),
-                Err(g) => Ok((g.0.into_py(slf.py()).into_any(), Some(g.1))),
+                Ok(g) => Ok((g.into_pyobject(slf.py())?.into_any().unbind(), None)),
+                Err(g) => Ok((g.0.into_pyobject(slf.py())?.into_any().unbind(), Some(g.1))),
             })
             .collect()
     }
@@ -288,7 +287,7 @@ impl ImmutableParametricQuantumCircuit {
     fn get_param_mapping<'py>(slf: &Bound<'py, Self>) -> PyResult<Bound<'py, PyAny>> {
         let params = Self::get__params(slf.borrow());
         slf.py()
-            .import_bound("quri_parts.circuit.parameter_mapping")?
+            .import("quri_parts.circuit.parameter_mapping")?
             .getattr("LinearParameterMapping")?
             .call1((
                 params.clone(),
@@ -391,9 +390,9 @@ impl ImmutableParametricQuantumCircuit {
     }
 
     #[pyo3(name = "__add__")]
-    fn py_add(slf: &Bound<'_, Self>, gates: &Bound<'_, PyAny>) -> PyObject {
+    fn py_add(slf: &Bound<'_, Self>, gates: &Bound<'_, PyAny>) -> Py<PyAny> {
         Self::combine(slf, gates)
-            .map(|c| c.into_py(slf.py()))
+            .and_then(|c| Ok(c.into_pyobject(slf.py())?.into_any().unbind()))
             .unwrap_or(slf.py().NotImplemented())
     }
 
@@ -425,8 +424,7 @@ impl ImmutableParametricQuantumCircuit {
         shot_count: i32,
         params: Vec<f64>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let sampling =
-            PyModule::import_bound(slf.py(), "quri_parts.core.sampling.default_sampler")?;
+        let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
         let sampling_counts = sampling
             .getattr("DEFAULT_SAMPLER")?
             .call1((slf, shot_count, params));
@@ -434,8 +432,7 @@ impl ImmutableParametricQuantumCircuit {
     }
 
     fn draw<'py>(slf: &Bound<'py, Self>) -> Result<(), PyErr> {
-        let circuit_drawer =
-            PyModule::import_bound(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
+        let circuit_drawer = PyModule::import(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
         circuit_drawer.getattr("draw_circuit")?.call1((slf,))?;
 
         Ok(())
@@ -551,7 +548,7 @@ impl ParametricQuantumCircuit {
         } else if let Ok(other) = gates.downcast::<PySequence>() {
             for i in 0..other.len()? {
                 let item = other.get_item(i)?;
-                let gate = QuantumGate::extract_bound(&item)?;
+                let gate = item.extract::<QuantumGate>()?;
                 Self::add_gate(slf.borrow_mut(), gate, None)?;
             }
             Ok(())
@@ -844,18 +841,18 @@ impl ParametricQuantumCircuit {
     ) -> PyResult<()> {
         let qubit_indices = if let Ok(seq) = qubit_indices.downcast::<PySequence>() {
             (0..(seq.len()?))
-                .map(|i| FromPyObject::extract_bound(&seq.get_item(i)?))
+                .map(|i| seq.get_item(i)?.extract())
                 .collect::<PyResult<Vec<_>>>()?
         } else {
-            vec![FromPyObject::extract_bound(qubit_indices)?]
+            vec![qubit_indices.extract()?]
         };
         let classical_indices: Vec<usize> =
             if let Ok(seq) = classical_indices.downcast::<PySequence>() {
                 (0..(seq.len()?))
-                    .map(|i| FromPyObject::extract_bound(&seq.get_item(i)?))
+                    .map(|i| seq.get_item(i)?.extract())
                     .collect::<PyResult<Vec<_>>>()?
             } else {
-                vec![FromPyObject::extract_bound(classical_indices)?]
+                vec![classical_indices.extract()?]
             };
 
         Self::add_gate(
@@ -965,7 +962,7 @@ impl ImmutableBoundParametricQuantumCircuit {
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "circuit_parametric")?;
+    let m = PyModule::new(py, "circuit_parametric")?;
     m.add_class::<ImmutableParametricQuantumCircuit>()?;
     m.add_class::<ImmutableBoundParametricQuantumCircuit>()?;
     m.add_class::<ParametricQuantumCircuit>()?;

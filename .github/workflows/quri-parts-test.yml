@@ -23,10 +23,15 @@ jobs:
   test:
 
     strategy:
+      fail-fast: false
       matrix:
         python_version:
           - '3.9'
           - '3.10'
+          - '3.11'
+          - '3.12'
+          - '3.13'
+          - '3.14'
 
     runs-on: ubuntu-latest
 
@@ -64,6 +69,14 @@ jobs:
     - name: Choose python version
       run: |
         poetry env use ${{ matrix.python_version }}
+    - name: Install system build dependencies (3.14)
+      if: matrix.python_version == '3.14'
+      # On 3.14 some deps have no cp314 wheel and build from source: qulacs
+      # (a hard transitive dep of core) needs CMake + Boost, and Pillow 10.x
+      # (capped <11 by qulacsvis) needs zlib + libjpeg.
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends cmake libboost-dev zlib1g-dev libjpeg-dev
     - name: Install legacy dependency
       if: matrix.python_version == '3.9'
       # We need to provide older setuptools (<82) for building ibm-cloud-sdk-core and ibm-platfrom-services for Python 3.9
@@ -88,4 +101,8 @@ jobs:
         poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - name: Run pytest
-      run: poetry run pytest quri-parts
+      # gridsynth-marked tests use pygridsynth, which requires Python >= 3.10;
+      # enable them only on the 3.10 leg.
+      run: >
+        poetry run pytest quri-parts
+        ${{ startsWith(matrix.python_version, '3.1') && '--with-gridsynth' || '' }}

@@ -28,6 +28,8 @@ style = "pep440"
 python = "^3.9.8"
 typing-extensions = "^4.1.1"
 numpy = ">=1.22.0"
-pyscf = "^2.3.0"
+# pyscf 2.4.0+ ships a py3-none wheel (ctypes-loaded C libs) that works across
+# 3.9-3.14; 2.3.x had no 3.14-compatible wheel.
+pyscf = "^2.4.0"
 quri-parts-core = "*"
 quri-parts-chem = "*"
