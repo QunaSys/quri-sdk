@@ -91,4 +91,8 @@ jobs:
         poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - name: Run pytest
-      run: poetry run pytest quri-parts
+      # gridsynth-marked tests use pygridsynth, which requires Python >= 3.10;
+      # enable them only on the 3.10 leg.
+      run: >
+        poetry run pytest quri-parts
+        ${{ startsWith(matrix.python_version, '3.1') && '--with-gridsynth' || '' }}
