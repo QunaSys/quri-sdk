@@ -1,0 +1,16 @@
+# The "API Reference" sidebar entry (source/reference.md -> /reference.html) is a
+# stub. Redirect it straight to the separately-built API site so the browser
+# never paints the stub -- no flash. force = true because reference.html exists
+# as a real file. Local `make serve` doesn't apply these rules, so the stub
+# still renders locally (where it explains how to build the API ref).
+[[redirects]]
+  from = "/reference.html"
+  to = "/api/index.html"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/reference"
+  to = "/api/index.html"
+  status = 302
+  force = true
