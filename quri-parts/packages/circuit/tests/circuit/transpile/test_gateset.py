@@ -12,7 +12,6 @@ from typing import Union
 
 import numpy as np
 import pytest
-import qulacs
 from numpy.typing import NDArray
 
 import quri_parts.circuit.transpile.rz2hst as rz2hst
@@ -42,7 +41,6 @@ from quri_parts.circuit.transpile import (
     RY2RZHTranspiler,
     RZ2RXRYTranspiler,
 )
-from quri_parts.qulacs.circuit import convert_circuit
 
 
 def _gates_close(
@@ -77,10 +75,13 @@ def _gate_kinds(circuit: ImmutableQuantumCircuit) -> set[str]:
     return {gate.name for gate in circuit.gates}
 
 
-# Full unitary matrix of a circuit, computed with qulacs.
+# Full unitary matrix of a circuit, computed with qulacs when available.
 def _circuit_unitary(circuit: ImmutableQuantumCircuit) -> NDArray[np.complex128]:
+    qulacs = pytest.importorskip("qulacs")
+    qulacs_circuit = pytest.importorskip("quri_parts.qulacs.circuit")
+
     n = circuit.qubit_count
-    qc = convert_circuit(circuit)
+    qc = qulacs_circuit.convert_circuit(circuit)
     dim = 1 << n
     u = np.zeros((dim, dim), dtype=np.complex128)
     for i in range(dim):
@@ -876,6 +877,27 @@ class TestGateSetConversionCompleteness:
         assert _gate_kinds(transpiled) <= set(target)
         assert gate_names.RZ not in _gate_kinds(transpiled)
         assert gate_names.TOFFOLI in _gate_kinds(transpiled)
+
+    @pytest.mark.parametrize(
+        "target",
+        [
+            [gate_names.S, gate_names.T, gate_names.X, gate_names.CNOT],
+            [gate_names.H, gate_names.T, gate_names.X, gate_names.CNOT],
+        ],
+    )
+    def test_rotation_not_lowered_when_gridsynth_output_is_not_supported(
+        self, target: list[GateNameType], monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(
+            rz2hst,
+            "driver_pygridsynth",
+            lambda *args, **kwargs: pytest.fail("gridsynth should not be used"),
+        )
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, 0.3)
+
+        with pytest.raises(ValueError, match="cannot be converted"):
+            GateSetConversionTranspiler(target)(circuit)
 
     def test_rotation_in_target_but_t_not_in_target(self) -> None:
         # A rotation gate (RZ) is in the target but T is not. T-like gates must

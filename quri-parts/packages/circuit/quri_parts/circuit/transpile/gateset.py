@@ -63,6 +63,7 @@ from .fuse import (
     FuseRotationTranspiler,
     NormalizeRotationTranspiler,
     Rotation2NamedTranspiler,
+    RZ2NamedTranspiler,
     ZeroRotationEliminationTranspiler,
 )
 from .gate_kind_decomposer import (
@@ -547,7 +548,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         return SequentialTranspiler(ts)
 
     def _construct_rotation_decomposer(self) -> list[CircuitTranspiler]:
-        if T in self._gateset and not self._target_rotation:
+        if {H, S, T} <= self._gateset and not self._target_rotation:
             return [
                 RotationConversionTranspiler(
                     target_rotation=(RZ,),
