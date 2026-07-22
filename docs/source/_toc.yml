@@ -21,6 +21,9 @@ parts:
                   - file: docs/tutorials/quri-parts/advanced/parametric/gradient_estimators/2_gradient_estimator
               - file: docs/tutorials/quri-parts/advanced/variational/variational
               - file: docs/tutorials/quri-parts/advanced/qsub/basics
+              - file: docs/tutorials/quri-parts/advanced/quration/basic
+                sections:
+                  - file: docs/tutorials/quri-parts/advanced/quration/multi-param
           - file: docs/tutorials/quri-algo/index
             sections:
               - file: docs/tutorials/quri-algo/basics/time_evolution/0_time_evo
