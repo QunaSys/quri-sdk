@@ -53,10 +53,10 @@ If you are unsure, start with QURI Parts: the other two build on its concepts.
 ## Related reading
 
 - [Quick Start](../../../quick_start.md): install and run your first circuit.
-- [Define your first qsub circuit](../../tutorials/quri-parts/advanced/qsub/index.md):
+- [Define your first qsub circuit](../../tutorials/quri-parts/advanced/qsub/basics.ipynb):
   the FTQC-oriented circuit abstraction.
 - For quantum chemistry, a suggested reading order:
   [QURI Parts Tutorials](../../tutorials/quri-parts/index.md) →
-  [Introduction to Quantum Chemistry](../../tutorials/quri-parts/quantum-chemistry/introduction/index.md) →
-  [Molecular Orbitals](../../tutorials/quri-parts/quantum-chemistry/mo/index.md) →
-  [Hamiltonian Generation](../../tutorials/quri-parts/quantum-chemistry/hamiltonian/hamiltonian/index.md).
+  [Introduction to Quantum Chemistry](../../tutorials/quri-parts/quantum-chemistry/introduction/0_introduction.ipynb) →
+  [Molecular Orbitals](../../tutorials/quri-parts/quantum-chemistry/mo/1_molecules.ipynb) →
+  [Hamiltonian Generation](../../tutorials/quri-parts/quantum-chemistry/hamiltonian/hamiltonian/0_hamiltonian.ipynb).

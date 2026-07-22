@@ -5,48 +5,48 @@ parts:
       - file: docs/tutorials/index
         sections:
           - file: quick_start
-          - file: docs/tutorials/general/index
+          - file: docs/tutorials/general/hadamard_tutorial
           - file: docs/tutorials/quri-parts/index
             sections:
-              - file: docs/tutorials/quri-parts/basics/circuits/index
-              - file: docs/tutorials/quri-parts/basics/states/index
-              - file: docs/tutorials/quri-parts/basics/operators/index
-              - file: docs/tutorials/quri-parts/basics/sampler/index
-              - file: docs/tutorials/quri-parts/basics/estimators/index
-              - file: docs/tutorials/quri-parts/basics/sampling_estimation/index
+              - file: docs/tutorials/quri-parts/basics/circuits/0_circuits
+              - file: docs/tutorials/quri-parts/basics/states/2_states
+              - file: docs/tutorials/quri-parts/basics/operators/3_operators
+              - file: docs/tutorials/quri-parts/basics/sampler/1_sampler
+              - file: docs/tutorials/quri-parts/basics/estimators/4_estimators
+              - file: docs/tutorials/quri-parts/basics/sampling_estimation/sampling_estimation
               - file: docs/tutorials/quri-parts/advanced/parametric/index
                 sections:
-                  - file: docs/tutorials/quri-parts/advanced/parametric/parametric_circuit/index
-                  - file: docs/tutorials/quri-parts/advanced/parametric/estimate_parametric_state/index
-                  - file: docs/tutorials/quri-parts/advanced/parametric/gradient_estimators/index
-              - file: docs/tutorials/quri-parts/advanced/variational/index
-              - file: docs/tutorials/quri-parts/advanced/qsub/index
+                  - file: docs/tutorials/quri-parts/advanced/parametric/parametric_circuit/0_parametric_circuit
+                  - file: docs/tutorials/quri-parts/advanced/parametric/estimate_parametric_state/1_estimate_parametric_state
+                  - file: docs/tutorials/quri-parts/advanced/parametric/gradient_estimators/2_gradient_estimator
+              - file: docs/tutorials/quri-parts/advanced/variational/variational
+              - file: docs/tutorials/quri-parts/advanced/qsub/basics
           - file: docs/tutorials/quri-algo/index
             sections:
-              - file: docs/tutorials/quri-algo/basics/time_evolution/index
-              - file: docs/tutorials/quri-algo/basics/estimator/index
+              - file: docs/tutorials/quri-algo/basics/time_evolution/0_time_evo
+              - file: docs/tutorials/quri-algo/basics/estimator/1_estimator
           - file: docs/tutorials/quri-vm/index
             sections:
-              - file: docs/tutorials/quri-vm/vm-introduction/index
+              - file: docs/tutorials/quri-vm/vm-introduction/0_vm-introduction
 
       - file: docs/howto/index
         sections:
           - file: docs/howto/running_and_simulating/index
             sections:
-              - file: docs/tutorials/quri-parts/advanced/simulator/index
-              - file: docs/tutorials/quri-parts/basics/real_devices/sampling_backends/index
-              - file: docs/tutorials/quri-parts/basics/real_devices/braket/index
-              - file: docs/tutorials/quri-parts/basics/real_devices/qiskit/index
-              - file: docs/tutorials/quri-parts/basics/noise_error/index
-              - file: docs/tutorials/quri-parts/basics/data_recording/index
+              - file: docs/tutorials/quri-parts/advanced/simulator/0_simulator
+              - file: docs/tutorials/quri-parts/basics/real_devices/sampling_backends/sampling_real
+              - file: docs/tutorials/quri-parts/basics/real_devices/braket/sampling_real_braket
+              - file: docs/tutorials/quri-parts/basics/real_devices/qiskit/sampling_real_qiskit
+              - file: docs/tutorials/quri-parts/basics/noise_error/9_noise_error
+              - file: docs/tutorials/quri-parts/basics/data_recording/11_data_recording
           - file: docs/tutorials/quri-parts/basics/error_mitigation/index
             sections:
-              - file: docs/tutorials/quri-parts/basics/error_mitigation/readout/index
-              - file: docs/tutorials/quri-parts/basics/error_mitigation/zne/index
-              - file: docs/tutorials/quri-parts/basics/error_mitigation/cdr/index
+              - file: docs/tutorials/quri-parts/basics/error_mitigation/readout/0_readout
+              - file: docs/tutorials/quri-parts/basics/error_mitigation/zne/1_zne
+              - file: docs/tutorials/quri-parts/basics/error_mitigation/cdr/2_cdr
           - file: docs/howto/circuit_compilation/index
             sections:
-              - file: docs/tutorials/quri-parts/basics/transpiler/index
+              - file: docs/tutorials/quri-parts/basics/transpiler/transpiler
               - file: docs/examples/quri-algo-vm/qaqc/2_qaqc
           - file: docs/howto/applying_algorithms/index
             sections:
@@ -57,11 +57,11 @@ parts:
               - file: docs/examples/quri-algo-vm/page_curve/5_page_curve
           - file: docs/tutorials/quri-parts/quantum-chemistry/index
             sections:
-              - file: docs/tutorials/quri-parts/quantum-chemistry/introduction/index
-              - file: docs/tutorials/quri-parts/quantum-chemistry/mo/index
-              - file: docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/hamiltonian/index
-              - file: docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/advanced_guide/index
-              - file: docs/tutorials/quri-parts/basics/mapping/index
+              - file: docs/tutorials/quri-parts/quantum-chemistry/introduction/0_introduction
+              - file: docs/tutorials/quri-parts/quantum-chemistry/mo/1_molecules
+              - file: docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/hamiltonian/0_hamiltonian
+              - file: docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/advanced_guide/1_advanced_guide
+              - file: docs/tutorials/quri-parts/basics/mapping/qubit_operator_mapping
 
       - file: docs/reference/index
         sections:

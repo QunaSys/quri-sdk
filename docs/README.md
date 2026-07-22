@@ -52,7 +52,6 @@ $ make api
 
 ### Rules, Conventions
 - Please use Jupyter notebooks for creating/updating a page for Tutorials and Examples.
-- Examples are loaded directly from their `.ipynb` files; reference the notebook itself in [`source/_toc.yml`](source/_toc.yml).
-- Tutorials are still authored as a pre-converted `index.md` saved alongside the notebook in the same directory.
+- Tutorial and Example pages are loaded directly from their `.ipynb` files; reference the notebook itself in [`source/_toc.yml`](source/_toc.yml). Section landing pages (`index.md`) that have no notebook stay as Markdown.
 - Page ordering and the site structure are defined in [`source/_toc.yml`](source/_toc.yml).
 - Wrap the output cell of a Jupyter notebook in three backticks (` ``` `).

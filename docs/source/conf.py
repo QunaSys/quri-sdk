@@ -82,10 +82,6 @@ exclude_patterns = [
     # Per-version release notes are content sources, inlined into
     # release-notes/index.md; they are not standalone build pages.
     "release-notes/[0-9]*.md",
-    # Tutorials are still authored as pre-converted index.md pages; their
-    # sibling .ipynb sources would otherwise build as orphan pages. Only the
-    # examples are loaded directly from .ipynb (see _toc.yml).
-    "docs/tutorials/**/*.ipynb",
 ]
 
 suppress_warnings = ["mystnb.unknown_mime_type"]
