@@ -20,7 +20,7 @@ enable = true
 style = "pep440"
 
 [tool.poetry.dependencies]
-python = "^3.9.8"
+python = "^3.10"
 
 quri-algo = { version = "*", python = ">=3.10" }
 quri-vm = { version = "*", python = ">=3.10" }

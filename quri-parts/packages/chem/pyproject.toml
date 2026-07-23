@@ -25,6 +25,6 @@ enable = true
 style = "pep440"
 
 [tool.poetry.dependencies]
-python = "^3.9.8"
+python = "^3.10"
 typing-extensions = "^4.1.1"
 quri-parts-core = "*"
