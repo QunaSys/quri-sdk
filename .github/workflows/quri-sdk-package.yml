@@ -117,15 +117,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TEMP (debugging kraus_operators failure): trimmed to the failing cells
-        # only. Restore { ubuntu, macos, windows } x [ "10", "14" ] + the
-        # windows-14 exclude before merge.
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
-        python-version: [ "14" ]
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "10", "14" ]
+        # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
+        exclude:
+          - python-version: "14"
+            system:
+              os: "windows-latest"
     defaults:
       run:
         shell: bash
@@ -239,13 +243,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TEMP (debugging): windows wheels pass, dropped to save resources.
-        # Restore the windows-latest entry before merge.
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
     defaults:
       run:
         shell: bash
@@ -325,15 +329,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TEMP (debugging kraus_operators failure): trimmed to the failing cells
-        # only. Restore { ubuntu, macos, windows } x [ "10"-"14" ] + the
-        # windows-14 exclude before merge.
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
-        python-version: [ "12", "14" ]
+          - os: "windows-latest"
+            target: "x86_64-pc-windows-msvc"
+        python-version: [ "10", "11", "12", "13", "14" ]
+        # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
+        exclude:
+          - python-version: "14"
+            system:
+              os: "windows-latest"
     defaults:
       run:
         shell: bash
