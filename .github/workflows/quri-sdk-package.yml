@@ -3,10 +3,18 @@ name: QURI SDK Package and release
 on:
   release:
     types: [published]
+  # Also run the build/test matrix on release PRs so failures surface before
+  # the release is published. Gated to `release-*` head branches via the
+  # pre-check job `if` (ordinary PRs skip the expensive matrix); no base-branch
+  # filter, so it still fires when a release PR is stacked on another branch
+  # (e.g. based on `drop-py39` rather than `main`). The version-check step and
+  # all `release-*` upload jobs stay release-only.
+  pull_request:
 
 jobs:
   pre-check:
     name: 🔎 Check project versions
+    if: github.event_name == 'release' || startsWith(github.head_ref, 'release-')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,6 +26,9 @@ jobs:
         fetch-depth: 0
 
     - name: check manual versioning
+      # On a release PR the new tag does not exist yet, so this would compare
+      # against the previous tag and fail. Enforce it only at release time.
+      if: github.event_name == 'release'
       shell: bash
       run: |
         GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
@@ -326,7 +337,7 @@ jobs:
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
         python-version: [ "10", "11", "12", "13", "14" ]
-        # Currentl, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
+        # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
             system:
@@ -404,12 +415,18 @@ jobs:
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
+          # Collect every locally built wheel and install them in ONE pip pass.
+          # Installing them separately let a package's `quri-parts-* = "*"` dep
+          # resolve from PyPI before the matching local wheel was installed;
+          # since the local wheels are dev pre-releases, pip fell back to the
+          # last final release, shadowing the code under test. Passing
+          # all wheels together makes each explicit wheel satisfy the others'
+          # deps, so there is no PyPI fallback for quri-parts-* packages.
+          FILES=()
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-              pip install quri-parts/dist/quri_parts*.manylinux2014_x86_64.whl
+            FILES+=($(find quri-parts/dist -name 'quri_parts*.manylinux2014_x86_64.whl'))
           else
-            for FILE in "$(find quri-parts/dist -name 'quri_parts*.whl')"; do
-              pip install -v $FILE
-            done
+            FILES+=($(find quri-parts/dist -name 'quri_parts*.whl'))
           fi
           for FILE in $(find quri-parts/dist_py -name '*.whl'); do
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
@@ -424,9 +441,11 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
               continue
             fi
-            # pyqret is not on PyPI; supply it from the QunaSys release feed.
-            pip install -v $FILE --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
+            FILES+=("$FILE")
           done
+          # pyqret is not on PyPI; supply it from the QunaSys release feed.
+          pip install -v "${FILES[@]}" \
+            --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
 
       - name: Run test
         shell: bash
