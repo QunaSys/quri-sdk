@@ -1,52 +1,33 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "quri-parts"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Platform-independent quantum computing library"
 license = "Apache-2.0"
-authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
 readme = "README.md"
-repository = "https://github.com/QunaSys/quri-parts"
-documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
-packages = [{ include = "quri_parts" }]
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "quri-parts-rust",
+    "quri-parts-core",
+    "quri-parts-circuit",
+    "quri-parts-algo",
+    "quri-parts-chem",
+]
 
-[tool.poetry-dynamic-versioning]
-enable = true
-style = "pep440"
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-parts"
+Documentation = "https://quri-parts.qunasys.com"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-quri-parts-rust = "*"
-quri-parts-core = "*"
-quri-parts-circuit = "*"
-quri-parts-algo = "*"
-quri-parts-chem = "*"
-
-quri-parts-qulacs = { version = "*", optional = true }
-quri-parts-braket = { version = "*", optional = true, python = "<3.14" }
-quri-parts-qiskit = { version = "*", optional = true, python = "<3.14" }
-quri-parts-cirq = { version = "*", optional = true }
-quri-parts-openfermion = { version = "*", optional = true }
-quri-parts-stim = { version = "*", optional = true }
-quri-parts-openqasm = { version = "*", optional = true }
-quri-parts-quantinuum = { version = "*", optional = true }
-quri-parts-ionq = { version = "*", optional = true }
-quri-parts-itensor = { version = "*", optional = true }
-quri-parts-pyscf = { version = "*", optional = true }
-quri-parts-tensornetwork = { version = "*", optional = true }
-quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
-quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
-quri-parts-qret = { version = "*", optional = true, python = ">=3.10,<4.0" }
-
-[tool.poetry.extras]
+[project.optional-dependencies]
 qulacs = ["quri-parts-qulacs"]
-braket = ["quri-parts-braket"]
-qiskit = ["quri-parts-qiskit"]
+braket = ["quri-parts-braket; python_version < '3.14'"]
+qiskit = ["quri-parts-qiskit; python_version < '3.14'"]
 cirq = ["quri-parts-cirq"]
 openfermion = ["quri-parts-openfermion"]
 stim = ["quri-parts-stim"]
@@ -55,7 +36,44 @@ quantinuum = ["quri-parts-quantinuum"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
-tket = ["quri-parts-tket"]
+tket = ["quri-parts-tket; python_version >= '3.10'"]
 tensornetwork = ["quri-parts-tensornetwork"]
-qsub = ["quri-parts-qsub"]
-qret = ["quri-parts-qret"]
+qsub = ["quri-parts-qsub; python_version >= '3.10'"]
+qret = ["quri-parts-qret; python_version >= '3.10'"]
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
+style = "pep440"
+# Release CI bakes the resolved version in here before uv build so that
+# sdists carry the correct version when built without git metadata.
+fallback-version = "0.0.0"
+
+[tool.hatch.build.targets.wheel]
+packages = ["quri_parts"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_parts"]
+
+[tool.uv.sources]
+quri-parts-rust = { path = "packages/rust" }
+quri-parts-core = { path = "packages/core", editable = true }
+quri-parts-circuit = { path = "packages/circuit", editable = true }
+quri-parts-algo = { path = "packages/algo", editable = true }
+quri-parts-chem = { path = "packages/chem", editable = true }
+quri-parts-qulacs = { path = "packages/qulacs", editable = true }
+quri-parts-braket = { path = "packages/braket", editable = true }
+quri-parts-qiskit = { path = "packages/qiskit", editable = true }
+quri-parts-cirq = { path = "packages/cirq", editable = true }
+quri-parts-openfermion = { path = "packages/openfermion", editable = true }
+quri-parts-stim = { path = "packages/stim", editable = true }
+quri-parts-openqasm = { path = "packages/openqasm", editable = true }
+quri-parts-quantinuum = { path = "packages/quantinuum", editable = true }
+quri-parts-ionq = { path = "packages/ionq", editable = true }
+quri-parts-itensor = { path = "packages/itensor", editable = true }
+quri-parts-pyscf = { path = "packages/pyscf", editable = true }
+quri-parts-tensornetwork = { path = "packages/tensornetwork", editable = true }
+quri-parts-tket = { path = "packages/tket", editable = true }
+quri-parts-qsub = { path = "packages/qsub", editable = true }
+quri-parts-qret = { path = "packages/qret", editable = true }

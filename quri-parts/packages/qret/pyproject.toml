@@ -1,31 +1,58 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "quri-parts-qret"
-version = "0.0.0"
+dynamic = ["version"]
 description = "A plugin to use QRET with QURI Parts"
 license = "Apache-2.0"
-authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
 readme = "README.md"
-repository = "https://github.com/QunaSys/quri-sdk"
-documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
-packages = [{ include = "quri_parts" }]
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "numpy>=1.22.0",
+    "quri-parts-circuit",
+    "quri-parts-core",
+    "quri-parts-qsub",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl ; python_version == '3.10' and sys_platform == 'linux'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl ; python_version == '3.10' and sys_platform == 'darwin'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-win_amd64.whl ; python_version == '3.10' and sys_platform == 'win32'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl ; python_version == '3.11' and sys_platform == 'linux'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_arm64.whl ; python_version == '3.11' and sys_platform == 'darwin'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-win_amd64.whl ; python_version == '3.11' and sys_platform == 'win32'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl ; python_version >= '3.12' and sys_platform == 'linux'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl ; python_version >= '3.12' and sys_platform == 'darwin'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-win_amd64.whl ; python_version >= '3.12' and sys_platform == 'win32'",
+    "pyqret @ https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1.tar.gz ; sys_platform != 'linux' and sys_platform != 'darwin' and sys_platform != 'win32'",
+]
 
-[tool.poetry-dynamic-versioning]
-enable = true
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-sdk"
+Documentation = "https://quri-parts.qunasys.com"
+
+[tool.hatch.metadata]
+# Required for the direct pyqret wheel URLs above.
+allow-direct-references = true
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
 style = "pep440"
+# Release CI bakes the resolved version in here before `uv build` so that
+# sdists carry the correct version when built without git metadata.
+fallback-version = "0.0.0"
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-numpy = ">=1.22.0"
-quri-parts-circuit = "*"
-quri-parts-core = "*"
-quri-parts-qsub = "*"
+[tool.hatch.build.targets.wheel]
+packages = ["quri_parts"]
 
-# pyqret is not on PyPI; supply it from the QunaSys release feed, e.g.
-#   pip install quri-parts-qret --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
-pyqret = "^1.0.1"
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_parts"]
+
+[tool.uv.sources]
+quri-parts-circuit = { path = "../circuit", editable = true }
+quri-parts-core = { path = "../core", editable = true }
+quri-parts-qsub = { path = "../qsub", editable = true }
