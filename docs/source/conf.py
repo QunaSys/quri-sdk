@@ -79,7 +79,6 @@ intersphinx_disabled_reftypes = ["std:doc"]
 
 exclude_patterns = [
     "**/.ipynb_checkpoints",
-    "**/*.ipynb",
     # Per-version release notes are content sources, inlined into
     # release-notes/index.md; they are not standalone build pages.
     "release-notes/[0-9]*.md",

@@ -11,7 +11,7 @@ them in order if you are new.
 Install QURI SDK, build your first quantum circuit, and take your first
 resource estimate.
 
-### [QURI SDK Introduction](general/index.md)
+### [QURI SDK Introduction](general/hadamard_tutorial.ipynb)
 
 How the pieces of QURI SDK appear in a typical research workflow.
 
