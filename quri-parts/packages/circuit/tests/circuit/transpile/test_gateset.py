@@ -14,6 +14,8 @@ import numpy as np
 import pytest
 from numpy.typing import NDArray
 
+import quri_parts.circuit.transpile.rz2hst as rz2hst
+
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     NonParametricQuantumCircuit,
