@@ -55,7 +55,8 @@ $ make api
 - Please use Jupyter notebooks for creating or updating notebook-based documentation pages.
 - Place each notebook directly in its section directory and use a descriptive, lowercase `snake_case` filename without a numeric prefix.
 - Do not create a directory solely for a single notebook.
-- Store external assets in `_assets/<notebook_stem>/` under the same section directory.
+- Embed images used by a notebook directly in the `.ipynb` file instead of adding separate image files.
+- Keep non-image files required to execute a notebook as external inputs and reference them with relative paths.
 - Reserve `index.md` for section landing pages.
 - Add notebooks directly to [`source/_toc.yml`](source/_toc.yml).
 - Do not commit generated `index.md` files or notebook output assets.
