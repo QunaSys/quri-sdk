@@ -43,6 +43,9 @@ jobs:
         python-version: ${{ matrix.python_version }}
 
     - name: Cache Poetry environment
+      # Python 3.14 builds Qulacs from source. Restoring its native extension
+      # from another runner can cause an illegal-instruction crash.
+      if: matrix.python_version != '3.14'
       uses: actions/cache@v4
       with:
         path: |
