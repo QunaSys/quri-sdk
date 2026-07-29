@@ -9,7 +9,7 @@ same code, without having to learn the details of each backend.
 :gutter: 3
 
 :::{grid-item-card} 🚀 New to QURI SDK? Start here
-:link: quick_start
+:link: docs/tutorials/quick_start
 :link-type: doc
 :class-card: landing-card card-get-started
 

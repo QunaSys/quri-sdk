@@ -10,7 +10,7 @@ you get one task done. New to QURI SDK? Start with the
 
 Run circuits on simulators and real devices, with or without noise.
 
-### [Error Mitigation](../tutorials/quri-parts/basics/error_mitigation/index.md)
+### [Error Mitigation](error_mitigation/index.md)
 
 Reduce the effect of noise: readout mitigation, ZNE and CDR.
 
@@ -22,6 +22,6 @@ Transpile and compile circuits for different gate sets and architectures.
 
 End-to-end guides applying QURI SDK algorithms to concrete problems.
 
-### [Quantum Chemistry](../tutorials/quri-parts/quantum-chemistry/index.md)
+### [Quantum Chemistry](quantum-chemistry/index.md)
 
 Molecules, Hamiltonians, electron integrals and fermion-qubit mappings.

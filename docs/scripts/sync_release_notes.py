@@ -1,10 +1,10 @@
-"""Sync GitHub releases from QunaSys/quri-sdk into release-notes/.
+"""Sync GitHub releases into the documentation's release notes.
 
 Run via CI cron. Opens a PR with new release notes for any versions not yet in
-release-notes/. Existing per-version files are never overwritten.
+docs/reference/release-notes/. Existing per-version files are never overwritten.
 
-Per-version files (release-notes/<slug>.md) are the content source; they are
-excluded from the Sphinx build. The built page is a single release-notes/index.md
+Per-version files (docs/reference/release-notes/<slug>.md) are the content source;
+they are excluded from the Sphinx build. The built page is a single index.md
 with one heading per version (newest first), so the page-local TOC can jump
 straight to any release. The _toc.yml entry for that page is static and is not
 touched here.
@@ -18,7 +18,7 @@ from pathlib import Path
 
 REPO = "QunaSys/quri-sdk"
 DOCS_DIR = Path(__file__).resolve().parents[1]
-NOTES_DIR = DOCS_DIR / "source/release-notes"
+NOTES_DIR = DOCS_DIR / "source/docs/reference/release-notes"
 INDEX_PATH = NOTES_DIR / "index.md"
 TOC_PATH = DOCS_DIR / "source/_toc.yml"
 
@@ -138,7 +138,7 @@ def ordered_slugs_from_releases(releases: list[dict]) -> list[str]:
 
 def main() -> int:
     if not NOTES_DIR.is_dir() or not TOC_PATH.exists():
-        print("docs source is missing (release-notes/ and _toc.yml expected)")
+        print("docs source is missing (docs/reference/release-notes/ and _toc.yml expected)")
         return 1
 
     releases = fetch_releases()

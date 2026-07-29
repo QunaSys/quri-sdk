@@ -4,83 +4,84 @@ parts:
   - chapters:
       - file: docs/tutorials/index
         sections:
-          - file: quick_start
-          - file: docs/tutorials/general/hadamard_tutorial
+          - file: docs/tutorials/quick_start
+          - file: docs/tutorials/quri_sdk_introduction
           - file: docs/tutorials/quri-parts/index
             sections:
-              - file: docs/tutorials/quri-parts/basics/circuits/0_circuits
-              - file: docs/tutorials/quri-parts/basics/states/2_states
-              - file: docs/tutorials/quri-parts/basics/operators/3_operators
-              - file: docs/tutorials/quri-parts/basics/sampler/1_sampler
-              - file: docs/tutorials/quri-parts/basics/estimators/4_estimators
-              - file: docs/tutorials/quri-parts/basics/sampling_estimation/sampling_estimation
-              - file: docs/tutorials/quri-parts/advanced/parametric/index
+              - file: docs/tutorials/quri-parts/circuits
+              - file: docs/tutorials/quri-parts/states
+              - file: docs/tutorials/quri-parts/operators
+              - file: docs/tutorials/quri-parts/sampler
+              - file: docs/tutorials/quri-parts/estimators
+              - file: docs/tutorials/quri-parts/sampling_estimation
+              - file: docs/tutorials/quri-parts/parametric/index
                 sections:
-                  - file: docs/tutorials/quri-parts/advanced/parametric/parametric_circuit/0_parametric_circuit
-                  - file: docs/tutorials/quri-parts/advanced/parametric/estimate_parametric_state/1_estimate_parametric_state
-                  - file: docs/tutorials/quri-parts/advanced/parametric/gradient_estimators/2_gradient_estimator
-              - file: docs/tutorials/quri-parts/advanced/variational/variational
-              - file: docs/tutorials/quri-parts/advanced/qsub/basics
-              - file: docs/tutorials/quri-parts/advanced/quration/basic
+                  - file: docs/tutorials/quri-parts/parametric/parametric_circuit
+                  - file: docs/tutorials/quri-parts/parametric/parametric_states_and_estimators
+                  - file: docs/tutorials/quri-parts/parametric/gradient_estimators
+              - file: docs/tutorials/quri-parts/variational_algorithms
+              - file: docs/tutorials/quri-parts/qsub
+              - file: docs/tutorials/quri-parts/quration/index
                 sections:
-                  - file: docs/tutorials/quri-parts/advanced/quration/multi-param
+                  - file: docs/tutorials/quri-parts/quration/basic_resource_estimation
+                  - file: docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation
           - file: docs/tutorials/quri-algo/index
             sections:
-              - file: docs/tutorials/quri-algo/basics/time_evolution/0_time_evo
-              - file: docs/tutorials/quri-algo/basics/estimator/1_estimator
+              - file: docs/tutorials/quri-algo/time_evolution
+              - file: docs/tutorials/quri-algo/time_evolution_estimators
           - file: docs/tutorials/quri-vm/index
             sections:
-              - file: docs/tutorials/quri-vm/vm-introduction/0_vm-introduction
+              - file: docs/tutorials/quri-vm/introduction
 
       - file: docs/howto/index
         sections:
           - file: docs/howto/running_and_simulating/index
             sections:
-              - file: docs/tutorials/quri-parts/advanced/simulator/0_simulator
-              - file: docs/tutorials/quri-parts/basics/real_devices/sampling_backends/sampling_real
-              - file: docs/tutorials/quri-parts/basics/real_devices/braket/sampling_real_braket
-              - file: docs/tutorials/quri-parts/basics/real_devices/qiskit/sampling_real_qiskit
-              - file: docs/tutorials/quri-parts/basics/noise_error/9_noise_error
-              - file: docs/tutorials/quri-parts/basics/data_recording/11_data_recording
-          - file: docs/tutorials/quri-parts/basics/error_mitigation/index
+              - file: docs/howto/running_and_simulating/simulator
+              - file: docs/howto/running_and_simulating/sampling_backends
+              - file: docs/howto/running_and_simulating/braket_sampling
+              - file: docs/howto/running_and_simulating/qiskit_sampling
+              - file: docs/howto/running_and_simulating/noisy_simulation
+              - file: docs/howto/running_and_simulating/data_recording
+          - file: docs/howto/error_mitigation/index
             sections:
-              - file: docs/tutorials/quri-parts/basics/error_mitigation/readout/0_readout
-              - file: docs/tutorials/quri-parts/basics/error_mitigation/zne/1_zne
-              - file: docs/tutorials/quri-parts/basics/error_mitigation/cdr/2_cdr
+              - file: docs/howto/error_mitigation/readout_error_mitigation
+              - file: docs/howto/error_mitigation/zero_noise_extrapolation
+              - file: docs/howto/error_mitigation/clifford_data_regression
           - file: docs/howto/circuit_compilation/index
             sections:
-              - file: docs/tutorials/quri-parts/basics/transpiler/transpiler
-              - file: docs/examples/quri-algo-vm/qaqc/2_qaqc
+              - file: docs/howto/circuit_compilation/transpiler
+              - file: docs/howto/circuit_compilation/quantum_circuit_compilation
           - file: docs/howto/applying_algorithms/index
             sections:
-              - file: docs/examples/quri-algo-vm/qsci/0_qsci
-              - file: docs/examples/quri-algo-vm/spe/1_spe
-              - file: docs/examples/quri-algo-vm/transverse_field_ising_model/6_TFIM
-              - file: docs/examples/quri-algo-vm/scalar_field_theory/3_scalar_field_theory
-              - file: docs/examples/quri-algo-vm/page_curve/5_page_curve
-          - file: docs/tutorials/quri-parts/quantum-chemistry/index
+              - file: docs/howto/applying_algorithms/quantum_selected_configuration_interaction
+              - file: docs/howto/applying_algorithms/statistical_phase_estimation
+              - file: docs/howto/applying_algorithms/transverse_field_ising_model
+              - file: docs/howto/applying_algorithms/scalar_field_theory
+              - file: docs/howto/applying_algorithms/page_curve
+          - file: docs/howto/quantum-chemistry/index
             sections:
-              - file: docs/tutorials/quri-parts/quantum-chemistry/introduction/0_introduction
-              - file: docs/tutorials/quri-parts/quantum-chemistry/mo/1_molecules
-              - file: docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/hamiltonian/0_hamiltonian
-              - file: docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/advanced_guide/1_advanced_guide
-              - file: docs/tutorials/quri-parts/basics/mapping/qubit_operator_mapping
+              - file: docs/howto/quantum-chemistry/introduction
+              - file: docs/howto/quantum-chemistry/molecular_orbitals
+              - file: docs/howto/quantum-chemistry/molecular_hamiltonian
+              - file: docs/howto/quantum-chemistry/advanced_electron_integrals
+              - file: docs/howto/quantum-chemistry/fermion_qubit_mapping
 
       - file: docs/reference/index
         sections:
-          - file: docs/examples/quri-parts/index
+          - file: docs/reference/quantum_algorithms/index
             sections:
-              - file: docs/examples/quri-parts/Basics/bell/0_bell
-              - file: docs/examples/quri-parts/Basics/toffoli/1_toffoli
-              - file: docs/examples/quri-parts/Intermediate/DJ/0._dj_algorithm
-              - file: docs/examples/quri-parts/Intermediate/BV/1._bv_algorithm
-              - file: docs/examples/quri-parts/Intermediate/simons/2._simons
-              - file: docs/examples/quri-parts/Intermediate/QFT/0_qft
-              - file: docs/examples/quri-parts/Intermediate/QPE/0_qpe
-              - file: docs/examples/quri-algo-vm/surface_code/4_surface_code
-          - file: ecosystem
-          - file: reference
-          - file: release-notes/index
+              - file: docs/reference/quantum_algorithms/bell_state
+              - file: docs/reference/quantum_algorithms/toffoli_gate
+              - file: docs/reference/quantum_algorithms/deutsch_jozsa
+              - file: docs/reference/quantum_algorithms/bernstein_vazirani
+              - file: docs/reference/quantum_algorithms/simons_algorithm
+              - file: docs/reference/quantum_algorithms/quantum_fourier_transform
+              - file: docs/reference/quantum_algorithms/quantum_phase_estimation
+              - file: docs/reference/quantum_algorithms/surface_code
+          - file: docs/reference/ecosystem
+          - file: docs/reference/api_reference
+          - file: docs/reference/release-notes/index
 
       - file: docs/concepts/index
         sections:
