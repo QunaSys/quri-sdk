@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Iterable, Mapping, Sequence
+from functools import lru_cache
 from math import pi
 from typing import cast
 
@@ -80,6 +81,8 @@ from .gate_kind_decomposer import (
     SWAP2CNOTTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    Tdag2STTranspiler,
+    TOFFOLI2CNOTTTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
     U2ToRXRZTranspiler,
@@ -95,6 +98,7 @@ from .multi_pauli_decomposer import (
     PauliDecomposeTranspiler,
     PauliRotationDecomposeTranspiler,
 )
+from .rz2hst import RZ2HSTTranspiler
 from .transpiler import (
     CircuitTranspiler,
     CircuitTranspilerProtocol,
@@ -163,13 +167,38 @@ _equiv_clifford_table: Mapping[str, list[list[str]]] = {
 }
 
 
+# Resolve each single-qubit Clifford gate to a target-gate sequence by applying
+# the _equiv_clifford_table rules transitively until a fixed point.
+@lru_cache(maxsize=None)
+def _clifford_decompositions(target_gateset: frozenset[str]) -> dict[str, list[str]]:
+    decompositions: dict[str, list[str]] = {
+        name: [name] for name in _equiv_clifford_table if name in target_gateset
+    }
+    changed = True
+    while changed:
+        changed = False
+        for gate, candidates in _equiv_clifford_table.items():
+            if gate in decompositions:
+                continue
+            for candidate in candidates:
+                if all(g in decompositions for g in candidate):
+                    decompositions[gate] = [
+                        name for g in candidate for name in decompositions[g]
+                    ]
+                    changed = True
+                    break
+    return decompositions
+
+
 class CliffordConversionTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler that converts Clifford gates in a circuit into the
     desired Clifford gate sequences.
 
     Convert the Clifford gates in the circuit into gate sequences containing only the
-    user-specified Clifford gates. Such conversions are done on a best-effort basis and
-    may leave non target Clifford gates in the output.
+    user-specified Clifford gates. If the target gates generate the full single-qubit Clifford group, every single-qubit Clifford gate
+    is converted. Otherwise the conversion is best-effort: Clifford gates that
+    cannot be expressed in the target gate set are left in place. Non-Clifford gates
+    and non-single-qubit gates are also left in place.
 
     Clifford gates that could not be converted or non-Clifford gates will remain in
     place.
@@ -187,39 +216,23 @@ class CliffordConversionTranspiler(CircuitTranspilerProtocol):
 
     def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
         ret = []
-        cache: dict[str, list[str]] = {}
+        decompositions = _clifford_decompositions(
+            frozenset(self._gateset & _equiv_clifford_table.keys())
+        )
 
         for gate in circuit.gates:
-            if gate.name not in CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES:
+            if (
+                gate.name not in CLIFFORD_GATE_NAMES & SINGLE_QUBIT_GATE_NAMES
+                or gate.name in self._gateset
+                or gate.name not in decompositions
+            ):
                 ret.append(gate)
                 continue
 
-            if gate.name in self._gateset:
-                ret.append(gate)
-                continue
-
-            if gate.name not in _equiv_clifford_table:
-                ret.append(gate)
-                continue
-
-            if gate.name in cache:
-                ret.extend(
-                    QuantumGate(name=name, target_indices=gate.target_indices)
-                    for name in cache[gate.name]
-                )
-                continue
-
-            for candidate in _equiv_clifford_table[gate.name]:
-                if set(candidate) <= self._gateset:
-                    cache[gate.name] = candidate
-                    ret.extend(
-                        QuantumGate(name=name, target_indices=gate.target_indices)
-                        for name in candidate
-                    )
-                    break
-            else:
-                cache[gate.name] = [gate.name]
-                ret.append(gate)
+            ret.extend(
+                QuantumGate(name=name, target_indices=gate.target_indices)
+                for name in decompositions[gate.name]
+            )
 
         return QuantumCircuit(circuit.qubit_count, gates=ret)
 
@@ -472,12 +485,16 @@ class RotationConversionTranspiler(CircuitTranspilerProtocol):
         return tr_circuit
 
 
+#: Gate names that make up the Clifford+T gate set.
 class GateSetConversionTranspiler(CircuitTranspilerProtocol):
     """A CircuitTranspiler that converts the gate set of a circuit into the
     specified one.
 
-    Depending on the target gate set and the input circuit, the decomposition may fail
-    and an exception may be raised.
+    ``RZ`` gates are approximated with :class:`RZ2HSTTranspiler` (gridsynth).
+    Multi-controlled gates are not decomposed by this transpiler; any gate that cannot be
+    expressed in the target gate set (an undecomposed multi-controlled gate, a gate
+    not reachable from the target generators, etc.) is reported by ``validation``,
+    which raises a :class:`ValueError`.
 
     Args:
         target_gateset: A Sequence of allowed output gate names.
@@ -500,7 +517,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
         self._decomposer = self._construct_decomposer()
 
     def _construct_decomposer(self) -> CircuitTranspiler:
-        ts = []
+        ts: list[CircuitTranspiler] = []
 
         ts.extend(self._construct_complex_gate_decomposer())
         ts.extend(self._construct_two_qubit_gate_decomposer())
@@ -519,15 +536,34 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
 
         ts.extend(self._construct_clifford_to_rotation_decomposer())
         ts.extend(self._construct_rotation_fuser())
-        ts.append(
+        ts.extend(self._construct_rotation_decomposer())
+        ts.extend(self._construct_rotation_fuser())
+
+        if self._target_clifford:
+            ts.append(CliffordConversionTranspiler(tuple(self._target_clifford)))
+
+        if T in self._gateset and Tdag not in self._gateset and S in self._gateset:
+            ts.append(Tdag2STTranspiler())
+
+        return SequentialTranspiler(ts)
+
+    def _construct_rotation_decomposer(self) -> list[CircuitTranspiler]:
+        if {H, S, T} <= self._gateset and not self._target_rotation:
+            return [
+                RotationConversionTranspiler(
+                    target_rotation=(RZ,),
+                    favorable_clifford=tuple(self._target_clifford),
+                ),
+                *self._construct_rotation_fuser(),
+                RZ2NamedTranspiler(self._epsilon, allow_t_tdag=True),
+                RZ2HSTTranspiler(epsilon=self._epsilon),
+            ]
+        return [
             RotationConversionTranspiler(
                 target_rotation=tuple(self._target_rotation),
                 favorable_clifford=tuple(self._target_clifford),
             )
-        )
-        ts.extend(self._construct_rotation_fuser())
-
-        return SequentialTranspiler(ts)
+        ]
 
     def _construct_rotation_fuser(self) -> list[CircuitTranspiler]:
         return [
@@ -547,7 +583,7 @@ class GateSetConversionTranspiler(CircuitTranspilerProtocol):
                         TwoQubitUnitaryMatrixKAKTranspiler(),
                     ]
                 ),
-                TOFFOLI: TOFFOLI2HTTdagCNOTTranspiler(),
+                TOFFOLI: TOFFOLI2CNOTTTranspiler(),
                 U1: U1ToRZTranspiler(),
                 U2: U2ToRXRZTranspiler(),
                 U3: U3ToRXRZTranspiler(),
@@ -608,17 +644,13 @@ class CliffordTSetTranspiler(SequentialTranspiler):
     QuantumCircuit containing only Clifford+T gates (H, X, Y, Z, S, Sdag,
     SqrtX, SqrtXdag, SqrtY, SqrtYdag, CNOT, CZ, SWAP, T, Tdag).
 
-    Since this transpiler fuses rotation gates and converts them to
-    named gates with a certain precision, the action of the circuit
-    before and after the conversion may not be completely equivalent.
-
-    Note that RZ gates are not approximated into a sequence of
-    Clifford+T gates. Only RZ gates whose rotation angle corresponds to
-    a Clifford+T gate (within ``epsilon``) are converted; RZ gates with
-    other angles remain as RZ gates in the output circuit.
+    RZ gates whose rotation angle corresponds to a Clifford+T gate
+    (within ``epsilon``) are converted to named gates directly; every
+    remaining RZ gate is approximated into a sequence of {H, S, T} gates
+    with the gridsynth algorithm to a precision of ``epsilon``.
     """
 
-    def __init__(self, epsilon: float = 1.0e-9):
+    def __init__(self, epsilon: float = 1.0e-6):
         super().__init__(
             [
                 SingleQubitUnitaryMatrix2RYRZTranspiler(),
@@ -640,7 +672,8 @@ class CliffordTSetTranspiler(SequentialTranspiler):
                     ]
                 ),
                 FuseRotationTranspiler(),
-                RZ2NamedTranspiler(epsilon, allow_t_tdag=True),
+                # RZ2NamedTranspiler(epsilon, allow_t_tdag=True),
+                RZ2HSTTranspiler(epsilon),
                 IdentityEliminationTranspiler(),
             ]
         )
