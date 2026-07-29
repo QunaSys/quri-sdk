@@ -67,7 +67,7 @@ To get a general overview of the capabilities and workflow of QURI SDK, please s
 
 The notebooks here use `quri-algo`, `quri-parts`, `quri-vm` and `quri-parts-qsci`. Make sure you have the 
 latest versions of them installed. When working inside the `quri-sdk` monorepo you can reuse the repository 
-root environment created via `poetry install --with dev,lint,typecheck,doc`; the instructions below are for
+root environment created via `uv sync --all-groups`; the instructions below are for
 setting up a dedicated environment for the notebooks in isolation.
 
 The easiest way is to use a virtual environment with Python 3.10 or later. Then install the required packages using
@@ -76,16 +76,16 @@ The easiest way is to use a virtual environment with Python 3.10 or later. Then 
 pip install -r requirements.txt
 ```
 
-Another way is to use [poetry](https://python-poetry.org/docs/#installing-with-pipx).
+Another way is to use [uv](https://docs.astral.sh/uv/getting-started/installation/). Run the following inside the `notebooks/` directory:
 
 ```
-poetry install
+uv sync
 ```
 
 Then run the notebooks in your virtual environment. You can run jupyter using
 
 ```
-poetry run jupyter notebook
+uv run jupyter notebook
 ```
 
 and then open the jupyter server in your browser.
@@ -107,7 +107,7 @@ make execute-in-place
 Beware that this executes any notebooks you have added or modified in place and overwrites output cells. If you only want to check them you can run
 
 ```
-poetry run jupyter execute quri_sdk_notebooks/path/to/notebook.ipynb
+uv run jupyter execute quri_sdk_notebooks/path/to/notebook.ipynb
 ```
 
 At times we may stop maintaining certain notebooks. These will be excluded from CI and we do not guarantee that they can still run. The file `.exclude` keeps track of these.

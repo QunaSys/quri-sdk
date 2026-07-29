@@ -8,7 +8,7 @@ on:
 defaults:
   run:
     working-directory: notebooks
-    
+
 
 jobs:
   execute:
@@ -17,17 +17,29 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/notebooks/setup
+    - name: git config
+      run: |
+        git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf https://github.com/
 
-    - uses: actions/setup-python@v4
+    - name: Install jq
+      uses: dcarbone/install-jq-action@v3
       with:
-        python-version: '3.11'
+        version: '1.6'
+        force: true
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
+      with:
+        version: "0.11.17"
+        python-version: "3.11"
+        enable-cache: true
+        cache-dependency-glob: "notebooks/uv.lock"
 
     - run: |
         git fetch
 
     - run: |
-        poetry install
+        uv sync --locked
 
     - run: |
         for f in $(git diff --name-only origin/main quri_sdk_notebooks/ | grep .ipynb)
@@ -37,7 +49,6 @@ jobs:
             echo "Skipping execution of ${f#notebooks/}"
           else
             echo "Executing ${f#notebooks/}"
-            poetry run jupyter execute --inplace --JupyterApp.log_level=50 "${f#notebooks/}"
+            uv run --no-sync jupyter execute --inplace --JupyterApp.log_level=50 "${f#notebooks/}"
           fi
         done
-        

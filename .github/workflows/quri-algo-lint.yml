@@ -7,9 +7,8 @@ on:
       - quri-algo/pyproject.toml
       - quri-algo/.flake8
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-algo-lint.yml
-      - .github/actions/python-poetry-install/action.yml
   push:
     branches: [main]
 
@@ -23,34 +22,29 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.8.5'
+        version: "0.11.17"
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Cache Poetry environment
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pypoetry
-        key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-quri-algo-lint-${{ hashFiles('poetry.lock') }}
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - name: Install dependencies
-      run: |
-        poetry env use $PYTHON_VERSION
-        poetry install --only lint
+      run: uv sync --locked --only-group lint
 
     - name: Run isort
-      run: poetry run isort quri-algo/quri_algo --check --diff
+      run: uv run --no-sync isort quri-algo/quri_algo --check --diff
       if: success() || failure()
 
     - name: Run black
-      run: poetry run black quri-algo/quri_algo --check
+      run: uv run --no-sync black --config .black.toml quri-algo/quri_algo --check
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run flake8 quri-algo/quri_algo --show-source
+      run: uv run --no-sync flake8 quri-algo/quri_algo --show-source
       if: success() || failure()
 
     - name: Run docformatter
-      run: poetry run docformatter -c -r quri-algo/quri_algo
+      run: uv run --no-sync docformatter -c -r quri-algo/quri_algo
       if: success() || failure()

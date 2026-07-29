@@ -3,7 +3,7 @@ name: Check all notebooks
 on:
   pull_request:
     paths:
-      - notebooks/poetry.lock
+      - notebooks/uv.lock
       - notebooks/pyproject.toml
 
 defaults:
@@ -17,14 +17,26 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ./.github/actions/notebooks/setup
+    - name: git config
+      run: |
+        git config --global url."https://x-access-token:${{ github.token }}@github.com/".insteadOf https://github.com/
 
-    - uses: actions/setup-python@v4
+    - name: Install jq
+      uses: dcarbone/install-jq-action@v3
       with:
-        python-version: '3.11'
+        version: '1.6'
+        force: true
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
+      with:
+        version: "0.11.17"
+        python-version: "3.11"
+        enable-cache: true
+        cache-dependency-glob: "notebooks/uv.lock"
 
     - run: |
-        poetry install
+        uv sync --locked
 
     - run: |
         for f in $(find quri_sdk_notebooks -mindepth 1 -type f -name *.ipynb)
@@ -35,10 +47,9 @@ jobs:
           else
             echo "Executing $f"
             start=$(date +%s)
-            poetry run jupyter execute --inplace --JupyterApp.log_level=50 $f
+            uv run --no-sync jupyter execute --inplace --JupyterApp.log_level=50 $f
             end=$(date +%s)
             seconds=$((end-start))
             echo "Elapsed: $(($seconds / 3600))hrs $((($seconds / 60) % 60))min $(($seconds % 60))sec"
           fi
         done
-    
