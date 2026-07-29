@@ -118,8 +118,38 @@
   force = true
 
 [[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/basic.html"
+  to = "/docs/tutorials/quri-parts/quration/basic_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/basic"
+  to = "/docs/tutorials/quri-parts/quration/basic_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/multi-param.html"
+  to = "/docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/multi-param"
+  to = "/docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "/docs/tutorials/quri-parts/advanced/variational/*"
   to = "/docs/tutorials/quri-parts/variational_algorithms.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/parametric/index.html"
+  to = "/docs/tutorials/quri-parts/parametric/index.html"
   status = 301
   force = true
 
