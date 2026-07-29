@@ -1,55 +1,33 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "quri-sdk"
-version = "0.0.0"
+dynamic = ["version"]
 description = "Platform-independent quantum computing software development kit"
 license = "Apache-2.0"
-authors = ["QURI SDK Authors <opensource@qunasys.com>"]
+authors = [{ name = "QURI SDK Authors", email = "opensource@qunasys.com" }]
 readme = "README.md"
-repository = "https://github.com/QunaSys/quri-parts"
-documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
-packages = [{ include = "quri_sdk" }]
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "quri-algo; python_version >= '3.10'",
+    "quri-vm; python_version >= '3.10'",
+    "quri-parts-rust",
+    "quri-parts-core",
+    "quri-parts-circuit",
+    "quri-parts-algo",
+    "quri-parts-chem",
+    "mpmath>=1.3.0,<2.0.0",
+]
 
-[tool.poetry-dynamic-versioning]
-enable = true
-style = "pep440"
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-parts"
+Documentation = "https://quri-parts.qunasys.com"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-
-quri-algo = { version = "*", python = ">=3.10" }
-quri-vm = { version = "*", python = ">=3.10" }
-
-quri-parts-rust = "*"
-quri-parts-core = "*"
-quri-parts-circuit = "*"
-quri-parts-algo = "*"
-quri-parts-chem = "*"
-
-quri-parts-qulacs = { version = "*", optional = true }
-quri-parts-braket = { version = "*", optional = true }
-quri-parts-qiskit = { version = "*", optional = true }
-quri-parts-cirq = { version = "*", optional = true }
-quri-parts-openfermion = { version = "*", optional = true }
-quri-parts-stim = { version = "*", optional = true }
-quri-parts-openqasm = { version = "*", optional = true }
-quri-parts-quantinuum = { version = "*", optional = true }
-quri-parts-ionq = { version = "*", optional = true }
-quri-parts-itensor = { version = "*", optional = true }
-quri-parts-pyscf = { version = "*", optional = true }
-quri-parts-tensornetwork = { version = "*", optional = true }
-quri-parts-tket = { version = "*", optional = true, python = ">=3.10" }
-quri-parts-qsub = { version = "*", optional = true, python = ">=3.10" }
-quri-parts-qret = { version = "*", optional = true, python = ">=3.10" }
-colorcet = { version = "^3.1.0", optional = true }
-mpmath = "^1.3.0"
-
-[tool.poetry.extras]
+[project.optional-dependencies]
 qulacs = ["quri-parts-qulacs"]
 braket = ["quri-parts-braket"]
 qiskit = ["quri-parts-qiskit"]
@@ -61,89 +39,111 @@ quantinuum = ["quri-parts-quantinuum"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
-tket = ["quri-parts-tket"]
+tket = ["quri-parts-tket; python_version >= '3.10'"]
 tensornetwork = ["quri-parts-tensornetwork"]
-qsub = ["quri-parts-qsub"]
-qret = ["quri-parts-qret"]
-colorcet = ["colorcet"]
+qsub = ["quri-parts-qsub; python_version >= '3.10'"]
+qret = ["quri-parts-qret; python_version >= '3.10'"]
+colorcet = ["colorcet>=3.1.0,<4.0.0"]
 
-[tool.poetry.group.dev.dependencies]
-quri-algo = { path = "quri-algo", develop = true, python = ">=3.10" }
-quri-vm = { path = "quri-vm", develop = true, python = ">=3.10" }
-quri-parts-rust = { path = "quri-parts/packages/rust", develop = true }
-quri-parts-circuit = { path = "quri-parts/packages/circuit", develop = true }
-quri-parts-core = { path = "quri-parts/packages/core", develop = true }
-quri-parts-qulacs = { path = "quri-parts/packages/qulacs", develop = true }
-quri-parts-algo = { path = "quri-parts/packages/algo", develop = true }
-quri-parts-chem = { path = "quri-parts/packages/chem", develop = true }
-quri-parts-braket = { path = "quri-parts/packages/braket", develop = true }
-quri-parts-qiskit = { path = "quri-parts/packages/qiskit", develop = true }
-quri-parts-cirq = { path = "quri-parts/packages/cirq", develop = true }
-quri-parts-openfermion = { path = "quri-parts/packages/openfermion", develop = true }
-quri-parts-stim = { path = "quri-parts/packages/stim", develop = true }
-quri-parts-openqasm = { path = "quri-parts/packages/openqasm", develop = true }
-quri-parts-quantinuum = { path = "quri-parts/packages/quantinuum", develop = true }
-quri-parts-ionq = { path = "quri-parts/packages/ionq", develop = true }
-quri-parts-itensor = { path = "quri-parts/packages/itensor", develop = true }
-quri-parts-pyscf = { path = "quri-parts/packages/pyscf", develop = true }
-quri-parts-tensornetwork = { path = "quri-parts/packages/tensornetwork", develop = true }
-quri-parts-tket = { path = "quri-parts/packages/tket", develop = true, python = ">=3.10" }
-quri-parts-qsub = { path = "quri-parts/packages/qsub", develop = true, python = ">=3.10" }
-quri-parts-qret = { path = "quri-parts/packages/qret", develop = true, python = ">=3.10" }
-
-# pyqret is not on PyPI. The qret package declares it as a plain version dep so the
-# published wheel stays clean for PyPI; here in the dev group we supply the actual
-# wheels by URL so `poetry install` works for local dev and CI.
-pyqret = [
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == '3.10' and sys_platform == 'linux'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-macosx_15_0_arm64.whl", markers = "python_version == '3.10' and sys_platform == 'darwin'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp310-cp310-win_amd64.whl", markers = "python_version == '3.10' and sys_platform == 'win32'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version == '3.11' and sys_platform == 'linux'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-macosx_15_0_arm64.whl", markers = "python_version == '3.11' and sys_platform == 'darwin'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp311-cp311-win_amd64.whl", markers = "python_version == '3.11' and sys_platform == 'win32'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", markers = "python_version >= '3.12' and sys_platform == 'linux'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-macosx_15_0_arm64.whl", markers = "python_version >= '3.12' and sys_platform == 'darwin'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1-cp312-abi3-win_amd64.whl", markers = "python_version >= '3.12' and sys_platform == 'win32'" },
-  { url = "https://github.com/QunaSys/quration/releases/download/v1.0.1-2/pyqret-1.0.1.tar.gz", markers = "sys_platform != 'linux' and sys_platform != 'darwin' and sys_platform != 'win32'" },
+[dependency-groups]
+# All local packages are installed editable in the dev environment.
+# Note: the workspace lock supports Python >=3.10,<4 (the intersection of the
+# workspace members' requires-python), even though published packages keep
+# their own wider Requires-Python metadata.
+dev = [
+    "quri-algo; python_version >= '3.10'",
+    "quri-vm; python_version >= '3.10'",
+    "quri-parts",
+    "quri-parts-rust",
+    "quri-parts-circuit",
+    "quri-parts-core",
+    "quri-parts-qulacs",
+    "quri-parts-algo",
+    "quri-parts-chem",
+    "quri-parts-braket",
+    "quri-parts-qiskit",
+    "quri-parts-cirq",
+    "quri-parts-openfermion",
+    "quri-parts-stim",
+    "quri-parts-openqasm",
+    "quri-parts-quantinuum",
+    "quri-parts-ionq",
+    "quri-parts-itensor",
+    "quri-parts-pyscf",
+    "quri-parts-tensornetwork",
+    "quri-parts-tket; python_version >= '3.10'",
+    "quri-parts-qsub; python_version >= '3.10'",
+    "quri-parts-qret; python_version >= '3.10'",
+    "pytest>=7.0.1,<9.0.0",
+    "maturin>=1.0,<2.0",
+    "ipykernel>=6.29.5,<7.0.0",
+]
+lint = [
+    "black>=23.1.0,<24.0.0",
+    "flake8==7.1.1",
+    # Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
+    "docformatter==1.5.1",
+    "isort>=5.10.1,<6.0.0",
+]
+typecheck = ["mypy==1.8.0"]
+doc = [
+    "Sphinx>=4.4,<8.0",
+    "furo>=2022.2.23,<2024.0.0",
+    "sphinx-autobuild>=2021.3.14,<2022.0.0",
+    "nbsphinx>=0.8.9,<0.10.0",
+    "ipython>=8.4.0,<9.0.0",
+    "notebook>=6.4.12,<8.0.0",
+    "myst-parser>=0.18.1,<2.1.0",
 ]
 
-# To avoid poetry downloading hundreds versions of botocore
-# https://github.com/python-poetry/poetry/issues/7858
-botocore = ">=1.34,<2.0"
-boto3 = ">=1.34,<2.0"
+[tool.uv.workspace]
+# The packages under quri-parts/packages/* cannot be workspace members because
+# uv does not support members nested inside another member's directory
+# (https://github.com/astral-sh/uv/issues/13298); they are wired up as
+# editable path dependencies in [tool.uv.sources] instead.
+members = ["quri-parts", "quri-algo", "quri-vm"]
+# notebooks is a standalone project with its own uv.lock
+exclude = ["notebooks"]
 
-# Preventing poetry lock overload due to protobuf multiple version ranges.
-protobuf = ">=5.26.1,<6.0.0"
+[tool.uv.sources]
+quri-algo = { workspace = true }
+quri-vm = { workspace = true }
+quri-parts = { workspace = true }
+quri-parts-rust = { path = "quri-parts/packages/rust" }
+quri-parts-circuit = { path = "quri-parts/packages/circuit", editable = true }
+quri-parts-core = { path = "quri-parts/packages/core", editable = true }
+quri-parts-qulacs = { path = "quri-parts/packages/qulacs", editable = true }
+quri-parts-algo = { path = "quri-parts/packages/algo", editable = true }
+quri-parts-chem = { path = "quri-parts/packages/chem", editable = true }
+quri-parts-braket = { path = "quri-parts/packages/braket", editable = true }
+quri-parts-qiskit = { path = "quri-parts/packages/qiskit", editable = true }
+quri-parts-cirq = { path = "quri-parts/packages/cirq", editable = true }
+quri-parts-openfermion = { path = "quri-parts/packages/openfermion", editable = true }
+quri-parts-stim = { path = "quri-parts/packages/stim", editable = true }
+quri-parts-openqasm = { path = "quri-parts/packages/openqasm", editable = true }
+quri-parts-quantinuum = { path = "quri-parts/packages/quantinuum", editable = true }
+quri-parts-ionq = { path = "quri-parts/packages/ionq", editable = true }
+quri-parts-itensor = { path = "quri-parts/packages/itensor", editable = true }
+quri-parts-pyscf = { path = "quri-parts/packages/pyscf", editable = true }
+quri-parts-tensornetwork = { path = "quri-parts/packages/tensornetwork", editable = true }
+quri-parts-tket = { path = "quri-parts/packages/tket", editable = true }
+quri-parts-qsub = { path = "quri-parts/packages/qsub", editable = true }
+quri-parts-qret = { path = "quri-parts/packages/qret", editable = true }
 
-# Trimming version ranges for faster dependency resolution
-cryptography = ">=42.0,<49.0"
-numba = ">=0.59,<0.66"
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
 
-pytest = ">=7.0.1,<9.0.0"
-maturin = "^1.0"
-ipykernel = "^6.29.5"
+[tool.uv-dynamic-versioning]
+style = "pep440"
+# Release CI bakes the resolved version in here before `uv build` so that
+# sdists carry the correct version when built without git metadata.
+fallback-version = "0.0.0"
 
-[tool.poetry.group.lint.dependencies]
-black = "^23.1.0"
-flake8 = "7.1.1"
-# Exclude docformatter 1.6.0 to avoid this issue: https://github.com/PyCQA/docformatter/issues/161
-docformatter = "1.5.1"
-isort = "^5.10.1"
+[tool.hatch.build.targets.wheel]
+packages = ["quri_sdk"]
 
-[tool.poetry.group.typecheck.dependencies]
-mypy = "1.8.0"
-
-[tool.poetry.group.doc.dependencies]
-Sphinx = ">=4.4,<8.0"
-furo = ">=2022.2.23,<2024.0.0"
-sphinx-autobuild = "^2021.3.14"
-nbsphinx = ">=0.8.9,<0.10.0"
-ipython = "^8.4.0"
-notebook = ">=6.4.12,<8.0.0"
-myst-parser = ">=0.18.1,<2.1.0"
-
-[tool.black]
-line-length = 88
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_sdk"]
 
 [tool.isort]
 profile = "black"

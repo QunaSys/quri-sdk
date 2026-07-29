@@ -10,7 +10,7 @@ execute-in-place:
 			echo "Skipping execution of $${f}" ; \
 		else \
 			echo "Executing $${f}" ; \
-			poetry run jupyter execute --inplace --JupyterApp.log_level=50 $${f} ; \
+			uv run jupyter execute --inplace --JupyterApp.log_level=50 $${f} ; \
 		fi \
 	done
 
@@ -21,7 +21,7 @@ execute-in-place-all:
 			echo "Skipping execution of $${f}" ; \
 		else \
 			echo "Executing $${f}" ; \
-			poetry run jupyter execute --inplace --JupyterApp.log_level=50 $${f} ; \
+			uv run jupyter execute --inplace --JupyterApp.log_level=50 $${f} ; \
 		fi \
 	done
 

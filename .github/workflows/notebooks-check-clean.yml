@@ -12,14 +12,18 @@ defaults:
 jobs:
   check-clean:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v3
-    
-    - uses: ./.github/actions/notebooks/setup
+
+    - name: Install jq
+      uses: dcarbone/install-jq-action@v3
+      with:
+        version: '1.6'
+        force: true
 
     - run: |
         make -s clean-nb
-        
+
     - run: |
         git diff --exit-code

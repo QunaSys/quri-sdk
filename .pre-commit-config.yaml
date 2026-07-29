@@ -2,50 +2,50 @@ repos:
   - repo: local
     hooks:
       - id: isort-quri-algo
-        name: poetry run isort (quri-algo)
-        entry: poetry run isort quri-algo
+        name: uv run --no-sync isort (quri-algo)
+        entry: uv run --no-sync isort quri-algo
         language: system
         types: [python]
         pass_filenames: false
       - id: isort-quri-parts
-        name: poetry run isort (quri-parts)
-        entry: poetry run isort quri-parts/packages
+        name: uv run --no-sync isort (quri-parts)
+        entry: uv run --no-sync isort quri-parts/packages
         language: system
         types: [python]
         pass_filenames: false
       - id: isort-quri-vm
-        name: poetry run isort (quri-vm)
-        entry: poetry run isort quri-vm
+        name: uv run --no-sync isort (quri-vm)
+        entry: uv run --no-sync isort quri-vm
         language: system
         types: [python]
         pass_filenames: false
       - id: black-quri-algo
-        name: poetry run black (quri-algo)
-        entry: poetry run black quri-algo
+        name: uv run --no-sync black (quri-algo)
+        entry: uv run --no-sync black --config .black.toml quri-algo
         language: system
         types: [python]
         pass_filenames: false
       - id: black-quri-parts
-        name: poetry run black (quri-parts)
-        entry: poetry run black quri-parts/packages
+        name: uv run --no-sync black (quri-parts)
+        entry: uv run --no-sync black --config .black.toml quri-parts/packages
         language: system
         types: [python]
         pass_filenames: false
       - id: black-quri-vm
-        name: poetry run black (quri-vm)
-        entry: poetry run black quri-vm
+        name: uv run --no-sync black (quri-vm)
+        entry: uv run --no-sync black --config .black.toml quri-vm
         language: system
         types: [python]
         pass_filenames: false
       - id: docformatter-quri-algo
-        name: poetry run docformatter (quri-algo)
-        entry: poetry run docformatter -r -i quri-algo
+        name: uv run --no-sync docformatter (quri-algo)
+        entry: uv run --no-sync docformatter -r -i quri-algo
         language: system
         types: [python]
         pass_filenames: false
       - id: docformatter-quri-parts
-        name: poetry run docformatter (quri-parts)
-        entry: poetry run docformatter -r -i quri-parts/packages
+        name: uv run --no-sync docformatter (quri-parts)
+        entry: uv run --no-sync docformatter -r -i quri-parts/packages
         language: system
         types: [python]
         pass_filenames: false
@@ -55,38 +55,38 @@ repos:
         language: system
         pass_filenames: false
       - id: flake8-quri-algo
-        name: poetry run flake8 (quri-algo)
-        entry: poetry run flake8 quri-algo --show-source
+        name: uv run --no-sync flake8 (quri-algo)
+        entry: uv run --no-sync flake8 quri-algo --show-source
         language: system
         types: [python]
         pass_filenames: false
       - id: flake8-quri-parts
-        name: poetry run flake8 (quri-parts)
-        entry: poetry run flake8 quri-parts/packages --config .flake8
+        name: uv run --no-sync flake8 (quri-parts)
+        entry: uv run --no-sync flake8 quri-parts/packages --config .flake8
         language: system
         types: [python]
         pass_filenames: false
       - id: flake8-quri-vm
-        name: poetry run flake8 (quri-vm)
-        entry: poetry run flake8 quri-vm --config .flake8
+        name: uv run --no-sync flake8 (quri-vm)
+        entry: uv run --no-sync flake8 quri-vm --config .flake8
         language: system
         types: [python]
         pass_filenames: false
       - id: mypy-quri-vm
-        name: poetry run mypy (quri-vm)
-        entry: poetry run mypy quri-vm
+        name: uv run --no-sync mypy (quri-vm)
+        entry: uv run --no-sync mypy quri-vm
         language: system
         types: [python]
         pass_filenames: false
       - id: mypy-quri-algo
-        name: poetry run mypy (quri-algo)
-        entry: poetry run mypy quri-algo/quri_algo/ quri-algo/tests
+        name: uv run --no-sync mypy (quri-algo)
+        entry: uv run --no-sync mypy quri-algo/quri_algo/ quri-algo/tests
         language: system
         types: [python]
         pass_filenames: false
       - id: mypy-quri-parts
-        name: poetry run mypy (quri-parts)
-        entry: poetry run mypy quri-parts
+        name: uv run --no-sync mypy (quri-parts)
+        entry: uv run --no-sync mypy quri-parts
         language: system
         types: [python]
         pass_filenames: false

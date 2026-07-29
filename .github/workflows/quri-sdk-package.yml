@@ -34,9 +34,11 @@ jobs:
         GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
 
         # process pyproject.toml files
+        # Packages with dynamic versioning (uv-dynamic-versioning) have no
+        # static `version = "..."` line; skip them.
         for FILE in $(find . -name "pyproject.toml"); do
-          PYPROJECT_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
-          if [[ ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
+          PYPROJECT_VERSION="$(sed -ne 's/^version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ -n "$PYPROJECT_VERSION" && ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
             echo "Version mismatch in $FILE; #PYPROJECT_VERSION != $GIT_VERSION_TAG" 1>&2
             false
           fi
@@ -44,7 +46,7 @@ jobs:
 
         # process Cargo.toml files
         for FILE in $(find . -name "Cargo.toml"); do
-          CARGO_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          CARGO_VERSION="$(sed -ne 's/^version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
           if [[ ! "v$CARGO_VERSION" = $GIT_VERSION_TAG ]]; then
             echo "Version mismatch in $FILE; #CARGO_VERSION != $GIT_VERSION_TAG" 1>&2
             false
@@ -61,17 +63,6 @@ jobs:
       run:
         working-directory: quri-parts
     steps:
-      - name: Cache Poetry cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pypoetry
-          key: poetry-cache-${{ runner.os }}-3.11
-      - name: Cache Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-local-${{ runner.os }}-3.11
-
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v5
@@ -79,19 +70,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: python -m pip install --upgrade pip
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+      - run: python -m pip install --upgrade pip build
 
       - run: |
-          poetry env use 3.11
           mkdir -p dist
-          poetry run pip install --upgrade build
-          source $VENV
 
           # For sdist generation, only files under `packages/rust` or `rust` are needed.
           # To prevent errors, we remove some files of `quri-parts` package.
@@ -101,7 +83,7 @@ jobs:
           mv packages/rust/MANIFEST.in .
           rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/qret packages/tensornetwork
           echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
-          poetry run python -m build --sdist
+          python -m build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
@@ -258,17 +240,6 @@ jobs:
       # Needed to avoid format error in Windows
       PYTHONUTF8: "1"
     steps:
-      - name: Cache Poetry cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pypoetry
-          key: poetry-cache-${{ runner.os }}-3.11
-      - name: Cache Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-local-${{ runner.os }}-3.11
-
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v5
@@ -277,12 +248,6 @@ jobs:
           python-version: 3.11
 
       - run: python -m pip install --upgrade pip build
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
 
       - if: runner.os != 'Linux'
         run: |
@@ -476,28 +441,33 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: ./.github/actions/quri-parts/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.4.0'
+        version: "0.11.17"
         python-version: '3.10'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - shell: bash
       run: |
-        pip install setuptools
-        poetry env use 3.10
-        poetry self add setuptools
-        poetry self add "poetry-dynamic-versioning[plugin]"
+        # Resolve the dynamic version from git and bake it into the
+        # pyproject.toml fallback-version so that sdists built here carry the
+        # correct version even when built without git metadata.
+        VERSION="$(uvx dunamai from git --style pep440)"
+        echo "Resolved version: $VERSION"
         mkdir -p dist
         cp -f NOTICE quri_parts/
-        poetry build
+        sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
+        uv build --no-sources --out-dir dist
         cd packages
         for pkg in *
         do
           cd $pkg
           if [[ ! -e "Cargo.toml" ]]; then
             cp -f NOTICE quri_parts/$pkg/
-            poetry build
-            mv dist/* ../../dist
+            sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
+            uv build --no-sources --out-dir ../../dist
           fi
           cd ..
         done
@@ -564,18 +534,21 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: actions/setup-python@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
+        version: "0.11.17"
         python-version: '3.11'
-
-    - uses: ./.github/actions/quri-algo/setup
-
-    - run: |
-        poetry self add "poetry-dynamic-versioning[plugin]"
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - run: |
-        poetry env use python3.11
-        poetry build
+        # Bake the git-derived version into fallback-version so sdists carry
+        # the correct version when built without git metadata.
+        VERSION="$(uvx dunamai from git --style pep440)"
+        echo "Resolved version: $VERSION"
+        sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
+        uv build --no-sources --out-dir dist
 
     - uses: actions/upload-artifact@v4
       with:
@@ -617,17 +590,16 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: ./.github/actions/quri-vm/setup
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.8.0'
+        version: "0.11.17"
         python-version: '3.10'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-    - run: |
-        poetry self add "poetry-dynamic-versioning[plugin]"
-
-    - run: |
-        poetry env use 3.10
-        poetry build
+    # quri-vm has a static version; no dynamic-versioning step needed.
+    - run: uv build --no-sources --out-dir dist
 
     - uses: actions/upload-artifact@v4
       with:
@@ -665,19 +637,23 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: ./.github/actions/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.4.0'
+        version: "0.11.17"
         python-version: '3.10'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - shell: bash
       run: |
-        pip install setuptools
-        poetry env use 3.10
-        poetry self add setuptools
-        poetry self add "poetry-dynamic-versioning[plugin]"
+        # Bake the git-derived version into fallback-version so sdists carry
+        # the correct version when built without git metadata.
+        VERSION="$(uvx dunamai from git --style pep440)"
+        echo "Resolved version: $VERSION"
+        sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
         mkdir -p dist
-        poetry build
+        uv build --no-sources --out-dir dist
 
     - uses: actions/upload-artifact@v4
       with:

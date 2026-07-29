@@ -1,20 +1,29 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
 name = "quri-vm"
 version = "0.26.4"
 description = ""
-authors = ["QunaSys"]
+authors = [{ name = "QunaSys" }]
 readme = "README.md"
-packages = [{ include = "quri_vm" }]
+requires-python = ">=3.10,<4"
+dependencies = [
+    "quri-parts-circuit",
+    "quri-parts-qulacs",
+    "matplotlib>=3.10.1,<4.0.0",
+]
 
-[tool.poetry.dependencies]
-python = "<4,>=3.10"
-quri-parts-circuit = "*"
-quri-parts-qulacs = "*"
-matplotlib = "^3.10.1"
+[tool.hatch.build.targets.wheel]
+packages = ["quri_vm"]
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_vm"]
+
+[tool.uv.sources]
+quri-parts-circuit = { path = "../quri-parts/packages/circuit", editable = true }
+quri-parts-qulacs = { path = "../quri-parts/packages/qulacs", editable = true }
 
 [tool.isort]
 profile = "black"

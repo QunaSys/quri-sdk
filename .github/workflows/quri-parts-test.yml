@@ -11,9 +11,8 @@ on:
       - quri-parts/**/*.jl
       - quri-parts/pyproject.toml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-parts-test.yml
-      - .github/actions/python-poetry-install/action.yml
       - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
@@ -37,17 +36,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.8.5'
+        version: "0.11.17"
         python-version: ${{ matrix.python_version }}
-
-    - name: Cache Poetry environment
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/pypoetry
-        key: poetry-${{ runner.os }}-py${{ matrix.python_version }}-quri-parts-test-${{ hashFiles('poetry.lock') }}
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -58,41 +53,47 @@ jobs:
       with:
         path: |
           ~/.julia/
-        key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+        key: ci-${{ runner.os }}-julia-${{ hashFiles('uv.lock') }}-cache
         restore-keys: ci-${{ runner.os }}-julia-
 
     - name: Run Rust tests
       working-directory: quri-parts
       run: cargo test --workspace
 
-    - name: Choose python version
+    - name: Install dependencies
+      if: matrix.python_version != '3.14'
       run: |
-        poetry env use ${{ matrix.python_version }}
-    - name: Install system build dependencies (3.14)
+        uv sync --locked
+
+    # On 3.14 the only deps without cp314 wheels are tensorflow/jax/jaxlib (via
+    # tensornetwork); they carry `python_version < '3.14'` markers and drop from
+    # the locked closure, so `uv sync --locked` resolves exactly like the other
+    # legs (same numpy 2.4.6 and braket set, no constraints workaround). Two
+    # transitive deps build from sdist here: qulacs (a hard dep of
+    # quri-parts-core) needs CMake + Boost, and Pillow 10.x (capped <11 by
+    # qulacsvis, so no cp314 wheel) needs zlib + libjpeg.
+    - name: Install dependencies (3.14)
       if: matrix.python_version == '3.14'
-      # On 3.14 some deps have no cp314 wheel and build from source: qulacs
-      # (a hard transitive dep of core) needs CMake + Boost, and Pillow 10.x
-      # (capped <11 by qulacsvis) needs zlib + libjpeg.
       run: |
         sudo apt-get update
-        sudo apt-get install -y --no-install-recommends cmake libboost-dev zlib1g-dev libjpeg-dev
-    - name: Install dependencies
-      run: |
-        poetry run pip install -vvv -e quri-parts/packages/rust
-        poetry install -vvv --only main,dev
+        sudo apt-get install -y --no-install-recommends \
+          cmake libboost-dev zlib1g-dev libjpeg-dev
+        uv sync --locked
 
+    # The following steps activate the venv instead of using `uv run`.
     - name: Detect Julia project
       id: julia_project
       run: |
-        poetry run python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
+        source .venv/bin/activate
+        python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
 
     - name: Prepare Julia deps
       run: |
-        poetry run julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
+        source .venv/bin/activate
+        julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     - name: Run pytest
-      # gridsynth-marked tests use pygridsynth, which requires Python >= 3.10;
-      # enable them only on the 3.10 leg.
-      run: >
-        poetry run pytest quri-parts
-        ${{ startsWith(matrix.python_version, '3.1') && '--with-gridsynth' || '' }}
+      # gridsynth-marked tests use pygridsynth, which requires Python >= 3.10.
+      run: |
+        source .venv/bin/activate
+        pytest quri-parts ${{ startsWith(matrix.python_version, '3.1') && '--with-gridsynth' || '' }}
