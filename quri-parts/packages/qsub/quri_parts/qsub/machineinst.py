@@ -54,6 +54,7 @@ class MachineSub:
     aux_qubits: Sequence[Qubit]
     aux_registers: Sequence[Register]
     instructions: Sequence[MachineInst]
+    op: Optional[Op] = None
 
     @property
     def sub_id(self) -> SubId:

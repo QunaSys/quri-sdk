@@ -30,6 +30,7 @@ def map_qubits(sub: MachineSub, qubit_map: Mapping[Qubit, Qubit]) -> MachineSub:
         tuple(qubit_map.get(q, q) for q in sub.aux_qubits),
         sub.aux_registers,
         instrs,
+        sub.op,
     )
 
 
@@ -45,6 +46,7 @@ def map_registers(
         sub.aux_qubits,
         tuple(register_map.get(r, r) for r in sub.aux_registers),
         instrs,
+        sub.op,
     )
 
 
@@ -112,6 +114,7 @@ def _expand(
         tuple(extend_aux_qubits),
         tuple(extend_aux_regs),
         tuple(instrs),
+        sub.op,
     )
 
 
