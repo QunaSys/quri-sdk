@@ -62,8 +62,7 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         self._self_gates: dict[SubId, dict[BaseIdent, int]] = {}
         self._total_gates: dict[SubId, dict[BaseIdent, int]] = {}
         self._aux: dict[SubId, int] = defaultdict(int)
-        # sub -> {descendant (itself included) -> invocations per single call
-        # of that sub}; at the root this becomes the program-wide call counts.
+        # Invocations of each descendant (itself included) per single call of the sub.
         self._transitive_call_counts: dict[SubId, dict[SubId, int]] = {}
         self._sub_op: dict[SubId, Op] = {}
         self._sub_by_id: dict[SubId, MachineSub] = {}
