@@ -72,6 +72,46 @@ def test_call_count_and_gate_scopes() -> None:
     assert root.gate_count_info["descendants_per_call"] == {"CNOT": 6}
 
 
+def test_shared_sub_across_parents() -> None:
+    """root -> A -> C, root -> B -> C, root -> C directly: C keeps a single row
+    with call counts summed over all parents and depths."""
+    ns = NameSpace("test_shared")
+    A = Op.from_qubit_count(Ident(ns, "A"), 1)
+    B = Op.from_qubit_count(Ident(ns, "B"), 1)
+    C = Op.from_qubit_count(Ident(ns, "C"), 1)
+
+    cb = SubBuilder(1)
+    cb.add_op(std.X, cb.qubits)
+    csub = cb.build()
+
+    ab = SubBuilder(1)
+    ab.add_op(C, ab.qubits)
+    asub = ab.build()
+
+    bb = SubBuilder(1)
+    bb.add_op(C, bb.qubits)
+    bsub = bb.build()
+
+    rb = SubBuilder(1)
+    rb.add_op(A, rb.qubits)
+    rb.add_op(B, rb.qubits)
+    rb.add_op(C, rb.qubits)
+
+    codegen = CodeGenerator([std.X])
+    msub = codegen.lower(rb.build())
+    linked = Linker(
+        {A: codegen.lower(asub), B: codegen.lower(bsub), C: codegen.lower(csub)}
+    ).link(msub)
+
+    report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(linked)
+    named = _named(report)
+
+    assert named["C"].call_count == 3
+    assert named["A"].gate_count_info["descendants_per_call"] == {"X": 1}
+    assert named["B"].gate_count_info["descendants_per_call"] == {"X": 1}
+    assert _root(report).gate_count_info["descendants"] == {"X": 3}
+
+
 def test_qubit_count_info_with_auxiliary() -> None:
     """auxiliary is the peak ancilla for one invocation, summed with a callee's
     own ancilla when they are live at the same time."""
@@ -103,6 +143,35 @@ def test_qubit_count_info_with_auxiliary() -> None:
     root = _root(report)
     # 2 data + 1 local aux + 1 aux live inside F = 4
     assert root.qubit_count_info == {"data": 2, "auxiliary": 2, "total": 4}
+
+
+def test_auxiliary_peak_over_siblings() -> None:
+    """Sequential callees share ancillas, so a parent's auxiliary is the max
+    over its callees, not their sum."""
+    ns = NameSpace("test_aux_peak")
+    F1 = Op.from_qubit_count(Ident(ns, "F1"), 1)
+    F2 = Op.from_qubit_count(Ident(ns, "F2"), 1)
+
+    f1b = SubBuilder(1)
+    f1b.add_op(std.X, (f1b.add_aux_qubit(),))
+    f1sub = f1b.build()
+
+    f2b = SubBuilder(1)
+    f2b.add_op(std.X, (f2b.add_aux_qubit(),))
+    f2b.add_op(std.X, (f2b.add_aux_qubit(),))
+    f2sub = f2b.build()
+
+    rb = SubBuilder(1)
+    rb.add_op(F1, rb.qubits)
+    rb.add_op(F2, rb.qubits)
+
+    codegen = CodeGenerator([std.X])
+    linked = Linker({F1: codegen.lower(f1sub), F2: codegen.lower(f2sub)}).link(
+        codegen.lower(rb.build())
+    )
+
+    report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
+    assert _root(report).qubit_count_info["auxiliary"] == 2  # max(1, 2)
 
 
 def test_gate_filter() -> None:
@@ -149,3 +218,32 @@ def test_parametric_sub_is_named_via_compile() -> None:
     assert entry.name == "Twice(2)"
     assert entry.call_count == 1
     assert entry.gate_count_info["self_per_call"] == {"Toffoli": 2}
+
+
+def test_parametric_sub_row_per_parameter() -> None:
+    """A self-recursive parametric sub gets one row per parameter value."""
+
+    class _Chain(ParamUnitarySubDef[int]):
+        name = "Chain"
+
+        def qubit_count_fn(self, k: int) -> int:
+            return 1
+
+        def qregs_fn(self, k: int) -> Sequence[QRegSpec]:
+            return (QRegSpec("q", 1),)
+
+        def sub(self, b: SubBuilder, k: int) -> None:
+            (q,) = b.qregs["q"].qubits
+            b.add_op(std.X, (q,))
+            if k > 1:
+                b.add_op(Chain(k - 1), (q,))
+
+    Chain, _ = param_opsub(_Chain)
+    compiled = compile(Chain(3), (std.X,))
+
+    report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(compiled)
+    named = _named(report)
+
+    assert set(named) == {"Chain(3)", "Chain(2)", "Chain(1)"}
+    assert all(e.call_count == 1 for e in named.values())
+    assert named["Chain(3)"].gate_count_info["total_per_call"] == {"X": 3}
