@@ -62,7 +62,9 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         self._self_gates: dict[SubId, dict[BaseIdent, int]] = {}
         self._total_gates: dict[SubId, dict[BaseIdent, int]] = {}
         self._aux: dict[SubId, int] = defaultdict(int)
-        self._call_mult: dict[SubId, dict[SubId, int]] = {}
+        # sub -> {descendant (itself included) -> invocations per single call
+        # of that sub}; at the root this becomes the program-wide call counts.
+        self._transitive_call_counts: dict[SubId, dict[SubId, int]] = {}
         self._sub_op: dict[SubId, Op] = {}
         self._sub_by_id: dict[SubId, MachineSub] = {}
         self._order: list[SubId] = []
@@ -88,8 +90,8 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         self._sub_by_id[sid] = sub
         self._self_gates[sid] = defaultdict(int)
         self._total_gates[sid] = defaultdict(int)
-        self._call_mult[sid] = defaultdict(int)
-        self._call_mult[sid][sid] = 1
+        self._transitive_call_counts[sid] = defaultdict(int)
+        self._transitive_call_counts[sid][sid] = 1
 
         if sub.op is not None:
             self._sub_op[sid] = sub.op
@@ -123,14 +125,14 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
             parent = call_stack[-2]
             for k, v in self._total_gates[sid].items():
                 self._total_gates[parent][k] += v
-            for cid, v in self._call_mult[sid].items():
-                self._call_mult[parent][cid] += v
+            for cid, v in self._transitive_call_counts[sid].items():
+                self._transitive_call_counts[parent][cid] += v
             self._aux[parent] = max(self._aux[parent], self._aux[sid])
         else:
             self._assemble(sid)
 
     def _assemble(self, root_sid: SubId) -> None:
-        call_counts = self._call_mult[root_sid]
+        call_counts = self._transitive_call_counts[root_sid]
         entries: list[SubwiseProfileEntry] = []
         for sid in self._order:
             sub = self._sub_by_id[sid]
@@ -140,20 +142,20 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
             aux = self._aux[sid]
             qubit_count_info = {"data": data, "auxiliary": aux, "total": data + aux}
 
-            self_pc = _display_names(self._self_gates[sid])
-            total_pc = _display_names(self._total_gates[sid])
-            desc_pc = {
-                k: total_pc[k] - self_pc.get(k, 0)
-                for k in total_pc
-                if total_pc[k] - self_pc.get(k, 0) > 0
+            self_per_call = _display_names(self._self_gates[sid])
+            total_per_call = _display_names(self._total_gates[sid])
+            descendants_per_call = {
+                k: total_per_call[k] - self_per_call.get(k, 0)
+                for k in total_per_call
+                if total_per_call[k] - self_per_call.get(k, 0) > 0
             }
             gate_count_info = {
-                "self_per_call": self_pc,
-                "self": _scale(self_pc, cc),
-                "descendants_per_call": desc_pc,
-                "descendants": _scale(desc_pc, cc),
-                "total_per_call": total_pc,
-                "total": _scale(total_pc, cc),
+                "self_per_call": self_per_call,
+                "self": _scale(self_per_call, cc),
+                "descendants_per_call": descendants_per_call,
+                "descendants": _scale(descendants_per_call, cc),
+                "total_per_call": total_per_call,
+                "total": _scale(total_per_call, cc),
             }
 
             entries.append(
