@@ -8,11 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""SWAP gate definition (:mod:`quri_parts.qsub.lib.std.swap`)
-=============================================================
+"""SWAP gate and register rotation (:mod:`quri_parts.qsub.lib.std.swap`)
+========================================================================
 
 Defines the two-qubit SWAP gate as a self-inverse
-:class:`~quri_parts.qsub.op.Op`.
+:class:`~quri_parts.qsub.op.Op`, and :data:`Rot`, a cyclic rotation of an
+arbitrary-size qubit register built out of SWAPs.
 """
 
 from quri_parts.qsub.op import Ident, Op

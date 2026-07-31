@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Auxiliary-qubit count hooks (:mod:`quri_parts.qsub.eval.qubitcount`)
+"""Qubit-count evaluator hooks (:mod:`quri_parts.qsub.eval.qubitcount`)
 =======================================================================
 
 Evaluator hooks that track the maximum number of auxiliary qubits
@@ -18,6 +18,8 @@ required across all sub-routine calls in a
 Key classes (for quick orientation):
 
 - :class:`AuxQubitCountEvaluatorHooks` -- computes peak auxiliary qubit usage
+- :class:`TotalQubitCountEvaluatorHooks` -- computes peak total (auxiliary
+  plus data) qubit usage
 """
 
 from collections import defaultdict
