@@ -34,8 +34,9 @@ jobs:
   build-deploy:
     if: >-
       github.repository == 'QunaSys/quri-sdk-internal' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository) ||
+       (github.event_name != 'pull_request' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'pull_request' && 'pull request' || 'production' }}
     permissions:
@@ -46,7 +47,7 @@ jobs:
       - name: Checkout the build ref
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
