@@ -15,6 +15,7 @@ from typing import Optional
 
 from ..evaluate import EvaluatorHooks
 from ..machineinst import MachineSub, Primitive, SubId, is_subcall
+from ..namespace import NameSpace
 from ..op import AbstractOp, BaseIdent, Op
 from ..qubit import Qubit
 from ..register import Register
@@ -35,7 +36,9 @@ class SubwiseProfileEntry:
     (``self`` for gates written directly in the body, ``descendants`` for gates
     contributed transitively by everything the sub calls, ``total`` for their
     sum) crossed with aggregation: the ``*_per_call`` keys are per single
-    invocation, the unsuffixed keys are multiplied by ``call_count``.
+    invocation, the unsuffixed keys are multiplied by ``call_count``. Gate keys
+    are bare local names, namespace-qualified (``"ns.name"``) when two counted
+    gates share a local name.
     """
 
     name: Optional[str]
@@ -132,6 +135,11 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
 
     def _assemble(self, root_sid: SubId) -> None:
         call_counts = self._transitive_call_counts[root_sid]
+        # One shared mapping so self/total dicts of every sub stay keyed
+        # consistently (descendants is computed as their difference).
+        name_map = _display_name_map(
+            bid for gates in self._total_gates.values() for bid in gates
+        )
         entries: list[SubwiseProfileEntry] = []
         for sid in self._order:
             sub = self._sub_by_id[sid]
@@ -141,8 +149,8 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
             aux = self._aux[sid]
             qubit_count_info = {"data": data, "auxiliary": aux, "total": data + aux}
 
-            self_per_call = _display_names(self._self_gates[sid])
-            total_per_call = _display_names(self._total_gates[sid])
+            self_per_call = _display_names(self._self_gates[sid], name_map)
+            total_per_call = _display_names(self._total_gates[sid], name_map)
             descendants_per_call = {
                 k: total_per_call[k] - self_per_call.get(k, 0)
                 for k in total_per_call
@@ -168,10 +176,23 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         self._result = entries
 
 
-def _display_names(counts: Mapping[BaseIdent, int]) -> dict[str, int]:
-    """Render gate keys as their bare local name (dropping the namespace),
-    matching the convention used elsewhere in the qsub counting reports."""
-    return {base_id[1]: n for base_id, n in counts.items()}
+def _display_name_map(base_ids: Iterable[BaseIdent]) -> dict[BaseIdent, str]:
+    """Map each gate to its bare local name, namespace-qualified only when two
+    gates share a local name (bare names would silently merge their counts)."""
+    namespaces_by_local: dict[str, set[NameSpace]] = defaultdict(set)
+    ids = set(base_ids)
+    for ns, local in ids:
+        namespaces_by_local[local].add(ns)
+    return {
+        (ns, local): local if len(namespaces_by_local[local]) == 1 else f"{ns}.{local}"
+        for ns, local in ids
+    }
+
+
+def _display_names(
+    counts: Mapping[BaseIdent, int], name_map: Mapping[BaseIdent, str]
+) -> dict[str, int]:
+    return {name_map[base_id]: n for base_id, n in counts.items()}
 
 
 def _scale(counts: Mapping[str, int], factor: int) -> dict[str, int]:

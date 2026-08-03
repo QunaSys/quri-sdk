@@ -191,6 +191,26 @@ def test_gate_filter() -> None:
     assert toffoli_only.gate_count_info["self_per_call"] == {"Toffoli": 1}
 
 
+def test_gate_name_collision_across_namespaces() -> None:
+    """Counted gates sharing a local name across namespaces stay distinct,
+    keyed with their namespace instead of silently merging."""
+    ns = NameSpace("custom")
+    MyX = Op.from_qubit_count(Ident(ns, "X"), 1)
+
+    b = SubBuilder(1)
+    b.add_op(std.X, b.qubits)
+    b.add_op(MyX, b.qubits)
+    b.add_op(MyX, b.qubits)
+    msub = CodeGenerator([std.X, MyX]).lower(b.build())
+
+    (entry,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
+    std_ns = std.X.base_id[0]
+    assert entry.gate_count_info["self_per_call"] == {
+        f"{std_ns}.X": 1,
+        "custom.X": 2,
+    }
+
+
 def test_parametric_sub_is_named_via_compile() -> None:
     """compile() attaches the entry op, so the root row is named with its
     parameter (unlike the raw lower/link path, where the root is anonymous)."""
