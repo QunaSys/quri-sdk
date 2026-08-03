@@ -228,6 +228,8 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
+          - os: "ubuntu-24.04-arm"
+            target: "aarch64-unknown-linux-gnu"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -268,13 +270,13 @@ jobs:
         if: runner.os == 'Linux'
         uses: pypa/cibuildwheel@v2.23.2
         env:
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_BUILD: "cp311-manylinux_i686 cp311-manylinux_x86_64"
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
+          CIBW_BUILD: "cp311-manylinux*"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
           CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
-          CIBW_ARCHS_LINUX: "auto"
+          CIBW_ARCHS_LINUX: "native"
           CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
         with:
           package-dir: quri-parts/packages/rust
@@ -297,10 +299,18 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
+            full_tests: true
+          # quri-parts-qret cannot be installed on Linux aarch64 because pyqret does not publish a Linux aarch64 wheel.
+          # Test the Rust wheel directly instead of installing the full package set.
+          - os: "ubuntu-24.04-arm"
+            target: "aarch64-unknown-linux-gnu"
+            full_tests: false
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
+            full_tests: true
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
+            full_tests: true
         python-version: [ "10", "11", "12", "13", "14" ]
         # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
@@ -318,9 +328,10 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
+          key: pip-cache-v2-${{ runner.os }}-${{ matrix.system.target }}-py${{ matrix.python-version }}
 
       - uses: actions/checkout@v3
+        if: matrix.system.full_tests
 
       - uses: actions/download-artifact@v4
         with:
@@ -328,6 +339,7 @@ jobs:
           path: quri-parts/dist
 
       - uses: actions/download-artifact@v4
+        if: matrix.system.full_tests
         with:
           name: quri-parts-packages-python
           path: quri-parts/dist_py
@@ -338,7 +350,7 @@ jobs:
           python-version: 3.${{matrix.python-version}}
 
       - name: Install boost
-        if: matrix.python-version == '14' || (matrix.python-version == '13' && runner.os == 'Windows')
+        if: matrix.system.full_tests && (matrix.python-version == '14' || (matrix.python-version == '13' && runner.os == 'Windows'))
         uses: MarkusJx/install-boost@v2
         id: install-boost
         with:
@@ -369,6 +381,7 @@ jobs:
         run: vcpkg install zlib
 
       - name: Install packages
+        if: matrix.system.full_tests
         env:
           BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
@@ -389,7 +402,7 @@ jobs:
           # deps, so there is no PyPI fallback for quri-parts-* packages.
           FILES=()
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-            FILES+=($(find quri-parts/dist -name 'quri_parts*.manylinux2014_x86_64.whl'))
+            FILES+=($(find quri-parts/dist -name 'quri_parts*.manylinux*.whl'))
           else
             FILES+=($(find quri-parts/dist -name 'quri_parts*.whl'))
           fi
@@ -412,7 +425,22 @@ jobs:
           pip install -v "${FILES[@]}" \
             --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
 
+      - name: Install Linux aarch64 Rust wheel
+        if: matrix.system.target == 'aarch64-unknown-linux-gnu'
+        shell: bash
+        run: |
+          mapfile -t FILES < <(find quri-parts/dist -name 'quri_parts_rust*.manylinux*.whl')
+          [[ ${#FILES[@]} -eq 1 ]]
+          pip install -v "${FILES[@]}"
+
+      - name: Smoke test Linux aarch64 Rust wheel
+        if: matrix.system.target == 'aarch64-unknown-linux-gnu'
+        shell: bash
+        run: |
+          python -c "from quri_parts.rust.circuit.circuit import QuantumCircuit; circuit = QuantumCircuit(1); circuit.add_H_gate(0); assert circuit.depth == 1"
+
       - name: Run test
+        if: matrix.system.full_tests
         shell: bash
         run: |
           if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
