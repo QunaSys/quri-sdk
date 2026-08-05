@@ -544,20 +544,28 @@ def draw_call_graph(
         node: _node_name(node) if node is not None else "(unnamed)"
         for node in positions
     }
+    labels = {
+        node: _call_graph_node_label(names[node], entries.get(node))
+        for node in positions
+    }
 
     xs = [x for x, _ in positions.values()]
     ys = [y for _, y in positions.values()]
+    # A layer must be tall enough in inches for its tallest label, or boxes
+    # swallow the fixed-length arrows between them.
+    max_lines = max(label.count("\n") + 1 for label in labels.values())
+    layer_height = 0.55 + 0.22 * max_lines
     fig, ax = plt.subplots(
         figsize=(
             max(4.0, 2.4 * (max(xs) - min(xs) + 1)),
-            1.1 * (max(ys) - min(ys) + 1),
+            max(2.0, layer_height * (max(ys) - min(ys) + 1)),
         )
     )
     for node, (x, y) in positions.items():
         ax.text(
             x,
             y,
-            _call_graph_node_label(names[node], entries.get(node)),
+            labels[node],
             ha="center",
             va="center",
             bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray"),
