@@ -8,8 +8,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
 from collections.abc import Collection, Sequence
 from typing import TYPE_CHECKING, Mapping, Optional, TypeAlias
+
+import matplotlib.pyplot as plt
 
 from quri_parts.qsub._visualization import (
     CircuitData,
@@ -19,6 +22,7 @@ from quri_parts.qsub._visualization import (
     GateType,
     MPLCircuitlDrawer,
 )
+from quri_parts.qsub.eval.subwiseprofile import SubwiseProfileEntry
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -30,7 +34,7 @@ from quri_parts.qsub.lib.std import (
     Toffoli,
 )
 from quri_parts.qsub.machineinst import MachineSub
-from quri_parts.qsub.op import Op
+from quri_parts.qsub.op import Ident, Op
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
@@ -48,6 +52,7 @@ __all__ = [
     "GateType",
     "MPLCircuitlDrawer",
     "draw",
+    "draw_call_graph",
     "draw_msub",
     "draw_sub",
     "machine_sub_to_vis_data",
@@ -427,3 +432,161 @@ def draw(
         return draw_sub(sub, dpi=dpi, scale=scale, debug=debug, filename=filename)
     else:
         return draw_msub(sub, dpi=dpi, scale=scale, debug=debug, filename=filename)
+
+
+def _call_graph_depths(
+    graph: Mapping[Optional[Ident], Sequence[Ident]],
+) -> dict[Optional[Ident], int]:
+    """Layer each node at its longest path from a root so every edge points to
+    a strictly lower layer."""
+    depths: dict[Optional[Ident], int] = {}
+    called = {callee for callees in graph.values() for callee in callees}
+    in_progress: list[Optional[Ident]] = []
+
+    def assign(node: Optional[Ident], depth: int) -> None:
+        if node in in_progress:
+            raise ValueError(f"Call graph contains a cycle through: {node}")
+        if node in depths and depths[node] >= depth:
+            return
+        depths[node] = depth
+        in_progress.append(node)
+        for callee in graph.get(node, ()):
+            assign(callee, depth + 1)
+        in_progress.pop()
+
+    for root in (node for node in graph if node not in called):
+        assign(root, 0)
+    return depths
+
+
+def _call_graph_positions(
+    graph: Mapping[Optional[Ident], Sequence[Ident]],
+) -> dict[Optional[Ident], tuple[float, float]]:
+    depths = _call_graph_depths(graph)
+    layers: dict[int, list[Optional[Ident]]] = {}
+    for node, depth in depths.items():
+        layers.setdefault(depth, []).append(node)
+    positions: dict[Optional[Ident], tuple[float, float]] = {}
+    for depth, nodes in layers.items():
+        for i, node in enumerate(nodes):
+            positions[node] = (i - (len(nodes) - 1) / 2, float(-depth))
+    return positions
+
+
+def _node_name(ident: Ident) -> str:
+    return ident.to_str(full=False, param_truncate=8)
+
+
+def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> str:
+    if entry is None:
+        return name
+    lines = [name, f"calls: {entry.call_count}"]
+    lines.extend(
+        f"{_node_name(gate)}: {count}"
+        for gate, count in entry.gate_counts.cumulative.all_calls.items()
+    )
+    return "\n".join(lines)
+
+
+def _call_multiplicities(
+    graph: Mapping[Optional[Ident], Sequence[Ident]],
+    entries: Mapping[Optional[Ident], SubwiseProfileEntry],
+) -> dict[tuple[Optional[Ident], Ident], int]:
+    """Calls per caller invocation, as the ratio of the call counts — only
+    derivable for callees with a single caller."""
+    caller_count: dict[str, int] = defaultdict(int)
+    for callees in graph.values():
+        for callee in callees:
+            caller_count[callee] += 1
+    multiplicities: dict[tuple[Optional[Ident], Ident], int] = {}
+    for caller, callees in graph.items():
+        caller_entry = entries.get(caller)
+        if caller_entry is None or caller_entry.call_count == 0:
+            continue
+        for callee in callees:
+            callee_entry = entries.get(callee)
+            if callee_entry is None or caller_count[callee] != 1:
+                continue
+            m = callee_entry.call_count // caller_entry.call_count
+            multiplicities[(caller, callee)] = m
+    return multiplicities
+
+
+def draw_call_graph(
+    graph: Mapping[Optional[Ident], Sequence[Ident]],
+    profile: Optional[Sequence[SubwiseProfileEntry]] = None,
+    *,
+    filename: Optional[str] = None,
+) -> "matplotlib.figure.Figure":
+    """Draw a call graph produced by :class:`CallGraphEvaluatorHooks`, laid out
+    top-down by call depth.
+
+    Pass the report of :class:`SubwiseProfileEvaluatorHooks` for the
+    same compiled sub as ``profile`` to annotate each node with its call
+    count and cumulative gate counts (the two reports join on the op
+    ``Ident``: graph nodes against profile ``source_op``),
+    and each edge to a single-caller callee with the number of calls per
+    caller invocation, highlighted when greater than one.
+    """
+    entries: Mapping[Optional[Ident], SubwiseProfileEntry] = (
+        {e.source_op: e for e in profile} if profile is not None else {}
+    )
+    positions = _call_graph_positions(graph)
+    multiplicities = _call_multiplicities(graph, entries) if entries else {}
+
+    if not positions:
+        fig, ax = plt.subplots()
+        ax.axis("off")
+        plt.close(fig)
+        return fig
+
+    names = {
+        node: _node_name(node) if node is not None else "(unnamed)"
+        for node in positions
+    }
+
+    xs = [x for x, _ in positions.values()]
+    ys = [y for _, y in positions.values()]
+    fig, ax = plt.subplots(
+        figsize=(
+            max(4.0, 2.4 * (max(xs) - min(xs) + 1)),
+            1.1 * (max(ys) - min(ys) + 1),
+        )
+    )
+    for node, (x, y) in positions.items():
+        ax.text(
+            x,
+            y,
+            _call_graph_node_label(names[node], entries.get(node)),
+            ha="center",
+            va="center",
+            bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray"),
+        )
+    for caller, callees in graph.items():
+        for callee in callees:
+            (x0, y0), (x1, y1) = positions[caller], positions[callee]
+            ax.annotate(
+                "",
+                xy=(x1, y1 + 0.38),
+                xytext=(x0, y0 - 0.38),
+                arrowprops=dict(arrowstyle="-|>", color="gray"),
+            )
+            m = multiplicities.get((caller, callee))
+            if m is not None:
+                ax.text(
+                    (x0 + x1) / 2 + 0.1,
+                    (y0 + y1) / 2,
+                    f"x{m}",
+                    ha="left",
+                    va="center",
+                    color="tab:red" if m > 1 else "gray",
+                )
+    ax.set_xlim(min(xs) - 1, max(xs) + 1)
+    ax.set_ylim(min(ys) - 0.5, max(ys) + 0.5)
+    ax.axis("off")
+    if filename:
+        fig.savefig(filename, bbox_inches="tight")
+    # Closed like MPLCircuitlDrawer.draw: the caller renders the returned
+    # figure, and the inline backend must not display it a second time.
+    plt.close(fig)
+    return fig

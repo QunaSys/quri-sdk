@@ -1,13 +1,19 @@
-from typing import Any
+from typing import Any, Optional
 
 from matplotlib import colors as mcolors
 from matplotlib import patches as mpatches
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
-from pytest import MonkeyPatch
+from pytest import MonkeyPatch, raises
 
 import quri_parts.qsub._visualization as vis_impl
 import quri_parts.qsub.visualize as visualize
+from quri_parts.qsub.eval.subwiseprofile import (
+    GateCountBreakdown,
+    GateCounts,
+    QubitCounts,
+    SubwiseProfileEntry,
+)
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -21,6 +27,8 @@ from quri_parts.qsub.lib.std import (
     X,
     conditional,
 )
+from quri_parts.qsub.namespace import NameSpace
+from quri_parts.qsub.op import Ident
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.sub import Sub, SubBuilder
@@ -29,7 +37,9 @@ from quri_parts.qsub.visualize import (
     ControlBitInfo,
     GateData,
     GateType,
+    _call_graph_depths,
     _op_controls,
+    draw_call_graph,
     draw_sub,
     op_to_vis_data,
     sub_to_vis_data,
@@ -301,3 +311,85 @@ class TestDrawSub:
             ]
         finally:
             plt.close(figure)
+
+
+_CG_NS = NameSpace("test_call_graph")
+
+
+def _ident(local_name: str) -> Ident:
+    return Ident(_CG_NS, local_name)
+
+
+class TestDrawCallGraph:
+    def _entry(
+        self, name: str, call_count: int, cumulative: dict[str, int]
+    ) -> SubwiseProfileEntry:
+        counts = GateCounts(
+            per_call={},
+            all_calls={_ident(g): n for g, n in cumulative.items()},
+        )
+        empty = GateCounts(per_call={}, all_calls={})
+        return SubwiseProfileEntry(
+            source_op=_ident(name),
+            call_count=call_count,
+            qubit_counts=QubitCounts(data=0, auxiliary=0, total=0),
+            gate_counts=GateCountBreakdown(
+                own=empty, descendants=empty, cumulative=counts
+            ),
+        )
+
+    def _texts(self, fig: Figure) -> set[str]:
+        return {t.get_text() for t in fig.axes[0].texts if t.get_text()}
+
+    def test_depths_use_longest_path(self) -> None:
+        R, A, C = _ident("R"), _ident("A"), _ident("C")
+        graph: dict[Optional[Ident], list[Ident]] = {R: [A, C], A: [C], C: []}
+        assert _call_graph_depths(graph) == {R: 0, A: 1, C: 2}
+
+    def test_cycle_raises(self) -> None:
+        R, A, B = _ident("R"), _ident("A"), _ident("B")
+        graph: dict[Optional[Ident], list[Ident]] = {R: [A], A: [B], B: [A]}
+        with raises(ValueError):
+            _call_graph_depths(graph)
+
+    def test_nodes_annotated_from_profile(self) -> None:
+        R, A = _ident("R"), _ident("A")
+        graph: dict[Optional[Ident], list[Ident]] = {R: [A], A: []}
+        profile = [
+            self._entry("R", 1, {"CNOT": 6}),
+            self._entry("A", 2, {"CNOT": 6}),
+        ]
+        fig = draw_call_graph(graph, profile)
+        texts = self._texts(fig)
+        plt.close(fig)
+        assert "R\ncalls: 1\nCNOT: 6" in texts
+        assert "A\ncalls: 2\nCNOT: 6" in texts
+        assert "x2" in texts
+
+    def test_without_profile_plain_names(self) -> None:
+        R, A = _ident("R"), _ident("A")
+        graph: dict[Optional[Ident], list[Ident]] = {R: [A], A: []}
+        fig = draw_call_graph(graph)
+        texts = self._texts(fig)
+        plt.close(fig)
+        assert texts == {"R", "A"}
+
+    def test_multi_caller_edge_has_no_multiplicity(self) -> None:
+        R, A, B, C = _ident("R"), _ident("A"), _ident("B"), _ident("C")
+        graph: dict[Optional[Ident], list[Ident]] = {
+            R: [A, B],
+            A: [C],
+            B: [C],
+            C: [],
+        }
+        profile = [
+            self._entry("R", 1, {"X": 2}),
+            self._entry("A", 1, {"X": 1}),
+            self._entry("B", 1, {"X": 1}),
+            self._entry("C", 2, {"X": 2}),
+        ]
+        fig = draw_call_graph(graph, profile)
+        texts = self._texts(fig)
+        plt.close(fig)
+        assert "x1" in texts  # R -> A and R -> B are single-caller edges
+        assert "x2" not in texts  # C has two callers: no ratio shown
