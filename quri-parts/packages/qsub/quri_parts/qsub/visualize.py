@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import Counter, defaultdict
+from collections import Counter
 from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Mapping, Optional, TypeAlias
 
@@ -504,30 +504,6 @@ def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> s
     return "\n".join(lines)
 
 
-def _call_multiplicities(
-    graph: Mapping[Optional[Ident], Sequence[Ident]],
-    entries: Mapping[Optional[Ident], SubwiseProfileEntry],
-) -> dict[tuple[Optional[Ident], Ident], int]:
-    """Calls per caller invocation, as the ratio of the call counts — only
-    derivable for callees with a single caller."""
-    caller_count: dict[Ident, int] = defaultdict(int)
-    for callees in graph.values():
-        for callee in callees:
-            caller_count[callee] += 1
-    multiplicities: dict[tuple[Optional[Ident], Ident], int] = {}
-    for caller, callees in graph.items():
-        caller_entry = entries.get(caller)
-        if caller_entry is None or caller_entry.call_count == 0:
-            continue
-        for callee in callees:
-            callee_entry = entries.get(callee)
-            if callee_entry is None or caller_count[callee] != 1:
-                continue
-            m = callee_entry.call_count // caller_entry.call_count
-            multiplicities[(caller, callee)] = m
-    return multiplicities
-
-
 def draw_call_graph(
     graph: Mapping[Optional[Ident], Sequence[Ident]],
     profile: Optional[Sequence[SubwiseProfileEntry]] = None,
@@ -548,13 +524,23 @@ def draw_call_graph(
         {e.source_op: e for e in profile} if profile is not None else {}
     )
     positions = _call_graph_positions(graph)
-    multiplicities = _call_multiplicities(graph, entries) if entries else {}
 
     if not positions:
         fig, ax = plt.subplots()
         ax.axis("off")
         plt.close(fig)
         return fig
+
+    # Calls per caller invocation, as the ratio of the call counts — only
+    # derivable for callees with a single caller.
+    in_degree = Counter(callee for callees in graph.values() for callee in callees)
+    multiplicities = {
+        (caller, callee): entries[callee].call_count // entries[caller].call_count
+        for caller, callees in graph.items()
+        if caller in entries and entries[caller].call_count > 0
+        for callee in callees
+        if callee in entries and in_degree[callee] == 1
+    }
 
     names = _call_graph_node_names(positions)
     labels = {
@@ -564,9 +550,6 @@ def draw_call_graph(
 
     xs = [x for x, _ in positions.values()]
     ys = [y for _, y in positions.values()]
-    # Layers must be tall enough in inches for the tallest label, and columns
-    # wide enough for the widest line, or boxes swallow the fixed-length
-    # arrows between them and their same-layer neighbors.
     max_lines = max(label.count("\n") + 1 for label in labels.values())
     max_chars = max(
         len(line) for label in labels.values() for line in label.split("\n")
@@ -612,7 +595,5 @@ def draw_call_graph(
     ax.axis("off")
     if filename:
         fig.savefig(filename, bbox_inches="tight")
-    # Closed like MPLCircuitlDrawer.draw: the caller renders the returned
-    # figure, and the inline backend must not display it a second time.
     plt.close(fig)
     return fig
