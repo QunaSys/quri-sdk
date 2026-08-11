@@ -10,6 +10,7 @@ on:
       - quri-parts/.flake8
       - pyproject.toml
       - uv.lock
+      - .flake8-docstrings
       - .github/workflows/quri-parts-lint.yml
       - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
@@ -22,6 +23,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Install uv
       uses: astral-sh/setup-uv@v8.2.0
@@ -33,7 +36,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --locked --group lint
+        uv sync --locked --group lint --group docstring-check
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -64,3 +67,22 @@ jobs:
     - name: Run docformatter
       run: uv run --no-sync docformatter -c -r quri-parts/packages
       if: success() || failure()
+
+    # Only new/changed files, not the whole tree: the existing docstring
+    # backlog isn't cleared yet. Separate docstring-check group + isolated
+    # config so this doesn't leak D-codes into the flake8 step above.
+    - name: Require docstrings on changed public modules/classes/functions/methods
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      run: |
+        base_sha="${{ github.event.pull_request.base.sha }}"
+        head_sha="${{ github.event.pull_request.head.sha }}"
+        merge_base=$(git merge-base "$base_sha" "$head_sha")
+        changed=$(git diff --name-only --diff-filter=ACMR \
+          "$merge_base" "$head_sha" \
+          -- 'quri-parts/packages/**.py')
+        if [ -n "$changed" ]; then
+          echo "$changed"
+          uv run --no-sync flake8 --config=.flake8-docstrings --show-source $changed
+        else
+          echo "No changed Python files."
+        fi
