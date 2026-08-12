@@ -40,14 +40,14 @@ one. Upon submitting a contribution you will be asked to sign the
 [Contributor License Agreement](https://cla.qunasys.com/) (CLA) in a pull
 request comment; signing it once covers your future contributions.
 
-Development uses [Poetry](https://python-poetry.org/): run `poetry install` to
-create a virtualenv with all dependencies. Before opening a pull request, make
-sure linting and tests pass (they are also enforced by CI):
+Development uses [uv](https://docs.astral.sh/uv/).
+Run `uv sync --all-groups` from the repository root to create a virtual environment with all dependencies.
+Before opening a pull request, make sure linting and tests pass (they are also enforced by CI):
 
 ```bash
-poetry run isort .    # import formatting
-poetry run black .    # code formatting
-poetry run flake8     # linting
-poetry run mypy .     # type checking (in packages/*/: --config-file ../../mypy.ini)
-poetry run pytest     # tests
+uv run isort . --resolve-all-configs  # import formatting
+uv run black --config .black.toml .   # code formatting
+uv run flake8                          # linting
+uv run mypy .                          # type checking
+uv run pytest                          # tests
 ```

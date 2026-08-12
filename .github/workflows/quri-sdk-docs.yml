@@ -1,4 +1,4 @@
-name: QURI SDK Docs Preview
+name: QURI SDK Docs
 
 on:
   pull_request:
@@ -8,81 +8,84 @@ on:
       - quri-parts/docs/**
       - quri-parts/pyproject.toml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-sdk-docs.yml
-      - .github/actions/python-poetry-install/action.yml
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - quri-parts/packages/**/*.py
+      - quri-parts/docs/**
+      - quri-parts/pyproject.toml
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/quri-sdk-docs.yml
 
 permissions: {}
 
 concurrency:
-  group: quri-sdk-docs-preview-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: quri-sdk-docs-${{ github.event_name == 'pull_request' && format('preview-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build-deploy:
     if: >-
       github.repository == 'QunaSys/quri-sdk-internal' &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository) ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
-    environment: pull request
+    environment: ${{ github.event_name == 'pull_request' && 'pull request' || 'production' }}
     permissions:
       contents: read
       pull-requests: write
 
     steps:
-      - name: Checkout the PR head
-        uses: actions/checkout@v4
+      - name: Checkout the build ref
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Reject internal history
+        if: github.event_name == 'pull_request'
         run: |
-          internal_sentinel=59c26148fdb797a4573379fd027f730052dcbb19
-          if git merge-base --is-ancestor "$internal_sentinel" HEAD; then
-            echo "The preview branch contains internal-only history."
+          merge_bases=$(git merge-base --all HEAD origin/internal-main)
+          if [ -z "$merge_bases" ]; then
+            echo "No merge base with internal-main found."
             exit 1
           fi
-
-          common_base=$(git merge-base HEAD origin/internal-main)
-          if ! git merge-base --is-ancestor "$common_base" origin/main; then
-            echo "The preview branch is not derived from public main history."
-            exit 1
-          fi
+          for base in $merge_bases; do
+            if ! git merge-base --is-ancestor "$base" origin/main; then
+              echo "The preview branch contains history that is not on public main."
+              exit 1
+            fi
+          done
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
 
-      - uses: ./.github/actions/python-poetry-install
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
         with:
-          poetry-version: "2.3.3"
+          version: "0.11.17"
           python-version: "3.10"
-
-      - name: Use in-project Poetry environments
-        run: poetry config virtualenvs.in-project true
-
-      - name: Cache Poetry environments
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/pypoetry
-            .venv
-            docs/.venv
-          key: poetry-${{ runner.os }}-py310-quri-sdk-docs-${{ hashFiles('poetry.lock', 'docs/poetry.lock') }}
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            docs/uv.lock
 
       - name: Install SDK and API Reference dependencies
-        run: |
-          poetry env use 3.10
-          poetry install --with dev,doc --sync
+        run: uv sync --locked --group doc
 
       - name: Cache Julia environment
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.julia/
-          key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+          key: ci-${{ runner.os }}-julia-${{ hashFiles('uv.lock') }}-cache
           restore-keys: ci-${{ runner.os }}-julia-
 
       - name: Install pandoc
@@ -91,12 +94,11 @@ jobs:
           yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
 
       - name: Install Julia dependency
-        run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+        run: uv run --no-sync julia -e 'using Pkg; Pkg.add("PythonCall")'
 
       - name: Install documentation dependencies
-        run: |
-          poetry -C docs env use 3.10
-          poetry -C docs install --only docs --sync
+        working-directory: docs
+        run: uv sync --locked
 
       - name: Build documentation
         run: make -C docs api
@@ -118,18 +120,27 @@ jobs:
         run: |
           test -n "$NETLIFY_AUTH_TOKEN" || { echo "Missing Netlify auth token"; exit 1; }
 
-      - name: Deploy preview to Netlify
+      - name: Deploy to Netlify
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
         working-directory: docs
         run: |
-          npx -y netlify-cli@26.2.0 deploy --no-build \
-            --site quri-sdk-doc \
-            --dir _build/html \
-            --alias "deploy-preview-${{ github.event.pull_request.number }}" \
-            --message "Docs preview from ${{ github.event.pull_request.head.ref }} (${{ github.event.pull_request.head.sha }})"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npx -y netlify-cli@27.0.3 deploy --no-build \
+              --site quri-sdk-doc \
+              --dir _build/html \
+              --alias "deploy-preview-${{ github.event.pull_request.number }}" \
+              --message "Docs preview from $PR_HEAD_REF (${{ github.event.pull_request.head.sha }})"
+          else
+            npx -y netlify-cli@27.0.3 deploy --no-build --prod \
+              --site quri-sdk-doc \
+              --dir _build/html \
+              --message "production @ $(git rev-parse HEAD)"
+          fi
 
       - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

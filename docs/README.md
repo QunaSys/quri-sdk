@@ -7,7 +7,7 @@ MyST Markdown (myst-nb) and sphinx-external-toc.
 
 ### Requirements
 
-- Python 3.10 or 3.11 and [Poetry](https://python-poetry.org/)
+- Python 3.10 or 3.11 and [uv](https://docs.astral.sh/uv/)
 
 ### Setting up the development environment (one-time)
 
@@ -39,8 +39,8 @@ the repository root, plus Julia and pandoc:
 Install the SDK and API Reference dependencies from the repository root first:
 
 ```
-$ poetry install --with dev,doc --sync
-$ poetry run python -c \
+$ uv sync --group doc
+$ uv run python -c \
     'from juliacall import Main as jl; jl.seval("using Pkg; Pkg.add(\"PythonCall\")")'
 ```
 
