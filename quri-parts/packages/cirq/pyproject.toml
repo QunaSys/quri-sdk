@@ -1,35 +1,44 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "quri-parts-cirq"
-version = "0.0.0"
+dynamic = ["version"]
 description = "A plugin to use Cirq with QURI Parts"
 license = "Apache-2.0"
-authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
 readme = "README.md"
-repository = "https://github.com/QunaSys/quri-sdk"
-documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
 classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
     "Typing :: Typed"
 ]
-packages = [
-    { include = "quri_parts" }
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "numpy>=1.22.0",
+    "quri-parts-circuit",
+    "cirq-core>=1.4,<2.0",
 ]
 
-[tool.poetry-dynamic-versioning]
-enable = true
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-sdk"
+Documentation = "https://quri-parts.qunasys.com"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
 style = "pep440"
+# Release CI bakes the resolved version in here before uv build so that
+# sdists carry the correct version when built without git metadata.
+fallback-version = "0.0.0"
 
-[tool.poetry.dependencies]
-python = "^3.9.8"
-numpy = ">=1.22.0"
-quri-parts-circuit = "*"
-# cirq-core <1.4 pins numpy <2.0; Py>=3.13 needs numpy 2, so require cirq-core 1.6 there.
-cirq-core = [
-    { version = ">=1.6,<1.7", markers = "python_version == '3.13'" },
-    { version = ">=1.0,<1.4", markers = "python_version != '3.13'" },
-]
+[tool.hatch.build.targets.wheel]
+packages = ["quri_parts"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_parts"]
+
+[tool.uv.sources]
+quri-parts-circuit = { path = "../circuit", editable = true }

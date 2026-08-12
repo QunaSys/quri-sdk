@@ -76,7 +76,7 @@ fn py_inverse_circuit(
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "inverse")?;
+    let m = PyModule::new(py, "inverse")?;
     m.add_wrapped(wrap_pyfunction!(py_inverse_gate))?;
     m.add_wrapped(wrap_pyfunction!(py_inverse_circuit))?;
     Ok(m)

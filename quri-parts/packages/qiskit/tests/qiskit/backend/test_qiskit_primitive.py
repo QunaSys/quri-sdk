@@ -23,8 +23,7 @@ from pydantic.json import pydantic_encoder
 from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import qasm3
 from qiskit.primitives import PrimitiveResult, PubResult
-from qiskit_ibm_runtime import QiskitRuntimeService, RuntimeJob, SamplerOptions
-from qiskit_ibm_runtime.runtime_job import JobStatus
+from qiskit_ibm_runtime import QiskitRuntimeService, SamplerOptions
 
 from quri_parts.backend import BackendError, CompositeSamplingJob
 from quri_parts.circuit import QuantumCircuit
@@ -40,7 +39,23 @@ from quri_parts.qiskit.backend.primitive import (
 )
 from quri_parts.qiskit.circuit import convert_circuit
 
+from ._qiskit_compat import SESSION_ACCEPTS_SERVICE, JobStatus, RuntimeJob
 from .mock.ibm_runtime_service_mock import mock_get_backend
+
+# qiskit-ibm-runtime >= 0.30 (paired with qiskit 2.0) removed the
+# ``Session(service=...)`` keyword and the ``Sampler(session=...)`` keyword in
+# favor of deriving the service from the backend and passing the execution
+# ``mode``. The mock-runtime sampling flow used by these tests (setting
+# ``service.run`` and passing ``service`` to ``Session``) only works against
+# the legacy runtime API, so it is skipped on the new runtime.
+requires_session_service = pytest.mark.skipif(
+    not SESSION_ACCEPTS_SERVICE,
+    reason=(
+        "Session(service=...)/Sampler(session=...) were removed in "
+        "qiskit-ibm-runtime>=0.30; this mock-runtime sampling flow only "
+        "applies to qiskit<2.0."
+    ),
+)
 
 
 def fake_validate(*args, **kwargs) -> None:  # type: ignore
@@ -112,6 +127,7 @@ def fake_qiskit_transpile(*args: Any, **kwargs: Any) -> QiskitQuantumCircuit:
 
 
 class TestQiskitPrimitive:
+    @requires_session_service
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_call(self) -> None:
         runtime_service = mock_get_backend()
@@ -132,6 +148,7 @@ class TestQiskitPrimitive:
         result = job.result()
         assert isinstance(result, QiskitRuntimeSamplingResult)
 
+    @requires_session_service
     @patch("qiskit_ibm_runtime.Session._create_session", return_value="aaa")
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_session(self, _: str) -> None:
@@ -159,6 +176,7 @@ class TestQiskitPrimitive:
         # Checking if the session is closed
         service._api_client.close_session.assert_called()
 
+    @requires_session_service
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_sampler_composite(self) -> None:
         runtime_service = mock_get_backend()
@@ -307,6 +325,7 @@ class TestQiskitPrimitive:
 
         assert sampler._qiskit_sampler_options is None
 
+    @requires_session_service
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_saving_mode(self) -> None:
         runtime_service = mock_get_backend()
@@ -377,6 +396,7 @@ class TestQiskitPrimitive:
         )
         assert sampler.jobs_json == expected_json_str
 
+    @requires_session_service
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_saving_mode_session(self) -> None:
         runtime_service = mock_get_backend()
@@ -561,6 +581,7 @@ class TestQiskitPrimitive:
         )
         assert sampler.jobs_json == expected_json_str
 
+    @requires_session_service
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_reject_job(self) -> None:
         runtime_service = mock_get_backend()
@@ -591,6 +612,7 @@ class TestQiskitPrimitive:
 
         assert job2._qiskit_job.status() == "CANCELLED"
 
+    @requires_session_service
     @patch("qiskit.transpile", fake_qiskit_transpile)
     def test_job_registered_to_tracker(self) -> None:
         runtime_service = mock_get_backend()

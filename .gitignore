@@ -141,3 +141,9 @@ dmypy.json
 /packages/circuit/quri_parts_circuit_rs.*.dylib
 /packages/circuit/quri_parts_circuit_rs.*.dll
 /packages/circuit/quri_parts_circuit_rs.*.pyd
+
+# Throwaway locks from standalone work in a sub-package (the committed root
+# uv.lock and notebooks/uv.lock are the locks that matter)
+quri-parts/packages/*/uv.lock
+quri-algo/uv.lock
+quri-vm/uv.lock

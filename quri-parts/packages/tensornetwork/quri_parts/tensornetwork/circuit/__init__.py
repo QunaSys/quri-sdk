@@ -270,8 +270,8 @@ def convert_circuit(
                 else:
                     raise ValueError("Invalid number of parameters.")
             elif gate.name in _single_qubit_rotation_gate_tensornetwork:
-                node = _single_qubit_pauli_rotation_gate_tensornetwork[gate.name](
-                    gate.params,  # type: ignore[arg-type]
+                node = _single_qubit_rotation_gate_tensornetwork[gate.name](
+                    gate.params,
                     gate.target_indices,
                     backend=backend,  # type: ignore[call-arg]
                 )
