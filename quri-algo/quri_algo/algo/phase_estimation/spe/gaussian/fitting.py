@@ -156,7 +156,7 @@ class GaussianFittingPhaseEstimation(StatisticalPhaseEstimation[StateT]):
             guess_val
             - 0.25 * n_sigma * sigma
             + 0.5 * n_sigma * sigma / M * np.arange(M)
-        )
+        ).astype(np.float64)
 
 
 class GaussianFittingGSEE(GaussianFittingPhaseEstimation[StateT]):

@@ -29,7 +29,7 @@ pub trait CircuitNoiseResolver {
 }
 
 pub trait CircuitNoiseInstruction: fmt::Debug {
-    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send>;
+    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send + Sync>;
 }
 
 #[pyclass(eq, frozen, subclass, module = "quri_parts.rust.circuit.noise")]
@@ -133,7 +133,7 @@ impl CircuitNoiseResolver for GateIntervalNoiseResolver {
 }
 
 impl CircuitNoiseInstruction for GateIntervalNoise {
-    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send> {
+    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send + Sync> {
         Box::new(GateIntervalNoiseResolver {
             noises: self.noises.clone(),
             interval: self.interval,
@@ -188,7 +188,7 @@ impl CircuitNoiseResolver for DepthIntervalNoiseResolver {
 }
 
 impl CircuitNoiseInstruction for DepthIntervalNoise {
-    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send> {
+    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send + Sync> {
         Box::new(DepthIntervalNoiseResolver {
             noises: self.noises.clone(),
             interval: self.interval,
@@ -247,7 +247,7 @@ impl MeasurementNoise {
 }
 
 impl CircuitNoiseInstruction for MeasurementNoise {
-    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send> {
+    fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send + Sync> {
         Box::new(MeasurementNoiseResolver {
             noises: self.noises.clone(),
             qubit_indices: vec![],
