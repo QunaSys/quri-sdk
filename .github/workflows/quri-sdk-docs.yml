@@ -8,9 +8,8 @@ on:
       - quri-parts/docs/**
       - quri-parts/pyproject.toml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-sdk-docs.yml
-      - .github/actions/python-poetry-install/action.yml
   push:
     branches: [main]
     paths:
@@ -19,9 +18,8 @@ on:
       - quri-parts/docs/**
       - quri-parts/pyproject.toml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-sdk-docs.yml
-      - .github/actions/python-poetry-install/action.yml
 
 permissions: {}
 
@@ -70,33 +68,24 @@ jobs:
         with:
           node-version: 24
 
-      - uses: ./.github/actions/python-poetry-install
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
         with:
-          poetry-version: "2.3.3"
+          version: "0.11.17"
           python-version: "3.10"
-
-      - name: Use in-project Poetry environments
-        run: poetry config virtualenvs.in-project true
-
-      - name: Cache Poetry environments
-        uses: actions/cache@v6
-        with:
-          path: |
-            ~/.cache/pypoetry
-            .venv
-            docs/.venv
-          key: poetry-${{ runner.os }}-py310-quri-sdk-docs-${{ hashFiles('poetry.lock', 'docs/poetry.lock') }}
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            docs/uv.lock
 
       - name: Install SDK and API Reference dependencies
-        run: |
-          poetry env use 3.10
-          poetry install --with dev,doc --sync
+        run: uv sync --locked --group doc
 
       - name: Cache Julia environment
         uses: actions/cache@v6
         with:
           path: ~/.julia/
-          key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
+          key: ci-${{ runner.os }}-julia-${{ hashFiles('uv.lock') }}-cache
           restore-keys: ci-${{ runner.os }}-julia-
 
       - name: Install pandoc
@@ -105,12 +94,11 @@ jobs:
           yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
 
       - name: Install Julia dependency
-        run: poetry run julia -e 'using Pkg; Pkg.add("PythonCall")'
+        run: uv run --no-sync julia -e 'using Pkg; Pkg.add("PythonCall")'
 
       - name: Install documentation dependencies
-        run: |
-          poetry -C docs env use 3.10
-          poetry -C docs install --only docs --sync
+        working-directory: docs
+        run: uv sync --locked
 
       - name: Build documentation
         run: make -C docs api

@@ -3,7 +3,7 @@
 
 SOURCEDIR = source
 BUILDDIR  = _build/html
-POETRY    = poetry run
+UV_RUN    = uv run
 SDK_DOCS = ../quri-parts/docs
 
 .PHONY: help install html open serve api clean
@@ -17,18 +17,16 @@ help:
 	@echo "make clean     - remove build output"
 
 install:
-	poetry env use 3.11
-	poetry install --only docs
+	uv sync
 
 html:
-	$(POETRY) sphinx-build -b html $(SOURCEDIR) $(BUILDDIR)
+	$(UV_RUN) sphinx-build -b html $(SOURCEDIR) $(BUILDDIR)
 
 open: html
 	open $(BUILDDIR)/index.html
 
 serve:
-	@$(POETRY) python -c "import sphinx_autobuild" 2>/dev/null || $(POETRY) pip install sphinx-autobuild
-	$(POETRY) sphinx-autobuild $(SOURCEDIR) $(BUILDDIR) --open-browser --ignore "$(BUILDDIR)/*"
+	uv run --with sphinx-autobuild sphinx-autobuild $(SOURCEDIR) $(BUILDDIR) --open-browser --ignore "$(BUILDDIR)/*"
 
 # Mirrors the CI step; needs the root SDK environment, Julia, and pandoc.
 api:
@@ -44,13 +42,13 @@ api:
 		printf '%s\n' 'API Reference' '========' '' '.. toctree::' '  :maxdepth: 1' '' '  reference' > "$$index"; \
 		tail -n +4 "$$reference" > "$$backup/reference.build"; \
 		cp "$$backup/reference.build" "$$reference"; \
-		$(POETRY) python scripts/sort_api_toctree.py "$$reference"; \
+		$(UV_RUN) python scripts/sort_api_toctree.py "$$reference"; \
 		rm -rf "$$docs/_build" "$$docs/quri_parts"; \
-		(cd .. && poetry run $(MAKE) -C quri-parts/docs html); \
+		(cd .. && uv run --no-sync $(MAKE) -C quri-parts/docs html); \
 		rm -rf "$$staged"; \
 		mkdir -p "$$staged"; \
 		cp -R "$$docs/_build/." "$$staged/"
-	$(POETRY) python scripts/brand_api_ref.py $(SOURCEDIR)/_api_staged/api
+	$(UV_RUN) python scripts/brand_api_ref.py $(SOURCEDIR)/_api_staged/api
 	rm -rf $(BUILDDIR)
 	$(MAKE) html
 
