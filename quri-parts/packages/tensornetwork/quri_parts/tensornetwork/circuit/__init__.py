@@ -249,9 +249,6 @@ def convert_circuit(
         if not is_gate_name(gate.name):
             raise ValueError(f"Unknown gate name: {gate.name}")
 
-        if gate.name == "Identity":
-            continue
-
         if is_single_qubit_gate_name(gate.name):
             if gate.name in _single_qubit_gate_tensornetwork:
                 node = _single_qubit_gate_tensornetwork[gate.name](
