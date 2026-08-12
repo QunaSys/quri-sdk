@@ -22,7 +22,6 @@ on:
       - poetry.lock
       - .github/workflows/quri-sdk-docs.yml
       - .github/actions/python-poetry-install/action.yml
-  workflow_dispatch:
 
 permissions: {}
 
@@ -36,7 +35,7 @@ jobs:
       github.repository == 'QunaSys/quri-sdk-internal' &&
       ((github.event_name == 'pull_request' &&
         github.event.pull_request.head.repo.full_name == github.repository) ||
-       (github.event_name != 'pull_request' && github.ref == 'refs/heads/main'))
+       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'pull_request' && 'pull request' || 'production' }}
     permissions:
@@ -45,30 +44,31 @@ jobs:
 
     steps:
       - name: Checkout the build ref
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Reject internal history
+        if: github.event_name == 'pull_request'
         run: |
-          internal_sentinel=59c26148fdb797a4573379fd027f730052dcbb19
-          if git merge-base --is-ancestor "$internal_sentinel" HEAD; then
-            echo "The preview branch contains internal-only history."
+          merge_bases=$(git merge-base --all HEAD origin/internal-main)
+          if [ -z "$merge_bases" ]; then
+            echo "No merge base with internal-main found."
             exit 1
           fi
-
-          common_base=$(git merge-base HEAD origin/internal-main)
-          if ! git merge-base --is-ancestor "$common_base" origin/main; then
-            echo "The preview branch is not derived from public main history."
-            exit 1
-          fi
+          for base in $merge_bases; do
+            if ! git merge-base --is-ancestor "$base" origin/main; then
+              echo "The preview branch contains history that is not on public main."
+              exit 1
+            fi
+          done
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
 
       - uses: ./.github/actions/python-poetry-install
         with:
@@ -79,7 +79,7 @@ jobs:
         run: poetry config virtualenvs.in-project true
 
       - name: Cache Poetry environments
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cache/pypoetry
@@ -93,7 +93,7 @@ jobs:
           poetry install --with dev,doc --sync
 
       - name: Cache Julia environment
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.julia/
           key: ci-${{ runner.os }}-julia-${{ hashFiles('poetry.lock') }}-cache
@@ -139,16 +139,16 @@ jobs:
         working-directory: docs
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            npx -y netlify-cli@26.2.0 deploy --no-build \
+            npx -y netlify-cli@27.0.3 deploy --no-build \
               --site quri-sdk-doc \
               --dir _build/html \
               --alias "deploy-preview-${{ github.event.pull_request.number }}" \
               --message "Docs preview from $PR_HEAD_REF (${{ github.event.pull_request.head.sha }})"
           else
-            npx -y netlify-cli@26.2.0 deploy --no-build --prod \
+            npx -y netlify-cli@27.0.3 deploy --no-build --prod \
               --site quri-sdk-doc \
               --dir _build/html \
-              --message "production @ ${{ github.sha }}"
+              --message "production @ $(git rev-parse HEAD)"
           fi
 
       - name: Comment preview URL on PR
