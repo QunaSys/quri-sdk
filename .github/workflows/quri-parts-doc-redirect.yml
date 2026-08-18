@@ -1,8 +1,13 @@
 name: QURI Parts Doc Redirect
 
-# The standalone QURI Parts Sphinx site (quri-parts.netlify.app) is superseded by
-# https://quri-sdk.qunasys.com. Its build workflow is gone, so publish a redirect
-# page over the last deploy to keep existing links working.
+# The standalone QURI Parts doc sites are superseded by https://quri-sdk.qunasys.com:
+#   - quri-parts.netlify.app, whose build workflow lived in this repository
+#   - quri-parts.qunasys.com (CNAME to quri-parts-doc.netlify.app), built from the
+#     dormant QunaSys/quri-parts-docusaurus repository
+# Neither is rebuilt any more, so Netlify would keep serving the last deploy of each
+# forever. Publish a redirect page over both to keep existing links working. The
+# quri-parts-doc deploy lives here rather than in quri-parts-docusaurus because that
+# repository is being archived, and archived repositories cannot run workflows.
 
 on:
   push:
@@ -24,6 +29,12 @@ jobs:
     environment: production
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        site:
+          - c809dd00-1b20-41de-adc9-ad4c882d452d  # quri-parts.netlify.app
+          - quri-parts-doc  # quri-parts.qunasys.com
 
     steps:
       - name: Build the redirect site
@@ -61,6 +72,6 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         run: |
           npx -y netlify-cli@27.0.3 deploy --no-build --prod \
-            --site c809dd00-1b20-41de-adc9-ad4c882d452d \
+            --site "${{ matrix.site }}" \
             --dir redirect-site \
             --message "redirect to quri-sdk.qunasys.com @ ${{ github.sha }}"
