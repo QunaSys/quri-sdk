@@ -561,7 +561,7 @@ def quantum_state_vector_from_tensor_network_state(
 ) -> QuantumStateVector:
     """Convert TensorNetworkState to QuantumStateVector that only contains the
     state vector and no quantum circuit."""
-    state = state.contract()
+    state = state.contract(method="greedy")
     qubit_count = len(state.edges)
 
     tensor = np.reshape(
