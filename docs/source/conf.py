@@ -36,6 +36,7 @@ myst_enable_extensions = [
     "attrs_inline",
 ]
 myst_heading_anchors = 4
+myst_linkify_fuzzy_links = False
 
 nb_execution_mode = "off"
 nb_merge_streams = True
