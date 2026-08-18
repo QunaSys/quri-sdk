@@ -2,7 +2,11 @@ from collections.abc import Sequence
 
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.compile import compile
-from quri_parts.qsub.eval import SubwiseProfileEntry, SubwiseProfileEvaluatorHooks
+from quri_parts.qsub.eval import (
+    QubitCounts,
+    SubwiseProfileEntry,
+    SubwiseProfileEvaluatorHooks,
+)
 from quri_parts.qsub.evaluate import Evaluator
 from quri_parts.qsub.lib import std
 from quri_parts.qsub.link import Linker
@@ -55,21 +59,21 @@ def test_call_count_and_gate_scopes() -> None:
 
     h = named["H"]
     assert h.call_count == 4  # 2 (per G) x 2 (G calls)
-    assert h.gate_count_info["self_per_call"] == {"CNOT": 1}
-    assert h.gate_count_info["descendants_per_call"] == {}
-    assert h.gate_count_info["self"] == {"CNOT": 4}
+    assert h.gate_counts.own.per_call == {"CNOT": 1}
+    assert h.gate_counts.descendants.per_call == {}
+    assert h.gate_counts.own.all_calls == {"CNOT": 4}
 
     g = named["G"]
     assert g.call_count == 2
-    assert g.gate_count_info["self_per_call"] == {"CNOT": 1}
-    assert g.gate_count_info["descendants_per_call"] == {"CNOT": 2}
-    assert g.gate_count_info["total_per_call"] == {"CNOT": 3}
-    assert g.gate_count_info["total"] == {"CNOT": 6}  # 3 x call_count 2
+    assert g.gate_counts.own.per_call == {"CNOT": 1}
+    assert g.gate_counts.descendants.per_call == {"CNOT": 2}
+    assert g.gate_counts.total.per_call == {"CNOT": 3}
+    assert g.gate_counts.total.all_calls == {"CNOT": 6}  # 3 x call_count 2
 
     root = _root(report)
     assert root.call_count == 1
-    assert root.gate_count_info["self_per_call"] == {}
-    assert root.gate_count_info["descendants_per_call"] == {"CNOT": 6}
+    assert root.gate_counts.own.per_call == {}
+    assert root.gate_counts.descendants.per_call == {"CNOT": 6}
 
 
 def test_shared_sub_across_parents() -> None:
@@ -107,12 +111,12 @@ def test_shared_sub_across_parents() -> None:
     named = _named(report)
 
     assert named["C"].call_count == 3
-    assert named["A"].gate_count_info["descendants_per_call"] == {"X": 1}
-    assert named["B"].gate_count_info["descendants_per_call"] == {"X": 1}
-    assert _root(report).gate_count_info["descendants"] == {"X": 3}
+    assert named["A"].gate_counts.descendants.per_call == {"X": 1}
+    assert named["B"].gate_counts.descendants.per_call == {"X": 1}
+    assert _root(report).gate_counts.descendants.all_calls == {"X": 3}
 
 
-def test_qubit_count_info_with_auxiliary() -> None:
+def test_qubit_counts_with_auxiliary() -> None:
     """auxiliary is the peak ancilla for one invocation, summed with a callee's
     own ancilla when they are live at the same time."""
     ns = NameSpace("test_aux")
@@ -137,12 +141,12 @@ def test_qubit_count_info_with_auxiliary() -> None:
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
 
     f = _named(report)["F"]
-    assert f.qubit_count_info == {"data": 1, "auxiliary": 1, "total": 2}
-    assert f.gate_count_info["self_per_call"] == {"X": 2}
+    assert f.qubit_counts == QubitCounts(data=1, auxiliary=1, total=2)
+    assert f.gate_counts.own.per_call == {"X": 2}
 
     root = _root(report)
     # 2 data + 1 local aux + 1 aux live inside F = 4
-    assert root.qubit_count_info == {"data": 2, "auxiliary": 2, "total": 4}
+    assert root.qubit_counts == QubitCounts(data=2, auxiliary=2, total=4)
 
 
 def test_auxiliary_peak_over_siblings() -> None:
@@ -171,7 +175,7 @@ def test_auxiliary_peak_over_siblings() -> None:
     )
 
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
-    assert _root(report).qubit_count_info["auxiliary"] == 2  # max(1, 2)
+    assert _root(report).qubit_counts.auxiliary == 2  # max(1, 2)
 
 
 def test_gate_filter() -> None:
@@ -183,12 +187,12 @@ def test_gate_filter() -> None:
     msub = CodeGenerator([std.CNOT, std.Toffoli]).lower(b.build())
 
     (all_gates,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
-    assert all_gates.gate_count_info["self_per_call"] == {"CNOT": 1, "Toffoli": 1}
+    assert all_gates.gate_counts.own.per_call == {"CNOT": 1, "Toffoli": 1}
 
     (toffoli_only,) = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.Toffoli,))).run(
         msub
     )
-    assert toffoli_only.gate_count_info["self_per_call"] == {"Toffoli": 1}
+    assert toffoli_only.gate_counts.own.per_call == {"Toffoli": 1}
 
 
 def test_gate_name_collision_across_namespaces() -> None:
@@ -205,7 +209,7 @@ def test_gate_name_collision_across_namespaces() -> None:
 
     (entry,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
     std_ns = std.X.base_id[0]
-    assert entry.gate_count_info["self_per_call"] == {
+    assert entry.gate_counts.own.per_call == {
         f"{std_ns}.X": 1,
         "custom.X": 2,
     }
@@ -237,7 +241,7 @@ def test_parametric_sub_is_named_via_compile() -> None:
     )
     assert entry.name == "Twice(2)"
     assert entry.call_count == 1
-    assert entry.gate_count_info["self_per_call"] == {"Toffoli": 2}
+    assert entry.gate_counts.own.per_call == {"Toffoli": 2}
 
 
 def test_parametric_sub_row_per_parameter() -> None:
@@ -266,4 +270,4 @@ def test_parametric_sub_row_per_parameter() -> None:
 
     assert set(named) == {"Chain(3)", "Chain(2)", "Chain(1)"}
     assert all(e.call_count == 1 for e in named.values())
-    assert named["Chain(3)"].gate_count_info["total_per_call"] == {"X": 3}
+    assert named["Chain(3)"].gate_counts.total.per_call == {"X": 3}

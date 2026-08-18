@@ -10,7 +10,7 @@
 
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 from ..evaluate import EvaluatorHooks
@@ -22,29 +22,105 @@ from ..register import Register
 
 
 @dataclass(frozen=True)
+class QubitCounts:
+    """Qubits a sub occupies during one invocation.
+
+    ``auxiliary`` is the peak ancilla count, i.e. the maximum over the
+    sub's callees plus the ancillas the body allocates itself.
+    """
+
+    data: int
+    auxiliary: int
+    total: int
+
+
+@dataclass(frozen=True)
+class GateCounts:
+    """Primitive-gate counts of one scope.
+
+    Keys are bare local gate names, qualified as ``"ns.name"`` when two
+    counted gates share a local name. ``per_call`` is for a single
+    invocation of the sub, ``all_calls`` for all ``call_count`` of them.
+    """
+
+    per_call: Mapping[str, int]
+    all_calls: Mapping[str, int]
+
+
+@dataclass(frozen=True)
+class GateCountBreakdown:
+    """Primitive-gate counts of a sub, split by where the gates come from.
+
+    ``own`` covers gates written directly in the body, ``descendants``
+    those contributed transitively by everything the sub calls, and
+    ``total`` their sum.
+    """
+
+    own: GateCounts
+    descendants: GateCounts
+    total: GateCounts
+
+
+@dataclass(frozen=True)
 class SubwiseProfileEntry:
     """Per-sub profiling row produced by :class:`SubwiseProfileEvaluatorHooks`.
 
-    ``name`` is the readable identifier of the sub (e.g. ``"MCX(6)"``), or
-    ``None`` when the sub's source op is unknown (the entry sub of
+    ``name`` is the readable identifier of the sub (e.g. ``"MCX(6)"``),
+    or ``None`` when the sub's source op is unknown (the entry sub of
     ``compile_sub``, which receives a ``Sub`` rather than an ``Op``).
-
-    ``qubit_count_info`` holds ``data`` (input/output width), ``auxiliary``
-    (peak ancilla required for one invocation), and their sum ``total``.
-
-    ``gate_count_info`` breaks the primitive-gate counts down by scope
-    (``self`` for gates written directly in the body, ``descendants`` for gates
-    contributed transitively by everything the sub calls, ``total`` for their
-    sum) crossed with aggregation: the ``*_per_call`` keys are per single
-    invocation, the unsuffixed keys are multiplied by ``call_count``. Gate keys
-    are bare local names, namespace-qualified (``"ns.name"``) when two counted
-    gates share a local name.
     """
 
     name: Optional[str]
     call_count: int
-    qubit_count_info: dict[str, int]
-    gate_count_info: dict[str, dict[str, int]]
+    qubit_counts: QubitCounts
+    gate_counts: GateCountBreakdown
+
+
+@dataclass
+class _SubProfile:
+    """Counts accumulated for one distinct sub while its body is walked.
+
+    Everything here is per single invocation: a sub's body is walked
+    once, and each later invocation folds the accumulated numbers into
+    its parent again.
+    """
+
+    sub: MachineSub
+    own_gates: dict[BaseIdent, int] = field(
+        default_factory=lambda: defaultdict(int),
+    )
+    subtree_gates: dict[BaseIdent, int] = field(
+        default_factory=lambda: defaultdict(int),
+    )
+    # Invocations of each descendant, the sub itself included.
+    subtree_calls: dict[SubId, int] = field(
+        default_factory=lambda: defaultdict(int),
+    )
+    peak_aux: int = 0
+
+    def __post_init__(self) -> None:
+        self.subtree_calls[self.sub.sub_id] = 1
+
+    def record_gate(self, base_id: BaseIdent) -> None:
+        self.own_gates[base_id] += 1
+        self.subtree_gates[base_id] += 1
+
+    def absorb_call(self, callee: "_SubProfile") -> None:
+        """Fold one finished ``callee`` invocation into this subtree."""
+        for base_id, n in callee.subtree_gates.items():
+            self.subtree_gates[base_id] += n
+        for sub_id, n in callee.subtree_calls.items():
+            self.subtree_calls[sub_id] += n
+        # Sequential callees reuse ancillas, so the peak is the max, not the sum.
+        self.peak_aux = max(self.peak_aux, callee.peak_aux)
+
+    def allocate_aux_qubits(self, count: int) -> None:
+        """Add ancillas the body allocates itself.
+
+        They stay live while the callees run, so they stack on top of
+        the peak already absorbed from them.
+        """
+        self.peak_aux += count
 
 
 class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
@@ -62,15 +138,9 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         self.reset()
 
     def reset(self) -> None:
-        self._self_gates: dict[SubId, dict[BaseIdent, int]] = {}
-        self._total_gates: dict[SubId, dict[BaseIdent, int]] = {}
-        self._aux: dict[SubId, int] = defaultdict(int)
-        # Invocations of each descendant (itself included) per single call of the sub.
-        self._transitive_call_counts: dict[SubId, dict[SubId, int]] = {}
+        # Insertion order is the order of the reported rows.
+        self._profiles: dict[SubId, _SubProfile] = {}
         self._sub_op: dict[SubId, Op] = {}
-        self._sub_by_id: dict[SubId, MachineSub] = {}
-        self._order: list[SubId] = []
-        self._entered: set[SubId] = set()
         self._result: list[SubwiseProfileEntry] = []
 
     def result(self) -> list[SubwiseProfileEntry]:
@@ -84,16 +154,10 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         call_stack: list[SubId],
     ) -> bool:
         sid = sub.sub_id
-        if sid in self._entered:
+        if sid in self._profiles:
             return False
 
-        self._entered.add(sid)
-        self._order.append(sid)
-        self._sub_by_id[sid] = sub
-        self._self_gates[sid] = defaultdict(int)
-        self._total_gates[sid] = defaultdict(int)
-        self._transitive_call_counts[sid] = defaultdict(int)
-        self._transitive_call_counts[sid][sid] = 1
+        self._profiles[sid] = _SubProfile(sub)
 
         if sub.op is not None:
             self._sub_op[sid] = sub.op
@@ -112,68 +176,69 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
     ) -> None:
         if self._target_ops and mop.op.base_id not in self._target_ops:
             return None
-        sid = call_stack[-1]
-        self._self_gates[sid][mop.op.base_id] += 1
-        self._total_gates[sid][mop.op.base_id] += 1
+        self._profiles[call_stack[-1]].record_gate(mop.op.base_id)
 
     def exit_sub(
         self, sub: MachineSub, enter_sub: bool, call_stack: list[SubId]
     ) -> None:
-        sid = sub.sub_id
+        profile = self._profiles[sub.sub_id]
         if enter_sub:
-            self._aux[sid] += len(sub.aux_qubits)
+            profile.allocate_aux_qubits(len(sub.aux_qubits))
 
         if len(call_stack) > 1:
-            parent = call_stack[-2]
-            for k, v in self._total_gates[sid].items():
-                self._total_gates[parent][k] += v
-            for cid, v in self._transitive_call_counts[sid].items():
-                self._transitive_call_counts[parent][cid] += v
-            self._aux[parent] = max(self._aux[parent], self._aux[sid])
+            self._profiles[call_stack[-2]].absorb_call(profile)
         else:
-            self._assemble(sid)
+            self._result = self._build_entries(root=profile)
 
-    def _assemble(self, root_sid: SubId) -> None:
-        call_counts = self._transitive_call_counts[root_sid]
-        # One shared mapping so self/total dicts of every sub stay keyed
-        # consistently (descendants is computed as their difference).
+    def _build_entries(self, root: _SubProfile) -> list[SubwiseProfileEntry]:
+        # One shared mapping so the gate keys of every sub stay consistent
+        # (descendants is computed as a difference of own and total).
         name_map = _display_name_map(
-            bid for gates in self._total_gates.values() for bid in gates
+            base_id
+            for profile in self._profiles.values()
+            for base_id in profile.subtree_gates
         )
-        entries: list[SubwiseProfileEntry] = []
-        for sid in self._order:
-            sub = self._sub_by_id[sid]
-            cc = call_counts.get(sid, 0)
-
-            data = len(sub.qubits)
-            aux = self._aux[sid]
-            qubit_count_info = {"data": data, "auxiliary": aux, "total": data + aux}
-
-            self_per_call = _display_names(self._self_gates[sid], name_map)
-            total_per_call = _display_names(self._total_gates[sid], name_map)
-            descendants_per_call = {
-                k: total_per_call[k] - self_per_call.get(k, 0)
-                for k in total_per_call
-                if total_per_call[k] - self_per_call.get(k, 0) > 0
-            }
-            gate_count_info = {
-                "self_per_call": self_per_call,
-                "self": _scale(self_per_call, cc),
-                "descendants_per_call": descendants_per_call,
-                "descendants": _scale(descendants_per_call, cc),
-                "total_per_call": total_per_call,
-                "total": _scale(total_per_call, cc),
-            }
-
+        entries = []
+        for sid, profile in self._profiles.items():
+            call_count = root.subtree_calls.get(sid, 0)
             entries.append(
                 SubwiseProfileEntry(
                     name=_format_name(self._sub_op.get(sid)),
-                    call_count=cc,
-                    qubit_count_info=qubit_count_info,
-                    gate_count_info=gate_count_info,
+                    call_count=call_count,
+                    qubit_counts=_qubit_counts(profile),
+                    gate_counts=_gate_counts(profile, name_map, call_count),
                 )
             )
-        self._result = entries
+        return entries
+
+
+def _qubit_counts(profile: _SubProfile) -> QubitCounts:
+    data = len(profile.sub.qubits)
+    return QubitCounts(
+        data=data, auxiliary=profile.peak_aux, total=data + profile.peak_aux
+    )
+
+
+def _gate_counts(
+    profile: _SubProfile, name_map: Mapping[BaseIdent, str], call_count: int
+) -> GateCountBreakdown:
+    own = _display_names(profile.own_gates, name_map)
+    total = _display_names(profile.subtree_gates, name_map)
+    descendants = {
+        name: n - own.get(name, 0) for name, n in total.items() if n > own.get(name, 0)
+    }
+    return GateCountBreakdown(
+        own=_aggregate(own, call_count),
+        descendants=_aggregate(descendants, call_count),
+        total=_aggregate(total, call_count),
+    )
+
+
+def _aggregate(per_call: Mapping[str, int], call_count: int) -> GateCounts:
+    return GateCounts(
+        per_call=dict(per_call),
+        all_calls={name: n * call_count for name, n in per_call.items()},
+    )
 
 
 def _display_name_map(base_ids: Iterable[BaseIdent]) -> dict[BaseIdent, str]:
@@ -193,10 +258,6 @@ def _display_names(
     counts: Mapping[BaseIdent, int], name_map: Mapping[BaseIdent, str]
 ) -> dict[str, int]:
     return {name_map[base_id]: n for base_id, n in counts.items()}
-
-
-def _scale(counts: Mapping[str, int], factor: int) -> dict[str, int]:
-    return {k: v * factor for k, v in counts.items()}
 
 
 def _format_name(op: Optional[Op]) -> Optional[str]:
