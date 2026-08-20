@@ -1,0 +1,26 @@
+[project]
+name = "quri-sdk-docs"
+version = "0.1.0"
+description = ""
+authors = [{ name = "QunaSys" }]
+readme = "README.md"
+requires-python = ">=3.10,<3.12"
+dependencies = []
+
+[dependency-groups]
+docs = [
+    "sphinx>=7.3,<8.0",
+    "furo>=2024.5,<2025.0",
+    "myst-nb>=1.1,<2.0",
+    "sphinx-external-toc>=1.0,<2.0",
+    "sphinx-copybutton>=0.5,<0.6",
+    "sphinx-design>=0.6,<0.7",
+    "sphinx-intl>=2.2,<3.0",
+    "sphinx-notfound-page>=1.0,<2.0",
+    "linkify-it-py>=2.1.0,<3.0",
+]
+
+[tool.uv]
+# Not an installable package; this project only manages the docs environment.
+package = false
+default-groups = ["docs"]

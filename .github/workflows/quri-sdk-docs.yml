@@ -1,0 +1,158 @@
+name: QURI SDK Docs
+
+on:
+  pull_request:
+    paths:
+      - docs/**
+      - quri-parts/packages/**/*.py
+      - quri-parts/docs/**
+      - quri-parts/pyproject.toml
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/quri-sdk-docs.yml
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - quri-parts/packages/**/*.py
+      - quri-parts/docs/**
+      - quri-parts/pyproject.toml
+      - pyproject.toml
+      - uv.lock
+      - .github/workflows/quri-sdk-docs.yml
+
+permissions: {}
+
+concurrency:
+  group: quri-sdk-docs-${{ github.event_name == 'pull_request' && format('preview-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-deploy:
+    if: >-
+      github.repository == 'QunaSys/quri-sdk-internal' &&
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository) ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'pull_request' && 'pull request' || 'production' }}
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout the build ref
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Reject internal history
+        if: github.event_name == 'pull_request'
+        run: |
+          merge_bases=$(git merge-base --all HEAD origin/internal-main)
+          if [ -z "$merge_bases" ]; then
+            echo "No merge base with internal-main found."
+            exit 1
+          fi
+          for base in $merge_bases; do
+            if ! git merge-base --is-ancestor "$base" origin/main; then
+              echo "The preview branch contains history that is not on public main."
+              exit 1
+            fi
+          done
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8.2.0
+        with:
+          version: "0.11.17"
+          python-version: "3.10"
+          enable-cache: true
+          cache-dependency-glob: |
+            uv.lock
+            docs/uv.lock
+
+      - name: Install SDK and API Reference dependencies
+        run: uv sync --locked --group doc
+
+      - name: Cache Julia environment
+        uses: actions/cache@v6
+        with:
+          path: ~/.julia/
+          key: ci-${{ runner.os }}-julia-${{ hashFiles('uv.lock') }}-cache
+          restore-keys: ci-${{ runner.os }}-julia-
+
+      - name: Install pandoc
+        run: |
+          wget https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-1-amd64.deb
+          yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
+
+      - name: Install Julia dependency
+        run: uv run --no-sync julia -e 'using Pkg; Pkg.add("PythonCall")'
+
+      - name: Install documentation dependencies
+        working-directory: docs
+        run: uv sync --locked
+
+      - name: Build documentation
+        run: make -C docs api
+
+      - name: Verify clean build and preview output
+        run: |
+          git diff --exit-code
+          test -f docs/_build/html/index.html
+          test -f docs/_build/html/api/index.html
+          test -f docs/_build/html/api/objects.inv
+          if rg -n 'quri-sdk-internal|internal-main' docs/_build/html; then
+            echo "Generated documentation contains an internal repository reference."
+            exit 1
+          fi
+
+      - name: Verify Netlify credentials
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          test -n "$NETLIFY_AUTH_TOKEN" || { echo "Missing Netlify auth token"; exit 1; }
+
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        working-directory: docs
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npx -y netlify-cli@27.0.3 deploy --no-build \
+              --site quri-sdk-doc \
+              --dir _build/html \
+              --alias "deploy-preview-${{ github.event.pull_request.number }}" \
+              --message "Docs preview from $PR_HEAD_REF (${{ github.event.pull_request.head.sha }})"
+          else
+            npx -y netlify-cli@27.0.3 deploy --no-build --prod \
+              --site quri-sdk-doc \
+              --dir _build/html \
+              --message "production @ $(git rev-parse HEAD)"
+          fi
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          marker="<!-- netlify-deploy-preview -->"
+          url="https://deploy-preview-${{ github.event.pull_request.number }}--quri-sdk-doc.netlify.app"
+          body="$(printf '%s\nDocs preview: %s' "$marker" "$url")"
+          comment_id=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+            --jq "[.[] | select(.body | startswith(\"$marker\"))][0].id // empty")
+          if [ -n "$comment_id" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$comment_id" -f body="$body"
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --repo "${{ github.repository }}" \
+              --body "$body"
+          fi
