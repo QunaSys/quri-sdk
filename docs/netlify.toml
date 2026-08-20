@@ -1,3 +1,16 @@
+# Redirect the retired Japanese locale to the site root.
+[[redirects]]
+  from = "/ja"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ja/*"
+  to = "/"
+  status = 301
+  force = true
+
 # The "API Reference" sidebar entry is a stub. Redirect it straight to the
 # separately-built API site so the browser never paints the stub. Local
 # `make serve` doesn't apply these rules, so the stub still renders locally.
