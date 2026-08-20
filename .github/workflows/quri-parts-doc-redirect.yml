@@ -8,6 +8,10 @@ name: QURI Parts Doc Redirect
 # forever. Publish a redirect page over both to keep existing links working. The
 # quri-parts-doc deploy lives here rather than in quri-parts-docusaurus because that
 # repository is being archived, and archived repositories cannot run workflows.
+#
+# Each site redirects to the landing page that replaces it rather than preserving the
+# requested path: the new URL layout differs, so forwarding paths verbatim would turn
+# most old links into 404s (for example the old Japanese locale under /ja/).
 
 on:
   push:
@@ -24,7 +28,9 @@ concurrency:
 
 jobs:
   deploy-redirect:
-    if: github.repository == 'QunaSys/quri-sdk-internal'
+    if: >-
+      github.repository == 'QunaSys/quri-sdk-internal' &&
+      github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: production
     permissions:
@@ -32,16 +38,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        site:
-          - c809dd00-1b20-41de-adc9-ad4c882d452d  # quri-parts.netlify.app
-          - quri-parts-doc  # quri-parts.qunasys.com
+        include:
+          # The Sphinx API reference this site served now lives under /api/.
+          - site: c809dd00-1b20-41de-adc9-ad4c882d452d  # quri-parts.netlify.app
+            target: https://quri-sdk.qunasys.com/api/
+          # The Docusaurus tutorials this site served now live under /docs/tutorials/quri-parts/.
+          - site: quri-parts-doc  # quri-parts.qunasys.com
+            target: https://quri-sdk.qunasys.com/docs/tutorials/quri-parts/
 
     steps:
       - name: Build the redirect site
         run: |
           mkdir -p redirect-site
           cat > redirect-site/_redirects <<'EOF'
-          /*  https://quri-sdk.qunasys.com/:splat  301!
+          /*  ${{ matrix.target }}  301!
           EOF
           cat > redirect-site/index.html <<'EOF'
           <!DOCTYPE html>
@@ -49,13 +59,13 @@ jobs:
             <head>
               <meta charset="utf-8" />
               <title>QURI Parts documentation has moved</title>
-              <link rel="canonical" href="https://quri-sdk.qunasys.com" />
-              <meta http-equiv="refresh" content="0; url=https://quri-sdk.qunasys.com" />
+              <link rel="canonical" href="${{ matrix.target }}" />
+              <meta http-equiv="refresh" content="0; url=${{ matrix.target }}" />
             </head>
             <body>
               <p>
                 The QURI Parts documentation now lives at
-                <a href="https://quri-sdk.qunasys.com">https://quri-sdk.qunasys.com</a>.
+                <a href="${{ matrix.target }}">${{ matrix.target }}</a>.
               </p>
             </body>
           </html>
@@ -74,4 +84,4 @@ jobs:
           npx -y netlify-cli@27.0.3 deploy --no-build --prod \
             --site "${{ matrix.site }}" \
             --dir redirect-site \
-            --message "redirect to quri-sdk.qunasys.com @ ${{ github.sha }}"
+            --message "redirect to ${{ matrix.target }} @ ${{ github.sha }}"
