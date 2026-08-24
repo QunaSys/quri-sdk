@@ -61,12 +61,7 @@ jobs:
         base_sha="${{ github.event.pull_request.base.sha }}"
         head_sha="${{ github.event.pull_request.head.sha }}"
         merge_base=$(git merge-base "$base_sha" "$head_sha")
-        changed=$(git diff --name-only --diff-filter=ACMR \
+        git diff --name-only -z --diff-filter=ACMR \
           "$merge_base" "$head_sha" \
-          -- 'quri-vm/quri_vm/**.py' 'quri-vm/tests/**.py')
-        if [ -n "$changed" ]; then
-          echo "$changed"
-          uv run --no-sync flake8 --config=.flake8-docstrings --show-source $changed
-        else
-          echo "No changed Python files."
-        fi
+          -- 'quri-vm/quri_vm/**.py' 'quri-vm/tests/**.py' \
+          | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings --show-source
