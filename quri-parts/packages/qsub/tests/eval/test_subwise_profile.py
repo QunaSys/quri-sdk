@@ -30,7 +30,7 @@ def test_call_count_and_gate_scopes() -> None:
     """root -> G (x2) -> H (x2), each of G and H holding one CNOT.
 
     Exercises call-count multiplication through nesting and the
-    self/descendants/total split, per-call and aggregated.
+    own/descendants/cumulative split, per-call and aggregated.
     """
     ns = NameSpace("test_scopes")
     G = Op.from_qubit_count(Ident(ns, "G"), 2)
@@ -67,8 +67,8 @@ def test_call_count_and_gate_scopes() -> None:
     assert g.call_count == 2
     assert g.gate_counts.own.per_call == {"CNOT": 1}
     assert g.gate_counts.descendants.per_call == {"CNOT": 2}
-    assert g.gate_counts.total.per_call == {"CNOT": 3}
-    assert g.gate_counts.total.all_calls == {"CNOT": 6}  # 3 x call_count 2
+    assert g.gate_counts.cumulative.per_call == {"CNOT": 3}
+    assert g.gate_counts.cumulative.all_calls == {"CNOT": 6}  # 3 x call_count 2
 
     root = _root(report)
     assert root.call_count == 1
@@ -270,4 +270,4 @@ def test_parametric_sub_row_per_parameter() -> None:
 
     assert set(named) == {"Chain(3)", "Chain(2)", "Chain(1)"}
     assert all(e.call_count == 1 for e in named.values())
-    assert named["Chain(3)"].gate_counts.total.per_call == {"X": 3}
+    assert named["Chain(3)"].gate_counts.cumulative.per_call == {"X": 3}

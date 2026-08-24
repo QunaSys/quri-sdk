@@ -25,8 +25,12 @@ from ..register import Register
 class QubitCounts:
     """Qubits a sub occupies during one invocation.
 
-    ``auxiliary`` is the peak ancilla count, i.e. the maximum over the
-    sub's callees plus the ancillas the body allocates itself.
+    ``data`` are the qubits the caller passes in. ``auxiliary`` are the
+    sub's own ancillas (its ``aux_qubits``) plus the largest
+    ``auxiliary`` among the subs it calls: sequential callees reuse the
+    same ancilla space, so they contribute a maximum rather than a sum,
+    while the sub's own ancillas stay live across those calls and add on
+    top.
     """
 
     data: int
@@ -51,14 +55,14 @@ class GateCounts:
 class GateCountBreakdown:
     """Primitive-gate counts of a sub, split by where the gates come from.
 
-    ``own`` covers gates written directly in the body, ``descendants``
-    those contributed transitively by everything the sub calls, and
-    ``total`` their sum.
+    ``own`` covers the sub's own instructions, ``descendants`` those
+    contributed transitively by everything it calls, and ``cumulative``
+    their sum.
     """
 
     own: GateCounts
     descendants: GateCounts
-    total: GateCounts
+    cumulative: GateCounts
 
 
 @dataclass(frozen=True)
@@ -98,18 +102,18 @@ class _SubProfile:
     def record_gate(self, base_id: BaseIdent) -> None:
         self.own_gates[base_id] += 1
 
-    def total_gates(self) -> Counter[BaseIdent]:
+    def cumulative_gates(self) -> Counter[BaseIdent]:
         return self.own_gates + self.descendant_gates
 
     def absorb_call(self, callee: "_SubProfile") -> None:
         """Fold one finished ``callee`` invocation into this subtree."""
-        self.descendant_gates.update(callee.total_gates())
+        self.descendant_gates.update(callee.cumulative_gates())
         self.subtree_calls.update(callee.subtree_calls)
         # Sequential callees reuse ancillas, so the peak is the max, not the sum.
         self.peak_aux = max(self.peak_aux, callee.peak_aux)
 
     def allocate_aux_qubits(self, count: int) -> None:
-        """Add ancillas the body allocates itself.
+        """Add the ancillas this sub declares itself.
 
         They stay live while the callees run, so they stack on top of
         the peak already absorbed from them.
@@ -226,11 +230,11 @@ def _gate_counts(
 ) -> GateCountBreakdown:
     own = _display_names(profile.own_gates, name_map)
     descendants = _display_names(profile.descendant_gates, name_map)
-    total = _display_names(profile.total_gates(), name_map)
+    cumulative = _display_names(profile.cumulative_gates(), name_map)
     return GateCountBreakdown(
         own=_aggregate(own, call_count),
         descendants=_aggregate(descendants, call_count),
-        total=_aggregate(total, call_count),
+        cumulative=_aggregate(cumulative, call_count),
     )
 
 
