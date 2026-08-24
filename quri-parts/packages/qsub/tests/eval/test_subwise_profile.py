@@ -61,21 +61,23 @@ def test_call_count_and_gate_scopes() -> None:
 
     h = named[H.id]
     assert h.call_count == 4  # 2 (per G) x 2 (G calls)
-    assert h.gate_counts.own.per_call == {"CNOT": 1}
+    assert h.gate_counts.own.per_call == {std.CNOT.base_id: 1}
     assert h.gate_counts.descendants.per_call == {}
-    assert h.gate_counts.own.all_calls == {"CNOT": 4}
+    assert h.gate_counts.own.all_calls == {std.CNOT.base_id: 4}
 
     g = named[G.id]
     assert g.call_count == 2
-    assert g.gate_counts.own.per_call == {"CNOT": 1}
-    assert g.gate_counts.descendants.per_call == {"CNOT": 2}
-    assert g.gate_counts.cumulative.per_call == {"CNOT": 3}
-    assert g.gate_counts.cumulative.all_calls == {"CNOT": 6}  # 3 x call_count 2
+    assert g.gate_counts.own.per_call == {std.CNOT.base_id: 1}
+    assert g.gate_counts.descendants.per_call == {std.CNOT.base_id: 2}
+    assert g.gate_counts.cumulative.per_call == {std.CNOT.base_id: 3}
+    assert g.gate_counts.cumulative.all_calls == {
+        std.CNOT.base_id: 6
+    }  # 3 x call_count 2
 
     root = _root(report)
     assert root.call_count == 1
     assert root.gate_counts.own.per_call == {}
-    assert root.gate_counts.descendants.per_call == {"CNOT": 6}
+    assert root.gate_counts.descendants.per_call == {std.CNOT.base_id: 6}
 
 
 def test_shared_sub_across_parents() -> None:
@@ -113,9 +115,9 @@ def test_shared_sub_across_parents() -> None:
     named = _by_source_op(report)
 
     assert named[C.id].call_count == 3
-    assert named[A.id].gate_counts.descendants.per_call == {"X": 1}
-    assert named[B.id].gate_counts.descendants.per_call == {"X": 1}
-    assert _root(report).gate_counts.descendants.all_calls == {"X": 3}
+    assert named[A.id].gate_counts.descendants.per_call == {std.X.base_id: 1}
+    assert named[B.id].gate_counts.descendants.per_call == {std.X.base_id: 1}
+    assert _root(report).gate_counts.descendants.all_calls == {std.X.base_id: 3}
 
 
 def test_qubit_counts_with_auxiliary() -> None:
@@ -144,7 +146,7 @@ def test_qubit_counts_with_auxiliary() -> None:
 
     f = _by_source_op(report)[F.id]
     assert f.qubit_counts == QubitCounts(data=1, auxiliary=1, total=2)
-    assert f.gate_counts.own.per_call == {"X": 2}
+    assert f.gate_counts.own.per_call == {std.X.base_id: 2}
 
     root = _root(report)
     # 2 data + 1 local aux + 1 aux live inside F = 4
@@ -189,17 +191,20 @@ def test_gate_filter() -> None:
     msub = CodeGenerator([std.CNOT, std.Toffoli]).lower(b.build())
 
     (all_gates,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
-    assert all_gates.gate_counts.own.per_call == {"CNOT": 1, "Toffoli": 1}
+    assert all_gates.gate_counts.own.per_call == {
+        std.CNOT.base_id: 1,
+        std.Toffoli.base_id: 1,
+    }
 
     (toffoli_only,) = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.Toffoli,))).run(
         msub
     )
-    assert toffoli_only.gate_counts.own.per_call == {"Toffoli": 1}
+    assert toffoli_only.gate_counts.own.per_call == {std.Toffoli.base_id: 1}
 
 
 def test_gate_name_collision_across_namespaces() -> None:
     """Counted gates sharing a local name across namespaces stay distinct,
-    keyed with their namespace instead of silently merging."""
+    since the key carries the namespace."""
     ns = NameSpace("custom")
     MyX = Op.from_qubit_count(Ident(ns, "X"), 1)
 
@@ -210,11 +215,22 @@ def test_gate_name_collision_across_namespaces() -> None:
     msub = CodeGenerator([std.X, MyX]).lower(b.build())
 
     (entry,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
-    std_ns = std.X.base_id[0]
     assert entry.gate_counts.own.per_call == {
-        f"{std_ns}.X": 1,
-        "custom.X": 2,
+        std.X.base_id: 1,
+        MyX.base_id: 2,
     }
+
+
+def test_parametric_gates_share_one_key() -> None:
+    """Op parameters are not part of the key, so distinct rotation angles count
+    as one gate, as in GateCountEvaluatorHooks."""
+    b = SubBuilder(1)
+    b.add_op(std.RZ(0.1), b.qubits)
+    b.add_op(std.RZ(0.2), b.qubits)
+    msub = CodeGenerator([std.RZ]).lower(b.build())
+
+    (entry,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
+    assert entry.gate_counts.own.per_call == {std.RZ.base_id: 2}
 
 
 def test_parametric_sub_is_named_via_compile() -> None:
@@ -243,7 +259,7 @@ def test_parametric_sub_is_named_via_compile() -> None:
     )
     assert entry.source_op == Twice(2).id
     assert entry.call_count == 1
-    assert entry.gate_counts.own.per_call == {"Toffoli": 2}
+    assert entry.gate_counts.own.per_call == {std.Toffoli.base_id: 2}
 
 
 def test_parametric_sub_row_per_parameter() -> None:
@@ -272,4 +288,4 @@ def test_parametric_sub_row_per_parameter() -> None:
 
     assert set(named) == {Chain(3).id, Chain(2).id, Chain(1).id}
     assert all(e.call_count == 1 for e in named.values())
-    assert named[Chain(3).id].gate_counts.cumulative.per_call == {"X": 3}
+    assert named[Chain(3).id].gate_counts.cumulative.per_call == {std.X.base_id: 3}

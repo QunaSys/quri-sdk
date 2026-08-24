@@ -8,14 +8,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import Counter, defaultdict
+from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Optional
 
 from ..evaluate import EvaluatorHooks
 from ..machineinst import MachineSub, Primitive, SubId, is_subcall
-from ..namespace import NameSpace
 from ..op import AbstractOp, BaseIdent, Ident
 from ..qubit import Qubit
 from ..register import Register
@@ -42,13 +41,15 @@ class QubitCounts:
 class GateCounts:
     """Primitive-gate counts of one scope.
 
-    Keys are bare local gate names, qualified as ``"ns.name"`` when two
-    counted gates share a local name. ``per_call`` is for a single
-    invocation of the sub, ``all_calls`` for all ``call_count`` of them.
+    Keys are gate ``BaseIdent``\\ s, as in
+    :class:`GateCountEvaluatorHooks`: namespace and local name, without
+    op parameters, so every ``RZ`` angle counts as one gate.
+    ``per_call`` is for a single invocation of the sub, ``all_calls``
+    for all ``call_count`` of them.
     """
 
-    per_call: Mapping[str, int]
-    all_calls: Mapping[str, int]
+    per_call: Mapping[BaseIdent, int]
+    all_calls: Mapping[BaseIdent, int]
 
 
 @dataclass(frozen=True)
@@ -182,13 +183,6 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
 
     def _build_entries(self, root: _SubProfile) -> list[SubwiseProfileEntry]:
         sub_ops = _source_ops(self._profiles.values())
-        # One shared mapping so the same gate is keyed identically in every
-        # row. Own gates suffice: every counted gate is own to some sub.
-        name_map = _display_name_map(
-            base_id
-            for profile in self._profiles.values()
-            for base_id in profile.own_gates
-        )
         entries = []
         for sid, profile in self._profiles.items():
             call_count = root.subtree_calls.get(sid, 0)
@@ -197,7 +191,7 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
                     source_op=sub_ops.get(sid),
                     call_count=call_count,
                     qubit_counts=_qubit_counts(profile),
-                    gate_counts=_gate_counts(profile, name_map, call_count),
+                    gate_counts=_gate_counts(profile, call_count),
                 )
             )
         return entries
@@ -227,40 +221,16 @@ def _qubit_counts(profile: _SubProfile) -> QubitCounts:
     )
 
 
-def _gate_counts(
-    profile: _SubProfile, name_map: Mapping[BaseIdent, str], call_count: int
-) -> GateCountBreakdown:
-    own = _display_names(profile.own_gates, name_map)
-    descendants = _display_names(profile.descendant_gates, name_map)
-    cumulative = _display_names(profile.cumulative_gates(), name_map)
+def _gate_counts(profile: _SubProfile, call_count: int) -> GateCountBreakdown:
     return GateCountBreakdown(
-        own=_aggregate(own, call_count),
-        descendants=_aggregate(descendants, call_count),
-        cumulative=_aggregate(cumulative, call_count),
+        own=_aggregate(profile.own_gates, call_count),
+        descendants=_aggregate(profile.descendant_gates, call_count),
+        cumulative=_aggregate(profile.cumulative_gates(), call_count),
     )
 
 
-def _aggregate(per_call: Mapping[str, int], call_count: int) -> GateCounts:
+def _aggregate(per_call: Mapping[BaseIdent, int], call_count: int) -> GateCounts:
     return GateCounts(
         per_call=dict(per_call),
-        all_calls={name: n * call_count for name, n in per_call.items()},
+        all_calls={base_id: n * call_count for base_id, n in per_call.items()},
     )
-
-
-def _display_name_map(base_ids: Iterable[BaseIdent]) -> dict[BaseIdent, str]:
-    """Map each gate to its bare local name, namespace-qualified only when two
-    gates share a local name (bare names would silently merge their counts)."""
-    namespaces_by_local: dict[str, set[NameSpace]] = defaultdict(set)
-    ids = set(base_ids)
-    for ns, local in ids:
-        namespaces_by_local[local].add(ns)
-    return {
-        (ns, local): local if len(namespaces_by_local[local]) == 1 else f"{ns}.{local}"
-        for ns, local in ids
-    }
-
-
-def _display_names(
-    counts: Mapping[BaseIdent, int], name_map: Mapping[BaseIdent, str]
-) -> dict[str, int]:
-    return {name_map[base_id]: n for base_id, n in counts.items()}
