@@ -15,7 +15,7 @@ from typing import Optional
 
 from ..evaluate import EvaluatorHooks
 from ..machineinst import MachineSub, Primitive, SubId, is_subcall
-from ..op import AbstractOp, BaseIdent, Ident
+from ..op import AbstractOp, Ident
 from ..qubit import Qubit
 from ..register import Register
 
@@ -41,15 +41,15 @@ class QubitCounts:
 class GateCounts:
     """Primitive-gate counts of one scope.
 
-    Keys are gate ``BaseIdent``\\ s, as in
-    :class:`GateCountEvaluatorHooks`: namespace and local name, without
-    op parameters, so every ``RZ`` angle counts as one gate.
-    ``per_call`` is for a single invocation of the sub, ``all_calls``
-    for all ``call_count`` of them.
+    Keys are gate ``Ident``\\ s, op parameters included, so ``RZ<0.1>``
+    and ``RZ<0.2>`` are counted apart; this is finer than
+    :class:`GateCountEvaluatorHooks`, which keys by ``BaseIdent`` and
+    merges them. ``per_call`` is for a single invocation of the sub,
+    ``all_calls`` for all ``call_count`` of them.
     """
 
-    per_call: Mapping[BaseIdent, int]
-    all_calls: Mapping[BaseIdent, int]
+    per_call: Mapping[Ident, int]
+    all_calls: Mapping[Ident, int]
 
 
 @dataclass(frozen=True)
@@ -92,8 +92,8 @@ class _SubProfile:
     """
 
     sub: MachineSub
-    own_gates: Counter[BaseIdent] = field(default_factory=Counter)
-    descendant_gates: Counter[BaseIdent] = field(default_factory=Counter)
+    own_gates: Counter[Ident] = field(default_factory=Counter)
+    descendant_gates: Counter[Ident] = field(default_factory=Counter)
     # Invocations of each descendant, the sub itself included.
     subtree_calls: Counter[SubId] = field(default_factory=Counter)
     peak_aux: int = 0
@@ -101,10 +101,10 @@ class _SubProfile:
     def __post_init__(self) -> None:
         self.subtree_calls[self.sub.sub_id] = 1
 
-    def record_gate(self, base_id: BaseIdent) -> None:
-        self.own_gates[base_id] += 1
+    def record_gate(self, ident: Ident) -> None:
+        self.own_gates[ident] += 1
 
-    def cumulative_gates(self) -> Counter[BaseIdent]:
+    def cumulative_gates(self) -> Counter[Ident]:
         return self.own_gates + self.descendant_gates
 
     def absorb_call(self, callee: "_SubProfile") -> None:
@@ -165,9 +165,10 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         regs: Sequence[Register],
         call_stack: list[SubId],
     ) -> None:
+        # Selection is by gate kind, but the count is kept per parameter.
         if self._target_ops and mop.op.base_id not in self._target_ops:
             return
-        self._profiles[call_stack[-1]].record_gate(mop.op.base_id)
+        self._profiles[call_stack[-1]].record_gate(mop.op.id)
 
     def exit_sub(
         self, sub: MachineSub, enter_sub: bool, call_stack: list[SubId]
@@ -229,8 +230,8 @@ def _gate_counts(profile: _SubProfile, call_count: int) -> GateCountBreakdown:
     )
 
 
-def _aggregate(per_call: Mapping[BaseIdent, int], call_count: int) -> GateCounts:
+def _aggregate(per_call: Mapping[Ident, int], call_count: int) -> GateCounts:
     return GateCounts(
         per_call=dict(per_call),
-        all_calls={base_id: n * call_count for base_id, n in per_call.items()},
+        all_calls={ident: n * call_count for ident, n in per_call.items()},
     )
