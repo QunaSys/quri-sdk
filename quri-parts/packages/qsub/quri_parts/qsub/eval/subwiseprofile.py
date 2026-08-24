@@ -16,7 +16,7 @@ from typing import Optional
 from ..evaluate import EvaluatorHooks
 from ..machineinst import MachineSub, Primitive, SubId, is_subcall
 from ..namespace import NameSpace
-from ..op import AbstractOp, BaseIdent, Op
+from ..op import AbstractOp, BaseIdent, Ident
 from ..qubit import Qubit
 from ..register import Register
 
@@ -69,12 +69,13 @@ class GateCountBreakdown:
 class SubwiseProfileEntry:
     """Per-sub profiling row produced by :class:`SubwiseProfileEvaluatorHooks`.
 
-    ``name`` is the readable identifier of the sub (e.g. ``"MCX(6)"``),
-    or ``None`` when the sub's source op is unknown (the entry sub of
-    ``compile_sub``, which receives a ``Sub`` rather than an ``Op``).
+    ``source_op`` identifies the op this sub implements, parameters
+    included; use :meth:`Ident.to_str` for a display name. It is
+    ``None`` when the op is unknown (the entry sub of ``compile_sub``,
+    which receives a ``Sub`` rather than an ``Op``).
     """
 
-    name: Optional[str]
+    source_op: Optional[Ident]
     call_count: int
     qubit_counts: QubitCounts
     gate_counts: GateCountBreakdown
@@ -126,9 +127,10 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
     counts attributable to it.
 
     Mirrors :class:`GateCountEvaluatorHooks`: pass the ops to break
-    down, or nothing to count every primitive. Parametric subs are
-    reported separately per parameter (``MCX(5)`` and ``MCX(6)`` are
-    distinct rows).
+    down, or nothing to count every primitive. A row's ``source_op``
+    carries the op parameters, so parametric subs are reported
+    separately per parameter (``MCX<5>`` and ``MCX<6>`` are distinct
+    rows).
     """
 
     def __init__(self, gates: Iterable[AbstractOp] = ()) -> None:
@@ -192,7 +194,7 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
             call_count = root.subtree_calls.get(sid, 0)
             entries.append(
                 SubwiseProfileEntry(
-                    name=_format_name(sub_ops.get(sid)),
+                    source_op=sub_ops.get(sid),
                     call_count=call_count,
                     qubit_counts=_qubit_counts(profile),
                     gate_counts=_gate_counts(profile, name_map, call_count),
@@ -201,20 +203,20 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
         return entries
 
 
-def _source_ops(profiles: Iterable[_SubProfile]) -> dict[SubId, Op]:
-    """Collect each sub's source Op for naming.
+def _source_ops(profiles: Iterable[_SubProfile]) -> dict[SubId, Ident]:
+    """Collect the identifier of each sub's source op.
 
-    A sub's Op is known at its call sites rather than on the sub itself
+    A sub's op is known at its call sites rather than on the sub itself
     (only the compile entry carries its own), so harvest the subcall
     instructions of every profiled sub.
     """
-    ops: dict[SubId, Op] = {}
+    ops: dict[SubId, Ident] = {}
     for profile in profiles:
         if profile.sub.op is not None:
-            ops[profile.sub.sub_id] = profile.sub.op
+            ops[profile.sub.sub_id] = profile.sub.op.id
         for mop, _, _ in profile.sub.instructions:
             if is_subcall(mop) and mop.sub is not None:
-                ops[mop.sub.sub_id] = mop.op
+                ops[mop.sub.sub_id] = mop.op.id
     return ops
 
 
@@ -262,12 +264,3 @@ def _display_names(
     counts: Mapping[BaseIdent, int], name_map: Mapping[BaseIdent, str]
 ) -> dict[str, int]:
     return {name_map[base_id]: n for base_id, n in counts.items()}
-
-
-def _format_name(op: Optional[Op]) -> Optional[str]:
-    if op is None:
-        return None
-    if op.id.params:
-        params = ", ".join(str(p) for p in op.id.params)
-        return f"{op.id.local_name}({params})"
-    return op.id.local_name

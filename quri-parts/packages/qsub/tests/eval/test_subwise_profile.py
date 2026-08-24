@@ -17,12 +17,14 @@ from quri_parts.qsub.register import QRegSpec
 from quri_parts.qsub.sub import SubBuilder
 
 
-def _named(report: list[SubwiseProfileEntry]) -> dict[str, SubwiseProfileEntry]:
-    return {e.name: e for e in report if e.name is not None}
+def _by_source_op(
+    report: list[SubwiseProfileEntry],
+) -> dict[Ident, SubwiseProfileEntry]:
+    return {e.source_op: e for e in report if e.source_op is not None}
 
 
 def _root(report: list[SubwiseProfileEntry]) -> SubwiseProfileEntry:
-    (root,) = [e for e in report if e.name is None]
+    (root,) = [e for e in report if e.source_op is None]
     return root
 
 
@@ -55,15 +57,15 @@ def test_call_count_and_gate_scopes() -> None:
     linked = Linker({G: codegen.lower(gsub), H: codegen.lower(hsub)}).link(msub)
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.CNOT,))).run(linked)
-    named = _named(report)
+    named = _by_source_op(report)
 
-    h = named["H"]
+    h = named[H.id]
     assert h.call_count == 4  # 2 (per G) x 2 (G calls)
     assert h.gate_counts.own.per_call == {"CNOT": 1}
     assert h.gate_counts.descendants.per_call == {}
     assert h.gate_counts.own.all_calls == {"CNOT": 4}
 
-    g = named["G"]
+    g = named[G.id]
     assert g.call_count == 2
     assert g.gate_counts.own.per_call == {"CNOT": 1}
     assert g.gate_counts.descendants.per_call == {"CNOT": 2}
@@ -108,11 +110,11 @@ def test_shared_sub_across_parents() -> None:
     ).link(msub)
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(linked)
-    named = _named(report)
+    named = _by_source_op(report)
 
-    assert named["C"].call_count == 3
-    assert named["A"].gate_counts.descendants.per_call == {"X": 1}
-    assert named["B"].gate_counts.descendants.per_call == {"X": 1}
+    assert named[C.id].call_count == 3
+    assert named[A.id].gate_counts.descendants.per_call == {"X": 1}
+    assert named[B.id].gate_counts.descendants.per_call == {"X": 1}
     assert _root(report).gate_counts.descendants.all_calls == {"X": 3}
 
 
@@ -140,7 +142,7 @@ def test_qubit_counts_with_auxiliary() -> None:
 
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
 
-    f = _named(report)["F"]
+    f = _by_source_op(report)[F.id]
     assert f.qubit_counts == QubitCounts(data=1, auxiliary=1, total=2)
     assert f.gate_counts.own.per_call == {"X": 2}
 
@@ -239,7 +241,7 @@ def test_parametric_sub_is_named_via_compile() -> None:
     (entry,) = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.Toffoli,))).run(
         compiled
     )
-    assert entry.name == "Twice(2)"
+    assert entry.source_op == Twice(2).id
     assert entry.call_count == 1
     assert entry.gate_counts.own.per_call == {"Toffoli": 2}
 
@@ -266,8 +268,8 @@ def test_parametric_sub_row_per_parameter() -> None:
     compiled = compile(Chain(3), (std.X,))
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(compiled)
-    named = _named(report)
+    named = _by_source_op(report)
 
-    assert set(named) == {"Chain(3)", "Chain(2)", "Chain(1)"}
+    assert set(named) == {Chain(3).id, Chain(2).id, Chain(1).id}
     assert all(e.call_count == 1 for e in named.values())
-    assert named["Chain(3)"].gate_counts.cumulative.per_call == {"X": 3}
+    assert named[Chain(3).id].gate_counts.cumulative.per_call == {"X": 3}
