@@ -207,8 +207,8 @@ def _source_ops(profiles: Iterable[_SubProfile]) -> dict[SubId, Ident]:
     """
     ops: dict[SubId, Ident] = {}
     for profile in profiles:
-        if profile.sub.op is not None:
-            ops[profile.sub.sub_id] = profile.sub.op.id
+        if profile.sub.source_op is not None:
+            ops[profile.sub.sub_id] = profile.sub.source_op
         for mop, _, _ in profile.sub.instructions:
             if is_subcall(mop) and mop.sub is not None:
                 ops[mop.sub.sub_id] = mop.op.id
