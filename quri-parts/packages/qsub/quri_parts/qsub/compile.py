@@ -51,8 +51,6 @@ def compile(
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)
     msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
-    for op, msub in msubs.items():
-        msub.source_op = op.id
     entry_msub = msubs[entry_op]
     return link(entry_msub, msubs)
 

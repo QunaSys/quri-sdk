@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from dataclasses import replace
 
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.compile import compile
@@ -14,7 +15,13 @@ from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.register import QRegSpec
-from quri_parts.qsub.sub import SubBuilder
+from quri_parts.qsub.sub import Sub, SubBuilder
+
+
+def _implementing(sub: Sub, op: Op) -> Sub:
+    """Stand in for resolution, which is what normally records the source
+    op."""
+    return replace(sub, source_op=op.id)
 
 
 def _by_source_op(
@@ -40,13 +47,13 @@ def test_call_count_and_gate_scopes() -> None:
 
     hb = SubBuilder(2)
     hb.add_op(std.CNOT, hb.qubits)
-    hsub = hb.build()
+    hsub = _implementing(hb.build(), H)
 
     gb = SubBuilder(2)
     gb.add_op(std.CNOT, gb.qubits)
     gb.add_op(H, gb.qubits)
     gb.add_op(H, gb.qubits)
-    gsub = gb.build()
+    gsub = _implementing(gb.build(), G)
 
     rb = SubBuilder(2)
     rb.add_op(G, rb.qubits)
@@ -88,15 +95,15 @@ def test_shared_sub_across_parents() -> None:
 
     cb = SubBuilder(1)
     cb.add_op(std.X, cb.qubits)
-    csub = cb.build()
+    csub = _implementing(cb.build(), C)
 
     ab = SubBuilder(1)
     ab.add_op(C, ab.qubits)
-    asub = ab.build()
+    asub = _implementing(ab.build(), A)
 
     bb = SubBuilder(1)
     bb.add_op(C, bb.qubits)
-    bsub = bb.build()
+    bsub = _implementing(bb.build(), B)
 
     rb = SubBuilder(1)
     rb.add_op(A, rb.qubits)
@@ -129,7 +136,7 @@ def test_qubit_counts_with_auxiliary() -> None:
     fa0 = fb.add_aux_qubit()
     fb.add_op(std.X, (fq0,))
     fb.add_op(std.X, (fa0,))
-    fsub = fb.build()
+    fsub = _implementing(fb.build(), F)
 
     rb = SubBuilder(2)
     (rq0, _rq1) = rb.qubits
@@ -160,12 +167,12 @@ def test_auxiliary_peak_over_siblings() -> None:
 
     f1b = SubBuilder(1)
     f1b.add_op(std.X, (f1b.add_aux_qubit(),))
-    f1sub = f1b.build()
+    f1sub = _implementing(f1b.build(), F1)
 
     f2b = SubBuilder(1)
     f2b.add_op(std.X, (f2b.add_aux_qubit(),))
     f2b.add_op(std.X, (f2b.add_aux_qubit(),))
-    f2sub = f2b.build()
+    f2sub = _implementing(f2b.build(), F2)
 
     rb = SubBuilder(1)
     rb.add_op(F1, rb.qubits)

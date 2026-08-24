@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 from ..evaluate import EvaluatorHooks
-from ..machineinst import MachineSub, Primitive, SubId, is_subcall
+from ..machineinst import MachineSub, Primitive, SubId
 from ..op import AbstractOp, Ident
 from ..qubit import Qubit
 from ..register import Register
@@ -183,36 +183,18 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
             self._result = self._build_entries(root=profile)
 
     def _build_entries(self, root: _SubProfile) -> list[SubwiseProfileEntry]:
-        sub_ops = _source_ops(self._profiles.values())
         entries = []
         for sid, profile in self._profiles.items():
             call_count = root.subtree_calls.get(sid, 0)
             entries.append(
                 SubwiseProfileEntry(
-                    source_op=sub_ops.get(sid),
+                    source_op=profile.sub.source_op,
                     call_count=call_count,
                     qubit_counts=_qubit_counts(profile),
                     gate_counts=_gate_counts(profile, call_count),
                 )
             )
         return entries
-
-
-def _source_ops(profiles: Iterable[_SubProfile]) -> dict[SubId, Ident]:
-    """Collect the identifier of each sub's source op.
-
-    A sub's op is known at its call sites rather than on the sub itself
-    (only the compile entry carries its own), so harvest the subcall
-    instructions of every profiled sub.
-    """
-    ops: dict[SubId, Ident] = {}
-    for profile in profiles:
-        if profile.sub.source_op is not None:
-            ops[profile.sub.sub_id] = profile.sub.source_op
-        for mop, _, _ in profile.sub.instructions:
-            if is_subcall(mop) and mop.sub is not None:
-                ops[mop.sub.sub_id] = mop.op.id
-    return ops
 
 
 def _qubit_counts(profile: _SubProfile) -> QubitCounts:
