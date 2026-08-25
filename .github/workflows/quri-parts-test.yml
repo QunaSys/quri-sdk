@@ -43,6 +43,8 @@ jobs:
         python-version: ${{ matrix.python_version }}
         enable-cache: true
         cache-dependency-glob: "uv.lock"
+        # Python 3.14 builds Qulacs from source, so do not reuse the old native-CPU build cache.
+        cache-suffix: ${{ matrix.python_version == '3.14' && 'qulacs-mavx2-mfma-v1' || '' }}
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -74,6 +76,9 @@ jobs:
     # qulacsvis, so no cp314 wheel) needs zlib + libjpeg.
     - name: Install dependencies (3.14)
       if: matrix.python_version == '3.14'
+      env:
+        # GitHub-hosted x86 runners share caches across CPUs, so use a portable ISA instead of -march=native.
+        QULACS_OPT_FLAGS: "-mavx2 -mfma"
       run: |
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends \
