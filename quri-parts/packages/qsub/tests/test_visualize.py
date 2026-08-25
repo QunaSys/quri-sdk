@@ -374,6 +374,17 @@ class TestDrawCallGraph:
         plt.close(fig)
         assert texts == {"R", "A"}
 
+    def test_truncated_labels_fall_back_to_qualified_names(self) -> None:
+        """Distinct subs whose short names truncate to the same text are drawn
+        with their fully qualified names instead of two look-alike boxes."""
+        long1 = Ident(_CG_NS, "LongParam", (11111111111111111,))
+        long2 = Ident(_CG_NS, "LongParam", (11111111111111112,))
+        graph: dict[Optional[Ident], list[Ident]] = {long1: [], long2: []}
+        fig = draw_call_graph(graph)
+        texts = self._texts(fig)
+        plt.close(fig)
+        assert texts == {long1.to_str(full=True), long2.to_str(full=True)}
+
     def test_multi_caller_edge_has_no_multiplicity(self) -> None:
         R, A, B, C = _ident("R"), _ident("A"), _ident("B"), _ident("C")
         graph: dict[Optional[Ident], list[Ident]] = {

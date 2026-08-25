@@ -8,8 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
-from collections.abc import Collection, Sequence
+from collections import Counter, defaultdict
+from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Mapping, Optional, TypeAlias
 
 import matplotlib.pyplot as plt
@@ -473,8 +473,24 @@ def _call_graph_positions(
     return positions
 
 
-def _node_name(ident: Ident) -> str:
-    return ident.to_str(full=False, param_truncate=8)
+def _call_graph_node_names(
+    nodes: Iterable[Optional[Ident]],
+) -> dict[Optional[Ident], str]:
+    """Name each node by its short ident, falling back to the fully qualified
+    one where truncation would make distinct subs look alike."""
+    short = {
+        node: node.to_str(full=False, param_truncate=8)
+        if node is not None
+        else "(unnamed)"
+        for node in nodes
+    }
+    collisions = {name for name, n in Counter(short.values()).items() if n > 1}
+    return {
+        node: node.to_str(full=True)
+        if node is not None and name in collisions
+        else name
+        for node, name in short.items()
+    }
 
 
 def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> str:
@@ -482,7 +498,7 @@ def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> s
         return name
     lines = [name, f"calls: {entry.call_count}"]
     lines.extend(
-        f"{_node_name(gate)}: {count}"
+        f"{gate.to_str(full=False, param_truncate=8)}: {count}"
         for gate, count in entry.gate_counts.cumulative.all_calls.items()
     )
     return "\n".join(lines)
@@ -494,7 +510,7 @@ def _call_multiplicities(
 ) -> dict[tuple[Optional[Ident], Ident], int]:
     """Calls per caller invocation, as the ratio of the call counts — only
     derivable for callees with a single caller."""
-    caller_count: dict[str, int] = defaultdict(int)
+    caller_count: dict[Ident, int] = defaultdict(int)
     for callees in graph.values():
         for callee in callees:
             caller_count[callee] += 1
@@ -540,10 +556,7 @@ def draw_call_graph(
         plt.close(fig)
         return fig
 
-    names = {
-        node: _node_name(node) if node is not None else "(unnamed)"
-        for node in positions
-    }
+    names = _call_graph_node_names(positions)
     labels = {
         node: _call_graph_node_label(names[node], entries.get(node))
         for node in positions
@@ -551,13 +564,18 @@ def draw_call_graph(
 
     xs = [x for x, _ in positions.values()]
     ys = [y for _, y in positions.values()]
-    # A layer must be tall enough in inches for its tallest label, or boxes
-    # swallow the fixed-length arrows between them.
+    # Layers must be tall enough in inches for the tallest label, and columns
+    # wide enough for the widest line, or boxes swallow the fixed-length
+    # arrows between them and their same-layer neighbors.
     max_lines = max(label.count("\n") + 1 for label in labels.values())
+    max_chars = max(
+        len(line) for label in labels.values() for line in label.split("\n")
+    )
     layer_height = 0.55 + 0.22 * max_lines
+    column_width = max(2.4, 0.6 + 0.08 * max_chars)
     fig, ax = plt.subplots(
         figsize=(
-            max(4.0, 2.4 * (max(xs) - min(xs) + 1)),
+            max(4.0, column_width * (max(xs) - min(xs) + 1)),
             max(2.0, layer_height * (max(ys) - min(ys) + 1)),
         )
     )
