@@ -131,7 +131,7 @@ def remap_state_for_hadamard_test(
         padding[0] = 1.0
         state_list = [state.vector]
         state_list.extend([padding])
-        vector = reduce(np.kron, state_list)
+        vector = reduce(np.kron, state_list)  # type: ignore[arg-type]
         return QuantumStateVector(n_hadamard_test_qubit, vector=vector, circuit=circuit)
     return GeneralCircuitQuantumState(n_hadamard_test_qubit, circuit=circuit)
 

@@ -23,7 +23,7 @@ import warnings
 
 # The implementation is originally from qulacs-visualizer
 # https://github.com/Qulacs-Osaka/qulacs-visualizer
-from typing import Sequence, Union
+from typing import Any, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -87,7 +87,7 @@ def draw_circuit(
     depth = circuit.depth  # depth of the circuit
 
     # 2D Boolean array. True if [i,j] is empty.
-    gate_map = np.full((qubit_count, depth), True)
+    gate_map: "npt.NDArray[np.bool_[Any]]" = np.full((qubit_count, depth), True)
 
     # 4 for each qubit.
     vertical_size = qubit_count * 4
@@ -339,8 +339,8 @@ def _create_swap_string(target_indices: Sequence[int], gate_idx: int) -> list[st
 def _place_check(
     gate: Union[ParametricQuantumGate, QuantumGate],
     depth: int,
-    gate_map: npt.NDArray[np.bool_],
-) -> tuple[int, int, npt.NDArray[np.bool_]]:
+    gate_map: "npt.NDArray[np.bool_[Any]]",
+) -> "tuple[int, int, npt.NDArray[np.bool_[Any]]]":
     gate_indices = (*gate.control_indices, *gate.target_indices)
     min_idx = min(gate_indices)
     row_idx = min_idx * 4

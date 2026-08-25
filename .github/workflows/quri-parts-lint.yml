@@ -9,9 +9,8 @@ on:
       - quri-parts/pyproject.toml
       - quri-parts/.flake8
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-parts-lint.yml
-      - .github/actions/python-poetry-install/action.yml
       - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
@@ -24,23 +23,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.8.5'
-        python-version: '3.10'
-
-    - name: Cache Poetry environment
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/pypoetry
-          .venv
-        key: poetry-${{ runner.os }}-py310-quri-parts-lint-${{ hashFiles('poetry.lock') }}
+        version: "0.11.17"
+        python-version: "3.10"
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - name: Install dependencies
       run: |
-        poetry env use 3.10
-        poetry install --with dev,lint --sync
+        uv sync --locked --group lint
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -57,17 +50,17 @@ jobs:
       if: success() || failure()
 
     - name: Run isort
-      run: poetry run isort quri-parts/packages --check --diff
+      run: uv run --no-sync isort quri-parts/packages --check --diff
       if: success() || failure()
 
     - name: Run black
-      run: poetry run black quri-parts/packages --check
+      run: uv run --no-sync black --config .black.toml quri-parts/packages --check
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run flake8 quri-parts/packages --config .flake8
+      run: uv run --no-sync flake8 quri-parts/packages --config .flake8
       if: success() || failure()
 
     - name: Run docformatter
-      run: poetry run docformatter -c -r quri-parts/packages
+      run: uv run --no-sync docformatter -c -r quri-parts/packages
       if: success() || failure()

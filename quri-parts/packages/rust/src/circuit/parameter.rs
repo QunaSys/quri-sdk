@@ -78,7 +78,7 @@ impl Parameter {
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "parameter")?;
+    let m = PyModule::new(py, "parameter")?;
     m.add_class::<Parameter>()?;
     Ok(m)
 }

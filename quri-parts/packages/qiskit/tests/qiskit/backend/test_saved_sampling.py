@@ -16,7 +16,6 @@ from qiskit import QuantumCircuit as QiskitQuantumCircuit
 from qiskit import qasm3, transpile
 from qiskit.primitives import PrimitiveResult, PubResult
 from qiskit.providers.basic_provider import BasicProvider
-from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.backend import CompositeSamplingResult
 from quri_parts.circuit import QuantumCircuit
@@ -27,6 +26,7 @@ from quri_parts.qiskit.backend import (
 )
 from quri_parts.qiskit.circuit import convert_circuit
 
+from ._qiskit_compat import JobStatus, RuntimeJob
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 

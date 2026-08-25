@@ -54,6 +54,7 @@ from .gate_kind_decomposer import (
     SWAPInsertionTranspiler,
     T2RZTranspiler,
     Tdag2RZTranspiler,
+    Tdag2STTranspiler,
     TOFFOLI2CNOTTTranspiler,
     TOFFOLI2HTTdagCNOTTranspiler,
     U1ToRZTranspiler,
@@ -71,6 +72,7 @@ from .gate_kind_decomposer import (
 )
 from .gateset import (
     CliffordConversionTranspiler,
+    CliffordTSetTranspiler,
     GateSetConversionTranspiler,
     ParametricRX2RZHTranspiler,
     ParametricRY2RZHTranspiler,
@@ -225,6 +227,7 @@ STARSetTranspiler: Callable[[], CircuitTranspiler] = lambda: SequentialTranspile
 __all__ = [
     "CliffordConversionTranspiler",
     "CliffordRZSetTranspiler",
+    "CliffordTSetTranspiler",
     "CliffordApproximationTranspiler",
     "CircuitTranspiler",
     "CircuitTranspilerProtocol",
@@ -262,6 +265,7 @@ __all__ = [
     "RZSetTranspiler",
     "RotationSetTranspiler",
     "CliffordRZSetTranspiler",
+    "CliffordTSetTranspiler",
     "CliffordApproximationTranspiler",
     "IdentityEliminationTranspiler",
     "IdentityInsertionTranspiler",
@@ -304,6 +308,7 @@ __all__ = [
     "STARSetTranspiler",
     "T2RZTranspiler",
     "Tdag2RZTranspiler",
+    "Tdag2STTranspiler",
     "TOFFOLI2CNOTTTranspiler",
     "TOFFOLI2HTTdagCNOTTranspiler",
     "TwoQubitUnitaryMatrixKAKTranspiler",

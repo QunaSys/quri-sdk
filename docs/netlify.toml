@@ -1,0 +1,341 @@
+# Redirect the retired Japanese locale to the site root.
+[[redirects]]
+  from = "/ja"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ja/*"
+  to = "/"
+  status = 301
+  force = true
+
+# The "API Reference" sidebar entry is a stub. Redirect it straight to the
+# separately-built API site so the browser never paints the stub. Local
+# `make serve` doesn't apply these rules, so the stub still renders locally.
+[[redirects]]
+  from = "/docs/reference/api_reference.html"
+  to = "/api/index.html"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/docs/reference/api_reference"
+  to = "/api/index.html"
+  status = 302
+  force = true
+
+# Preserve the former API Reference URL after moving the source page.
+[[redirects]]
+  from = "/reference.html"
+  to = "/api/index.html"
+  status = 302
+  force = true
+
+[[redirects]]
+  from = "/reference"
+  to = "/api/index.html"
+  status = 302
+  force = true
+
+# Preserve public documentation URLs after reorganizing notebook pages.
+[[redirects]]
+  from = "/docs/tutorials/general/*"
+  to = "/docs/tutorials/quri_sdk_introduction.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/error_mitigation/readout/*"
+  to = "/docs/howto/error_mitigation/readout_error_mitigation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/error_mitigation/zne/*"
+  to = "/docs/howto/error_mitigation/zero_noise_extrapolation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/error_mitigation/cdr/*"
+  to = "/docs/howto/error_mitigation/clifford_data_regression.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/error_mitigation/*"
+  to = "/docs/howto/error_mitigation/index.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/real_devices/sampling_backends/*"
+  to = "/docs/howto/running_and_simulating/sampling_backends.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/real_devices/braket/*"
+  to = "/docs/howto/running_and_simulating/braket_sampling.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/real_devices/qiskit/*"
+  to = "/docs/howto/running_and_simulating/qiskit_sampling.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/noise_error/*"
+  to = "/docs/howto/running_and_simulating/noisy_simulation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/data_recording/*"
+  to = "/docs/howto/running_and_simulating/data_recording.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/transpiler/*"
+  to = "/docs/howto/circuit_compilation/transpiler.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/mapping/*"
+  to = "/docs/howto/quantum-chemistry/fermion_qubit_mapping.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/basics/:page/*"
+  to = "/docs/tutorials/quri-parts/:page.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/simulator/*"
+  to = "/docs/howto/running_and_simulating/simulator.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/qsub/*"
+  to = "/docs/tutorials/quri-parts/qsub.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/basic.html"
+  to = "/docs/tutorials/quri-parts/quration/basic_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/basic"
+  to = "/docs/tutorials/quri-parts/quration/basic_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/multi-param.html"
+  to = "/docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/quration/multi-param"
+  to = "/docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/variational/*"
+  to = "/docs/tutorials/quri-parts/variational_algorithms.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/parametric/index.html"
+  to = "/docs/tutorials/quri-parts/parametric/index.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/parametric/estimate_parametric_state/*"
+  to = "/docs/tutorials/quri-parts/parametric/parametric_states_and_estimators.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/parametric/:page/*"
+  to = "/docs/tutorials/quri-parts/parametric/:page.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/advanced/parametric/*"
+  to = "/docs/tutorials/quri-parts/parametric/index.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-algo/basics/time_evolution/*"
+  to = "/docs/tutorials/quri-algo/time_evolution.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-algo/basics/estimator/*"
+  to = "/docs/tutorials/quri-algo/time_evolution_estimators.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-vm/vm-introduction/*"
+  to = "/docs/tutorials/quri-vm/introduction.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/quantum-chemistry/introduction/*"
+  to = "/docs/howto/quantum-chemistry/introduction.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/quantum-chemistry/mo/*"
+  to = "/docs/howto/quantum-chemistry/molecular_orbitals.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/hamiltonian/*"
+  to = "/docs/howto/quantum-chemistry/molecular_hamiltonian.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/quantum-chemistry/hamiltonian/advanced_guide/*"
+  to = "/docs/howto/quantum-chemistry/advanced_electron_integrals.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/tutorials/quri-parts/quantum-chemistry/*"
+  to = "/docs/howto/quantum-chemistry/index.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-algo-vm/qaqc/*"
+  to = "/docs/howto/circuit_compilation/quantum_circuit_compilation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-algo-vm/qsci/*"
+  to = "/docs/howto/applying_algorithms/quantum_selected_configuration_interaction.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-algo-vm/spe/*"
+  to = "/docs/howto/applying_algorithms/statistical_phase_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-algo-vm/surface_code/*"
+  to = "/docs/reference/quantum_algorithms/surface_code.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-algo-vm/:page/*"
+  to = "/docs/howto/applying_algorithms/:page.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Basics/bell/*"
+  to = "/docs/reference/quantum_algorithms/bell_state.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Basics/toffoli/*"
+  to = "/docs/reference/quantum_algorithms/toffoli_gate.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Intermediate/DJ/*"
+  to = "/docs/reference/quantum_algorithms/deutsch_jozsa.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Intermediate/BV/*"
+  to = "/docs/reference/quantum_algorithms/bernstein_vazirani.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Intermediate/simons/*"
+  to = "/docs/reference/quantum_algorithms/simons_algorithm.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Intermediate/QFT/*"
+  to = "/docs/reference/quantum_algorithms/quantum_fourier_transform.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/Intermediate/QPE/*"
+  to = "/docs/reference/quantum_algorithms/quantum_phase_estimation.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/docs/examples/quri-parts/*"
+  to = "/docs/reference/quantum_algorithms/index.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/quick_start.html"
+  to = "/docs/tutorials/quick_start.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/quick_start"
+  to = "/docs/tutorials/quick_start.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ecosystem.html"
+  to = "/docs/reference/ecosystem.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/ecosystem"
+  to = "/docs/reference/ecosystem.html"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/release-notes/*"
+  to = "/docs/reference/release-notes/index.html"
+  status = 301
+  force = true

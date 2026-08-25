@@ -3,10 +3,18 @@ name: QURI SDK Package and release
 on:
   release:
     types: [published]
+  # Also run the build/test matrix on release PRs so failures surface before
+  # the release is published. Gated to `release-*` head branches via the
+  # pre-check job `if` (ordinary PRs skip the expensive matrix); no base-branch
+  # filter, so it still fires when a release PR is stacked on another branch
+  # (e.g. based on `drop-py39` rather than `main`). The version-check step and
+  # all `release-*` upload jobs stay release-only.
+  pull_request:
 
 jobs:
   pre-check:
     name: 🔎 Check project versions
+    if: github.event_name == 'release' || startsWith(github.head_ref, 'release-')
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,14 +26,19 @@ jobs:
         fetch-depth: 0
 
     - name: check manual versioning
+      # On a release PR the new tag does not exist yet, so this would compare
+      # against the previous tag and fail. Enforce it only at release time.
+      if: github.event_name == 'release'
       shell: bash
       run: |
         GIT_VERSION_TAG="$(git describe --tags --abbrev=0 | head -n 1)"
 
         # process pyproject.toml files
+        # Packages with dynamic versioning (uv-dynamic-versioning) have no
+        # static `version = "..."` line; skip them.
         for FILE in $(find . -name "pyproject.toml"); do
-          PYPROJECT_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
-          if [[ ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
+          PYPROJECT_VERSION="$(sed -ne 's/^version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          if [[ -n "$PYPROJECT_VERSION" && ! "$PYPROJECT_VERSION" = "0.0.0" && ! "v$PYPROJECT_VERSION" = $GIT_VERSION_TAG ]]; then
             echo "Version mismatch in $FILE; #PYPROJECT_VERSION != $GIT_VERSION_TAG" 1>&2
             false
           fi
@@ -33,7 +46,7 @@ jobs:
 
         # process Cargo.toml files
         for FILE in $(find . -name "Cargo.toml"); do
-          CARGO_VERSION="$(sed -ne 's/version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
+          CARGO_VERSION="$(sed -ne 's/^version = "\(.*\)"$/\1/p' "$FILE" | head -n 1)"
           if [[ ! "v$CARGO_VERSION" = $GIT_VERSION_TAG ]]; then
             echo "Version mismatch in $FILE; #CARGO_VERSION != $GIT_VERSION_TAG" 1>&2
             false
@@ -50,17 +63,6 @@ jobs:
       run:
         working-directory: quri-parts
     steps:
-      - name: Cache Poetry cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pypoetry
-          key: poetry-cache-${{ runner.os }}-3.11
-      - name: Cache Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-local-${{ runner.os }}-3.11
-
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v5
@@ -68,19 +70,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - run: python -m pip install --upgrade pip
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+      - run: python -m pip install --upgrade pip build
 
       - run: |
-          poetry env use 3.11
           mkdir -p dist
-          poetry run pip install --upgrade build
-          source $VENV
 
           # For sdist generation, only files under `packages/rust` or `rust` are needed.
           # To prevent errors, we remove some files of `quri-parts` package.
@@ -90,7 +83,7 @@ jobs:
           mv packages/rust/MANIFEST.in .
           rm -rf packages/algo packages/braket packages/chem packages/circuit packages/cirq packages/core packages/ionq packages/itensor packages/openfermion packages/openqasm packages/pyscf packages/qiskit packages/quantinuum packages/qulacs packages/stim packages/tket packages/qsub packages/qret packages/tensornetwork
           echo 'path = "packages/rust/Cargo.toml"' >> pyproject.toml
-          poetry run python -m build --sdist
+          python -m build --sdist
 
       - uses: actions/upload-artifact@v4
         with:
@@ -113,7 +106,7 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "11", "14" ]
+        python-version: [ "10", "14" ]
         # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
@@ -130,7 +123,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}${{ runner.os == 'Linux' && matrix.python-version == '14' && '-qulacs-mavx2-mfma-v1' || '' }}
           
       - uses: actions/checkout@v3
 
@@ -186,6 +179,10 @@ jobs:
           BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
+          # Qulacs has no cp314 wheel and defaults to -march=native on Linux.
+          if [[ "${{ runner.os }}" = "Linux" && "${{ matrix.python-version }}" = "14" ]]; then
+              export QULACS_OPT_FLAGS="-mavx2 -mfma"
+          fi
           pip install --upgrade pytest setuptools
           if [[ "${{ runner.os }}" = "Windows" ]]; then
               pip cache purge || true
@@ -199,15 +196,6 @@ jobs:
                 # We cannot run tests on native Windows, since pyscf does not support it.
                 continue
               fi
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_tket"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
-              continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
               continue
@@ -256,17 +244,6 @@ jobs:
       # Needed to avoid format error in Windows
       PYTHONUTF8: "1"
     steps:
-      - name: Cache Poetry cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pypoetry
-          key: poetry-cache-${{ runner.os }}-3.11
-      - name: Cache Packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.local
-          key: poetry-local-${{ runner.os }}-3.11
-
       - uses: actions/checkout@v3
 
       - uses: actions/setup-python@v5
@@ -275,12 +252,6 @@ jobs:
           python-version: 3.11
 
       - run: python -m pip install --upgrade pip build
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
 
       - if: runner.os != 'Linux'
         run: |
@@ -334,8 +305,8 @@ jobs:
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
             target: "x86_64-pc-windows-msvc"
-        python-version: [ "9", "10", "11", "12", "13", "14" ]
-        # Currentl, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
+        python-version: [ "10", "11", "12", "13", "14" ]
+        # Currently, qulacsvis does not support Python3.14&&Windows environment (ref: Qulacs-Osaka/qulacs-visualizer#138)
         exclude:
           - python-version: "14"
             system:
@@ -351,7 +322,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}${{ runner.os == 'Linux' && matrix.python-version == '14' && '-qulacs-mavx2-mfma-v1' || '' }}
 
       - uses: actions/checkout@v3
 
@@ -406,6 +377,10 @@ jobs:
           BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
+          # Qulacs has no cp314 wheel and defaults to -march=native on Linux.
+          if [[ "${{ runner.os }}" = "Linux" && "${{ matrix.python-version }}" = "14" ]]; then
+              export QULACS_OPT_FLAGS="-mavx2 -mfma"
+          fi
           pip install pytest
           if [[ "${{ runner.os }}" = "Windows" ]]; then
               pip cache purge || true
@@ -413,12 +388,18 @@ jobs:
           if [[ "${{ runner.os }}" = "Linux" ]]; then
               sudo apt install -y libjpeg-dev
           fi
+          # Collect every locally built wheel and install them in ONE pip pass.
+          # Installing them separately let a package's `quri-parts-* = "*"` dep
+          # resolve from PyPI before the matching local wheel was installed;
+          # since the local wheels are dev pre-releases, pip fell back to the
+          # last final release, shadowing the code under test. Passing
+          # all wheels together makes each explicit wheel satisfy the others'
+          # deps, so there is no PyPI fallback for quri-parts-* packages.
+          FILES=()
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-              pip install quri-parts/dist/quri_parts*.manylinux2014_x86_64.whl
+            FILES+=($(find quri-parts/dist -name 'quri_parts*.manylinux2014_x86_64.whl'))
           else
-            for FILE in "$(find quri-parts/dist -name 'quri_parts*.whl')"; do
-              pip install -v $FILE
-            done
+            FILES+=($(find quri-parts/dist -name 'quri_parts*.whl'))
           fi
           for FILE in $(find quri-parts/dist_py -name '*.whl'); do
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
@@ -427,24 +408,17 @@ jobs:
                 continue
               fi
             fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_tket"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qsub"* ]]; then
-              continue
-            fi
-            if [[ "3.${{matrix.python-version}}" = "3.9" && "$FILE" = *"quri_parts_qret"* ]]; then
-              continue
-            fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_braket"* ]]; then
               continue
             fi
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
               continue
             fi
-            # pyqret is not on PyPI; supply it from the QunaSys release feed.
-            pip install -v $FILE --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
+            FILES+=("$FILE")
           done
+          # pyqret is not on PyPI; supply it from the QunaSys release feed.
+          pip install -v "${FILES[@]}" \
+            --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
 
       - name: Run test
         shell: bash
@@ -475,28 +449,33 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: ./.github/actions/quri-parts/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.4.0'
+        version: "0.11.17"
         python-version: '3.10'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - shell: bash
       run: |
-        pip install setuptools
-        poetry env use 3.10
-        poetry self add setuptools
-        poetry self add "poetry-dynamic-versioning[plugin]"
+        # Resolve the dynamic version from git and bake it into the
+        # pyproject.toml fallback-version so that sdists built here carry the
+        # correct version even when built without git metadata.
+        VERSION="$(uvx dunamai from git --style pep440)"
+        echo "Resolved version: $VERSION"
         mkdir -p dist
         cp -f NOTICE quri_parts/
-        poetry build
+        sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
+        uv build --no-sources --out-dir dist
         cd packages
         for pkg in *
         do
           cd $pkg
           if [[ ! -e "Cargo.toml" ]]; then
             cp -f NOTICE quri_parts/$pkg/
-            poetry build
-            mv dist/* ../../dist
+            sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
+            uv build --no-sources --out-dir ../../dist
           fi
           cd ..
         done
@@ -563,18 +542,21 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: actions/setup-python@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
+        version: "0.11.17"
         python-version: '3.11'
-
-    - uses: ./.github/actions/quri-algo/setup
-
-    - run: |
-        poetry self add "poetry-dynamic-versioning[plugin]"
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - run: |
-        poetry env use python3.11
-        poetry build
+        # Bake the git-derived version into fallback-version so sdists carry
+        # the correct version when built without git metadata.
+        VERSION="$(uvx dunamai from git --style pep440)"
+        echo "Resolved version: $VERSION"
+        sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
+        uv build --no-sources --out-dir dist
 
     - uses: actions/upload-artifact@v4
       with:
@@ -616,17 +598,16 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: ./.github/actions/quri-vm/setup
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.8.0'
+        version: "0.11.17"
         python-version: '3.10'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
-    - run: |
-        poetry self add "poetry-dynamic-versioning[plugin]"
-
-    - run: |
-        poetry env use 3.10
-        poetry build
+    # quri-vm has a static version; no dynamic-versioning step needed.
+    - run: uv build --no-sources --out-dir dist
 
     - uses: actions/upload-artifact@v4
       with:
@@ -664,19 +645,23 @@ jobs:
         # Necessary to get tags for correct versioning
         fetch-depth: 0
 
-    - uses: ./.github/actions/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.4.0'
+        version: "0.11.17"
         python-version: '3.10'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - shell: bash
       run: |
-        pip install setuptools
-        poetry env use 3.10
-        poetry self add setuptools
-        poetry self add "poetry-dynamic-versioning[plugin]"
+        # Bake the git-derived version into fallback-version so sdists carry
+        # the correct version when built without git metadata.
+        VERSION="$(uvx dunamai from git --style pep440)"
+        echo "Resolved version: $VERSION"
+        sed -i "s/^fallback-version = .*/fallback-version = \"$VERSION\"/" pyproject.toml
         mkdir -p dist
-        poetry build
+        uv build --no-sources --out-dir dist
 
     - uses: actions/upload-artifact@v4
       with:

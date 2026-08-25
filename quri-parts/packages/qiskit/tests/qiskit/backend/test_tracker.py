@@ -13,11 +13,11 @@ from typing import Any
 from unittest.mock import MagicMock
 
 import pytest
-from qiskit_ibm_runtime.runtime_job import JobStatus, RuntimeJob
 
 from quri_parts.qiskit.backend.primitive import QiskitRuntimeSamplingJob
 from quri_parts.qiskit.backend.tracker import Tracker
 
+from ._qiskit_compat import JobStatus, RuntimeJob
 from .mock.ibm_runtime_service_mock import mock_get_backend
 
 
