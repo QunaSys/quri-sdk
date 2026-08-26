@@ -15,11 +15,13 @@ import pytest
 from openfermion.ops.representations.interaction_operator import InteractionOperator
 from pyscf import df, gto, scf
 from quri_parts.chem.mol import ActiveSpace
+from quri_parts.core.operator import get_sparse_matrix
 from quri_parts.core.operator.operator import Operator
 from quri_parts.openfermion.mol import (
     get_fermionic_hamiltonian,
     get_qubit_mapped_hamiltonian,
 )
+from quri_parts.openfermion.transforms import bravyi_kitaev
 from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
 
 from quri_algo.problem.models.mol import MolecularSystem
@@ -193,3 +195,77 @@ def test_active_space_with_frozen() -> None:
     assert aspace.n_active_ele == 8
     assert aspace.n_active_orb == 6
     assert mol.active_space is aspace  # cached
+
+
+H2_COORDS = "H 0 0 0; H 0 0 0.74"
+
+
+def test_from_pyscf_bare_mole_is_lazy() -> None:
+    """Constructing from_pyscf on a bare Mole must not run HF up front."""
+    mol = MolecularSystem.from_pyscf(gto.M(atom=H2_COORDS, basis="sto-3g"))
+    assert "hartree_fock" not in mol.__dict__
+    assert mol.active_space.n_active_orb == 2  # doesn't need HF
+    assert "hartree_fock" not in mol.__dict__
+    assert mol.hf_energy < 0  # now it runs
+    assert "hartree_fock" in mol.__dict__
+
+
+def test_from_pyscf_converged_mf_is_reused_not_rerun() -> None:
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    mol = MolecularSystem.from_pyscf(mf)
+    assert mol.hartree_fock is mf
+
+
+def test_from_pyscf_matches_default_constructor() -> None:
+    """The two constructors must converge on the same Hamiltonian/HF state."""
+    default = MolecularSystem(atom=H2_COORDS, basis="sto-3g")
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    wrapped = MolecularSystem.from_pyscf(mf)
+    assert compare_ops(
+        default.qubit_hamiltonian.qubit_hamiltonian,
+        wrapped.qubit_hamiltonian.qubit_hamiltonian,
+    )
+    assert default.hf_state.bits == wrapped.hf_state.bits == 0b0011
+
+
+def test_from_pyscf_rejects_unconverged_mf() -> None:
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g"))
+    mf.max_cycle = 0  # force non-convergence
+    mf.run(verbose=0)
+    with pytest.raises(RuntimeError):
+        MolecularSystem.from_pyscf(mf)
+
+
+def test_from_pyscf_rejects_uhf() -> None:
+    mf = scf.UHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    with pytest.raises(NotImplementedError):
+        MolecularSystem.from_pyscf(mf)
+
+
+def test_from_pyscf_active_space_override() -> None:
+    mf = scf.RHF(gto.M(atom=H2O_COORDS, basis="sto-3g")).run(verbose=0)
+    active_space = ActiveSpace(8, 6)
+    mol = MolecularSystem.from_pyscf(mf, active_space=active_space)
+    assert mol.active_space is active_space
+    ref_h = reference_qubit_hamiltonian(H2O_COORDS, frozen=[0])
+    assert compare_ops(mol.qubit_hamiltonian.qubit_hamiltonian, ref_h)
+
+
+def test_from_pyscf_hf_state_matches_mapping_for_non_jw() -> None:
+    """hf_state must be derived from the requested mapping's own state
+    mapper, not a Jordan-Wigner-shaped bit convention -- this is the bug
+    the from_pyscf helper this replaces had (see PR #297)."""
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    mol = MolecularSystem.from_pyscf(mf, fermion_qubit_mapping=bravyi_kitaev)
+    _, mapping = mol._qubit_op_and_mapping
+    expected = mapping.state_mapper([0, 1])
+    assert mol.hf_state.bits == expected.bits
+
+    jw = MolecularSystem.from_pyscf(mf)
+    bk_gse = np.linalg.eigvalsh(
+        get_sparse_matrix(mol.qubit_hamiltonian.qubit_hamiltonian).toarray()
+    )[0]
+    jw_gse = np.linalg.eigvalsh(
+        get_sparse_matrix(jw.qubit_hamiltonian.qubit_hamiltonian).toarray()
+    )[0]
+    assert abs(bk_gse - jw_gse) < 1e-8  # same physics, different mapping
