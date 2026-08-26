@@ -123,7 +123,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}
+          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}${{ runner.os == 'Linux' && matrix.python-version == '14' && '-qulacs-mavx2-mfma-v1' || '' }}
           
       - uses: actions/checkout@v3
 
@@ -179,6 +179,10 @@ jobs:
           BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
+          # Qulacs has no cp314 wheel and defaults to -march=native on Linux.
+          if [[ "${{ runner.os }}" = "Linux" && "${{ matrix.python-version }}" = "14" ]]; then
+              export QULACS_OPT_FLAGS="-mavx2 -mfma"
+          fi
           pip install --upgrade pytest setuptools
           if [[ "${{ runner.os }}" = "Windows" ]]; then
               pip cache purge || true
@@ -322,7 +326,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-v2-${{ runner.os }}-${{ matrix.system.target }}-py${{ matrix.python-version }}
+          key: pip-cache-v2-${{ runner.os }}-${{ matrix.system.target }}-py${{ matrix.python-version }}${{ matrix.system.target == 'x86_64-unknown-linux-gnu' && matrix.python-version == '14' && '-qulacs-mavx2-mfma-v1' || '' }}
 
       - uses: actions/checkout@v3
 
@@ -387,6 +391,10 @@ jobs:
           BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
+          # Qulacs has no cp314 wheel and defaults to -march=native on Linux x86_64.
+          if [[ "${{ matrix.system.target }}" = "x86_64-unknown-linux-gnu" && "${{ matrix.python-version }}" = "14" ]]; then
+              export QULACS_OPT_FLAGS="-mavx2 -mfma"
+          fi
           pip install pytest
           if [[ "${{ runner.os }}" = "Windows" ]]; then
               pip cache purge || true

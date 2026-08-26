@@ -10,5 +10,4 @@ exclude =
     .venv,
     build,
     dist,
-    target,
-    notebooks/.venv
+    target

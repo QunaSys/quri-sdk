@@ -102,8 +102,8 @@ doc = [
 # (https://github.com/astral-sh/uv/issues/13298); they are wired up as
 # editable path dependencies in [tool.uv.sources] instead.
 members = ["quri-parts", "quri-algo", "quri-vm"]
-# notebooks is a standalone project with its own uv.lock
-exclude = ["notebooks"]
+# docs is a standalone project with its own uv.lock
+exclude = ["docs"]
 
 [tool.uv.sources]
 quri-algo = { workspace = true }
