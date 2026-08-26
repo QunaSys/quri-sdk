@@ -14,10 +14,7 @@ on:
 jobs:
   pre-check:
     name: 🔎 Check project versions
-    if: >-
-      github.event_name == 'release' ||
-      startsWith(github.head_ref, 'release-') ||
-      github.head_ref == 'rust-linux-arm-wheel'
+    if: github.event_name == 'release' || startsWith(github.head_ref, 'release-')
     runs-on: ubuntu-latest
     defaults:
       run:
