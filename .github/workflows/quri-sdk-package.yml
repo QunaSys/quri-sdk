@@ -232,6 +232,8 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
+          - os: "ubuntu-24.04-arm"
+            target: "aarch64-unknown-linux-gnu"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -272,13 +274,13 @@ jobs:
         if: runner.os == 'Linux'
         uses: pypa/cibuildwheel@v2.23.2
         env:
-          CIBW_MANYLINUX_I686_IMAGE: manylinux2014
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-          CIBW_BUILD: "cp311-manylinux_i686 cp311-manylinux_x86_64"
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
+          CIBW_BUILD: "cp311-manylinux*"
           CIBW_BUILD_VERBOSITY: 1
           CIBW_BEFORE_ALL_LINUX: "yum install -y openssl-devel"
           CIBW_BEFORE_BUILD_LINUX: "pip3 install --upgrade keyrings.alt"
-          CIBW_ARCHS_LINUX: "auto"
+          CIBW_ARCHS_LINUX: "native"
           CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
         with:
           package-dir: quri-parts/packages/rust
@@ -301,6 +303,8 @@ jobs:
         system:
           - os: "ubuntu-latest"
             target: "x86_64-unknown-linux-gnu"
+          - os: "ubuntu-24.04-arm"
+            target: "aarch64-unknown-linux-gnu"
           - os: "macos-latest"
             target: "aarch64-apple-darwin"
           - os: "windows-latest"
@@ -322,7 +326,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: pip-cache-v2-${{ runner.os }}-py${{ matrix.python-version }}${{ runner.os == 'Linux' && matrix.python-version == '14' && '-qulacs-mavx2-mfma-v1' || '' }}
+          key: pip-cache-v2-${{ runner.os }}-${{ matrix.system.target }}-py${{ matrix.python-version }}${{ matrix.system.target == 'x86_64-unknown-linux-gnu' && matrix.python-version == '14' && '-qulacs-mavx2-mfma-v1' || '' }}
 
       - uses: actions/checkout@v3
 
@@ -335,6 +339,16 @@ jobs:
         with:
           name: quri-parts-packages-python
           path: quri-parts/dist_py
+
+      - name: Verify Linux aarch64 Rust wheel
+        if: matrix.system.target == 'aarch64-unknown-linux-gnu'
+        shell: bash
+        run: |
+          mapfile -t FILES < <(find quri-parts/dist -name 'quri_parts_rust*.manylinux*.whl')
+          [[ ${#FILES[@]} -eq 1 ]] || {
+            echo "Expected exactly one Linux aarch64 Rust wheel, found ${#FILES[@]}: ${FILES[*]}"
+            exit 1
+          }
 
       - uses: actions/setup-python@v5
         id: setup-python
@@ -377,8 +391,8 @@ jobs:
           BOOST_ROOT: ${{steps.install-boost.outputs.BOOST_ROOT}}
         shell: bash
         run: |
-          # Qulacs has no cp314 wheel and defaults to -march=native on Linux.
-          if [[ "${{ runner.os }}" = "Linux" && "${{ matrix.python-version }}" = "14" ]]; then
+          # Qulacs has no cp314 wheel and defaults to -march=native on Linux x86_64.
+          if [[ "${{ matrix.system.target }}" = "x86_64-unknown-linux-gnu" && "${{ matrix.python-version }}" = "14" ]]; then
               export QULACS_OPT_FLAGS="-mavx2 -mfma"
           fi
           pip install pytest
@@ -397,11 +411,15 @@ jobs:
           # deps, so there is no PyPI fallback for quri-parts-* packages.
           FILES=()
           if [[ "${{ runner.os }}" = "Linux" ]]; then
-            FILES+=($(find quri-parts/dist -name 'quri_parts*.manylinux2014_x86_64.whl'))
+            FILES+=($(find quri-parts/dist -name 'quri_parts*.manylinux*.whl'))
           else
             FILES+=($(find quri-parts/dist -name 'quri_parts*.whl'))
           fi
           for FILE in $(find quri-parts/dist_py -name '*.whl'); do
+            if [[ "${{ matrix.system.target }}" == "aarch64-unknown-linux-gnu" && "$FILE" = *"quri_parts_qret"* ]]; then
+              # pyqret does not publish a Linux aarch64 wheel.
+              continue
+            fi
             if [[ "${{ matrix.system.os }}" == "windows-latest" ]]; then
               if [[ "$FILE" = *"quri_parts_pyscf"* || "$FILE" = *"quri_parts_itensor"* ]]; then
                 # We cannot run tests on native Windows, since pyscf does not support it.
@@ -428,6 +446,12 @@ jobs:
               pytest quri-parts/packages --ignore=quri-parts/packages/{braket,pyscf,itensor,qiskit}
             else
               pytest quri-parts/packages --ignore=quri-parts/packages/{pyscf,itensor}
+            fi
+          elif [[ "${{ matrix.system.target }}" == "aarch64-unknown-linux-gnu" ]]; then
+            if [[ "${{ matrix.python-version }}" = "14" ]]; then
+              pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit,qret}
+            else
+              pytest quri-parts/packages --ignore=quri-parts/packages/qret
             fi
           elif [[ "${{ matrix.python-version }}" = "14" ]]; then
             pytest quri-parts/packages --ignore=quri-parts/packages/{braket,qiskit}
