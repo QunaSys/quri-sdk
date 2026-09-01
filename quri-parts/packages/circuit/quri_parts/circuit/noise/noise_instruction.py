@@ -589,9 +589,10 @@ def ThermalRelaxationNoise(
             ]
         )
 
-        eigvals, eigvecs = la.eig(choi_matrix)
-        d_matrix = np.sqrt(np.diag(eigvals))
-        res = np.dot(np.dot(eigvecs, d_matrix), la.inv(eigvecs))
+        eigvals, eigvecs = la.eigh(choi_matrix)
+        # Clamp roundoff-scale negatives of the positive semidefinite Choi matrix.
+        d_matrix = np.diag(np.sqrt(np.clip(eigvals, 0.0, None)))
+        res = eigvecs @ d_matrix @ eigvecs.T
 
         return (
             np.transpose(res[:, 0].reshape(2, 2)).tolist(),
