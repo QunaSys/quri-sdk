@@ -188,7 +188,7 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
             call_count = root.subtree_calls.get(sid, 0)
             entries.append(
                 SubwiseProfileEntry(
-                    source_op=profile.sub.source_op,
+                    source_op=profile.sub.source_op_id,
                     call_count=call_count,
                     qubit_counts=_qubit_counts(profile),
                     gate_counts=_gate_counts(profile, call_count),

@@ -59,7 +59,7 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
         self._order.append(sid)
         # A sub is named by the op calling it; only the root has no call
         # site, and falls back to the op it was resolved from.
-        self._nodes.setdefault(sid, sub.source_op)
+        self._nodes.setdefault(sid, sub.source_op_id)
         callees: list[Ident] = []
         for mop, _, _ in sub.instructions:
             if is_subcall(mop) and mop.sub is not None:

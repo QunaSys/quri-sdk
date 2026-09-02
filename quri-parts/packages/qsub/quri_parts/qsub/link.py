@@ -48,7 +48,7 @@ def link(sub: MachineSub, calltable: CallTable) -> MachineSub:
         sub.aux_qubits,
         sub.aux_registers,
         tuple(instrs),
-        sub.source_op,
+        sub.source_op_id,
     )
 
 
