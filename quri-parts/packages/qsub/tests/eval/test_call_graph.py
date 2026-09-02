@@ -80,6 +80,9 @@ def test_shared_sub_across_parents() -> None:
         B.id: [C.id],
         C.id: [],
     }
+    # Nodes are reported in first-entry order, which is depth-first: C is
+    # reached through A before B is entered. Dict equality above ignores it.
+    assert list(graph) == [None, A.id, C.id, B.id]
 
 
 def test_root_is_named_via_compile() -> None:

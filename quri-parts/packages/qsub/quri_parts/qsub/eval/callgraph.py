@@ -36,14 +36,15 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
         self.reset()
 
     def reset(self) -> None:
-        # Insertion order is the order of the reported nodes.
-        self._callees: dict[SubId, list[Ident]] = {}
+        # Nodes are reported in the order subs are first entered, so both
+        # dicts rely on insertion order.
+        self._caller_to_calees: dict[SubId, list[Ident]] = {}
         self._nodes: dict[SubId, Optional[Ident]] = {}
-        self._order: list[SubId] = []
-        self._result: dict[Optional[Ident], list[Ident]] = {}
 
     def result(self) -> dict[Optional[Ident], list[Ident]]:
-        return self._result
+        return {
+            self._nodes[sid]: callees for sid, callees in self._caller_to_calees.items()
+        }
 
     def enter_sub(
         self,
@@ -53,10 +54,9 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
         call_stack: list[SubId],
     ) -> bool:
         sid = sub.sub_id
-        if sid in self._callees:
+        if sid in self._caller_to_calees:
             return False
 
-        self._order.append(sid)
         # A sub is named by the op calling it; only the root has no call
         # site, and falls back to the op it was resolved from.
         self._nodes.setdefault(sid, sub.source_op_id)
@@ -66,7 +66,7 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
                 self._nodes[mop.sub.sub_id] = mop.op.id
                 if mop.op.id not in callees:
                     callees.append(mop.op.id)
-        self._callees[sid] = callees
+        self._caller_to_calees[sid] = callees
 
         return True
 
@@ -82,5 +82,4 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
     def exit_sub(
         self, sub: MachineSub, enter_sub: bool, call_stack: list[SubId]
     ) -> None:
-        if len(call_stack) == 1:
-            self._result = {self._nodes[sid]: self._callees[sid] for sid in self._order}
+        pass
