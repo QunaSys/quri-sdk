@@ -333,13 +333,13 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 )
             jobs_list.append(qiskit_runtime_sampling_job)
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
+    def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
 
         # Distribute shot count and execution time
         shot_dist = distribute_backend_shots(
-            n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
+            shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
         (
             single_batch_execution_time,
