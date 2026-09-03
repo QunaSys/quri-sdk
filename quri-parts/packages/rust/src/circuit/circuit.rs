@@ -200,9 +200,25 @@ impl ImmutableQuantumCircuit {
 
     #[pyo3(name = "__repr__")]
     fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
-        let circuit_drawer = PyModule::import(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
-        let repr = circuit_drawer.getattr("circuit_to_string")?.call1((slf,))?;
-        repr.extract::<String>()
+        // `__repr__` must never raise (it can be invoked implicitly by logging,
+        // debuggers, etc.), so fall back to a compact representation if the
+        // ASCII-art drawer is unavailable (e.g. quri-parts-rust used standalone)
+        // or otherwise fails.
+        let drawn = PyModule::import(slf.py(), "quri_parts.circuit.utils.circuit_drawer")
+            .and_then(|m| m.getattr("circuit_to_string"))
+            .and_then(|f| f.call1((slf,)))
+            .and_then(|r| r.extract::<String>());
+        match drawn {
+            Ok(s) => Ok(s),
+            Err(_) => {
+                let borrowed = slf.borrow();
+                Ok(format!(
+                    "<QuantumCircuit qubit_count={} gate_count={}>",
+                    borrowed.qubit_count,
+                    borrowed.gates.0.len()
+                ))
+            }
+        }
     }
 }
 

@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
 from typing import Any
 
 import pytest
@@ -140,3 +141,20 @@ def test_circuit_to_string_zero_qubits() -> None:
     circuit = QuantumCircuit(0)
     assert circuit_to_string(circuit) == "<QuantumCircuit qubit_count=0>"
     assert repr(circuit) == "<QuantumCircuit qubit_count=0>"
+
+
+def test_repr_falls_back_when_drawer_unavailable() -> None:
+    # Regression test: quri-parts-rust can be used without the quri-parts-circuit
+    # package installed, in which case the ASCII-art drawer module is missing.
+    # __repr__ must not raise in that case.
+    circuit = QuantumCircuit(2)
+    circuit.add_X_gate(0)
+
+    module_name = "quri_parts.circuit.utils.circuit_drawer"
+    original = sys.modules.pop(module_name)
+    sys.modules[module_name] = None  # type: ignore[assignment]
+    try:
+        assert repr(circuit) == "<QuantumCircuit qubit_count=2 gate_count=1>"
+    finally:
+        del sys.modules[module_name]
+        sys.modules[module_name] = original
