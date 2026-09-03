@@ -197,6 +197,7 @@ def _generate_gate_aa(
             " is modified to 999.",
             Warning,
         )
+        gate_idx = 999
     t_idxs = sorted(gate.target_indices)
     c_idxs = sorted(gate.control_indices)
     gate_string: list[str] = []

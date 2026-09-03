@@ -21,7 +21,11 @@ from quri_parts.circuit import (
     UnitaryMatrix,
     X,
 )
-from quri_parts.circuit.utils.circuit_drawer import _generate_gate_aa, draw_circuit
+from quri_parts.circuit.utils.circuit_drawer import (
+    _generate_gate_aa,
+    circuit_to_string,
+    draw_circuit,
+)
 
 
 def test_draw_empty_circuit(capsys: pytest.CaptureFixture[Any]) -> None:
@@ -111,4 +115,20 @@ def test_generate_gate_aa() -> None:
     )
 
     with pytest.warns(Warning):
-        _generate_gate_aa(X(0), gate_idx=1000)
+        expected = ["  ___  ", " | X | ", "-|999|-", " |___| "]
+        assert _generate_gate_aa(X(0), gate_idx=1000) == expected
+
+
+def test_circuit_to_string_many_gates() -> None:
+    # Regression test: a gate index beyond 999 used to widen the gate cell
+    # past its fixed width and raise a ValueError when rendered.
+    circuit = QuantumCircuit(1)
+    for _ in range(1001):
+        circuit.add_X_gate(0)
+
+    with pytest.warns(Warning):
+        result = circuit_to_string(circuit)
+    assert result
+
+    with pytest.warns(Warning):
+        assert repr(circuit)
