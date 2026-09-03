@@ -170,7 +170,12 @@ def circuit_to_string(
     line_length: int = 80,
 ) -> str:
     """Circuit drawer which returns given circuit as an ASCII art string."""
-    return "\n".join(_render_circuit_lines(circuit, line_length))
+    lines = _render_circuit_lines(circuit, line_length)
+    if not lines:
+        # e.g. a 0-qubit circuit has no wires to draw; fall back to a compact,
+        # non-empty representation so it isn't mistaken for an empty string.
+        return f"<QuantumCircuit qubit_count={circuit.qubit_count}>"
+    return "\n".join(lines)
 
 
 def draw_circuit(

@@ -132,3 +132,11 @@ def test_circuit_to_string_many_gates() -> None:
 
     with pytest.warns(Warning):
         assert repr(circuit)
+
+
+def test_circuit_to_string_zero_qubits() -> None:
+    # Regression test: a 0-qubit circuit used to render as "", indistinguishable
+    # from an empty list when nested, e.g. repr([circuit]) == "[]".
+    circuit = QuantumCircuit(0)
+    assert circuit_to_string(circuit) == "<QuantumCircuit qubit_count=0>"
+    assert repr(circuit) == "<QuantumCircuit qubit_count=0>"
