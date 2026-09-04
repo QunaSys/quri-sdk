@@ -131,8 +131,9 @@ def test_circuit_to_string_many_gates() -> None:
         result = circuit_to_string(circuit)
     assert result
 
-    with pytest.warns(Warning):
-        assert repr(circuit)
+    # __repr__ skips the (very wide) full ASCII drawing for circuits this
+    # large and returns a compact representation instead, without warning.
+    assert repr(circuit) == "<QuantumCircuit qubit_count=1 gate_count=1001>"
 
 
 def test_circuit_to_string_zero_qubits() -> None:
