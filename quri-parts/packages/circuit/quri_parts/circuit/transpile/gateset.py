@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Gateset (:mod:`quri_parts.circuit.transpile.gateset`)
+========================================================
+
+Transpilers that convert gate sets (e.g. Clifford gates,
+rotation axes) to target-native equivalents.
+
+Key classes (for quick orientation):
+
+- :class:`CliffordConversionTranspiler` -- rewrite Clifford gates to a target set
+- :class:`RZ2RXRYTranspiler` -- RZ to RX + RY
+- :class:`RY2RXRZTranspiler` -- RY to RX + RZ
+- :class:`RX2RYRZTranspiler` -- RX to RY + RZ
+"""
+
+
 from collections.abc import Iterable, Mapping, Sequence
 from functools import lru_cache
 from math import pi

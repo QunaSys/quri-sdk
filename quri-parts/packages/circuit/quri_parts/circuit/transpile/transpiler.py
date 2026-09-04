@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Transpiler (:mod:`quri_parts.circuit.transpile.transpiler`)
+==============================================================
+
+Base protocols and combinators for composing circuit
+transpilation passes.
+
+Key classes (for quick orientation):
+
+- :class:`CircuitTranspilerProtocol` -- callable protocol for transpilers
+- :class:`SequentialTranspiler` -- chain transpilers in sequence
+- :class:`GateDecomposer` -- per-gate decomposition base class
+- :class:`GateKindDecomposer` -- gate-kind-based decomposition base class
+"""
+
+
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Callable, Protocol

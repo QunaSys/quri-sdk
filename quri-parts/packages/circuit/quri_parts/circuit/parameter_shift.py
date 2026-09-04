@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Parameter shift (:mod:`quri_parts.circuit.parameter_shift`)
+==============================================================
+
+Data structures for parameter-shift gradient rules applied
+to parametric quantum circuits.
+
+Key classes (for quick orientation):
+
+- :class:`ParameterShiftsAndCoef` -- shift vector paired with its coefficient
+- :class:`ShiftedParameters` -- collection of shifts for one parameter
+"""
+
+
 import math
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass
