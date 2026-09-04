@@ -17,6 +17,7 @@ from quri_parts.circuit import (
     CNOT,
     RZ,
     SWAP,
+    ParametricQuantumCircuit,
     PauliRotation,
     QuantumCircuit,
     UnitaryMatrix,
@@ -151,11 +152,18 @@ def test_repr_falls_back_when_drawer_unavailable() -> None:
     circuit = QuantumCircuit(2)
     circuit.add_X_gate(0)
 
+    parametric_circuit = ParametricQuantumCircuit(2)
+    parametric_circuit.add_ParametricRX_gate(0)
+
     module_name = "quri_parts.circuit.utils.circuit_drawer"
     original = sys.modules.pop(module_name)
     sys.modules[module_name] = None  # type: ignore[assignment]
     try:
         assert repr(circuit) == "<QuantumCircuit qubit_count=2 gate_count=1>"
+        assert (
+            repr(parametric_circuit)
+            == "<ParametricQuantumCircuit qubit_count=2 gate_count=1>"
+        )
     finally:
         del sys.modules[module_name]
         sys.modules[module_name] = original

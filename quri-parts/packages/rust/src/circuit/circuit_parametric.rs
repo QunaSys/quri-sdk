@@ -440,9 +440,15 @@ impl ImmutableParametricQuantumCircuit {
 
     #[pyo3(name = "__repr__")]
     fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
-        let circuit_drawer = PyModule::import(slf.py(), "quri_parts.circuit.utils.circuit_drawer")?;
-        let repr = circuit_drawer.getattr("circuit_to_string")?.call1((slf,))?;
-        repr.extract::<String>()
+        let borrowed = slf.borrow();
+        let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
+        drop(borrowed);
+        crate::circuit::circuit_repr(
+            slf.as_any(),
+            "ParametricQuantumCircuit",
+            qubit_count,
+            gate_count,
+        )
     }
 
     #[pyo3(name = "__hash__")]
