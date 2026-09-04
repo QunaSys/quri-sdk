@@ -443,12 +443,7 @@ impl ImmutableParametricQuantumCircuit {
         let borrowed = slf.borrow();
         let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
         drop(borrowed);
-        crate::circuit::circuit_repr(
-            slf.as_any(),
-            "ParametricQuantumCircuit",
-            qubit_count,
-            gate_count,
-        )
+        crate::circuit::circuit_repr(slf.as_any(), qubit_count, gate_count)
     }
 
     #[pyo3(name = "__hash__")]

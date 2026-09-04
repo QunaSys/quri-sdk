@@ -203,7 +203,7 @@ impl ImmutableQuantumCircuit {
         let borrowed = slf.borrow();
         let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
         drop(borrowed);
-        crate::circuit::circuit_repr(slf.as_any(), "QuantumCircuit", qubit_count, gate_count)
+        crate::circuit::circuit_repr(slf.as_any(), qubit_count, gate_count)
     }
 }
 

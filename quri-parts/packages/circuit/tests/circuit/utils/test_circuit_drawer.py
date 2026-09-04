@@ -167,3 +167,21 @@ def test_repr_falls_back_when_drawer_unavailable() -> None:
     finally:
         del sys.modules[module_name]
         sys.modules[module_name] = original
+
+
+def test_compact_repr_reflects_actual_class() -> None:
+    # The compact fallback should name the instance's actual (sub)class,
+    # e.g. distinguish a frozen ImmutableQuantumCircuit from QuantumCircuit.
+    circuit = QuantumCircuit(2)
+    circuit.add_X_gate(0)
+    frozen = circuit.freeze()
+
+    module_name = "quri_parts.circuit.utils.circuit_drawer"
+    original = sys.modules.pop(module_name)
+    sys.modules[module_name] = None  # type: ignore[assignment]
+    try:
+        assert repr(circuit) == "<QuantumCircuit qubit_count=2 gate_count=1>"
+        assert repr(frozen) == "<ImmutableQuantumCircuit qubit_count=2 gate_count=1>"
+    finally:
+        del sys.modules[module_name]
+        sys.modules[module_name] = original
