@@ -56,7 +56,7 @@ from .gate import ParametricQuantumGate, QuantumGate
 H = H
 
 #: S Gate, or sqrt(Z) gate represented by matrix
-#: :math:`\begin{pmatrix} 1 & 0 \\ 0 & i \end{pmatrix}
+#: :math:`\begin{pmatrix} 1 & 0 \\ 0 & i \end{pmatrix}`
 S = S
 #: Sdag Gate, conjugate of S gate represented by matrix
 #: :math:`\begin{pmatrix} 1 & 0 \\ 0 & -i \end{pmatrix}`
