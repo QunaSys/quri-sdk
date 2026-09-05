@@ -95,8 +95,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         backend: A Qiskit :class:`qiskit_ibm_runtime.ibm_backend` that
             interfaces with IBM quantum backend.
         service: A Qiskit
-        :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
-        that interacts with the Qiskit Runtime service.
+            :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
+            that interacts with the Qiskit Runtime service.
         circuit_converter: A function converting
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.

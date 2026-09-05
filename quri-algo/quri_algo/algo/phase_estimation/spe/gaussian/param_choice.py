@@ -91,7 +91,7 @@ def get_recommended_gaussian_parameter(
 ) -> tuple[GaussianParam, int]:
     r"""The recommended parameters to execute the Gaussian SPE.
 
-    Reference:
+    References:
     Guoming Wang, Daniel Stilck França, Ruizhe Zhang, Shuchen Zhu, Peter D. Johnson
         Quantum algorithm for ground state energy estimation using circuit depth with
         exponentially improved dependence on precision
