@@ -14,7 +14,7 @@ from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 from qiskit.providers.backend import Backend, BackendV2
 
 try:
-    # BackendV1 was removed in qiskit 2.0 (qiskit 1.x / Python <3.14).
+    # BackendV1 was removed in qiskit 2.0.
     from qiskit.providers.backend import BackendV1
 
     _SUPPORTED_BACKENDS: tuple[type, ...] = (BackendV1, BackendV2)
