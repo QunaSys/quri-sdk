@@ -86,9 +86,9 @@ class LBFGS(Optimizer):
             :math:`||g||_{\infty} = \max\{|g_1|, |g_2|, \ldots, |g_n|\}`
 
     References:
-        [1]: https://github.com/scipy/scipy/blob/master/scipy/optimize/optimize.py
-        [2]: Jorge Nocedal and Stephen J. Wright.
-            Numerical Optimization (Springer, New York, 2006).
+        - [1] https://github.com/scipy/scipy/blob/master/scipy/optimize/optimize.py
+        - [2] Jorge Nocedal and Stephen J. Wright. Numerical Optimization
+          (Springer, New York, 2006).
     """
 
     def __init__(

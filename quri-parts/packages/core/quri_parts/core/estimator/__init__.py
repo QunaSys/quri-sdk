@@ -601,13 +601,13 @@ def create_general_estimator_from_estimator(
     :class:`QuantumEstimator`.
 
     Note:
-    - The concurrencies of the :class:`ConcurrentQuantumEstimaror` and
-      `ConcurrentParametricQuantumEstimaror` will be set to 1 when a
-      :class:`GeneralQuantumEstimator` is created with this function.
-    - When circuit conversion is involved in the estimator execution, the
-      parametric estimator created from this function will bind the parameter
-      first, and then convert the bound circuit every time the patametric estimator
-      is called.
+        - The concurrencies of the :class:`ConcurrentQuantumEstimaror` and
+          `ConcurrentParametricQuantumEstimaror` will be set to 1 when a
+          :class:`GeneralQuantumEstimator` is created with this function.
+        - When circuit conversion is involved in the estimator execution, the
+          parametric estimator created from this function will bind the parameter
+          first, and then convert the bound circuit every time the patametric
+          estimator is called.
     """
     concurrent_estimator = create_concurrent_estimator_from_estimator(estimator)
     parametric_estimator: ParametricQuantumEstimator[
@@ -650,10 +650,10 @@ def create_general_estimator_from_concurrent_estimator(
     :class:`ConcurrentQuantumEstimator`.
 
     Note:
-    - When circuit conversion is involved in the estimator execution, the
-      parametric estimator created from this function will bind the parameter
-      first, and then convert the bound circuit every time the patametric estimator
-      is called.
+        - When circuit conversion is involved in the estimator execution, the
+          parametric estimator created from this function will bind the parameter
+          first, and then convert the bound circuit every time the patametric
+          estimator is called.
     """
     estimator = create_estimator_from_concurrent_estimator(concurrent_estimator)
     parametric_estimator: ParametricQuantumEstimator[
