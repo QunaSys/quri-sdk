@@ -71,6 +71,12 @@ class ImmutableLinearMappedParametricQuantumCircuit(ParametricQuantumCircuitProt
         return self._circuit.freeze()
 
     def __repr__(self) -> str:
+        gate_count = len(self.gates)
+        if gate_count > 1000:
+            return (
+                f"<{type(self).__name__} qubit_count={self.qubit_count} "
+                f"gate_count={gate_count}>"
+            )
         return circuit_to_string(self)
 
     def get_mutable_copy(self) -> "LinearMappedParametricQuantumCircuit":
