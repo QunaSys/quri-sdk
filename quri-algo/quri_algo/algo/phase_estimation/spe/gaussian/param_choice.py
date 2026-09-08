@@ -92,9 +92,9 @@ def get_recommended_gaussian_parameter(
     r"""The recommended parameters to execute the Gaussian SPE.
 
     References:
-    Guoming Wang, Daniel Stilck França, Ruizhe Zhang, Shuchen Zhu, Peter D. Johnson
-        Quantum algorithm for ground state energy estimation using circuit depth with
-        exponentially improved dependence on precision
+        Guoming Wang, Daniel Stilck França, Ruizhe Zhang, Shuchen Zhu, and
+        Peter D. Johnson, *Quantum algorithm for ground state energy estimation
+        using circuit depth with exponentially improved dependence on precision*,
         Quantum 7, 1167 (2023).
 
     Args:
