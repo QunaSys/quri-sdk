@@ -13,9 +13,10 @@ from quri_parts.qsub.register import QRegSpec
 from quri_parts.qsub.sub import SubBuilder
 
 
-def test_nested_calls_dedupe_repeats() -> None:
+def test_nested_calls_count_repeats() -> None:
     """root -> G (x2) -> H (x2): repeated calls of the same sub contribute a
-    single edge, and primitives do not appear as nodes."""
+    single edge carrying the per-invocation call count, and primitives do not
+    appear as nodes."""
     ns = NameSpace("test_nested")
     G = Op.from_qubit_count(Ident(ns, "G"), 2)
     H = Op.from_qubit_count(Ident(ns, "H"), 2)
@@ -39,7 +40,7 @@ def test_nested_calls_dedupe_repeats() -> None:
     linked = Linker({G: codegen.lower(gsub), H: codegen.lower(hsub)}).link(msub)
 
     graph = Evaluator(CallGraphEvaluatorHooks()).run(linked)
-    assert graph == {None: [G.id], G.id: [H.id], H.id: []}
+    assert graph == {None: {G.id: 2}, G.id: {H.id: 2}, H.id: {}}
 
 
 def test_shared_sub_across_parents() -> None:
@@ -75,10 +76,10 @@ def test_shared_sub_across_parents() -> None:
 
     graph = Evaluator(CallGraphEvaluatorHooks()).run(linked)
     assert graph == {
-        None: [A.id, B.id, C.id],
-        A.id: [C.id],
-        B.id: [C.id],
-        C.id: [],
+        None: {A.id: 1, B.id: 1, C.id: 1},
+        A.id: {C.id: 1},
+        B.id: {C.id: 1},
+        C.id: {},
     }
     # Nodes are reported in first-entry order, which is depth-first: C is
     # reached through A before B is entered. Dict equality above ignores it.
@@ -107,7 +108,7 @@ def test_root_is_named_via_compile() -> None:
     compiled = compile(Twice(2), (std.Toffoli,))
 
     graph = Evaluator(CallGraphEvaluatorHooks()).run(compiled)
-    assert graph == {Twice(2).id: []}
+    assert graph == {Twice(2).id: {}}
 
 
 def test_parametric_sub_node_per_parameter() -> None:
@@ -133,9 +134,9 @@ def test_parametric_sub_node_per_parameter() -> None:
 
     graph = Evaluator(CallGraphEvaluatorHooks()).run(compiled)
     assert graph == {
-        Chain(3).id: [Chain(2).id],
-        Chain(2).id: [Chain(1).id],
-        Chain(1).id: [],
+        Chain(3).id: {Chain(2).id: 1},
+        Chain(2).id: {Chain(1).id: 1},
+        Chain(1).id: {},
     }
 
 
@@ -165,7 +166,7 @@ def test_subs_sharing_a_local_name_stay_distinct() -> None:
 
     graph = Evaluator(CallGraphEvaluatorHooks()).run(linked)
     assert graph == {
-        None: [F1.id, F2.id],
-        F1.id: [],
-        F2.id: [],
+        None: {F1.id: 1, F2.id: 1},
+        F1.id: {},
+        F2.id: {},
     }

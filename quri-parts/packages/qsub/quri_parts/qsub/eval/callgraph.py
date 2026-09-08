@@ -18,12 +18,13 @@ from ..qubit import Qubit
 from ..register import Register
 
 
-class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]):
+class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], dict[Ident, int]]]):
     """Report the call graph of the evaluated sub as an adjacency mapping.
 
-    Each key is a caller sub and its value lists the distinct subs it
-    calls directly, in first-call order; subs calling no other sub map
-    to an empty list. Nodes are op ``Ident``\\ s, the same identity
+    Each key is a caller sub and its value maps each sub it calls
+    directly to the number of those calls per caller invocation, in
+    first-call order; subs calling no other sub map to an empty dict.
+    Nodes are op ``Ident``\\ s, the same identity
     :class:`SubwiseProfileEntry` reports as ``source_op``, so the two
     reports join on them; use :meth:`Ident.to_str` for a display name.
     The key is ``None`` for a root sub whose source op is unknown (the
@@ -38,10 +39,10 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
     def reset(self) -> None:
         # Nodes are reported in the order subs are first entered, so both
         # dicts rely on insertion order.
-        self._caller_to_calees: dict[SubId, list[Ident]] = {}
+        self._caller_to_calees: dict[SubId, dict[Ident, int]] = {}
         self._nodes: dict[SubId, Optional[Ident]] = {}
 
-    def result(self) -> dict[Optional[Ident], list[Ident]]:
+    def result(self) -> dict[Optional[Ident], dict[Ident, int]]:
         return {
             self._nodes[sid]: callees for sid, callees in self._caller_to_calees.items()
         }
@@ -60,12 +61,11 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], list[Ident]]]
         # A sub is named by the op calling it; only the root has no call
         # site, and falls back to the op it was resolved from.
         self._nodes.setdefault(sid, sub.source_op_id)
-        callees: list[Ident] = []
+        callees: dict[Ident, int] = {}
         for mop, _, _ in sub.instructions:
             if is_subcall(mop) and mop.sub is not None:
                 self._nodes[mop.sub.sub_id] = mop.op.id
-                if mop.op.id not in callees:
-                    callees.append(mop.op.id)
+                callees[mop.op.id] = callees.get(mop.op.id, 0) + 1
         self._caller_to_calees[sid] = callees
 
         return True

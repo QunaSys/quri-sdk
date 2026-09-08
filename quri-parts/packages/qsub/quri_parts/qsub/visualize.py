@@ -435,7 +435,7 @@ def draw(
 
 
 def _call_graph_depths(
-    graph: Mapping[Optional[Ident], Sequence[Ident]],
+    graph: Mapping[Optional[Ident], Mapping[Ident, int]],
 ) -> dict[Optional[Ident], int]:
     """Layer each node at its longest path from a root so every edge points to
     a strictly lower layer."""
@@ -460,7 +460,7 @@ def _call_graph_depths(
 
 
 def _call_graph_positions(
-    graph: Mapping[Optional[Ident], Sequence[Ident]],
+    graph: Mapping[Optional[Ident], Mapping[Ident, int]],
 ) -> dict[Optional[Ident], tuple[float, float]]:
     depths = _call_graph_depths(graph)
     layers: dict[int, list[Optional[Ident]]] = {}
@@ -505,7 +505,7 @@ def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> s
 
 
 def draw_call_graph(
-    graph: Mapping[Optional[Ident], Sequence[Ident]],
+    graph: Mapping[Optional[Ident], Mapping[Ident, int]],
     profile: Optional[Sequence[SubwiseProfileEntry]] = None,
     *,
     filename: Optional[str] = None,
@@ -513,12 +513,12 @@ def draw_call_graph(
     """Draw a call graph produced by :class:`CallGraphEvaluatorHooks`, laid out
     top-down by call depth.
 
-    Pass the report of :class:`SubwiseProfileEvaluatorHooks` for the
-    same compiled sub as ``profile`` to annotate each node with its call
-    count and cumulative gate counts (the two reports join on the op
-    ``Ident``: graph nodes against profile ``source_op``),
-    and each edge to a single-caller callee with the number of calls per
-    caller invocation, highlighted when greater than one.
+    Each edge is annotated with its number of calls per caller
+    invocation, highlighted when greater than one. Pass the report of
+    :class:`SubwiseProfileEvaluatorHooks` for the same compiled sub as
+    ``profile`` to also annotate each node with its call count and
+    cumulative gate counts (the two reports join on the op ``Ident``:
+    graph nodes against profile ``source_op``).
     """
     entries: Mapping[Optional[Ident], SubwiseProfileEntry] = (
         {e.source_op: e for e in profile} if profile is not None else {}
@@ -530,17 +530,6 @@ def draw_call_graph(
         ax.axis("off")
         plt.close(fig)
         return fig
-
-    # Calls per caller invocation, as the ratio of the call counts — only
-    # derivable for callees with a single caller.
-    in_degree = Counter(callee for callees in graph.values() for callee in callees)
-    multiplicities = {
-        (caller, callee): entries[callee].call_count // entries[caller].call_count
-        for caller, callees in graph.items()
-        if caller in entries and entries[caller].call_count > 0
-        for callee in callees
-        if callee in entries and in_degree[callee] == 1
-    }
 
     names = _call_graph_node_names(positions)
     labels = {
@@ -572,7 +561,7 @@ def draw_call_graph(
             bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray"),
         )
     for caller, callees in graph.items():
-        for callee in callees:
+        for callee, m in callees.items():
             (x0, y0), (x1, y1) = positions[caller], positions[callee]
             ax.annotate(
                 "",
@@ -580,16 +569,14 @@ def draw_call_graph(
                 xytext=(x0, y0 - 0.38),
                 arrowprops=dict(arrowstyle="-|>", color="gray"),
             )
-            m = multiplicities.get((caller, callee))
-            if m is not None:
-                ax.text(
-                    (x0 + x1) / 2 + 0.1,
-                    (y0 + y1) / 2,
-                    f"x{m}",
-                    ha="left",
-                    va="center",
-                    color="tab:red" if m > 1 else "gray",
-                )
+            ax.text(
+                (x0 + x1) / 2 + 0.1,
+                (y0 + y1) / 2,
+                f"x{m}",
+                ha="left",
+                va="center",
+                color="tab:red" if m > 1 else "gray",
+            )
     ax.set_xlim(min(xs) - 1, max(xs) + 1)
     ax.set_ylim(min(ys) - 0.5, max(ys) + 0.5)
     ax.axis("off")

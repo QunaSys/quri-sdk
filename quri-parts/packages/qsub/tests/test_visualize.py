@@ -343,18 +343,26 @@ class TestDrawCallGraph:
 
     def test_depths_use_longest_path(self) -> None:
         R, A, C = _ident("R"), _ident("A"), _ident("C")
-        graph: dict[Optional[Ident], list[Ident]] = {R: [A, C], A: [C], C: []}
+        graph: dict[Optional[Ident], dict[Ident, int]] = {
+            R: {A: 1, C: 1},
+            A: {C: 1},
+            C: {},
+        }
         assert _call_graph_depths(graph) == {R: 0, A: 1, C: 2}
 
     def test_cycle_raises(self) -> None:
         R, A, B = _ident("R"), _ident("A"), _ident("B")
-        graph: dict[Optional[Ident], list[Ident]] = {R: [A], A: [B], B: [A]}
+        graph: dict[Optional[Ident], dict[Ident, int]] = {
+            R: {A: 1},
+            A: {B: 1},
+            B: {A: 1},
+        }
         with raises(ValueError):
             _call_graph_depths(graph)
 
     def test_nodes_annotated_from_profile(self) -> None:
         R, A = _ident("R"), _ident("A")
-        graph: dict[Optional[Ident], list[Ident]] = {R: [A], A: []}
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
         profile = [
             self._entry("R", 1, {"CNOT": 6}),
             self._entry("A", 2, {"CNOT": 6}),
@@ -366,41 +374,43 @@ class TestDrawCallGraph:
         assert "A\ncalls: 2\nCNOT: 6" in texts
         assert "x2" in texts
 
-    def test_without_profile_plain_names(self) -> None:
+    def test_without_profile_plain_names_and_multiplicities(self) -> None:
         R, A = _ident("R"), _ident("A")
-        graph: dict[Optional[Ident], list[Ident]] = {R: [A], A: []}
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
         fig = draw_call_graph(graph)
         texts = self._texts(fig)
         plt.close(fig)
-        assert texts == {"R", "A"}
+        assert texts == {"R", "A", "x2"}
 
     def test_truncated_labels_fall_back_to_qualified_names(self) -> None:
         """Distinct subs whose short names truncate to the same text are drawn
         with their fully qualified names instead of two look-alike boxes."""
         long1 = Ident(_CG_NS, "LongParam", (11111111111111111,))
         long2 = Ident(_CG_NS, "LongParam", (11111111111111112,))
-        graph: dict[Optional[Ident], list[Ident]] = {long1: [], long2: []}
+        graph: dict[Optional[Ident], dict[Ident, int]] = {long1: {}, long2: {}}
         fig = draw_call_graph(graph)
         texts = self._texts(fig)
         plt.close(fig)
         assert texts == {long1.to_str(full=True), long2.to_str(full=True)}
 
-    def test_multi_caller_edge_has_no_multiplicity(self) -> None:
+    def test_multi_caller_edges_keep_their_multiplicities(self) -> None:
+        """Edge counts come from the graph itself, so a callee with several
+        callers still gets one exact label per edge."""
         R, A, B, C = _ident("R"), _ident("A"), _ident("B"), _ident("C")
-        graph: dict[Optional[Ident], list[Ident]] = {
-            R: [A, B],
-            A: [C],
-            B: [C],
-            C: [],
+        graph: dict[Optional[Ident], dict[Ident, int]] = {
+            R: {A: 1, B: 1},
+            A: {C: 3},
+            B: {C: 1},
+            C: {},
         }
         profile = [
-            self._entry("R", 1, {"X": 2}),
-            self._entry("A", 1, {"X": 1}),
+            self._entry("R", 1, {"X": 4}),
+            self._entry("A", 1, {"X": 3}),
             self._entry("B", 1, {"X": 1}),
-            self._entry("C", 2, {"X": 2}),
+            self._entry("C", 4, {"X": 4}),
         ]
         fig = draw_call_graph(graph, profile)
         texts = self._texts(fig)
         plt.close(fig)
-        assert "x1" in texts  # R -> A and R -> B are single-caller edges
-        assert "x2" not in texts  # C has two callers: no ratio shown
+        assert "x3" in texts  # A -> C
+        assert "x1" in texts  # R -> A, R -> B, B -> C
