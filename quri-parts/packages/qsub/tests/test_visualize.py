@@ -4,6 +4,7 @@ from matplotlib import colors as mcolors
 from matplotlib import patches as mpatches
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
+from matplotlib.text import Annotation
 from pytest import MonkeyPatch, raises
 
 import quri_parts.qsub._visualization as vis_impl
@@ -414,3 +415,28 @@ class TestDrawCallGraph:
         plt.close(fig)
         assert "x3" in texts  # A -> C
         assert "x1" in texts  # R -> A, R -> B, B -> C
+
+    def test_skip_level_edge_is_drawn_curved(self) -> None:
+        """C -> A alongside C -> B -> A: all three nodes stack in one column,
+        so the layer-skipping edge must bow out instead of hiding behind the
+        chain."""
+        C, B, A = _ident("C"), _ident("B"), _ident("A")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {
+            C: {A: 1, B: 1},
+            B: {A: 1},
+            A: {},
+        }
+        fig = draw_call_graph(graph)
+        arrows = [
+            t.arrow_patch
+            for t in fig.axes[0].texts
+            if isinstance(t, Annotation) and t.arrow_patch is not None
+        ]
+        rads = []
+        for arrow in arrows:
+            style = arrow.get_connectionstyle()
+            assert isinstance(style, mpatches.ConnectionStyle.Arc3)
+            rads.append(style.rad)
+        plt.close(fig)
+        assert len(arrows) == 3
+        assert sorted(rads) == [-0.4, 0.0, 0.0]

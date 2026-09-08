@@ -563,15 +563,28 @@ def draw_call_graph(
     for caller, callees in graph.items():
         for callee, m in callees.items():
             (x0, y0), (x1, y1) = positions[caller], positions[callee]
+            start = (x0, y0 - 0.38)
+            end = (x1, y1 + 0.38)
+            # An edge skipping layers bows out (negative rad bows right on a
+            # downward edge), so it neither runs through the boxes in between
+            # nor hides behind the chain of one-layer edges.
+            rad = -0.4 if y0 - y1 > 1 else 0.0
             ax.annotate(
                 "",
-                xy=(x1, y1 + 0.38),
-                xytext=(x0, y0 - 0.38),
-                arrowprops=dict(arrowstyle="-|>", color="gray"),
+                xy=end,
+                xytext=start,
+                arrowprops=dict(
+                    arrowstyle="-|>",
+                    color="gray",
+                    connectionstyle=f"arc3,rad={rad}",
+                ),
             )
+            # The arc3 curve peaks rad/2 off the chord midpoint, perpendicular
+            # to it; put the label there so it follows a bowed edge.
+            dx, dy = end[0] - start[0], end[1] - start[1]
             ax.text(
-                (x0 + x1) / 2 + 0.1,
-                (y0 + y1) / 2,
+                (start[0] + end[0]) / 2 + dy * rad / 2 + 0.1,
+                (start[1] + end[1]) / 2 - dx * rad / 2,
                 f"x{m}",
                 ha="left",
                 va="center",
