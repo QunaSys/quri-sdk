@@ -372,11 +372,11 @@ def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSample
 
     def _parametric_sampler(
         param_circuit: UnboundParametricQuantumCircuitProtocol,
-        measurement_cnt: int,
+        shots: int,
         param: Sequence[float],
     ) -> MeasurementCounts:
         bound_circuit = param_circuit.bind_parameters(param)
-        return sampler(bound_circuit, measurement_cnt)
+        return sampler(bound_circuit, shots)
 
     return _parametric_sampler
 
@@ -408,11 +408,11 @@ def create_parametric_state_sampler_from_state_sampler(
 
     def _parametric_state_sampler(
         param_state: _ParametricStateT,
-        measurement_cnt: int,
+        shots: int,
         param: Sequence[float],
     ) -> MeasurementCounts:
         bound_state = cast(_StateT, param_state.bind_parameters(param))
-        return state_sampler(bound_state, measurement_cnt)
+        return state_sampler(bound_state, shots)
 
     return _parametric_state_sampler
 
