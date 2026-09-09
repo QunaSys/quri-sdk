@@ -1,5 +1,5 @@
 # Contributing
 
-```{include} ../CONTRIBUTING.md
+```{include} ../../CONTRIBUTING.md
 :start-line: 1
 ```
