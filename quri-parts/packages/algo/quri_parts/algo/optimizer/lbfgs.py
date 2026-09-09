@@ -79,14 +79,14 @@ class LBFGS(Optimizer):
             the last ``m`` steps.
         gtol: If not None, it is used for determining if the
             opotimization has terminated successfully.
-            If ``gtol`` is less than the infinity norm of the
-            gradient of the cost function, the
+            If the infinity norm of the gradient of the cost
+            function is less than or equal to ``gtol``, the
             optimization is regarded to have terminated successfully.
             The infinity norm of the gradient :math:`g` is defined as
             :math:`||g||_{\infty} = \max\{|g_1|, |g_2|, \ldots, |g_n|\}`
 
     References:
-        - [1] https://github.com/scipy/scipy/blob/master/scipy/optimize/optimize.py
+        - [1] https://github.com/scipy/scipy/blob/v1.7.3/scipy/optimize/optimize.py#L1158
         - [2] Jorge Nocedal and Stephen J. Wright. Numerical Optimization
           (Springer, New York, 2006).
     """
