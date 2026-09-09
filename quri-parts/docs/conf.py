@@ -67,3 +67,10 @@ with open("qp_type_aliases.json") as f:
 
 autodoc_typehints = "description"
 add_module_names = False
+
+# Render Google-style "Attributes:" sections as :ivar: fields instead of a
+# generic definition list. The default (False) registers each attribute as
+# both an autodoc member and a napoleon-generated entry, which Sphinx flags as
+# a duplicate object description whenever a documented class also lists its
+# attributes with :members:/:undoc-members:.
+napoleon_use_ivar = True
