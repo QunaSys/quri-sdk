@@ -438,6 +438,14 @@ impl ImmutableParametricQuantumCircuit {
         Ok(())
     }
 
+    #[pyo3(name = "__repr__")]
+    fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
+        let borrowed = slf.borrow();
+        let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
+        drop(borrowed);
+        crate::circuit::circuit_repr(slf.as_any(), qubit_count, gate_count)
+    }
+
     #[pyo3(name = "__hash__")]
     fn py_hash(&self) -> u64 {
         use std::collections::hash_map::DefaultHasher;

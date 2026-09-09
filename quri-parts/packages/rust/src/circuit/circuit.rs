@@ -197,6 +197,14 @@ impl ImmutableQuantumCircuit {
         let inverse = crate::circuit::inverse::inverse_circuit(&slf);
         Py::new(slf.py(), (QuantumCircuit(), inverse))
     }
+
+    #[pyo3(name = "__repr__")]
+    fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
+        let borrowed = slf.borrow();
+        let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
+        drop(borrowed);
+        crate::circuit::circuit_repr(slf.as_any(), qubit_count, gate_count)
+    }
 }
 
 #[pyclass(
