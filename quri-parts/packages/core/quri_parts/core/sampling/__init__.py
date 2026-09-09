@@ -65,7 +65,9 @@ MeasurementCounts: TypeAlias = Mapping[int, Union[int, float]]
 
 #: Sampler represents a function that samples a specified (non-parametric) circuit by
 #: a specified times and returns the count statistics. In the case of an ideal Sampler,
-# the return value corresponds to probabilities multiplied by shot count.
+#: the return value corresponds to probabilities multiplied by shot count.
+#: Implementations should name the shot count parameter ``shots`` so it can be
+#: passed as a keyword argument.
 Sampler: TypeAlias = Callable[[ImmutableQuantumCircuit, int], MeasurementCounts]
 
 #: ConcurrentSampler represents a function that samples specified (non-parametric)
@@ -93,6 +95,8 @@ ConcurrentParametricSampler: TypeAlias = Callable[
 #: StateSampler representes a function that samples a specific (non-parametric) state by
 #: specified times and returns the count statistics. In the case of an ideal
 #: StateSampler, the return value corresponds to probabilities multiplied by shot count.
+#: Implementations should name the shot count parameter ``shots`` so it can be
+#: passed as a keyword argument.
 StateSampler: TypeAlias = Callable[[_StateT, int], MeasurementCounts]
 
 #: ConcurrentSampler represents a function that samples specified (non-parametric)
@@ -368,11 +372,11 @@ def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSample
 
     def _parametric_sampler(
         param_circuit: UnboundParametricQuantumCircuitProtocol,
-        measurement_cnt: int,
+        shots: int,
         param: Sequence[float],
     ) -> MeasurementCounts:
         bound_circuit = param_circuit.bind_parameters(param)
-        return sampler(bound_circuit, measurement_cnt)
+        return sampler(bound_circuit, shots)
 
     return _parametric_sampler
 
@@ -404,11 +408,11 @@ def create_parametric_state_sampler_from_state_sampler(
 
     def _parametric_state_sampler(
         param_state: _ParametricStateT,
-        measurement_cnt: int,
+        shots: int,
         param: Sequence[float],
     ) -> MeasurementCounts:
         bound_state = cast(_StateT, param_state.bind_parameters(param))
-        return state_sampler(bound_state, measurement_cnt)
+        return state_sampler(bound_state, shots)
 
     return _parametric_state_sampler
 
@@ -449,7 +453,7 @@ def sample_from_probability_distribution(
 
 
 def sample_from_state_vector(
-    state_vector: npt.NDArray[np.complex128], n_shots: int
+    state_vector: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
     """Perform sampling from a state vector."""
     n_qubits: float = np.log2(state_vector.shape[0])
@@ -457,11 +461,11 @@ def sample_from_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
     probs = cast(npt.NDArray[np.float64], np.abs(state_vector) ** 2)
-    return sample_from_probability_distribution(n_shots, probs)
+    return sample_from_probability_distribution(shots, probs)
 
 
 def ideal_sample_from_state_vector(
-    state_vector: npt.NDArray[np.complex128], n_shots: int
+    state_vector: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
     """Perform ideal sampling from a state vector."""
     n_qubits: float = np.log2(state_vector.shape[0])
@@ -470,11 +474,11 @@ def ideal_sample_from_state_vector(
         raise ValueError("probabilities do not sum to 1")
 
     probs = np.abs(state_vector) ** 2
-    return {i: prob * n_shots for i, prob in enumerate(probs)}
+    return {i: prob * shots for i, prob in enumerate(probs)}
 
 
 def sample_from_density_matrix(
-    density_matrix: npt.NDArray[np.complex128], n_shots: int
+    density_matrix: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
     assert (
         density_matrix.ndim == 2
@@ -487,11 +491,11 @@ def sample_from_density_matrix(
         raise ValueError("probabilities do not sum to 1")
 
     probs = np.diag(density_matrix).real
-    return sample_from_probability_distribution(n_shots, probs)
+    return sample_from_probability_distribution(shots, probs)
 
 
 def ideal_sample_from_density_matrix(
-    density_matrix: npt.NDArray[np.complex128], n_shots: int
+    density_matrix: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
     assert (
         density_matrix.ndim == 2
@@ -504,14 +508,14 @@ def ideal_sample_from_density_matrix(
         raise ValueError("probabilities do not sum to 1")
 
     probs = np.diag(density_matrix).real
-    return {i: prob * n_shots for i, prob in enumerate(probs)}
+    return {i: prob * shots for i, prob in enumerate(probs)}
 
 
 def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
     """Create a simple :class:`~Sampler` using a :class:`~SamplingBackend`."""
 
-    def sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> MeasurementCounts:
-        job = backend.sample(circuit, n_shots)
+    def sampler(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
+        job = backend.sample(circuit, shots)
         return job.result().counts
 
     return sampler
@@ -526,9 +530,7 @@ def create_concurrent_sampler_from_sampling_backend(
     def sampler(
         shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
     ) -> Iterable[MeasurementCounts]:
-        jobs = [
-            backend.sample(circuit, n_shots) for circuit, n_shots in shot_circuit_pairs
-        ]
+        jobs = [backend.sample(circuit, shots) for circuit, shots in shot_circuit_pairs]
         return map(lambda j: j.result().counts, jobs)
 
     return sampler

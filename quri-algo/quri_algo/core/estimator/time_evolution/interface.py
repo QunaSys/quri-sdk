@@ -35,7 +35,7 @@ class TimeEvolutionExpectationValueEstimator(
 
     @abstractmethod
     def __call__(
-        self, state: StateT, evolution_time: float, n_shots: Optional[int] = None
+        self, state: StateT, evolution_time: float, shots: Optional[int] = None
     ) -> Estimate[complex]:
         ...
 
@@ -76,10 +76,10 @@ class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
         return self._hadamard_test.imag_circuit_factory
 
     def __call__(
-        self, state: StateT, evolution_time: float, n_shots: Optional[int] = None
+        self, state: StateT, evolution_time: float, shots: Optional[int] = None
     ) -> Estimate[complex]:
-        assert n_shots is not None
-        return self._hadamard_test(state, n_shots, evolution_time)
+        assert shots is not None
+        return self._hadamard_test(state, shots, evolution_time)
 
 
 class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
@@ -97,6 +97,6 @@ class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
         self.tau = tau
 
     def __call__(
-        self, state: StateT, operator_power: int | float, n_shots: Optional[int] = None
+        self, state: StateT, operator_power: int | float, shots: Optional[int] = None
     ) -> Estimate[complex]:
-        return self.time_evo_estimator(state, operator_power * self.tau, n_shots)
+        return self.time_evo_estimator(state, operator_power * self.tau, shots)

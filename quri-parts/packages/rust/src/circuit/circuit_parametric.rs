@@ -421,13 +421,13 @@ impl ImmutableParametricQuantumCircuit {
 
     fn sample<'py>(
         slf: &Bound<'py, Self>,
-        shot_count: i32,
+        shots: i32,
         params: Vec<f64>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
         let sampling_counts = sampling
             .getattr("DEFAULT_SAMPLER")?
-            .call1((slf, shot_count, params));
+            .call1((slf, shots, params));
         sampling_counts
     }
 

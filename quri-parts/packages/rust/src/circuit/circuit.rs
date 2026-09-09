@@ -178,11 +178,9 @@ impl ImmutableQuantumCircuit {
         Py::new(slf.py(), (QuantumCircuit(), slf.borrow().clone()))
     }
 
-    fn sample<'py>(slf: &Bound<'py, Self>, shot_count: i32) -> PyResult<Bound<'py, PyAny>> {
+    fn sample<'py>(slf: &Bound<'py, Self>, shots: i32) -> PyResult<Bound<'py, PyAny>> {
         let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
-        let sampling_counts = sampling
-            .getattr("DEFAULT_SAMPLER")?
-            .call1((slf, shot_count));
+        let sampling_counts = sampling.getattr("DEFAULT_SAMPLER")?.call1((slf, shots));
         sampling_counts
     }
 

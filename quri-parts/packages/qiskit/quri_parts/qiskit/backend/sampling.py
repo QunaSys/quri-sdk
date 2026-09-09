@@ -128,12 +128,12 @@ class QiskitSamplingBackend(SamplingBackend):
         self._save_data_while_sampling = save_data_while_sampling
         self._saved_data: list[tuple[str, int, QiskitSamplingJob]] = []
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
+    def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
 
         shot_dist = distribute_backend_shots(
-            n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
+            shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)
