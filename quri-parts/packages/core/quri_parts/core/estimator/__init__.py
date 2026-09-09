@@ -601,8 +601,8 @@ def create_general_estimator_from_estimator(
     :class:`QuantumEstimator`.
 
     Note:
-        - The concurrencies of the :class:`ConcurrentQuantumEstimaror` and
-          `ConcurrentParametricQuantumEstimaror` will be set to 1 when a
+        - The concurrencies of the :class:`ConcurrentQuantumEstimator` and
+          :class:`ConcurrentParametricQuantumEstimator` will be set to 1 when a
           :class:`GeneralQuantumEstimator` is created with this function.
         - When circuit conversion is involved in the estimator execution, the
           parametric estimator created from this function will bind the parameter
