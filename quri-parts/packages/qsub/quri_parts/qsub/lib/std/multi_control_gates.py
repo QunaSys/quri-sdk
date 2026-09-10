@@ -366,6 +366,7 @@ def generate_multicontrolled_to_mc_sub_resolver(
     decomposition.
 
     Algorithm:
+
     1. Evaluate MultiControlledNamedMCGatesSub to try converting the MultiControlled
        operation to a named MC gate.
     2. If that fails, try to resolve the target operation. If successful, wrap each
