@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from qiskit.providers import BackendV1
 
 try:
-    # BackendV1 was removed in qiskit 2.0 (only present on qiskit 1.x, i.e.
-    # Python <3.14). Fall back to None so the legacy branch is skipped.
+    # BackendV1 was removed in qiskit 2.0. Fall back to None so the legacy
+    # branch is skipped.
     from qiskit.providers import BackendV1 as _BackendV1
 except ImportError:
     _BackendV1 = None

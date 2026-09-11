@@ -27,7 +27,7 @@ Documentation = "https://quri-parts.qunasys.com"
 [project.optional-dependencies]
 qulacs = ["quri-parts-qulacs"]
 braket = ["quri-parts-braket; python_version < '3.14'"]
-qiskit = ["quri-parts-qiskit; python_version < '3.14'"]
+qiskit = ["quri-parts-qiskit"]
 cirq = ["quri-parts-cirq"]
 openfermion = ["quri-parts-openfermion"]
 stim = ["quri-parts-stim"]

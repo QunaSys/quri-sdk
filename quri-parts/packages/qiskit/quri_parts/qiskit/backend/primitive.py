@@ -206,7 +206,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     def __enter__(self) -> "QiskitRuntimeSamplingBackend":
         """The backend passed during `__init__`, is used to construct a
         session, which will be closed after the `with` scope ends."""
-        session = Session(service=self._service, backend=self._backend)
+        session = Session(backend=self._backend)
         session.__enter__()
 
         self._session = session
@@ -363,9 +363,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         try:
             if self._session is None:
                 # Create a session if there is no session
-                with Session(service=self._service, backend=self._backend) as session:
+                with Session(backend=self._backend) as session:
                     runtime_sampler = Sampler(
-                        session=session, options=qiskit_sampler_options
+                        mode=session, options=qiskit_sampler_options
                     )
                     self._execute_shots(
                         runtime_sampler, transpiled_circuit, shot_dist, jobs
@@ -374,7 +374,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(
-                    session=self._session, options=qiskit_sampler_options
+                    mode=self._session, options=qiskit_sampler_options
                 )
                 self._execute_shots(
                     runtime_sampler, transpiled_circuit, shot_dist, jobs
