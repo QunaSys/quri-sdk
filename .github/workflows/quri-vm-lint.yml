@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        fetch-depth: 2
 
     - name: Install uv
       uses: astral-sh/setup-uv@v8.2.0
@@ -58,10 +58,7 @@ jobs:
     - name: Require docstrings on changed public modules/classes/functions/methods
       if: (success() || failure()) && github.event_name == 'pull_request'
       run: |
-        base_sha="${{ github.event.pull_request.base.sha }}"
-        head_sha="${{ github.event.pull_request.head.sha }}"
-        merge_base=$(git merge-base "$base_sha" "$head_sha")
         git diff --name-only -z --diff-filter=ACMR \
-          "$merge_base" "$head_sha" \
+          HEAD^1 HEAD \
           -- 'quri-vm/quri_vm/**.py' 'quri-vm/tests/**.py' \
           | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings --show-source
