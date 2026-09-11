@@ -72,7 +72,7 @@ class QiskitSavedDataSamplingJob(SamplingJob):
             It can be accessed by `qiskit.qasm3.dumps(qiskit_circuit)`.
         n_shots: The total shots of a sampling job.
         saved_result: A `QiskitSavedDataSamplingResult` instance that represents the
-            result when (circuit_str, n_shots) is passed into the sampler.
+            result when (circuit_str, shots) is passed into the sampler.
     """
 
     circuit_qasm: str
@@ -86,7 +86,7 @@ class QiskitSavedDataSamplingJob(SamplingJob):
 class QiskitSavedDataSamplingBackend(SamplingBackend):
     """A Qiskit backend for replaying saved sampling experiments. When a
     sampler is created with a QiskitSavedDataSamplingBackend object, the
-    sequence of (circuit, n_shots) pairs should be passed in to the sampler the
+    sequence of (circuit, shots) pairs should be passed in to the sampler the
     same order as the orginal experiment.
 
     Example:
@@ -102,9 +102,9 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
 
         1-b: Perform sampling experiments
 
-        >>> sampling_count_1 = sampler(circuit_1, n_shots_1)
-        >>> sampling_count_2 = sampler(circuit_2, n_shots_2)
-        >>> sampling_count_3 = sampler(circuit_3, n_shots_3)
+        >>> sampling_count_1 = sampler(circuit_1, shots_1)
+        >>> sampling_count_2 = sampler(circuit_2, shots_2)
+        >>> sampling_count_3 = sampler(circuit_3, shots_3)
 
         1-c: Dump sampling data
 
@@ -125,12 +125,12 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
 
         2-b: Replay sampling experiment.
 
-        (circuit, n_shots) pairs are passed in to the `saved_data_sampler`
+        (circuit, shots) pairs are passed in to the `saved_data_sampler`
         the same order as they were passed in to the `sampler`.
 
-        >>> replayed_sampling_count_1 = sampler(circuit_1, n_shots_1)
-        >>> replayed_sampling_count_2 = sampler(circuit_2, n_shots_2)
-        >>> replayed_sampling_count_3 = sampler(circuit_3, n_shots_3)
+        >>> replayed_sampling_count_1 = sampler(circuit_1, shots_1)
+        >>> replayed_sampling_count_2 = sampler(circuit_2, shots_2)
+        >>> replayed_sampling_count_3 = sampler(circuit_3, shots_3)
 
     Args:
         backend: A Qiskit :class:`qiskit.providers.backend.Backend`
@@ -189,12 +189,12 @@ class QiskitSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
+    def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
 
         shot_dist = distribute_backend_shots(
-            n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
+            shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
 
         qiskit_circuit = self._circuit_converter(circuit, self._circuit_transpiler)

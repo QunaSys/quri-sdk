@@ -1,6 +1,8 @@
 from typing import Any
 
+from matplotlib import colors as mcolors
 from matplotlib import patches as mpatches
+from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from pytest import MonkeyPatch
 
@@ -279,3 +281,23 @@ class TestDrawSub:
         base_circuit = record["base_circuit"]
         assert base_circuit.qubit_count >= 1
         assert len(base_circuit.gates) == base_circuit.qubit_count
+
+    def test_multi_controlled_swap_draws_control_markers(self) -> None:
+        builder = SubBuilder(arg_qubits_count=6)
+        builder.add_op(MultiControlled(SWAP, 4, 5), builder.qubits)
+
+        figure = draw_sub(builder.build())
+        try:
+            control_markers = [
+                patch
+                for patch in figure.axes[0].patches
+                if isinstance(patch, mpatches.Circle)
+            ]
+            control_markers.sort(key=lambda marker: marker.center[1])
+
+            assert len(control_markers) == 4
+            assert [marker.get_facecolor() for marker in control_markers] == [
+                mcolors.to_rgba(color) for color in ("black", "white", "black", "white")
+            ]
+        finally:
+            plt.close(figure)

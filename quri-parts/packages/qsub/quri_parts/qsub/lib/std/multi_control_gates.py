@@ -156,52 +156,52 @@ class _MCPhase(_MCRotationBase):
 
 
 #: Multi-controlled X gate. Applies X gate to target qubit when all control
-#: qubits are in |1⟩ state.
+#: qubits are in \|1⟩ state.
 MCX: OpFactory[int] = param_op(_MCX)
 #: Multi-controlled Y gate. Applies Y gate to target qubit when all control
-#: qubits are in |1⟩ state.
+#: qubits are in \|1⟩ state.
 MCY: OpFactory[int] = param_op(_MCY)
 #: Multi-controlled Z gate. Applies Z gate to target qubit when all control
-#: qubits are in |1⟩ state.
+#: qubits are in \|1⟩ state.
 MCZ: OpFactory[int] = param_op(_MCZ)
 #: Multi-controlled S gate. Applies S gate to target qubit when all control
-#: qubits are in |1⟩ state.
+#: qubits are in \|1⟩ state.
 MCS: OpFactory[int] = param_op(_MCS)
 #: Multi-controlled S† gate. Applies S† gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCSdag: OpFactory[int] = param_op(_MCSdag)
 #: Multi-controlled T gate. Applies T gate to target qubit when all control
-#: qubits are in |1⟩ state.
+#: qubits are in \|1⟩ state.
 MCT: OpFactory[int] = param_op(_MCT)
 #: Multi-controlled T† gate. Applies T† gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCTdag: OpFactory[int] = param_op(_MCTdag)
 #: Multi-controlled √X gate. Applies √X gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCSqrtX: OpFactory[int] = param_op(_MCSqrtX)
 #: Multi-controlled √X† gate. Applies √X† gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCSqrtXdag: OpFactory[int] = param_op(_MCSqrtXdag)
 #: Multi-controlled √Y gate. Applies √Y gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCSqrtY: OpFactory[int] = param_op(_MCSqrtY)
 #: Multi-controlled √Y† gate. Applies √Y† gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCSqrtYdag: OpFactory[int] = param_op(_MCSqrtYdag)
 #: Multi-controlled Hadamard gate. Applies H gate to target qubit when all
-#: control qubits are in |1⟩ state.
+#: control qubits are in \|1⟩ state.
 MCH: OpFactory[int] = param_op(_MCH)
 #: Multi-controlled RZ rotation gate. Applies RZ(angle) to target qubit when
-#: all control qubits are in |1⟩ state.
+#: all control qubits are in \|1⟩ state.
 MCRZ: OpFactory[int, float] = param_op(_MCRZ)
 #: Multi-controlled RX rotation gate. Applies RX(angle) to target qubit when
-#: all control qubits are in |1⟩ state.
+#: all control qubits are in \|1⟩ state.
 MCRX: OpFactory[int, float] = param_op(_MCRX)
 #: Multi-controlled RY rotation gate. Applies RY(angle) to target qubit when
-#: all control qubits are in |1⟩ state.
+#: all control qubits are in \|1⟩ state.
 MCRY: OpFactory[int, float] = param_op(_MCRY)
 #: Multi-controlled Phase gate. Applies Phase(angle) to target qubit when
-#: all control qubits are in |1⟩ state.
+#: all control qubits are in \|1⟩ state.
 MCPhase: OpFactory[int, float] = param_op(_MCPhase)
 
 
@@ -366,6 +366,7 @@ def generate_multicontrolled_to_mc_sub_resolver(
     decomposition.
 
     Algorithm:
+
     1. Evaluate MultiControlledNamedMCGatesSub to try converting the MultiControlled
        operation to a named MC gate.
     2. If that fails, try to resolve the target operation. If successful, wrap each

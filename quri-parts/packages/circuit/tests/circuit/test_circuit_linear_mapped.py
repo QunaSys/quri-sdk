@@ -11,6 +11,7 @@
 from typing import Sequence
 
 import numpy as np
+import pytest
 
 from quri_parts.circuit import (
     CNOT,
@@ -258,6 +259,25 @@ class TestLinearMappedUnboundParametricQuantumCircuit:
         )
         for got, exp in zip(got_vals.values(), exp_vals.values()):
             assert got == exp
+
+    def test_repr_compact_for_many_gates(
+        self, recwarn: pytest.WarningsRecorder
+    ) -> None:
+        # Regression test: repr() must fall back to a compact representation
+        # for circuits this large, both mutable and frozen, without warning.
+        circuit = LinearMappedParametricQuantumCircuit(1)
+        for _ in range(1001):
+            circuit.add_X_gate(0)
+        assert (
+            repr(circuit)
+            == "<LinearMappedParametricQuantumCircuit qubit_count=1 gate_count=1001>"
+        )
+        frozen = circuit.freeze()
+        assert (
+            repr(frozen) == "<ImmutableLinearMappedParametricQuantumCircuit "
+            "qubit_count=1 gate_count=1001>"
+        )
+        assert len(recwarn) == 0
 
 
 class TestImmutableLinearMappedUnboundParametricQuantumCircuit:

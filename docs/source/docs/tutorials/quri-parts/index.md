@@ -41,6 +41,10 @@ Putting parametric circuits and estimators together into variational algorithms.
 
 Qsub, the DSL for describing structured quantum programs that represent FTQC algorithms.
 
+### [Qsub Gate-set Transpilation](transpiler.ipynb)
+
+Rewrite qsub programs into a target gate set for fault-tolerant compilation.
+
 ### [Quration Resource Estimation](quration/index.md)
 
 Compile qsub circuits for surface-code and lattice-surgery architectures, then estimate their FTQC resources with Quration.

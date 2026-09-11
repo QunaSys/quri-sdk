@@ -178,11 +178,9 @@ impl ImmutableQuantumCircuit {
         Py::new(slf.py(), (QuantumCircuit(), slf.borrow().clone()))
     }
 
-    fn sample<'py>(slf: &Bound<'py, Self>, shot_count: i32) -> PyResult<Bound<'py, PyAny>> {
+    fn sample<'py>(slf: &Bound<'py, Self>, shots: i32) -> PyResult<Bound<'py, PyAny>> {
         let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
-        let sampling_counts = sampling
-            .getattr("DEFAULT_SAMPLER")?
-            .call1((slf, shot_count));
+        let sampling_counts = sampling.getattr("DEFAULT_SAMPLER")?.call1((slf, shots));
         sampling_counts
     }
 
@@ -196,6 +194,14 @@ impl ImmutableQuantumCircuit {
     fn inverse(slf: PyRef<'_, Self>) -> PyResult<Py<QuantumCircuit>> {
         let inverse = crate::circuit::inverse::inverse_circuit(&slf);
         Py::new(slf.py(), (QuantumCircuit(), inverse))
+    }
+
+    #[pyo3(name = "__repr__")]
+    fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
+        let borrowed = slf.borrow();
+        let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
+        drop(borrowed);
+        crate::circuit::circuit_repr(slf.as_any(), qubit_count, gate_count)
     }
 }
 

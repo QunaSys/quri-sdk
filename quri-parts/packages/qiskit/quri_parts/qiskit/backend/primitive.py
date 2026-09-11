@@ -95,8 +95,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         backend: A Qiskit :class:`qiskit_ibm_runtime.ibm_backend` that
             interfaces with IBM quantum backend.
         service: A Qiskit
-        :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
-        that interacts with the Qiskit Runtime service.
+            :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
+            that interacts with the Qiskit Runtime service.
         circuit_converter: A function converting
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
@@ -333,13 +333,13 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 )
             jobs_list.append(qiskit_runtime_sampling_job)
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
+    def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
 
         # Distribute shot count and execution time
         shot_dist = distribute_backend_shots(
-            n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
+            shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
         (
             single_batch_execution_time,

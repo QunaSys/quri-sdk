@@ -77,7 +77,10 @@ class GaussianSampler(FourierCoefficientSampler):
 
     @property
     def distribution(self) -> npt.NDArray[np.float64]:
-        return self.fourier_coefficients / np.linalg.norm(self.fourier_coefficients, 1)
+        normalized = self.fourier_coefficients / np.linalg.norm(
+            self.fourier_coefficients, 1
+        )
+        return cast(npt.NDArray[np.float64], normalized.real)
 
     def __call__(self, n_samples: int) -> Sequence[SPEFourierCoefficient]:
         classical_samples = get_classical_samples(self.distribution.tolist(), n_samples)

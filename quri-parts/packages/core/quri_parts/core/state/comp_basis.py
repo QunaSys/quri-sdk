@@ -155,9 +155,9 @@ class ComputationalBasisState(CircuitQuantumState):
         """The phase of the state."""
         return self._phase * np.pi / 2
 
-    def sample(self, n_shots: int) -> Mapping[int, Union[int, float]]:
+    def sample(self, shots: int) -> Mapping[int, Union[int, float]]:
         """Sample the state using qulacs."""
-        return self.circuit.sample(n_shots)
+        return self.circuit.sample(shots)
 
 
 def comp_basis_superposition(
