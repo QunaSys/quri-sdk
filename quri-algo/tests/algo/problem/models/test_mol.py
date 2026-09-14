@@ -254,6 +254,33 @@ def test_from_pyscf_active_space_override() -> None:
     assert compare_ops(mol.qubit_hamiltonian.qubit_hamiltonian, ref_h)
 
 
+def test_from_pyscf_hf_state_reordered_active_orbitals() -> None:
+    """hf_state must follow the mean field's actual occupation, not
+    active-orbital index order (issue #952)."""
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    mol = MolecularSystem.from_pyscf(mf, ActiveSpace(2, 2, [1, 0]))
+    assert mol.hf_state.bits == 0b1100
+    mat = get_sparse_matrix(mol.qubit_hamiltonian.qubit_hamiltonian).toarray()
+    hf_state_energy = mat[mol.hf_state.bits, mol.hf_state.bits].real
+    assert np.isclose(hf_state_energy, mol.hf_energy, atol=1e-8)
+
+
+def test_from_pyscf_hf_state_permuted_mean_field() -> None:
+    """Same bug without an active-space override: hf_state must follow
+    mo_occ even when mo_coeff/mo_occ/mo_energy are consistently permuted
+    (issue #952)."""
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    perm = [1, 0]
+    mf.mo_coeff = mf.mo_coeff[:, perm]
+    mf.mo_occ = mf.mo_occ[perm]
+    mf.mo_energy = mf.mo_energy[perm]
+    mol = MolecularSystem.from_pyscf(mf)
+    assert mol.hf_state.bits == 0b1100
+    mat = get_sparse_matrix(mol.qubit_hamiltonian.qubit_hamiltonian).toarray()
+    hf_state_energy = mat[mol.hf_state.bits, mol.hf_state.bits].real
+    assert np.isclose(hf_state_energy, mol.hf_energy, atol=1e-8)
+
+
 def test_from_pyscf_hf_state_matches_mapping_for_non_jw() -> None:
     """hf_state must be derived from the requested mapping's own state
     mapper, not a Jordan-Wigner-shaped bit convention -- this is the bug

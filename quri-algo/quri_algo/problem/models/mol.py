@@ -21,7 +21,7 @@ try:
 except ImportError:
     raise ImportError("pyscf is not installed")
 
-from quri_parts.chem.mol import ActiveSpace, cas
+from quri_parts.chem.mol import ActiveSpace, cas, get_core_and_active_orbital_indices
 from quri_parts.core.operator import Operator
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.mol import (
@@ -309,15 +309,32 @@ class MolecularSystem(HamiltonianMixin):
     def hf_state(self) -> ComputationalBasisState:
         """Hartree-Fock reference as a computational basis state.
 
-        Correct for any :attr:`fermion_qubit_mapping`: it is derived
+        Derived from the underlying mean field's actual orbital
+        occupations (:attr:`hartree_fock`.mo_occ), mapped through
+        :attr:`active_space`'s orbital ordering, so it stays correct
+        regardless of how the active orbitals are selected or ordered.
+        A singly-occupied (ROHF open-shell) orbital contributes only an
+        alpha electron, following the restricted Hartree-Fock convention.
+        Also correct for any :attr:`fermion_qubit_mapping`: it is derived
         from that mapping's own state mapper rather than a mapping-
         specific bit convention, so it stays consistent with
         :attr:`qubit_hamiltonian` even for non-Jordan-Wigner mappings.
         """
         _, mapping = self._qubit_op_and_mapping
         active_space = self.active_space
-        spin = int(self.pyscf_mol.spin)
-        n_alpha = (active_space.n_active_ele + spin) // 2
-        n_beta = (active_space.n_active_ele - spin) // 2
-        occupied = [2 * i for i in range(n_alpha)] + [2 * i + 1 for i in range(n_beta)]
+        active_orbs_indices = active_space.active_orbs_indices
+        if active_orbs_indices is None:
+            _, active_orbs_indices = get_core_and_active_orbital_indices(
+                active_space.n_active_ele,
+                active_space.n_active_orb,
+                self.pyscf_mol.nelectron,
+            )
+        mo_occ = self.hartree_fock.mo_occ
+        occupied = []
+        for position, mo_index in enumerate(active_orbs_indices):
+            occ = mo_occ[mo_index]
+            if occ > 0:
+                occupied.append(2 * position)
+            if occ > 1:
+                occupied.append(2 * position + 1)
         return mapping.state_mapper(occupied)
