@@ -21,7 +21,10 @@ from quri_parts.openfermion.mol import (
     get_fermionic_hamiltonian,
     get_qubit_mapped_hamiltonian,
 )
-from quri_parts.openfermion.transforms import bravyi_kitaev
+from quri_parts.openfermion.transforms import (
+    bravyi_kitaev,
+    symmetry_conserving_bravyi_kitaev,
+)
 from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
 
 from quri_algo.problem.models.mol import MolecularSystem
@@ -269,3 +272,16 @@ def test_from_pyscf_hf_state_matches_mapping_for_non_jw() -> None:
         get_sparse_matrix(jw.qubit_hamiltonian.qubit_hamiltonian).toarray()
     )[0]
     assert abs(bk_gse - jw_gse) < 1e-8  # same physics, different mapping
+
+
+def test_from_pyscf_n_qubits_matches_reduced_mapping() -> None:
+    """n_qubits must reflect the mapping's own qubit count, not
+    2 * n_active_orb -- symmetry_conserving_bravyi_kitaev drops two
+    qubits, and qubit_hamiltonian.n_qubit/hf_state must agree (issue #953)."""
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    mol = MolecularSystem.from_pyscf(
+        mf, fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev, sz=0
+    )
+    assert mol.n_qubits == 2
+    assert mol.qubit_hamiltonian.n_qubit == 2
+    assert mol.hf_state.qubit_count == 2

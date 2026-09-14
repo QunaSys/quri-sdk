@@ -296,9 +296,9 @@ class MolecularSystem(HamiltonianMixin):
     def qubit_hamiltonian(self) -> QubitHamiltonian:
         """Return the qubit Hamiltonian, mapped via
         :attr:`fermion_qubit_mapping` (Jordan-Wigner by default)."""
-        qubit_operator, _ = self._qubit_op_and_mapping
+        qubit_operator, mapping = self._qubit_op_and_mapping
         return QubitHamiltonian(
-            n_qubit=self.active_space.n_active_orb * 2,
+            n_qubit=mapping.n_qubits,
             qubit_hamiltonian=qubit_operator,
         )
 
