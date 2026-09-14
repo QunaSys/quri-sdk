@@ -11,6 +11,7 @@
 import pytest
 
 from quri_parts.core.utils.deprecation import (
+    deprecated_kwarg,
     deprecated_measurement_cnt_kwarg,
     deprecated_shots_kwarg,
 )
@@ -26,6 +27,11 @@ def _g(circuit: str, shots: int) -> tuple[str, int]:
     return circuit, shots
 
 
+@deprecated_kwarg("old_name", "new_name")
+def _h(new_name: int) -> int:
+    return new_name
+
+
 def test_new_kwarg_no_warning(recwarn: pytest.WarningsRecorder) -> None:
     assert _f("c", shots=10) == ("c", 10)
     assert len(recwarn) == 0
@@ -39,3 +45,8 @@ def test_old_kwarg_is_mapped_and_warns() -> None:
 def test_old_measurement_cnt_kwarg_is_mapped_and_warns() -> None:
     with pytest.deprecated_call():
         assert _g("c", measurement_cnt=10) == ("c", 10)  # type: ignore[call-arg]
+
+
+def test_deprecated_kwarg_is_generic() -> None:
+    with pytest.deprecated_call():
+        assert _h(old_name=10) == 10  # type: ignore[call-arg]

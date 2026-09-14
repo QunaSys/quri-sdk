@@ -15,7 +15,7 @@ from typing import Any, Callable, TypeVar, cast
 _F = TypeVar("_F", bound=Callable[..., Any])
 
 
-def _deprecated_kwarg(old_name: str, new_name: str = "shots") -> Callable[[_F], _F]:
+def deprecated_kwarg(old_name: str, new_name: str) -> Callable[[_F], _F]:
     """Build a decorator that accepts ``old_name`` as a deprecated alias for
     ``new_name``."""
 
@@ -39,7 +39,7 @@ def _deprecated_kwarg(old_name: str, new_name: str = "shots") -> Callable[[_F], 
 
 
 #: Accept the old ``n_shots`` keyword as a deprecated alias for ``shots``.
-deprecated_shots_kwarg = _deprecated_kwarg("n_shots")
+deprecated_shots_kwarg = deprecated_kwarg("n_shots", "shots")
 
 #: Accept the old ``measurement_cnt`` keyword as a deprecated alias for ``shots``.
-deprecated_measurement_cnt_kwarg = _deprecated_kwarg("measurement_cnt")
+deprecated_measurement_cnt_kwarg = deprecated_kwarg("measurement_cnt", "shots")
