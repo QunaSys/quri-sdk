@@ -1,5 +1,109 @@
 # Release Notes
 
+## v0.27.0
+
+**Breaking changes**
+
+**Qiskit 1.x is no longer supported (#579)**
+
+`quri-parts-qiskit` now requires `qiskit>=2.2,<3` and `qiskit-ibm-runtime>=0.47,<0.48` on every supported Python version. If you pin Qiskit 1.x, upgrading to 0.27.0 will either force a Qiskit major upgrade or fail to resolve.
+
+**The shot count argument is renamed from `n_shots` to `shots` (#585)**
+
+The rename has no compatibility alias, and it covers both QURI Parts and QURI Algo:
+
+* `Sampler`, `ConcurrentSampler`, `StateSampler`, and the `sample()` methods of the Qulacs, Qiskit, and Braket backends
+* `quri_parts.core.state` sampling helpers and `should_use_multinomial`
+* QURI Algo: `analyze_qpe`, the QPE estimators, the Hadamard test estimator, and the time evolution estimator interface
+
+Positional calls are unaffected. If you pass the value as a keyword argument, rename it:
+
+```python
+# before
+counts = sampler(circuit, n_shots=1000)
+# after
+counts = sampler(circuit, shots=1000)
+```
+
+**Circuit `repr` now renders the circuit (#584)**
+
+`ImmutableQuantumCircuit` and parametric circuits render as ASCII art, so `print(circuit)` and notebook output now show a diagram instead of the object address. The new public helper `quri_parts.circuit.utils.circuit_drawer.circuit_to_string()` returns the same text. Code that compares circuit `repr` output (doctests, log assertions) needs updating.
+
+**Notices**
+
+**Documentation has moved to quri-sdk.qunasys.com (#573, #574)**
+
+The QURI Parts documentation sites are superseded by the QURI SDK site, which is now built with Sphinx:
+
+* `quri-parts.qunasys.com` now redirects to https://quri-sdk.qunasys.com/docs/tutorials/quri-parts/
+* the standalone API site now redirects to https://quri-sdk.qunasys.com/api/
+
+**Supported Python versions**
+
+QURI SDK supports Python 3.10 to 3.14. Python 3.9 support was removed in v0.26.4.
+
+**Linux ARM wheels for `quri-parts-rust` (#577)**
+
+`quri-parts-rust` now ships prebuilt wheels for Linux aarch64, so ARM based machines (including ARM HPC nodes) install from a wheel instead of building the Rust extension from source.
+
+**For contributors**
+
+* The build system moved from Poetry to uv (#570). Local setup is now `uv sync --all-groups`. See CONTRIBUTING.md for details.
+
+**What's Changed**
+* Migrate from poetry to uv by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/570
+* Support Cbz and Label in qsub circuit conversion by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/572
+* Support all gates in GateSetConversionTranspiler by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/571
+* Migrate the documentation site to Sphinx by @Kazutaka333 in https://github.com/QunaSys/quri-sdk/pull/573
+* Redirect legacy QURI Parts documentation sites by @templepmet in https://github.com/QunaSys/quri-sdk/pull/574
+* Build quri-parts-rust wheels on Linux ARM by @templepmet in https://github.com/QunaSys/quri-sdk/pull/577
+* Support NumPy 2.5 in ThermalRelaxationNoise by @templepmet in https://github.com/QunaSys/quri-sdk/pull/578
+* Update deprecated qpe import in QPE reference notebook by @templepmet in https://github.com/QunaSys/quri-sdk/pull/580
+* Make SPE Gaussian sampler distribution return a real array by @templepmet in https://github.com/QunaSys/quri-sdk/pull/581
+* Patch qulacsvis' Matplotlib drawer to support controlled SWAP gates by @templepmet in https://github.com/QunaSys/quri-sdk/pull/583
+* Better circuit visualization by @templepmet in https://github.com/QunaSys/quri-sdk/pull/584
+* Standardize shot count param name across Samplers by @templepmet in https://github.com/QunaSys/quri-sdk/pull/585
+* Add qsub transpiler tutorial (gate-set decomposition) by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/582
+* Support Qiskit 2 on Python 3.10–3.13 by @yasuhito in https://github.com/QunaSys/quri-sdk/pull/579
+
+**New Contributors**
+* @yasuhito made their first contribution in https://github.com/QunaSys/quri-sdk/pull/579
+
+**Full Changelog**: https://github.com/QunaSys/quri-sdk/compare/v0.26.4...v0.27.0
+
+## v0.26.3
+
+**What's Changed**
+* Fix qsub visualization bug with Cbz and Label by @nils-wittemeier in https://github.com/QunaSys/quri-sdk/pull/549
+* Trigger package workflow on release only by @Kazutaka333 in https://github.com/QunaSys/quri-sdk/pull/550
+* add quration tutorial docs  by @Kazutaka333 in https://github.com/QunaSys/quri-sdk/pull/533
+* Fix false gate cache hits in QURIPartsEvaluatorHooks by @kwkbtr in https://github.com/QunaSys/quri-sdk/pull/552
+* Better representation of state vectors by @nils-wittemeier in https://github.com/QunaSys/quri-sdk/pull/512
+* Add TOFFOLI2CNOTTTranspiler by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/555
+* Add install instructions for `quri-parts-qsci` to QSCI tutorial by @nils-wittemeier in https://github.com/QunaSys/quri-sdk/pull/556
+* Add Rot op by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/529
+* Update SeparateQURIPartsTranspiler by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/554
+* Point qpe deprecation notice to quri_algo.circuit_lib.qpe by @nils-wittemeier in https://github.com/QunaSys/quri-sdk/pull/557
+* [tensornetwork] Fix gate bug by @ThomasenQunasys in https://github.com/QunaSys/quri-sdk/pull/562
+* Bump version to 0.26.3 by @Kazutaka333 in https://github.com/QunaSys/quri-sdk/pull/561
+
+
+**Full Changelog**: https://github.com/QunaSys/quri-sdk/compare/v0.26.2...v0.26.3
+
+## v0.26.4
+
+**What's Changed**
+* Update constraints and dependencies to support Python 3.9-3.14 in lockfile by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/551
+* Fix qubit count mismatch in 2_states tutorial notebook by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/566
+* Add RZ2HSTTranspiler, using pygridsynth for gridsynth by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/565
+* Drop Python 3.9 support by @Kazutaka333 in https://github.com/QunaSys/quri-sdk/pull/564
+* Add CliffordTSetTranspiler by @yasuo-ozu in https://github.com/QunaSys/quri-sdk/pull/567
+* Bump version to 0.26.4; run package CI on release PRs by @Kazutaka333 in https://github.com/QunaSys/quri-sdk/pull/563
+* Accept NumPy scalar angles in MC rotation gates by @templepmet in https://github.com/QunaSys/quri-sdk/pull/569
+
+
+**Full Changelog**: https://github.com/QunaSys/quri-sdk/compare/v0.26.3...v0.26.4
+
 ## v0.26.2
 
 **What's Changed**
