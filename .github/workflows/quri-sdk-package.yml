@@ -536,7 +536,7 @@ jobs:
           name: quri-sdk-quri-parts
 
       - name: Install Twine
-        run: python -m pip install twine==6.1.0 packaging==24.2
+        run: python -m pip install twine
 
       - name: Release to PyPI
         run: |
@@ -547,7 +547,7 @@ jobs:
               COUNTER=$((COUNTER + 1))
             fi
           done
-          [[ $COUNTER = 0 ]] && python -m twine upload *
+          [[ $COUNTER = 0 ]] && python -m twine upload --skip-existing *
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
@@ -603,7 +603,7 @@ jobs:
       run: python -m pip install twine
 
     - name: Release to PyPI
-      run: python -m twine upload *
+      run: python -m twine upload --skip-existing *
       env:
         TWINE_USERNAME: "__token__"
         TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
@@ -653,7 +653,7 @@ jobs:
       run: python -m pip install twine
 
     - name: Release to PyPI
-      run: python -m twine upload *
+      run: python -m twine upload --skip-existing *
       env:
         TWINE_USERNAME: "__token__"
         TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
@@ -716,7 +716,7 @@ jobs:
           name: quri-sdk
 
       - name: Install Twine
-        run: python -m pip install twine==6.1.0 packaging==24.2
+        run: python -m pip install twine
 
       - name: Release to PyPI
         run: |
@@ -727,7 +727,7 @@ jobs:
               COUNTER=$((COUNTER + 1))
             fi
           done
-          [[ $COUNTER = 0 ]] && python -m twine upload *
+          [[ $COUNTER = 0 ]] && python -m twine upload --skip-existing *
         env:
           TWINE_USERNAME: "__token__"
           TWINE_PASSWORD: ${{ secrets.TWINE_API_TOKEN }}
