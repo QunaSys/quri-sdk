@@ -419,11 +419,40 @@ impl ImmutableParametricQuantumCircuit {
         Ok(ret)
     }
 
+    #[pyo3(signature = (shots=None, params=None, shot_count=None))]
     fn sample<'py>(
         slf: &Bound<'py, Self>,
-        shots: i32,
-        params: Vec<f64>,
+        shots: Option<i32>,
+        params: Option<Vec<f64>>,
+        shot_count: Option<i32>,
     ) -> PyResult<Bound<'py, PyAny>> {
+        let shots = match (shots, shot_count) {
+            (Some(shots), _) => shots,
+            (None, Some(shot_count)) => {
+                slf.py().run(
+                    cr#"
+import warnings
+warnings.warn(
+    "The 'shot_count' keyword argument is deprecated; use 'shots' instead.",
+    DeprecationWarning,
+)
+                    "#,
+                    None,
+                    None,
+                )?;
+                shot_count
+            }
+            (None, None) => {
+                return Err(pyo3::exceptions::PyTypeError::new_err(
+                    "sample() missing 1 required positional argument: 'shots'",
+                ))
+            }
+        };
+        let params = params.ok_or_else(|| {
+            pyo3::exceptions::PyTypeError::new_err(
+                "sample() missing 1 required positional argument: 'params'",
+            )
+        })?;
         let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
         let sampling_counts = sampling
             .getattr("DEFAULT_SAMPLER")?

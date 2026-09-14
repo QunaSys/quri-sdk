@@ -42,7 +42,10 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
-from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
+from quri_parts.core.utils.deprecation import (
+    deprecated_measurement_cnt_kwarg,
+    deprecated_shots_kwarg,
+)
 
 #: A type variable represents *any* non-parametric quantum state classes.
 #: This is different from :class:`quri_parts.core.state.QuantumStateT`;
@@ -371,6 +374,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
 def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSampler:
     """Create a :class:`ParametricSampler` from a :class:`Sampler`."""
 
+    @deprecated_measurement_cnt_kwarg
     def _parametric_sampler(
         param_circuit: UnboundParametricQuantumCircuitProtocol,
         shots: int,
@@ -407,6 +411,7 @@ def create_parametric_state_sampler_from_state_sampler(
     """Create a :class:`ParametricStateSampler` from a
     :class:`StateSampler`."""
 
+    @deprecated_measurement_cnt_kwarg
     def _parametric_state_sampler(
         param_state: _ParametricStateT,
         shots: int,

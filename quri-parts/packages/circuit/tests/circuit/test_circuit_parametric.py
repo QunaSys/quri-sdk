@@ -9,6 +9,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 from quri_parts.circuit import (
     CNOT,
@@ -152,6 +153,16 @@ class TestUnboundParametricQuantumCircuit:
         circuit.add_CNOT_gate(0, 2)
         samples = circuit.sample(1000, [np.pi / 4])
         assert len(samples) == 2
+        assert sum(samples.values()) == 1000
+
+    def test_sample_deprecated_shot_count_kwarg(self) -> None:
+        circuit = ParametricQuantumCircuit(3)
+        circuit.add_ParametricRX_gate(0)
+        circuit.add_CNOT_gate(0, 2)
+        with pytest.deprecated_call():
+            samples = circuit.sample(  # type: ignore[call-arg]
+                shot_count=1000, params=[np.pi / 4]
+            )
         assert sum(samples.values()) == 1000
 
     def test_hash(self) -> None:

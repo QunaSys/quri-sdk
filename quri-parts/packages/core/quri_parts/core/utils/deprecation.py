@@ -15,23 +15,31 @@ from typing import Any, Callable, TypeVar, cast
 _F = TypeVar("_F", bound=Callable[..., Any])
 
 
-def deprecated_shots_kwarg(func: _F) -> _F:
-    """Accept the old ``n_shots`` keyword as a deprecated alias for ``shots``.
+def _deprecated_kwarg(old_name: str, new_name: str = "shots") -> Callable[[_F], _F]:
+    """Build a decorator that accepts ``old_name`` as a deprecated alias for
+    ``new_name``."""
 
-    Emits a :class:`DeprecationWarning` when ``n_shots`` is passed and
-    forwards it to ``func`` as ``shots``.
-    """
+    def decorator(func: _F) -> _F:
+        @wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            if old_name in kwargs:
+                warnings.warn(
+                    f"The '{old_name}' keyword argument is deprecated and "
+                    f"will be removed in a future release; use '{new_name}' "
+                    "instead.",
+                    DeprecationWarning,
+                    stacklevel=2,
+                )
+                kwargs[new_name] = kwargs.pop(old_name)
+            return func(*args, **kwargs)
 
-    @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> Any:
-        if "n_shots" in kwargs:
-            warnings.warn(
-                "The 'n_shots' keyword argument is deprecated and will be "
-                "removed in a future release; use 'shots' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            kwargs["shots"] = kwargs.pop("n_shots")
-        return func(*args, **kwargs)
+        return cast(_F, wrapper)
 
-    return cast(_F, wrapper)
+    return decorator
+
+
+#: Accept the old ``n_shots`` keyword as a deprecated alias for ``shots``.
+deprecated_shots_kwarg = _deprecated_kwarg("n_shots")
+
+#: Accept the old ``measurement_cnt`` keyword as a deprecated alias for ``shots``.
+deprecated_measurement_cnt_kwarg = _deprecated_kwarg("measurement_cnt")
