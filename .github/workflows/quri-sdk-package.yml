@@ -203,8 +203,7 @@ jobs:
             if [[ "3.${{matrix.python-version}}" = "3.14" && "$FILE" = *"quri_parts_qiskit"* ]]; then
               continue
             fi
-            # pyqret is not on PyPI; supply it from the QunaSys release feed.
-            pip install -v $FILE --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
+            pip install -v $FILE
           done
 
       - name: Run test
@@ -434,9 +433,7 @@ jobs:
             fi
             FILES+=("$FILE")
           done
-          # pyqret is not on PyPI; supply it from the QunaSys release feed.
-          pip install -v "${FILES[@]}" \
-            --find-links https://github.com/QunaSys/quration/releases/expanded_assets/v1.0.1-2
+          pip install -v "${FILES[@]}"
 
       - name: Run test
         shell: bash
