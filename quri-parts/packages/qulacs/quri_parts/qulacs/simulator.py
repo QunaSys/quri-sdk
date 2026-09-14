@@ -31,6 +31,7 @@ from quri_parts.core.sampling import (
 )
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
@@ -232,6 +233,7 @@ def create_qulacs_vector_state_sampler(
         A :class:`StateSampler` that samples measurement outcomes.
     """
 
+    @deprecated_shots_kwarg
     def state_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
         if backend.should_use_multinomial(shots, state.qubit_count):
             # Use multinomial distribution for faster sampling
@@ -328,6 +330,7 @@ def create_qulacs_ideal_vector_state_sampler(
         A :class:`StateSampler` returning ideal (probability-weighted) counts.
     """
 
+    @deprecated_shots_kwarg
     def ideal_state_sampler(
         state: Union[CircuitQuantumState, QuantumStateVector], shots: int
     ) -> MeasurementCounts:

@@ -33,6 +33,7 @@ from quri_parts.braket.circuit import (
 )
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 
 from .transpiler import AwsDeviceTranspiler
 
@@ -205,6 +206,7 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
+    @deprecated_shots_kwarg
     def sample(self, circuit: ImmutableQuantumCircuit, shots: int) -> SamplingJob:
         if not shots >= 1:
             raise ValueError("shots should be a positive integer.")

@@ -14,6 +14,7 @@ from typing import Optional, Protocol, Union
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.sampling import Sampler, StateSampler
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 
 from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
 from quri_algo.circuit.time_evolution.interface import (
@@ -75,6 +76,7 @@ class TimeEvolutionHadamardTest(TimeEvolutionExpectationValueEstimator[StateT]):
     def imag_circuit_factory(self) -> HadamardTestCircuitFactory:
         return self._hadamard_test.imag_circuit_factory
 
+    @deprecated_shots_kwarg
     def __call__(
         self, state: StateT, evolution_time: float, shots: Optional[int] = None
     ) -> Estimate[complex]:
@@ -96,6 +98,7 @@ class TimeEvolutionPowerEstimator(OperatorPowerEstimatorBase[StateT]):
         self.time_evo_estimator = time_evo_estimator
         self.tau = tau
 
+    @deprecated_shots_kwarg
     def __call__(
         self, state: StateT, operator_power: int | float, shots: Optional[int] = None
     ) -> Estimate[complex]:
