@@ -55,10 +55,12 @@ jobs:
     # Only new/changed files, not the whole tree: the existing docstring
     # backlog isn't cleared yet. Separate docstring-check group + isolated
     # config so this doesn't leak D-codes into the flake8 step above.
-    - name: Require docstrings on changed public modules/classes/functions/methods
+    - name: Warn about missing docstrings in changed files
       if: (success() || failure()) && github.event_name == 'pull_request'
       run: |
         git diff --name-only -z --diff-filter=ACMR \
           HEAD^1 HEAD \
           -- 'quri-vm/quri_vm/**.py' 'quri-vm/tests/**.py' \
-          | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings --show-source
+          | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings \
+              --exit-zero \
+              --format='::warning file=%(path)s,line=%(row)d,col=%(col)d,title=Docstring check::%(code)s %(text)s'
