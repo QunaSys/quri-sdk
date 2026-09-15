@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Square lattice (:mod:`quri_parts.circuit.topology.square_lattice`)
+=====================================================================
+
+Square-lattice qubit topology and a SWAP-insertion
+transpiler for routing two-qubit gates.
+
+Key classes (for quick orientation):
+
+- :class:`SquareLattice` -- rectangular qubit connectivity graph
+- :class:`SquareLatticeSWAPInsertionTranspiler` -- route gates via SWAP insertion
+"""
+
+
 from collections.abc import Collection, Mapping, Sequence
 from typing import Callable, Optional
 

@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Unitary decomposers (:mod:`quri_parts.circuit.transpile.unitary_matrix_decomposer`)
+======================================================================================
+
+Decompose unitary-matrix gates into native rotation and
+entanglement gates via analytic matrix decompositions.
+
+Key classes / functions (for quick orientation):
+
+- :class:`SingleQubitUnitaryMatrix2RYRZTranspiler` -- 1-qubit unitary to RY + RZ
+- :class:`TwoQubitUnitaryMatrixKAKTranspiler` -- 2-qubit unitary via KAK decomposition
+- :func:`su2_decompose` -- SU(2) to (RY, RZ) angles
+- :func:`su4_decompose` -- SU(4) KAK decomposition
+"""
+
+
 import cmath
 import math
 from collections.abc import Sequence

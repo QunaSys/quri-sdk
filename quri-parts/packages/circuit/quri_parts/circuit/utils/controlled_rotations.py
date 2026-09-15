@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Controlled rotations (:mod:`quri_parts.circuit.utils.controlled_rotations`)
+==============================================================================
+
+Helpers for adding controlled rotation gates to a circuit.
+
+Key classes / functions (for quick orientation):
+
+- :func:`add_controlled_RX_gate` -- append a controlled-RX gate to ``circuit``
+- :func:`add_controlled_RY_gate` -- append a controlled-RY gate to ``circuit``
+"""
+
+
 import numpy as np
 
 from .. import (

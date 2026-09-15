@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Noise instructions (:mod:`quri_parts.circuit.noise.noise_instruction`)
+=========================================================================
+
+Factory functions constructing common single- and multi-qubit
+noise instructions.
+
+Key classes / functions (for quick orientation):
+
+- :func:`BitFlipNoise` -- single-qubit bit flip noise
+- :func:`PhaseFlipNoise` -- single-qubit phase flip noise
+- :func:`BitPhaseFlipNoise` -- single-qubit bit and phase flip noise
+- :func:`DepolarizingNoise` -- single-qubit depolarizing noise
+"""
+
+
 import itertools as it
 
 # from abc import ABC, abstractmethod
