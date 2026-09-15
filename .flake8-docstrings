@@ -1,0 +1,6 @@
+[flake8]
+select = D1,D419
+per-file-ignores =
+    quri-algo/tests/*:D1,D419
+    quri-parts/packages/*/tests/*:D1,D419
+    quri-vm/tests/*:D1,D419

@@ -86,6 +86,7 @@ lint = [
     "isort>=5.10.1,<6.0.0",
 ]
 typecheck = ["mypy==1.8.0"]
+docstring-check = ["flake8-docstrings>=1.7.0,<2.0.0"]
 doc = [
     "Sphinx>=4.4,<8.0",
     "furo>=2022.2.23,<2024.0.0",

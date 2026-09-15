@@ -8,6 +8,7 @@ on:
       - quri-vm/.flake8
       - pyproject.toml
       - uv.lock
+      - .flake8-docstrings
       - .github/workflows/quri-vm-lint.yml
   push:
     branches: [main]
@@ -20,6 +21,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
 
     - name: Install uv
       uses: astral-sh/setup-uv@v8.2.0
@@ -31,7 +34,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --locked --group lint --group typecheck
+        uv sync --locked --group lint --group typecheck --group docstring-check
 
     - name: Run isort
       run: uv run --no-sync isort quri-vm --check --diff
@@ -48,3 +51,16 @@ jobs:
     - name: Run mypy
       run: uv run --no-sync mypy quri-vm
       if: success() || failure()
+
+    # Only new/changed files, not the whole tree: the existing docstring
+    # backlog isn't cleared yet. Separate docstring-check group + isolated
+    # config so this doesn't leak D-codes into the flake8 step above.
+    - name: Warn about missing docstrings in changed files
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      run: |
+        git diff --name-only -z --diff-filter=ACMR \
+          HEAD^1 HEAD \
+          -- 'quri-vm/quri_vm/**.py' 'quri-vm/tests/**.py' \
+          | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings \
+              --exit-zero \
+              --format='::warning file=%(path)s,line=%(row)d,col=%(col)d,title=Docstring check::%(code)s %(text)s'

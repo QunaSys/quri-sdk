@@ -10,6 +10,7 @@ on:
       - quri-parts/.flake8
       - pyproject.toml
       - uv.lock
+      - .flake8-docstrings
       - .github/workflows/quri-parts-lint.yml
       - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
@@ -22,6 +23,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 2
 
     - name: Install uv
       uses: astral-sh/setup-uv@v8.2.0
@@ -33,7 +36,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv sync --locked --group lint
+        uv sync --locked --group lint --group docstring-check
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -64,3 +67,16 @@ jobs:
     - name: Run docformatter
       run: uv run --no-sync docformatter -c -r quri-parts/packages
       if: success() || failure()
+
+    # Only new/changed files, not the whole tree: the existing docstring
+    # backlog isn't cleared yet. Separate docstring-check group + isolated
+    # config so this doesn't leak D-codes into the flake8 step above.
+    - name: Warn about missing docstrings in changed files
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      run: |
+        git diff --name-only -z --diff-filter=ACMR \
+          HEAD^1 HEAD \
+          -- 'quri-parts/packages/**.py' \
+          | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings \
+              --exit-zero \
+              --format='::warning file=%(path)s,line=%(row)d,col=%(col)d,title=Docstring check::%(code)s %(text)s'
