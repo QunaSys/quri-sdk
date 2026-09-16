@@ -244,6 +244,23 @@ class TestNormalizeRotation:
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
 
+    def test_cycle_range_validation(self) -> None:
+        # Valid: width is an exact multiple of 2*PI.
+        NormalizeRotationTranspiler((0.0, 2.0 * np.pi))
+        NormalizeRotationTranspiler((0.0, 4.0 * np.pi))
+        NormalizeRotationTranspiler((-2.0 * np.pi, 2.0 * np.pi))
+
+        # Valid: width is within epsilon of a multiple of 2*PI.
+        NormalizeRotationTranspiler((0.0, 2.0 * np.pi + 5.0e-10), epsilon=1.0e-9)
+
+        # Invalid: width is not a multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, 3.0 * np.pi))
+
+        # Invalid: width is outside epsilon tolerance of a multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, 2.0 * np.pi + 5.0e-8), epsilon=1.0e-9)
+
 
 class TestRotation2Named:
     def test_rx2named(self) -> None:
