@@ -180,8 +180,11 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
         if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
             raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
         width = cycle_range[1] - cycle_range[0]
-        remainder = width % (np.pi * 2.0)
-        if remainder > epsilon and (np.pi * 2.0 - remainder) > epsilon:
+        cycle = np.pi * 2.0
+        if not np.isfinite(width):
+            raise ValueError("The width of the cycle range must be a multiple of 2PI.")
+        cycle_count = round(width / cycle)
+        if cycle_count < 1 or abs(width - cycle_count * cycle) > epsilon:
             raise ValueError("The width of the cycle range must be a multiple of 2PI.")
         self._lower, self._upper = cycle_range
 

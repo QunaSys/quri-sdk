@@ -261,6 +261,14 @@ class TestNormalizeRotation:
         with pytest.raises(ValueError):
             NormalizeRotationTranspiler((0.0, 2.0 * np.pi + 5.0e-8), epsilon=1.0e-9)
 
+        # Invalid: a positive width near zero is not a positive multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, 5.0e-10), epsilon=1.0e-9)
+
+        # Invalid: a non-finite width is not a multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, np.inf))
+
 
 class TestRotation2Named:
     def test_rx2named(self) -> None:
