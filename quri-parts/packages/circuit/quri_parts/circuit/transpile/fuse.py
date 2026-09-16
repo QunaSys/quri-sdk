@@ -358,8 +358,11 @@ class ZeroRotationEliminationTranspiler(GateKindDecomposer):
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         """Drop gate if its angle is (equivalent to) zero, otherwise leave it
         unchanged."""
-        theta = gate.params[0] % (2.0 * np.pi)
-        if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
+        # RX/RY/RZ have period 4*PI as matrices, not 2*PI (see
+        # FuseRotationTranspiler.fuse above): an angle congruent to 2*PI is
+        # -I, not I, and must not be dropped.
+        theta = gate.params[0] % (4.0 * np.pi)
+        if self._is_close(theta, 0.0) or self._is_close(theta, 4.0 * np.pi):
             return []
         else:
             return [gate]

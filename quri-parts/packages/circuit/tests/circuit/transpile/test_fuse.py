@@ -401,12 +401,16 @@ class TestZeroRotationElimination:
         )
         transpiled = ZeroRotationEliminationTranspiler(epsilon=1.0e-9)(circuit)
 
+        # Angles near 2*PI are -I, not I (RX/RY/RZ have period 4*PI as
+        # matrices), so they must be kept, not eliminated.
         expect = QuantumCircuit(1)
         expect.extend(
             [
                 gates.RY(0, 1.0e-7),
                 gates.RX(0, -1.0e-7),
+                gates.RY(0, 2.0 * np.pi - 1.0e-11),
                 gates.RZ(0, 2.0 * np.pi - 1.0e-7),
+                gates.RX(0, 2.0 * np.pi + 1.0e-11),
                 gates.RY(0, 2.0 * np.pi + 1.0e-7),
             ]
         )
