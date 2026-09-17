@@ -10,6 +10,7 @@
 
 import numpy as np
 import pytest
+import qulacs
 from numpy.typing import NDArray
 
 from quri_parts.circuit import (
@@ -27,22 +28,13 @@ from quri_parts.circuit.transpile import (
     RZ2NamedTranspiler,
     ZeroRotationEliminationTranspiler,
 )
+from quri_parts.qulacs.circuit import convert_circuit
 
 
 def _circuit_unitary(circuit: ImmutableQuantumCircuit) -> NDArray[np.complex128]:
-    qulacs = pytest.importorskip("qulacs")
-    qulacs_circuit = pytest.importorskip("quri_parts.qulacs.circuit")
-
-    n = circuit.qubit_count
-    qc = qulacs_circuit.convert_circuit(circuit)
-    dim = 1 << n
-    unitary = np.zeros((dim, dim), dtype=np.complex128)
-    for i in range(dim):
-        state = qulacs.QuantumState(n)
-        state.set_computational_basis(i)
-        qc.update_quantum_state(state)
-        unitary[:, i] = state.get_vector()
-    return unitary
+    qc = convert_circuit(circuit)
+    matrix = qulacs.circuit.QuantumCircuitOptimizer().merge_all(qc).get_matrix()
+    return np.asarray(matrix, dtype=np.complex128)
 
 
 def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
