@@ -186,7 +186,8 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
         cycle_count = round(width / cycle)
         if cycle_count < 1 or abs(width - cycle_count * cycle) > epsilon:
             raise ValueError("The width of the cycle range must be a multiple of 2PI.")
-        self._lower, self._upper = cycle_range
+        self._lower = cycle_range[0]
+        self._width = cycle_count * cycle
 
     @property
     def target_gate_names(self) -> Sequence[str]:
@@ -194,8 +195,7 @@ class NormalizeRotationTranspiler(GateKindDecomposer):
         return [gate_names.RX, gate_names.RY, gate_names.RZ]
 
     def _normalize(self, theta: float) -> float:
-        width = self._upper - self._lower
-        return ((theta - self._lower) % width) + self._lower
+        return ((theta - self._lower) % self._width) + self._lower
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
         """Replace gate with an equivalent one whose angle is normalized into
