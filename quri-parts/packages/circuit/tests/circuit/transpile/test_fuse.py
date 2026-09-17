@@ -104,7 +104,7 @@ class TestFuseRotation:
 
 
 class TestNormalizeRotation:
-    def test_normalize_2pi(self) -> None:
+    def test_normalize_4pi(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.extend(
             [
