@@ -15,7 +15,7 @@ Evaluator hooks that track the maximum number of auxiliary qubits
 required across all sub-routine calls in a
 :class:`~quri_parts.qsub.machineinst.MachineSub` tree.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`AuxQubitCountEvaluatorHooks` -- computes peak auxiliary qubit usage
 - :class:`TotalQubitCountEvaluatorHooks` -- computes peak total (auxiliary

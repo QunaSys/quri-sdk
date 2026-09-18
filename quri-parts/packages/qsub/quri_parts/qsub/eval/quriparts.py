@@ -16,7 +16,7 @@ Evaluator hooks that convert a
 :class:`~quri_parts.circuit.QuantumCircuit` by mapping qsub primitives
 to QURI Parts gates.
 
-Key classes / objects (for quick orientation):
+Contents:
 
 - :class:`QURIPartsEvaluatorHooks` -- produces a QuantumCircuit result
 - :data:`quri_parts_codegen` -- pre-configured CodeGenerator

@@ -15,7 +15,7 @@ Evaluator hooks that count gate occurrences while traversing a
 :class:`~quri_parts.qsub.machineinst.MachineSub` tree, with optional
 filtering by operation type.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`GateCountEvaluatorHooks` -- counts primitives by base ident
 - :class:`TGateCountEvaluatorHooks` -- counts T gates only

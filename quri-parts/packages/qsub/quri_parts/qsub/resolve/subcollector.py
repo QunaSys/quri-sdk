@@ -15,7 +15,7 @@ Defines :class:`SubCollector`, which recursively resolves and collects
 every :class:`~quri_parts.qsub.sub.Sub` needed to realize an
 :class:`~quri_parts.qsub.op.Op` tree.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`SubCollector` -- recursively gathers all subs for an Op tree
 """

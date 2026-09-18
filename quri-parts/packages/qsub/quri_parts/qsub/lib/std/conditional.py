@@ -15,7 +15,7 @@ Provides compare-and-branch-on-zero (Cbz) and label primitives, plus a
 context-manager helper for inserting classically conditioned blocks into
 a :class:`~quri_parts.qsub.sub.SubBuilder`.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`Cbz` -- compare-and-branch-on-zero op
 - :data:`Label` -- branch target label op

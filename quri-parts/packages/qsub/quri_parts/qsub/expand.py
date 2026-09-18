@@ -16,7 +16,7 @@ Inlines sub-calls in a
 qubits and registers for auxiliary operands, optionally recursing
 through the full call tree.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`expand` -- one-level or recursive inline expansion
 - :func:`full_expand` -- convenience wrapper for recursive expansion

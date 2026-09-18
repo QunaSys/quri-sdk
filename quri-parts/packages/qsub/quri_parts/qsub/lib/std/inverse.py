@@ -14,7 +14,7 @@
 Defines the :data:`Inverse` parametric op factory and resolvers that
 produce the adjoint (inverse) of any unitary gate or sub-routine.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`Inverse` -- op factory: ``Inverse(op)`` yields the adjoint
 - :func:`get_inverted_sub` -- reverses and conjugates a Sub

@@ -15,7 +15,7 @@ Defines parametric op factories for every standard multi-controlled gate
 (MCX, MCY, MCZ, MCS, MCT, MCH, MCRX, etc.) with variable control-bit
 count, together with their sub-resolvers.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`MCX`, :data:`MCY`, :data:`MCZ` -- multi-controlled Paulis
 - :data:`MCS`, :data:`MCT`, :data:`MCH` -- multi-controlled Clifford gates

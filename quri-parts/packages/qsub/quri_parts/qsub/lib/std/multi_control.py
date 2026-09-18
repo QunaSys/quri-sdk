@@ -15,7 +15,7 @@ Defines the :data:`MultiControlled` parametric op factory that wraps a
 unitary gate with an arbitrary number of control qubits and a
 bit-pattern control value, plus recursive decomposition sub-builders.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`MultiControlled` -- op factory with (op, control_bits, control_value)
 - :func:`MultiControlledSub` -- Toffoli-based recursive decomposition

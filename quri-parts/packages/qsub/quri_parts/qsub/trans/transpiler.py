@@ -14,7 +14,7 @@
 Defines the :class:`SubTranspilerProtocol` callable interface and
 concrete combinators for composing sub-routine rewrites.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`SequentialTranspiler` -- runs transpilers in sequence
 - :class:`SeparateTranspiler` -- applies a pass to contiguous op chunks

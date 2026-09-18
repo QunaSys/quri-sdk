@@ -14,7 +14,7 @@
 Curated tuples of standard-library ops used as primitive sets during
 compilation, targeting common hardware / simulator instruction sets.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`Clifford` -- all single- and two-qubit Clifford gates
 - :data:`CliffordT` -- Clifford + T/Tdag

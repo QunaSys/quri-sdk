@@ -13,7 +13,7 @@
 
 Parametric single-qubit rotation ops that take a float angle parameter.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`RX`, :data:`RY`, :data:`RZ` -- Pauli-axis rotations
 - :data:`Phase` -- relative phase / U1 gate

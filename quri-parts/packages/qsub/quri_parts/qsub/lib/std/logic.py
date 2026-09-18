@@ -14,7 +14,7 @@
 Context managers that allocate an auxiliary qubit, compute the logical
 AND of two input qubits into it, and automatically uncompute on exit.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`scoped_and` -- Toffoli-based compute/uncompute
 - :func:`scoped_and_clifford_t` -- Clifford+T decomposition variant

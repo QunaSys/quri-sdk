@@ -15,7 +15,7 @@ Generic tree-walking evaluator that traverses a
 :class:`~quri_parts.qsub.machineinst.MachineSub` hierarchy, delegating
 per-node actions to user-supplied hooks.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`EvaluatorHooks` -- abstract hook interface (enter/exit/primitive)
 - :class:`Evaluator` -- drives the traversal and returns a typed result

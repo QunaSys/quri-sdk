@@ -14,7 +14,7 @@
 Low-level data model produced by code generation: each instruction is
 either a hardware primitive or a call into another sub-routine.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`MachineSub` -- a subroutine of machine instructions
 - :class:`Primitive` -- a leaf hardware operation
