@@ -16,7 +16,7 @@ converting operation chunks to
 :class:`~quri_parts.circuit.QuantumCircuit`, running external
 transpiler passes, and converting back.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`SeparateQURIPartsTranspiler` -- chunk-based QURI Parts bridge
 - :func:`convert_to_qp` -- operations to QuantumCircuit

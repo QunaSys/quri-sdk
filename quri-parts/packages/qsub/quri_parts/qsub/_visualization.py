@@ -15,7 +15,7 @@ Private implementation layer for :mod:`quri_parts.qsub.visualize`: data
 classes mirroring a Sub/MachineSub as a drawable circuit, layout
 calculations, and the matplotlib-based :class:`MPLCircuitlDrawer`.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`CircuitData` -- drawable circuit: gates, qubit/register counts, layers
 - :class:`GateData` -- a single drawable gate (name, qubits, controls, params)
