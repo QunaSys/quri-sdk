@@ -14,7 +14,7 @@
 Factory functions constructing common single- and multi-qubit
 noise instructions.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :func:`BitFlipNoise` -- single-qubit bit flip noise
 - :func:`PhaseFlipNoise` -- single-qubit phase flip noise

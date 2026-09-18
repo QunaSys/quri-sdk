@@ -13,7 +13,7 @@
 
 Helpers for adding controlled rotation gates to a circuit.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :func:`add_controlled_RX_gate` -- append a controlled-RX gate to ``circuit``
 - :func:`add_controlled_RY_gate` -- append a controlled-RY gate to ``circuit``
