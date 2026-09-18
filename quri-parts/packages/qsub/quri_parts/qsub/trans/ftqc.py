@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""FTQC gate-set transpiler (:mod:`quri_parts.qsub.trans.ftqc`)
+================================================================
+
+Rewrites a qsub ``Sub`` into the fault-tolerant {H, S, T, CNOT}
+basic gate set via a fixed pipeline of circuit-level transpiler
+passes.
+
+Contents:
+
+- :class:`FTQCSetTranspiler` -- transpile a Sub into the FTQC {H, S, T, CNOT} gate set
+"""
+
 from quri_parts.circuit import gate_names
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
