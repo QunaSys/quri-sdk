@@ -13,7 +13,7 @@
 
 Protocols and concrete classes for non-parametric quantum circuits.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`QuantumCircuitProtocol` -- read-only circuit interface
 - :class:`MutableQuantumCircuitProtocol` -- interface with gate-add methods

@@ -14,7 +14,7 @@
 Decompose unitary-matrix gates into native rotation and
 entanglement gates via analytic matrix decompositions.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`SingleQubitUnitaryMatrix2RYRZTranspiler` -- 1-qubit unitary to RY + RZ
 - :class:`TwoQubitUnitaryMatrixKAKTranspiler` -- 2-qubit unitary via KAK decomposition

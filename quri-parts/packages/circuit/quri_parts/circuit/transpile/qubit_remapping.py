@@ -14,7 +14,7 @@
 Remap qubit indices in a circuit according to a user-defined
 mapping.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`QubitRemappingTranspiler` -- remap qubits in a circuit per a given mapping
 """

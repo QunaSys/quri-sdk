@@ -14,7 +14,7 @@
 Decompose multi-qubit Pauli and PauliRotation gates into
 single- and two-qubit primitives.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`PauliDecomposeTranspiler` -- decompose multi-qubit Pauli gates
 - :class:`PauliRotationDecomposeTranspiler` -- decompose PauliRotation gates
