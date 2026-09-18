@@ -13,7 +13,7 @@
 
 Insert or remove identity gates on idle qubits.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`IdentityInsertionTranspiler` -- add Identity to idle qubits
 - :class:`IdentityEliminationTranspiler` -- remove all Identity gates

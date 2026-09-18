@@ -15,7 +15,7 @@ Convenience constructors that create :class:`~QuantumGate` and
 :class:`~ParametricQuantumGate` instances for every supported gate kind,
 including multi-controlled (MC) variants.
 
-Key items (for quick orientation):
+Contents:
 
 - :func:`H`, :func:`X`, :func:`CNOT`, ... -- standard gate factories
 - :func:`RX`, :func:`RY`, :func:`RZ` -- rotation gate factories

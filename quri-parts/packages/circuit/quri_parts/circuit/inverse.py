@@ -14,7 +14,7 @@
 Utilities for computing the inverse (adjoint) of individual gates and
 of entire non-parametric circuits.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`inverse_gate` -- return the adjoint of a single gate
 - :func:`inverse_circuit` -- return a circuit with reversed, inverted gates

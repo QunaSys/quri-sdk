@@ -14,7 +14,7 @@
 Transpilers that convert gate sets (e.g. Clifford gates,
 rotation axes) to target-native equivalents.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`CliffordConversionTranspiler` -- rewrite Clifford gates to a target set
 - :class:`RZ2RXRYTranspiler` -- RZ to RX + RY

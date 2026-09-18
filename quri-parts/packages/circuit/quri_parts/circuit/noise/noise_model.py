@@ -14,7 +14,7 @@
 Types for assembling a circuit-level noise model from individual
 noise instructions for use in noisy circuit simulation.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`NoiseModel` -- collection of noise instructions applied to a circuit
 - :class:`CircuitNoiseInstance` -- a noise instruction acting at the circuit level

@@ -13,7 +13,7 @@
 
 Approximate non-Clifford gates with Clifford sequences.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`CliffordApproximationTranspiler` -- replace non-Clifford gates with Clifford approximations
 """

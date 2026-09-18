@@ -14,7 +14,7 @@
 Maps circuit-level parameters to gate-level parameters,
 supporting arbitrary and linear (affine) transforms.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`ParameterMapping` -- abstract parameter-mapping protocol
 - :class:`ParameterMappingBase` -- base class for mapping implementations

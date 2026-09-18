@@ -13,7 +13,7 @@
 
 Parameter placeholders used to build parametric quantum circuits.
 
-Key items (for quick orientation):
+Contents:
 
 - :class:`Parameter` -- placeholder for a circuit parameter without a concrete value
 - :data:`CONST` -- placeholder representing a constant term

@@ -14,7 +14,7 @@
 Protocols and concrete classes for parametric quantum circuits whose
 gate angles are bound at evaluation time rather than construction time.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`ParametricQuantumCircuitProtocol` -- read-only interface
 - :class:`ParametricQuantumCircuit` -- mutable parametric circuit

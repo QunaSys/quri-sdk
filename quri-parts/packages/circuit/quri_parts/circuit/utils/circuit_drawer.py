@@ -13,7 +13,7 @@
 
 ASCII-art circuit visualisation.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`draw_circuit` -- render a circuit as ASCII art
 """
