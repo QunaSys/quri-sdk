@@ -16,7 +16,7 @@ hashable classical :class:`Register`, and :class:`QRegSpec` /
 :class:`QuantumRegister` for naming and grouping qubits into named
 quantum registers.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`Register` -- hashable classical register, referenced by integer index
 - :class:`QRegSpec` -- name + qubit-count spec for a quantum register

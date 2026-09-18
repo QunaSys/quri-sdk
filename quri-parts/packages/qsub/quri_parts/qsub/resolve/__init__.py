@@ -5,7 +5,7 @@ Re-exports the repository and resolver types used to map an
 :class:`~quri_parts.qsub.op.Op` to its
 :class:`~quri_parts.qsub.sub.Sub` implementation.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`SubRepository` -- resolver-registry protocol
 - :class:`SimpleSubRepository` -- mutable, standalone registry of sub-resolvers

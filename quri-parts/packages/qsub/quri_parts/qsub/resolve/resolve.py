@@ -16,7 +16,7 @@ registries that map an :class:`~quri_parts.qsub.op.Op` to its
 :class:`~quri_parts.qsub.sub.Sub` implementation, including the
 qubit/register consistency checks performed by :func:`resolve_sub`.
 
-Key classes / functions (for quick orientation):
+Contents:
 
 - :class:`SubResolver` -- callable protocol: ``Op -> Sub | None``
 - :class:`SubRepository` -- resolver-registry protocol
