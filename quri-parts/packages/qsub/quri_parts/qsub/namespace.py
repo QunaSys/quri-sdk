@@ -14,7 +14,7 @@
 Provides a lightweight, hashable namespace type used to scope operation
 identifiers across gate libraries.
 
-Key classes / objects (for quick orientation):
+Contents:
 
 - :class:`NameSpace` -- immutable (local_name, parent) pair
 - :data:`DEFAULT` -- sentinel namespace for unscoped identifiers

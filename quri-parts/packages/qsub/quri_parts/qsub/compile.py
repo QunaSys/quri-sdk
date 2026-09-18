@@ -16,7 +16,7 @@ linking to produce a fully linked
 :class:`~quri_parts.qsub.machineinst.MachineSub` from a high-level
 :class:`~quri_parts.qsub.op.Op`.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`compile` -- compile an Op into a linked MachineSub
 - :func:`compile_sub` -- compile a Sub into a linked MachineSub

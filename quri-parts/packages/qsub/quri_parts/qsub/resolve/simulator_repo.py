@@ -15,7 +15,7 @@ Module-global :class:`~quri_parts.qsub.resolve.resolve.CompositeSubRepository`
 used for simulation, layering a multi-controlled-gate resolver on top of
 the default repository.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`simulator_repository` -- the simulator-specific singleton repository
 """

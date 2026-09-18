@@ -15,7 +15,7 @@ Core type system for quantum operations: fixed ops, parametric op
 factories, and the :class:`Ident` naming scheme that combines a
 namespace, local name, and optional parameters.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`Op` -- a concrete (frozen) quantum operation descriptor
 - :class:`OpFactory` -- protocol for parametric op constructors

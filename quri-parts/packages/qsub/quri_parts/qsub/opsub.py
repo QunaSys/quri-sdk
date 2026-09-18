@@ -16,7 +16,7 @@ Helpers that simultaneously create an :class:`~quri_parts.qsub.op.Op`
 :class:`~quri_parts.qsub.sub.Sub`, optionally registering both in the
 default repository.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`opsub` -- create a fixed Op + Sub pair and register it
 - :func:`param_opsub` -- create a parametric OpFactory + SubFactory pair

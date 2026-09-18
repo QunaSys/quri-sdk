@@ -13,7 +13,7 @@
 
 Fixed (non-parametric) single-qubit Clifford gates.
 
-Key objects (for quick orientation):
+Contents:
 
 - :data:`H`, :data:`X`, :data:`Y`, :data:`Z` -- Pauli + Hadamard
 - :data:`S`, :data:`Sdag` -- phase gates

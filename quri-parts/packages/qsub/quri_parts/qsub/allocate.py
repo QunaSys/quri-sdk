@@ -14,7 +14,7 @@
 Allocation strategies for assigning logical qubits and classical
 registers during circuit expansion and evaluation.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`Allocator` -- abstract base for allocation strategies
 - :class:`HierarchicalReuseAllocator` -- stack-based allocator

@@ -15,7 +15,7 @@ Converts :class:`~quri_parts.qsub.sub.Sub` and
 :class:`~quri_parts.qsub.machineinst.MachineSub` objects into
 ``qulacsvis`` data structures and renders them with matplotlib.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`draw` -- auto-dispatching drawer for Sub, Op, or MachineSub
 - :func:`draw_sub` -- draw a Sub (resolves Op if needed)
