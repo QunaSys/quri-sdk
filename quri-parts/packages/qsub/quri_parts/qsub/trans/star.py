@@ -8,6 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""STAR gate-set transpiler (:mod:`quri_parts.qsub.trans.star`)
+================================================================
+
+Wraps the circuit-level STAR transpiler so it can rewrite a qsub
+``Sub`` in place.
+
+Contents:
+
+- :class:`STARSetTranspiler` -- transpile a Sub into the STAR {H, S, RZ, CNOT} gate set
+"""
+
 from quri_parts.circuit.transpile import STARSetTranspiler as _CircuitSTARSetTranspiler
 from quri_parts.qsub.sub import Sub
 

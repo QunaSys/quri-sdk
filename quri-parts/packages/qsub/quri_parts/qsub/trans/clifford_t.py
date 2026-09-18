@@ -8,6 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Clifford+T gate-set transpiler (:mod:`quri_parts.qsub.trans.clifford_t`)
+============================================================================
+
+Wraps the circuit-level Clifford+T transpiler so it can rewrite a
+qsub ``Sub`` in place.
+
+Contents:
+
+- :class:`CliffordTSetTranspiler` -- transpile a Sub into the Clifford+T gate set
+"""
+
 from quri_parts.circuit.transpile import (
     CliffordTSetTranspiler as _CircuitCliffordTSetTranspiler,
 )
