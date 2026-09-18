@@ -14,7 +14,7 @@
 Base protocols and combinators for composing circuit
 transpilation passes.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`CircuitTranspilerProtocol` -- callable protocol for transpilers
 - :class:`SequentialTranspiler` -- chain transpilers in sequence

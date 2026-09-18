@@ -14,7 +14,7 @@
 Transpilers that decompose specific gate kinds into
 equivalent sequences of other gates.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`CNOT2CZHTranspiler` -- CNOT to CZ + H
 - :class:`CZ2CNOTHTranspiler` -- CZ to CNOT + H

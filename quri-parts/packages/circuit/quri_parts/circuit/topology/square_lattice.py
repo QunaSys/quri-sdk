@@ -14,7 +14,7 @@
 Square-lattice qubit topology and a SWAP-insertion
 transpiler for routing two-qubit gates.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`SquareLattice` -- rectangular qubit connectivity graph
 - :class:`SquareLatticeSWAPInsertionTranspiler` -- route gates via SWAP insertion

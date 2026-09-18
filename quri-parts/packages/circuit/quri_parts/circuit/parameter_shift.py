@@ -14,7 +14,7 @@
 Data structures for parameter-shift gradient rules applied
 to parametric quantum circuits.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`ParameterShiftsAndCoef` -- shift vector paired with its coefficient
 - :class:`ShiftedParameters` -- collection of shifts for one parameter

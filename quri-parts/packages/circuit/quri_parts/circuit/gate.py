@@ -13,7 +13,7 @@
 
 Re-exports the low-level gate value objects from the Rust backend.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`QuantumGate` -- immutable non-parametric gate descriptor
 - :class:`ParametricQuantumGate` -- immutable parametric gate descriptor

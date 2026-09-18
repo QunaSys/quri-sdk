@@ -14,7 +14,7 @@
 Helper for determining whether a quantum gate belongs to the Clifford
 group based on its name and rotation angles.
 
-Key functions (for quick orientation):
+Contents:
 
 - :func:`is_clifford` -- test if a gate is a Clifford gate
 """

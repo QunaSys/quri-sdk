@@ -14,7 +14,7 @@
 Parametric quantum circuits whose gate parameters are linear (affine)
 functions of the circuit-level parameters.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`LinearMappedParametricQuantumCircuit` -- mutable builder
 - :class:`ImmutableLinearMappedParametricQuantumCircuit` -- frozen form

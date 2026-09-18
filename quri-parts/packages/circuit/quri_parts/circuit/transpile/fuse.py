@@ -14,7 +14,7 @@
 Gate-fusion transpilers that merge adjacent gates to reduce
 circuit depth and gate count.
 
-Key classes (for quick orientation):
+Contents:
 
 - :class:`AdjacentGateFuser` -- abstract base for gate-fusing passes
 - :class:`CNOTHCNOTFusingTranspiler` -- fuse CNOT-H-CNOT patterns

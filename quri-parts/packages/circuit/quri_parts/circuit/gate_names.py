@@ -15,7 +15,7 @@ Canonical string-literal gate names, grouped type aliases, and
 :func:`~typing.TypeGuard` predicates used throughout the circuit layer
 for gate identification and dispatch.
 
-Key items (for quick orientation):
+Contents:
 
 - :data:`SINGLE_QUBIT_GATE_NAMES` -- set of 1-qubit gate name strings
 - :data:`CLIFFORD_GATE_NAMES` -- set of Clifford gate name strings
