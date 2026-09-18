@@ -41,7 +41,7 @@ class GaussianParam:
 
 def get_kn(T: float, N: int) -> npt.NDArray[np.float64]:
     n = np.arange(N)
-    return -T + 2 * T / N * n
+    return (-T + 2 * T / N * n).astype(np.float64)
 
 
 def get_classical_samples(distributions: list[float], n_samples: int) -> Counter[int]:
@@ -77,7 +77,10 @@ class GaussianSampler(FourierCoefficientSampler):
 
     @property
     def distribution(self) -> npt.NDArray[np.float64]:
-        return self.fourier_coefficients / np.linalg.norm(self.fourier_coefficients, 1)
+        normalized = self.fourier_coefficients / np.linalg.norm(
+            self.fourier_coefficients, 1
+        )
+        return cast(npt.NDArray[np.float64], normalized.real)
 
     def __call__(self, n_samples: int) -> Sequence[SPEFourierCoefficient]:
         classical_samples = get_classical_samples(self.distribution.tolist(), n_samples)

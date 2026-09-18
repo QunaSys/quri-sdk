@@ -11,7 +11,7 @@ fn make_dense_matrix<'py>(
     qubits: Vec<usize>,
     unitary_matrix: Vec<Vec<f64>>,
 ) -> PyResult<Bound<'py, PyAny>> {
-    py.import_bound("qulacs.gate")?
+    py.import("qulacs.gate")?
         .getattr("DenseMatrix")?
         .call1((qubits, unitary_matrix))
 }
@@ -23,7 +23,7 @@ fn convert_add_pauli_noise<'py>(
     qulacs_circuit: Bound<'py, PyAny>,
     fill_identity: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
-    let module = py.import_bound("qulacs.gate")?;
+    let module = py.import("qulacs.gate")?;
     let mut probs = pauli_noise.prob_list.clone();
     let mut gates = vec![];
     for pauli in &pauli_noise.pauli_list {
@@ -45,7 +45,7 @@ fn convert_add_pauli_noise<'py>(
         }
     }
     let prob_gate = py
-        .import_bound("qulacs.gate")?
+        .import("qulacs.gate")?
         .getattr("Probabilistic")?
         .call1((probs, gates))?;
     qulacs_circuit.call_method1("add_gate", (prob_gate,))?;
@@ -63,7 +63,7 @@ fn convert_add_probabilistic_noise<'py>(
         matrices.push(make_dense_matrix(py, qubits.clone(), matrix.clone())?);
     }
     let prob_gate = py
-        .import_bound("qulacs.gate")?
+        .import("qulacs.gate")?
         .getattr("Probabilistic")?
         .call1((prob_noise.prob_list.clone(), matrices))?;
     qulacs_circuit.call_method1("add_gate", (prob_gate,))?;
@@ -81,7 +81,7 @@ fn convert_add_kraus_noise<'py>(
         matrices.push(make_dense_matrix(py, qubits.clone(), kraus.clone())?);
     }
     let cptp = py
-        .import_bound("qulacs.gate")?
+        .import("qulacs.gate")?
         .getattr("CPTP")?
         .call1((matrices,))?;
     qulacs_circuit.call_method1("add_gate", (cptp,))?;
@@ -96,7 +96,7 @@ fn convert_add_single_param_noise<'py>(
     qulacs_circuit: Bound<'py, PyAny>,
 ) -> PyResult<Bound<'py, PyAny>> {
     let gate = py
-        .import_bound("qulacs.gate")?
+        .import("qulacs.gate")?
         .getattr(name)?
         .call1((qubit, param))?;
     qulacs_circuit.call_method1("add_gate", (gate,))?;
@@ -165,7 +165,7 @@ pub fn convert_circuit_with_noise_model<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let circuit = circuit.borrow();
     let mut qulacs_circuit = py
-        .import_bound("qulacs")?
+        .import("qulacs")?
         .getattr("QuantumCircuit")?
         .call1((circuit.qubit_count,))?;
 
@@ -184,7 +184,7 @@ pub fn convert_circuit_with_noise_model<'py>(
         qulacs_circuit = convert_add_gate(py, gate, qulacs_circuit)?;
 
         // gate noises
-        for (qubits, noise) in NoiseModel::noises_for_gate(&noise_model_instance, gate.clone()) {
+        for (qubits, noise) in NoiseModel::noises_for_gate(&noise_model_instance, gate.clone())? {
             qulacs_circuit =
                 convert_add_noise(py, &qubits.extract()?, noise.get(), qulacs_circuit)?;
         }

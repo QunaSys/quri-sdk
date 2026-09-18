@@ -46,7 +46,7 @@ You are also encouraged to propose or author new components as necessary.
 
 ## Installation
 
-QURI Parts requires Python 3.9.8 or later.
+QURI Parts requires Python 3.10 or later.
 
 Use `pip` to install QURI Parts.
 Default installation only contains components not depending specific platforms (devices/simulators) or external libraries.

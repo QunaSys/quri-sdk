@@ -17,9 +17,15 @@
 
 from unittest.mock import MagicMock
 
-from qiskit.providers.models import QasmBackendConfiguration
 from qiskit_ibm_runtime import IBMBackend, QiskitRuntimeService
 from qiskit_ibm_runtime.api.clients import RuntimeClient
+
+try:
+    # qiskit.providers.models (and QasmBackendConfiguration) was removed in
+    # qiskit 2.0. Fall back to ``object`` so the mock spec still works.
+    from qiskit.providers.models import QasmBackendConfiguration
+except (ImportError, ModuleNotFoundError):  # qiskit >= 2.0
+    QasmBackendConfiguration = object
 
 
 def mock_get_backend(is_simulator: bool = True) -> QiskitRuntimeService:

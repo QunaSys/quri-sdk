@@ -7,10 +7,8 @@ on:
       - quri-algo/tests/**/*.py
       - quri-algo/pyproject.toml
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
       - .github/workflows/quri-algo-test.yml
-      - .github/actions/python-poetry-install/action.yml
-      - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
 
@@ -24,26 +22,16 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ./.github/actions/python-poetry-install
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        poetry-version: '1.8.5'
+        version: "0.11.17"
         python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Cache Poetry environment
-      uses: actions/cache@v4
-      with:
-        path: |
-          ~/.cache/pypoetry
-        key: poetry-${{ runner.os }}-py${{ env.PYTHON_VERSION }}-quri-algo-test-${{ hashFiles('poetry.lock') }}
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - name: Install dependencies
-      run: |
-        poetry env use $PYTHON_VERSION
-
-        # prevent `no quri_parts.rust.quri_parts_rust module` error occuring with wrong cache
-        poetry run pip install -vvv -e quri-parts/packages/rust
-
-        poetry install --only main,dev
+      run: uv sync --locked
 
     - name: Run pytest
-      run: poetry run pytest quri-algo/tests/
+      run: uv run --no-sync pytest quri-algo/tests/

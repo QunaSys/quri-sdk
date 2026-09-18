@@ -5,7 +5,7 @@ from pyqret.frontend import Argument, CircuitBuilder, CircuitGenerator, Context,
 from pyqret.frontend import Qubit as QretQubit
 from pyqret.frontend import Qubits as QretQubits
 from pyqret.frontend import Register as QretRegister
-from pyqret.frontend.gate import intrinsic
+from pyqret.frontend.gate import control_flow, intrinsic
 
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.lib import std
@@ -22,6 +22,8 @@ from quri_parts.qsub.resolve import SubCollector, SubRepository, default_reposit
 
 QRETInstrSet: Iterable[AbstractOp] = (
     std.M,
+    std.Cbz,
+    std.Label,
     std.Identity,
     std.X,
     std.Y,
@@ -82,12 +84,26 @@ def generate_qubits(qubit_list: Sequence[QretQubit]) -> QretQubits:
 
 
 def _add_intrinsic(
-    mop: MachineOp, qs: Sequence[QretQubit], rs: Sequence[QretRegister]
+    mop: MachineOp,
+    qs: Sequence[QretQubit],
+    rs: Sequence[QretRegister],
+    branch_conditions: dict[QretRegister, QretRegister],
 ) -> None:
     op = mop.op
     base_id = op.base_id
     if op in _meas_instr_map:
         _meas_instr_map[op](qs[0], rs[0])
+    elif op == std.Cbz:
+        condition, label = rs
+        control_flow.qu_if(condition)
+        branch_conditions[label] = condition
+    elif op == std.Label:
+        (label,) = rs
+        try:
+            condition = branch_conditions.pop(label)
+        except KeyError as e:
+            raise ValueError(f"Label without a matching Cbz: {op}") from e
+        control_flow.qu_end_if(condition)
     elif op in _unary_instr_map:
         _unary_instr_map[op](qs[0])
     elif base_id in _param_unary_instr_map:
@@ -160,12 +176,13 @@ def _create_circuit_gen(
                 cast(QretRegister, arg[f"ar{i}"])
                 for i in range(len(msub.aux_registers), local_aux_register_count)
             ]
+            branch_conditions: dict[QretRegister, QretRegister] = {}
 
             for mop, qs, rs in msub.instructions:
                 mapped_qs = tuple(qubit_map[q] for q in qs)
                 mapped_rs = tuple(register_map[r] for r in rs)
                 if is_primitive(mop):
-                    _add_intrinsic(mop, mapped_qs, mapped_rs)
+                    _add_intrinsic(mop, mapped_qs, mapped_rs, branch_conditions)
                 elif is_subcall(mop):
                     ancilla_count = ancilla_counts[mop.op]
                     aux_register_count = aux_register_counts[mop.op]
@@ -175,6 +192,9 @@ def _create_circuit_gen(
                         list(mapped_rs) + aux_registers[:aux_register_count],
                         op_circuit_gen_map,
                     )
+
+            if branch_conditions:
+                raise ValueError("Cbz without a matching Label")
 
     return _Gen(builder)
 

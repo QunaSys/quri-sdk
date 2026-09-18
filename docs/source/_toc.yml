@@ -1,0 +1,88 @@
+format: jb-book
+root: index
+parts:
+  - chapters:
+      - file: docs/tutorials/index
+        sections:
+          - file: docs/tutorials/quick_start
+          - file: docs/tutorials/quri_sdk_introduction
+          - file: docs/tutorials/quri-parts/index
+            sections:
+              - file: docs/tutorials/quri-parts/circuits
+              - file: docs/tutorials/quri-parts/states
+              - file: docs/tutorials/quri-parts/operators
+              - file: docs/tutorials/quri-parts/sampler
+              - file: docs/tutorials/quri-parts/estimators
+              - file: docs/tutorials/quri-parts/sampling_estimation
+              - file: docs/tutorials/quri-parts/parametric/index
+                sections:
+                  - file: docs/tutorials/quri-parts/parametric/parametric_circuit
+                  - file: docs/tutorials/quri-parts/parametric/parametric_states_and_estimators
+                  - file: docs/tutorials/quri-parts/parametric/gradient_estimators
+              - file: docs/tutorials/quri-parts/variational_algorithms
+              - file: docs/tutorials/quri-parts/qsub
+              - file: docs/tutorials/quri-parts/quration/index
+                sections:
+                  - file: docs/tutorials/quri-parts/quration/basic_resource_estimation
+                  - file: docs/tutorials/quri-parts/quration/multiple_circuit_resource_estimation
+          - file: docs/tutorials/quri-algo/index
+            sections:
+              - file: docs/tutorials/quri-algo/time_evolution
+              - file: docs/tutorials/quri-algo/time_evolution_estimators
+          - file: docs/tutorials/quri-vm/index
+            sections:
+              - file: docs/tutorials/quri-vm/introduction
+
+      - file: docs/howto/index
+        sections:
+          - file: docs/howto/running_and_simulating/index
+            sections:
+              - file: docs/howto/running_and_simulating/simulator
+              - file: docs/howto/running_and_simulating/sampling_backends
+              - file: docs/howto/running_and_simulating/braket_sampling
+              - file: docs/howto/running_and_simulating/qiskit_sampling
+              - file: docs/howto/running_and_simulating/noisy_simulation
+              - file: docs/howto/running_and_simulating/data_recording
+          - file: docs/howto/error_mitigation/index
+            sections:
+              - file: docs/howto/error_mitigation/readout_error_mitigation
+              - file: docs/howto/error_mitigation/zero_noise_extrapolation
+              - file: docs/howto/error_mitigation/clifford_data_regression
+          - file: docs/howto/circuit_compilation/index
+            sections:
+              - file: docs/howto/circuit_compilation/transpiler
+              - file: docs/howto/circuit_compilation/quantum_circuit_compilation
+          - file: docs/howto/applying_algorithms/index
+            sections:
+              - file: docs/howto/applying_algorithms/quantum_selected_configuration_interaction
+              - file: docs/howto/applying_algorithms/statistical_phase_estimation
+              - file: docs/howto/applying_algorithms/transverse_field_ising_model
+              - file: docs/howto/applying_algorithms/scalar_field_theory
+              - file: docs/howto/applying_algorithms/page_curve
+          - file: docs/howto/quantum-chemistry/index
+            sections:
+              - file: docs/howto/quantum-chemistry/introduction
+              - file: docs/howto/quantum-chemistry/molecular_orbitals
+              - file: docs/howto/quantum-chemistry/molecular_hamiltonian
+              - file: docs/howto/quantum-chemistry/advanced_electron_integrals
+              - file: docs/howto/quantum-chemistry/fermion_qubit_mapping
+
+      - file: docs/reference/index
+        sections:
+          - file: docs/reference/quantum_algorithms/index
+            sections:
+              - file: docs/reference/quantum_algorithms/bell_state
+              - file: docs/reference/quantum_algorithms/toffoli_gate
+              - file: docs/reference/quantum_algorithms/deutsch_jozsa
+              - file: docs/reference/quantum_algorithms/bernstein_vazirani
+              - file: docs/reference/quantum_algorithms/simons_algorithm
+              - file: docs/reference/quantum_algorithms/quantum_fourier_transform
+              - file: docs/reference/quantum_algorithms/quantum_phase_estimation
+              - file: docs/reference/quantum_algorithms/surface_code
+          - file: docs/reference/ecosystem
+          - file: docs/reference/api_reference
+          - file: docs/reference/release-notes/index
+
+      - file: docs/concepts/index
+        sections:
+          - file: docs/concepts/overview/index

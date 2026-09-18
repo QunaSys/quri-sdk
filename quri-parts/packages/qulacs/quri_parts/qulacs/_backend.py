@@ -65,7 +65,7 @@ class QulacsBackend(ABC):
         ...
 
     @abstractmethod
-    def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
+    def should_use_multinomial(self, shots: int, qubit_count: int) -> bool:
         """Return True when multinomial sampling is preferable over qulacs
         sampling."""
         ...
@@ -140,8 +140,8 @@ class DefaultQulacsBackend(QulacsBackend):
         # https://github.com/qulacs/qulacs/issues/537
         return cast(NDArray[complex128], state.get_vector())
 
-    def should_use_multinomial(self, n_shots: int, qubit_count: int) -> bool:
-        return n_shots > int(2 ** max(int(qubit_count), 10))
+    def should_use_multinomial(self, shots: int, qubit_count: int) -> bool:
+        return shots > int(2 ** max(int(qubit_count), 10))
 
     def get_marginal_probability(
         self,

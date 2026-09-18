@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     import numpy.typing as npt  # noqa: F401
 
 
-_DType = TypeVar("_DType", bound=np.generic)
+_DType = TypeVar("_DType", bound="np.generic[Any]")
 
 
 @overload

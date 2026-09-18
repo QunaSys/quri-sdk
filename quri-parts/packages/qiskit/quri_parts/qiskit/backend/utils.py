@@ -11,7 +11,15 @@
 import warnings
 from typing import Callable, Mapping, MutableMapping, Optional, Sequence
 
-from qiskit.providers.backend import Backend, BackendV1, BackendV2
+from qiskit.providers.backend import Backend, BackendV2
+
+try:
+    # BackendV1 was removed in qiskit 2.0.
+    from qiskit.providers.backend import BackendV1
+
+    _SUPPORTED_BACKENDS: tuple[type, ...] = (BackendV1, BackendV2)
+except ImportError:
+    _SUPPORTED_BACKENDS = (BackendV2,)
 
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
@@ -21,16 +29,16 @@ DEFAULT_MAX_SHOT = int(1e6)
 
 
 def distribute_backend_shots(
-    n_shots: int,
+    shots: int,
     min_shots: int,
     max_shots: Optional[int],
     enable_shots_roundup: Optional[bool] = True,
 ) -> Sequence[int]:
-    """Distributes the n_shots into batches of smaller shot numbers according
-    to the max_shots value.
+    """Distributes the shots into batches of smaller shot numbers according to
+    the max_shots value.
 
     Args:
-        n_shots: Total number of shots.
+        shots: Total number of shots.
         min_shots: Minimal number of shots of a single batch.
         max_shots: Maximal number of shots of a single batch.
         enable_shots_roundup: If True, when a number of shots of a batch
@@ -39,21 +47,21 @@ def distribute_backend_shots(
             If it is strictly not allowed to exceed the specified shot count,
             set this argument to False.
     """
-    if max_shots is not None and n_shots > max_shots:
-        shot_dist = [max_shots] * (n_shots // max_shots)
-        remaining = n_shots % max_shots
+    if max_shots is not None and shots > max_shots:
+        shot_dist = [max_shots] * (shots // max_shots)
+        remaining = shots % max_shots
         if remaining > 0:
             if remaining >= min_shots:
                 shot_dist.append(remaining)
             elif enable_shots_roundup:
                 shot_dist.append(min_shots)
     else:
-        if n_shots >= min_shots or enable_shots_roundup:
-            shot_dist = [max(n_shots, min_shots)]
+        if shots >= min_shots or enable_shots_roundup:
+            shot_dist = [max(shots, min_shots)]
         else:
             raise ValueError(
-                f"n_shots is smaller than minimum shot count ({min_shots}) "
-                "supported by the device. Try larger n_shots or use "
+                f"shots is smaller than minimum shot count ({min_shots}) "
+                "supported by the device. Try larger shots or use "
                 "enable_shots_roundup=True when creating the backend."
             )
     return shot_dist
@@ -70,7 +78,7 @@ def get_backend_min_max_shot(backend: Backend) -> tuple[int, Optional[int]]:
         )
         return DEFAULT_MAX_SHOT
 
-    if not isinstance(backend, (BackendV1, BackendV2)):
+    if not isinstance(backend, _SUPPORTED_BACKENDS):
         raise BackendError("Backend not supported.")
 
     if hasattr(backend, "max_shots"):

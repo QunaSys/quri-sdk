@@ -368,7 +368,7 @@ pub fn measurement(
 }
 
 pub fn py_module<'py>(py: Python<'py>) -> PyResult<Bound<'py, PyModule>> {
-    let m = PyModule::new_bound(py, "gates")?;
+    let m = PyModule::new(py, "gates")?;
     m.add_wrapped(wrap_pyfunction!(identity))?;
     m.add_wrapped(wrap_pyfunction!(x))?;
     m.add_wrapped(wrap_pyfunction!(y))?;

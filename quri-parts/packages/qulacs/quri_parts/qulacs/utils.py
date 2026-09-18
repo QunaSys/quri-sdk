@@ -1,5 +1,6 @@
 from typing import Sequence, TypeVar, Union, cast
 
+import numpy as np
 from numpy.typing import ArrayLike
 
 Numerics = TypeVar("Numerics", int, float, complex)
@@ -11,4 +12,4 @@ def cast_to_list(int_sequence: Union[Sequence[Numerics], ArrayLike]) -> list[Num
 
     This is a workaround for too strict type annotation of Qulacs
     """
-    return cast(list[Numerics], int_sequence)
+    return cast(list[Numerics], np.asarray(int_sequence).reshape(-1).tolist())

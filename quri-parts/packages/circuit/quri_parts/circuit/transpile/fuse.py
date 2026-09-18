@@ -22,7 +22,6 @@ Key classes (for quick orientation):
 - :class:`NormalizeRotationTranspiler` -- normalise rotation angles to [0, 2pi)
 """
 
-
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
@@ -49,17 +48,23 @@ class AdjacentGateFuser(CircuitTranspilerProtocol, ABC):
     @property
     @abstractmethod
     def target_gate_count(self) -> int:
+        """Returns the number of adjacent gates a single fuse() call
+        consumes."""
         ...
 
     @abstractmethod
     def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
+        """Determine if a given gate sequence is subject to fusing."""
         ...
 
     @abstractmethod
     def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        """Fuse a target gate sequence into a replacement gate sequence."""
         ...
 
     def __call__(self, circuit: ImmutableQuantumCircuit) -> ImmutableQuantumCircuit:
+        """Applies the fuser to every matching adjacent gate sequence in the
+        circuit."""
         xs = list(circuit.gates)
         ys: list[QuantumGate] = []
 
@@ -94,9 +99,13 @@ class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
 
     @property
     def target_gate_count(self) -> int:
+        """Returns the number of adjacent gates a single fuse() call
+        consumes."""
         return 3
 
     def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
+        """Returns True if seq is a CNOT-H-CNOT sequence sharing a
+        control/target qubit pair."""
         return (
             seq[0].name == gate_names.CNOT
             and seq[1].name == gate_names.H
@@ -107,6 +116,8 @@ class CNOTHCNOTFusingTranspiler(AdjacentGateFuser):
         )
 
     def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        """Replace a CNOT-H-CNOT sequence with an equivalent, CNOT-count-
+        reduced sequence."""
         q0, q1 = seq[0].control_indices[0], seq[0].target_indices[0]
         return [
             gates.S(q0),
@@ -125,9 +136,13 @@ class FuseRotationTranspiler(AdjacentGateFuser):
 
     @property
     def target_gate_count(self) -> int:
+        """Returns the number of adjacent gates a single fuse() call
+        consumes."""
         return 2
 
     def is_target_sequence(self, seq: Sequence[QuantumGate]) -> bool:
+        """Returns True if seq is two consecutive rotation gates of the same
+        kind on the same qubit."""
         left, right = seq
         return (
             left.name in [gate_names.RX, gate_names.RY, gate_names.RZ]
@@ -136,8 +151,13 @@ class FuseRotationTranspiler(AdjacentGateFuser):
         )
 
     def fuse(self, seq: Sequence[QuantumGate]) -> Sequence[QuantumGate]:
+        """Combine two consecutive same-axis rotation gates into one."""
         left, right = seq
-        theta = (left.params[0] + right.params[0]) % (2.0 * np.pi)
+        # RX/RY/RZ have period 4*PI as matrices (RX(t) = exp(-i*t/2*X), etc.),
+        # not 2*PI: RX(t + 2*PI) = -RX(t). Reducing mod 2*PI here would silently
+        # flip the sign of the fused gate's matrix whenever the sum needs an
+        # odd number of 2*PI subtracted to come back into range.
+        theta = (left.params[0] + right.params[0]) % (4.0 * np.pi)
         return [
             QuantumGate(
                 name=left.name, target_indices=left.target_indices, params=(theta,)
@@ -147,32 +167,50 @@ class FuseRotationTranspiler(AdjacentGateFuser):
 
 class NormalizeRotationTranspiler(GateKindDecomposer):
     """Normalize the parameters of the rotation gates (RX, RY, and RZ) so that
-    they are in the specified range (0 to 2PI by default).
+    they are in the specified range (0 to 4PI by default).
+
+    RX, RY, and RZ have period 4PI as matrices (e.g. RX(t) = exp(-i*t/2*X)), not
+    2PI: RX(t + 2*PI) = -RX(t). A cycle_range narrower than 4PI (e.g. the legacy
+    default of width 2PI) therefore does not preserve the gate's matrix exactly,
+    only up to a global phase of -1. Use a range of width 4PI (the default) to
+    preserve the exact matrix.
 
     Args:
-        cycle_range: Specify a range of width 2PI in the form of (lower limit,
-        upper limit). Lower limit is inclusive and upper limit is exclusive.
+        cycle_range: Specify a range of width 4PI (or a multiple of 2PI, for
+        callers that only need equivalence up to global phase) in the form of
+        (lower limit, upper limit). Lower limit is inclusive and upper limit is
+        exclusive.
     """
 
     def __init__(
         self,
-        cycle_range: tuple[float, float] = (0.0, np.pi * 2.0),
+        cycle_range: tuple[float, float] = (0.0, np.pi * 4.0),
         epsilon: float = 1.0e-9,
     ):
+        """Validate cycle_range and store it for use by decompose()."""
         if not cycle_range[1] > cycle_range[0]:  # Do not accept 0 width.
             raise ValueError("Specify (lower limit, upper limit) for cycle_range.")
-        if abs(cycle_range[1] - cycle_range[0] - np.pi * 2.0) > epsilon:
-            raise ValueError("The width of the cycle range must be 2PI.")
-        self._lower, self._upper = cycle_range
+        width = cycle_range[1] - cycle_range[0]
+        cycle = np.pi * 2.0
+        if not np.isfinite(width):
+            raise ValueError("The width of the cycle range must be a multiple of 2PI.")
+        cycle_count = round(width / cycle)
+        if cycle_count < 1 or abs(width - cycle_count * cycle) > epsilon:
+            raise ValueError("The width of the cycle range must be a multiple of 2PI.")
+        self._lower = cycle_range[0]
+        self._width = cycle_count * cycle
 
     @property
     def target_gate_names(self) -> Sequence[str]:
+        """Returns the set of gate names to be decomposed."""
         return [gate_names.RX, gate_names.RY, gate_names.RZ]
 
     def _normalize(self, theta: float) -> float:
-        return ((theta - self._lower) % (np.pi * 2.0)) + self._lower
+        return ((theta - self._lower) % self._width) + self._lower
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        """Replace gate with an equivalent one whose angle is normalized into
+        cycle_range."""
         theta = self._normalize(gate.params[0])
         return [
             QuantumGate(
@@ -192,16 +230,20 @@ class RX2NamedTranspiler(GateKindDecomposer):
     X, SqrtX, or SqrtXdag gate."""
 
     def __init__(self, epsilon: float = 1.0e-9):
+        """Store the tolerance used to match angles to named-gate constants."""
         self._epsilon = epsilon
 
     @property
     def target_gate_names(self) -> Sequence[str]:
+        """Returns the set of gate names to be decomposed."""
         return [gate_names.RX]
 
     def _is_close(self, a: float, b: float) -> bool:
         return abs(a - b) < self._epsilon
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        """Replace gate with the named gate it matches (up to global phase), or
+        leave it unchanged."""
         target = gate.target_indices[0]
         theta = gate.params[0] % (2.0 * np.pi)
 
@@ -222,16 +264,20 @@ class RY2NamedTranspiler(GateKindDecomposer):
     Y, SqrtY, or SqrtYdag gate."""
 
     def __init__(self, epsilon: float = 1.0e-9):
+        """Store the tolerance used to match angles to named-gate constants."""
         self._epsilon = epsilon
 
     @property
     def target_gate_names(self) -> Sequence[str]:
+        """Returns the set of gate names to be decomposed."""
         return [gate_names.RY]
 
     def _is_close(self, a: float, b: float) -> bool:
         return abs(a - b) < self._epsilon
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        """Replace gate with the named gate it matches (up to global phase), or
+        leave it unchanged."""
         target = gate.target_indices[0]
         theta = gate.params[0] % (2.0 * np.pi)
 
@@ -252,17 +298,22 @@ class RZ2NamedTranspiler(GateKindDecomposer):
     equivalent to a sequence of these gates."""
 
     def __init__(self, epsilon: float = 1.0e-9, allow_t_tdag: bool = True):
+        """Store the matching tolerance and whether T/Tdag substitutions are
+        allowed."""
         self._epsilon = epsilon
         self._allow_t_tdag = allow_t_tdag
 
     @property
     def target_gate_names(self) -> Sequence[str]:
+        """Returns the set of gate names to be decomposed."""
         return [gate_names.RZ]
 
     def _is_close(self, a: float, b: float) -> bool:
         return abs(a - b) < self._epsilon
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        """Replace gate with the named gate(s) it matches (up to global phase),
+        or leave it unchanged."""
         target = gate.target_indices[0]
         theta = gate.params[0] % (2.0 * np.pi)
 
@@ -291,6 +342,8 @@ class Rotation2NamedTranspiler(SequentialTranspiler):
     Tdag gates if it is equivalent to a sequence of these gates."""
 
     def __init__(self, epsilon: float = 1.0e-9):
+        """Chain the RX/RY/RZ-to-named-gate transpilers with a shared
+        tolerance."""
         super().__init__(
             [
                 RX2NamedTranspiler(epsilon),
@@ -305,18 +358,25 @@ class ZeroRotationEliminationTranspiler(GateKindDecomposer):
     epsilon."""
 
     def __init__(self, epsilon: float = 1.0e-9):
+        """Store the tolerance used to treat a rotation angle as zero."""
         self._epsilon = epsilon
 
     @property
     def target_gate_names(self) -> Sequence[str]:
+        """Returns the set of gate names to be decomposed."""
         return [gate_names.RX, gate_names.RY, gate_names.RZ]
 
     def _is_close(self, a: float, b: float) -> bool:
         return abs(a - b) < self._epsilon
 
     def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
-        theta = gate.params[0] % (2.0 * np.pi)
-        if self._is_close(theta, 0.0) or self._is_close(theta, 2.0 * np.pi):
+        """Drop gate if its angle is (equivalent to) zero, otherwise leave it
+        unchanged."""
+        # RX/RY/RZ have period 4*PI as matrices, not 2*PI (see
+        # FuseRotationTranspiler.fuse above): an angle congruent to 2*PI is
+        # -I, not I, and must not be dropped.
+        theta = gate.params[0] % (4.0 * np.pi)
+        if self._is_close(theta, 0.0) or self._is_close(theta, 4.0 * np.pi):
             return []
         else:
             return [gate]

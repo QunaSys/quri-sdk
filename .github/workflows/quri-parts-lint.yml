@@ -9,9 +9,9 @@ on:
       - quri-parts/pyproject.toml
       - quri-parts/.flake8
       - pyproject.toml
-      - poetry.lock
+      - uv.lock
+      - .flake8-docstrings
       - .github/workflows/quri-parts-lint.yml
-      - .github/actions/python-poetry-install/action.yml
       - .github/actions/quri-parts/rust-install-cache/action.yml
   push:
     branches: [main]
@@ -23,24 +23,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
-    - uses: ./.github/actions/python-poetry-install
       with:
-        poetry-version: '1.8.5'
-        python-version: '3.10'
+        fetch-depth: 2
 
-    - name: Cache Poetry environment
-      uses: actions/cache@v4
+    - name: Install uv
+      uses: astral-sh/setup-uv@v8.2.0
       with:
-        path: |
-          ~/.cache/pypoetry
-          .venv
-        key: poetry-${{ runner.os }}-py310-quri-parts-lint-${{ hashFiles('poetry.lock') }}
+        version: "0.11.17"
+        python-version: "3.10"
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
 
     - name: Install dependencies
       run: |
-        poetry env use 3.10
-        poetry install --with dev,lint --sync
+        uv sync --locked --group lint --group docstring-check
 
     - uses: ./.github/actions/quri-parts/rust-install-cache
       with:
@@ -57,17 +53,30 @@ jobs:
       if: success() || failure()
 
     - name: Run isort
-      run: poetry run isort quri-parts/packages --check --diff
+      run: uv run --no-sync isort quri-parts/packages --check --diff
       if: success() || failure()
 
     - name: Run black
-      run: poetry run black quri-parts/packages --check
+      run: uv run --no-sync black --config .black.toml quri-parts/packages --check
       if: success() || failure()
 
     - name: Run flake8
-      run: poetry run flake8 quri-parts/packages --config .flake8
+      run: uv run --no-sync flake8 quri-parts/packages --config .flake8
       if: success() || failure()
 
     - name: Run docformatter
-      run: poetry run docformatter -c -r quri-parts/packages
+      run: uv run --no-sync docformatter -c -r quri-parts/packages
       if: success() || failure()
+
+    # Only new/changed files, not the whole tree: the existing docstring
+    # backlog isn't cleared yet. Separate docstring-check group + isolated
+    # config so this doesn't leak D-codes into the flake8 step above.
+    - name: Warn about missing docstrings in changed files
+      if: (success() || failure()) && github.event_name == 'pull_request'
+      run: |
+        git diff --name-only -z --diff-filter=ACMR \
+          HEAD^1 HEAD \
+          -- 'quri-parts/packages/**.py' \
+          | xargs -0 --no-run-if-empty uv run --no-sync flake8 --config=.flake8-docstrings \
+              --exit-zero \
+              --format='::warning file=%(path)s,line=%(row)d,col=%(col)d,title=Docstring check::%(code)s %(text)s'

@@ -23,18 +23,15 @@ import warnings
 
 # The implementation is originally from qulacs-visualizer
 # https://github.com/Qulacs-Osaka/qulacs-visualizer
-from typing import Sequence, Union
+from typing import Any, Sequence, Union
 
 import numpy as np
 import numpy.typing as npt
 
-from quri_parts.circuit import (
-    ImmutableQuantumCircuit,
-    ParametricQuantumCircuitProtocol,
-    ParametricQuantumGate,
-    QuantumGate,
-    gate_names,
-)
+from .. import gate_names
+from ..circuit import ImmutableQuantumCircuit
+from ..circuit_parametric import ParametricQuantumCircuitProtocol
+from ..gate import ParametricQuantumGate, QuantumGate
 
 _GATE_STR_MAP = {
     gate_names.X: " X ",
@@ -71,23 +68,15 @@ _GATE_STR_MAP = {
 _GATE_WIDTH = 7
 
 
-def draw_circuit(
+def _render_circuit_lines(
     circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
     line_length: int = 80,
-) -> None:
-    """Circuit drawer which outputs given circuit as an ASCII art to standard
-    streams.
-
-    Args:
-        circuit: Circuit to be output.
-        line_length: Maximum output line length.
-    """
-
+) -> list[str]:
     qubit_count = circuit.qubit_count
     depth = circuit.depth  # depth of the circuit
 
     # 2D Boolean array. True if [i,j] is empty.
-    gate_map = np.full((qubit_count, depth), True)
+    gate_map: "npt.NDArray[np.bool_[Any]]" = np.full((qubit_count, depth), True)
 
     # 4 for each qubit.
     vertical_size = qubit_count * 4
@@ -184,8 +173,35 @@ def draw_circuit(
     else:
         output = circuit_picture
 
-    for line in output:
-        print("".join(line))
+    return ["".join(line) for line in output]
+
+
+def circuit_to_string(
+    circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
+    line_length: int = 80,
+) -> str:
+    """Circuit drawer which returns given circuit as an ASCII art string."""
+    lines = _render_circuit_lines(circuit, line_length)
+    if not lines:
+        # e.g. a 0-qubit circuit has no wires to draw; fall back to a compact,
+        # non-empty representation so it isn't mistaken for an empty string.
+        return f"<QuantumCircuit qubit_count={circuit.qubit_count}>"
+    return "\n".join(lines)
+
+
+def draw_circuit(
+    circuit: Union[ImmutableQuantumCircuit, ParametricQuantumCircuitProtocol],
+    line_length: int = 80,
+) -> None:
+    """Circuit drawer which outputs given circuit as an ASCII art to standard
+    streams.
+
+    Args:
+        circuit: Circuit to be output.
+        line_length: Maximum output line length.
+    """
+    for line in _render_circuit_lines(circuit, line_length):
+        print(line)
 
 
 def _generate_gate_aa(
@@ -197,6 +213,7 @@ def _generate_gate_aa(
             " is modified to 999.",
             Warning,
         )
+        gate_idx = 999
     t_idxs = sorted(gate.target_indices)
     c_idxs = sorted(gate.control_indices)
     gate_string: list[str] = []
@@ -339,8 +356,8 @@ def _create_swap_string(target_indices: Sequence[int], gate_idx: int) -> list[st
 def _place_check(
     gate: Union[ParametricQuantumGate, QuantumGate],
     depth: int,
-    gate_map: npt.NDArray[np.bool_],
-) -> tuple[int, int, npt.NDArray[np.bool_]]:
+    gate_map: "npt.NDArray[np.bool_[Any]]",
+) -> "tuple[int, int, npt.NDArray[np.bool_[Any]]]":
     gate_indices = (*gate.control_indices, *gate.target_indices)
     min_idx = min(gate_indices)
     row_idx = min_idx * 4

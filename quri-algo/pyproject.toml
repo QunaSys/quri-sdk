@@ -1,41 +1,61 @@
-[tool.poetry]
+[build-system]
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[project]
 name = "quri-algo"
-version = "0.26.3"
+dynamic = ["version"]
 description = "Algorithm library based on QURI Parts"
 license = "MIT"
-authors = ["QunaSys"]
+authors = [{ name = "QunaSys" }]
 readme = "README.md"
-repository = "https://github.com/QunaSys/quri-algo"
-documentation = "https://quri-sdk.qunasys.com"
 keywords = ["quantum", "quantum computing"]
 classifiers = ["Topic :: Scientific/Engineering :: Physics", "Typing :: Typed"]
-packages = [{ include = "quri_algo" }]
+requires-python = ">=3.10,<4"
+dependencies = [
+    "quri-parts-core",
+    "quri-parts-circuit",
+    "quri-parts-algo",
+    "quri-parts-chem",
+    "quri-parts-qulacs",
+    "quri-parts-qsub",
+    "quri-parts-rust",
+    "pytest>=8.3.3,<9.0.0",
+]
 
-[tool.poetry-dynamic-versioning]
-enable = true
-style = "pep440"
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-algo"
+Documentation = "https://quri-sdk.qunasys.com"
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4"
-quri-parts-core = "*"
-quri-parts-circuit = "*"
-quri-parts-algo = "*"
-quri-parts-chem = "*"
-quri-parts-qulacs = "*"
-quri-parts-pyscf = {version = "*", optional = true}
-quri-parts-openfermion = {version = "*", optional = true}
-quri-parts-qsub = "*"
-quri-parts-rust = "*"
-pytest = "^8.3.3"
-
-[tool.poetry.extras]
+[project.optional-dependencies]
 openfermion = ["quri-parts-openfermion"]
 pyscf = ["quri-parts-pyscf"]
 
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.uv-dynamic-versioning]
+style = "pep440"
+# Release CI bakes the resolved version in here before uv build so that
+# sdists carry the correct version when built without git metadata.
+fallback-version = "0.0.0"
+
+[tool.hatch.build.targets.wheel]
+packages = ["quri_algo"]
+
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_algo"]
+
+[tool.uv.sources]
+quri-parts-core = { path = "../quri-parts/packages/core", editable = true }
+quri-parts-circuit = { path = "../quri-parts/packages/circuit", editable = true }
+quri-parts-algo = { path = "../quri-parts/packages/algo", editable = true }
+quri-parts-chem = { path = "../quri-parts/packages/chem", editable = true }
+quri-parts-qulacs = { path = "../quri-parts/packages/qulacs", editable = true }
+quri-parts-qsub = { path = "../quri-parts/packages/qsub", editable = true }
+quri-parts-rust = { path = "../quri-parts/packages/rust" }
+quri-parts-openfermion = { path = "../quri-parts/packages/openfermion", editable = true }
+quri-parts-pyscf = { path = "../quri-parts/packages/pyscf", editable = true }
 
 [tool.isort]
 profile = "black"

@@ -270,6 +270,18 @@ def test_kraus_operators() -> None:
         assert np.allclose(noise.kraus_operators, kraus)
 
 
+def test_thermal_relaxation_kraus_operators_at_t2_boundary() -> None:
+    noise = ThermalRelaxationNoise(1.0, 2.0, 0.001, 0.0)
+    kraus_operators = np.asarray(noise.kraus_operators)
+
+    assert np.all(np.isfinite(kraus_operators))
+
+    completeness = np.zeros((2, 2))
+    for kraus_operator in kraus_operators:
+        completeness += kraus_operator.T @ kraus_operator
+    assert np.allclose(completeness, np.eye(2))
+
+
 def test_custom_gate_filter() -> None:
     noises = [
         BitFlipNoise(0.004, [], [names.H, names.X]),

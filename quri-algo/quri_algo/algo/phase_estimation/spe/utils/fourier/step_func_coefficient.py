@@ -112,7 +112,7 @@ _f_tilde_cache: dict[tuple[int, float], npt.NDArray[np.complex128]] = {}
 
 def get_F_tilde(d: int, delta: float) -> npt.NDArray[np.complex128]:
     if (d, delta) in _f_tilde_cache:
-        return _f_tilde_cache[(d, delta)].copy()
+        return cast(npt.NDArray[np.complex128], _f_tilde_cache[(d, delta)].copy())
 
     M_fourier = get_M_tilde(d, delta)
     M_fourier = M_fourier[0 : d + 1]
