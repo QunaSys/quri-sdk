@@ -53,6 +53,9 @@ class VM:
         lowering_level: LoweringLevel | None = None,
         logical_circuit_simulator: LogicalCircuitSimulator = QulacsSimulator(),
     ):
+        """Initialize the VM with the given backend, lowering level, and
+        logical circuit simulator; see the class docstring for parameter
+        details."""
         self._logical_circuit_simulator = logical_circuit_simulator
 
         if vm_backend is None:

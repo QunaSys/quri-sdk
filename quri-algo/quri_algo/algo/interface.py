@@ -59,6 +59,14 @@ class AlgorithmResult(ABC):
     """Algorithm result."""
 
     def __init__(self, algorithm: "Algorithm", elapsed_time: Optional[float] = None):
+        """Initialize the result with the algorithm that produced it and,
+        optionally, how long it took to run.
+
+        Args:
+            algorithm: Algorithm that produced this result.
+            elapsed_time: Wall-clock time the run took, in seconds, if
+                measured.
+        """
         self.algorithm = algorithm
         self.elapsed_time = elapsed_time
 
@@ -69,19 +77,31 @@ class AlgorithmResult(ABC):
 
 
 class VariationalAlgorithmResultMixin(ABC):
+    """Mixin for algorithm results that come from a variational optimizer run,
+    exposing the optimizer's state history."""
+
     def __init__(self, optimizer_history: Sequence[OptimizerState]) -> None:
+        """Initialize the mixin with the optimizer's per-step state history.
+
+        Args:
+            optimizer_history: OptimizerState recorded at each optimization
+                step, in order.
+        """
         self.optimizer_history = optimizer_history
 
     @property
     def optimizer_result(self) -> OptimizerState:
+        """Final OptimizerState from the run."""
         return self.optimizer_history[-1]
 
     @property
     def cost_function_value(self) -> float:
+        """Final value of the cost function."""
         return self.optimizer_result.cost
 
     @property
     def cost_function_history(self) -> Sequence[float]:
+        """Value of the cost function at each optimization step."""
         return [optimizer_state.cost for optimizer_state in self.optimizer_history]
 
 
@@ -112,6 +132,8 @@ class Analysis(ABC):
         circuit_qubit_count: Mapping[T, int],
         circuit_physical_qubit_count: Mapping[T, int],
     ) -> None:
+        """Initialize the analysis from its per-circuit metrics; see the class
+        docstring for what each mapping holds."""
         self.lowering_level = lowering_level
         self.circuit_gate_count = circuit_gate_count
         self.circuit_depth = circuit_depth
@@ -155,6 +177,9 @@ class Algorithm(ABC):
 
 
 class CircuitAnalysisMixin(Protocol):
+    """Protocol for algorithms that can produce a quantum resource Analysis of
+    their circuits."""
+
     @abstractmethod
     def analyze(self, *args: Any, **kwargs: Any) -> Analysis:
         """The quantum resource analysis of the algorithm."""
@@ -162,4 +187,6 @@ class CircuitAnalysisMixin(Protocol):
 
 
 class QuantumAlgorithm(Algorithm, CircuitAnalysisMixin, ABC):
+    """Base class for algorithms that both run and analyze quantum circuits."""
+
     ...

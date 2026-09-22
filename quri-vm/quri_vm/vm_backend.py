@@ -81,6 +81,18 @@ class VMBackend(ABC):
         shots: int,
         lowering_level: LoweringLevel | None = None,
     ) -> MeasurementCounts:
+        """Sample the given circuit at the given lowering level and return the
+        measurement counts.
+
+        Args:
+            circuit: Circuit to sample.
+            shots: Number of sampling shots.
+            lowering_level: LoweringLevel to sample at. If not specified,
+                the backend's default lowering level is used.
+
+        Returns:
+            Measurement counts obtained from sampling.
+        """
         ...
 
     @abstractmethod
@@ -89,6 +101,17 @@ class VMBackend(ABC):
         circuit: NonParametricQuantumCircuit,
         lowering_level: LoweringLevel | None = None,
     ) -> AnalyzeResult:
+        """Analyze the given circuit at the given lowering level and return
+        cost and resource estimates.
+
+        Args:
+            circuit: Circuit to analyze.
+            lowering_level: LoweringLevel to analyze at. If not specified,
+                the backend's default lowering level is used.
+
+        Returns:
+            AnalyzeResult holding the cost and resource estimates.
+        """
         ...
 
     @abstractmethod
@@ -97,16 +120,29 @@ class VMBackend(ABC):
         circuit: NonParametricQuantumCircuit,
         lowering_level: LoweringLevel | None = None,
     ) -> NonParametricQuantumCircuit:
+        """Transpile the given circuit to the given lowering level.
+
+        Args:
+            circuit: Circuit to transpile.
+            lowering_level: LoweringLevel to transpile to. If not specified,
+                the backend's default lowering level is used.
+
+        Returns:
+            Transpiled circuit.
+        """
         ...
 
     @property
     @abstractmethod
     def noise_model(self) -> NoiseModel | None:
+        """Noise model of the backend's device, or None if the device is
+        noiseless or unspecified."""
         ...
 
     @property
     @abstractmethod
     def lowering_levels(self) -> Sequence[LoweringLevel]:
+        """LoweringLevels supported by this backend."""
         ...
 
     def _check_select_lowering_level(

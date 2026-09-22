@@ -31,6 +31,9 @@ from quri_algo.core.cost_functions.base_classes import CostFunction
 
 
 class CompilationResult(AlgorithmResult, VariationalAlgorithmResultMixin):
+    """Result of a circuit compilation run, holding the optimized circuit and
+    the variational optimizer's history."""
+
     def __init__(
         self,
         algorithm: Algorithm,
@@ -38,12 +41,25 @@ class CompilationResult(AlgorithmResult, VariationalAlgorithmResultMixin):
         optimizer_history: Sequence[OptimizerState],
         elapsed_time: Optional[float] = None,
     ):
+        """Initialize the result with the compiled circuit and the run that
+        produced it.
+
+        Args:
+            algorithm: Compiler algorithm that produced this result.
+            optimized_circuit: Circuit produced by the compilation.
+            optimizer_history: OptimizerState recorded at each optimization
+                step, in order.
+            elapsed_time: Wall-clock time the run took, in seconds, if
+                measured.
+        """
         AlgorithmResult.__init__(self, algorithm, elapsed_time)
         VariationalAlgorithmResultMixin.__init__(self, optimizer_history)
         self.optimized_circuit = optimized_circuit
 
 
 class CompilationAnalysis(Analysis):
+    """Quantum resource analysis of a circuit compilation."""
+
     def __init__(
         self,
         lowering_level: LoweringLevel,
@@ -56,6 +72,22 @@ class CompilationAnalysis(Analysis):
         circuit_physical_qubit_count: CircuitMapping[int],
         concurrency: int = 1,
     ):
+        """Initialize the analysis from its per-circuit metrics and how many
+        circuits run concurrently; see the base class docstring for what each
+        mapping holds.
+
+        Args:
+            lowering_level: Level of analysis, e.g. logical, arch, device.
+            circuit_gate_count: Gate count of each circuit.
+            circuit_depth: Depth of each circuit.
+            circuit_latency: Latency of each circuit.
+            circuit_execution_count: Execution count of each circuit.
+            circuit_fidelities: Fidelity of each circuit.
+            circuit_qubit_count: Logical qubit count of each circuit.
+            circuit_physical_qubit_count: Physical qubit count required by
+                each circuit.
+            concurrency: Number of circuit instances run in parallel.
+        """
         super().__init__(
             lowering_level,
             circuit_gate_count,
@@ -77,6 +109,21 @@ class CompilationAnalysis(Analysis):
         circuit_list: Sequence[ImmutableQuantumCircuit],
         concurrency: int = 1,
     ) -> "CompilationAnalysis":
+        """Build a CompilationAnalysis by applying a single circuit analysis to
+        every circuit in the list.
+
+        Args:
+            circuit_analysis: AnalyzeResult shared by all circuits (the
+                analysis is the same for all circuits produced by a
+                compilation run).
+            total_circuit_executions: Number of times each circuit is
+                executed.
+            circuit_list: Circuits to build the analysis for.
+            concurrency: Number of circuit instances run in parallel.
+
+        Returns:
+            The resulting CompilationAnalysis.
+        """
         return cls(
             lowering_level=circuit_analysis.lowering_level,
             circuit_depth=CircuitMapping(
@@ -125,14 +172,19 @@ class CompilationAnalysis(Analysis):
 
 
 class QuantumCompiler(QuantumAlgorithm, ABC):
+    """Base class for algorithms that compile a circuit by variationally
+    optimizing a cost function."""
+
     @property
     @abstractmethod
     def cost_function(self) -> CostFunction:
+        """Cost function minimized during compilation."""
         ...
 
     @property
     @abstractmethod
     def solver(self) -> VariationalSolver:
+        """Variational solver used to minimize the cost function."""
         ...
 
     @timer
@@ -142,4 +194,5 @@ class QuantumCompiler(QuantumAlgorithm, ABC):
         *args: Any,
         **kwargs: Any,
     ) -> CompilationResult:
+        """Run the compilation and return the resulting CompilationResult."""
         pass
