@@ -99,6 +99,11 @@ class TestVMInterface:
         assert estimate.error == 0.0
         assert analysis.latency is not None and 0.0 < analysis.latency.value
         assert analysis.fidelity is not None and analysis.fidelity == 1.0
+        assert analysis.qubit_count == 2
+        # physical_qubit_count is a property of the 16-qubit STAR device, not
+        # of the 2-qubit circuit: (2 * code_distance**2) * ceil(qubit_count * ratio)
+        # = (2 * 7**2) * ceil(16 * 4.0) = 6272
+        assert analysis.physical_qubit_count == 6272
 
     def test_noisy_star_architecture(self) -> None:
         noisy_star_vm = VM.from_device_prop(

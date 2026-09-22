@@ -123,6 +123,7 @@ class QPEAnalysis(Analysis):
         circuit_execution_count: Mapping[ImmutableQuantumCircuit, int],
         circuit_fidelities: Mapping[ImmutableQuantumCircuit, float | None],
         circuit_qubit_count: Mapping[ImmutableQuantumCircuit, int],
+        circuit_physical_qubit_count: Mapping[ImmutableQuantumCircuit, int],
     ) -> None:
         super().__init__(
             lowering_level,
@@ -132,6 +133,7 @@ class QPEAnalysis(Analysis):
             circuit_execution_count,
             circuit_fidelities,
             circuit_qubit_count,
+            circuit_physical_qubit_count,
         )
 
     @property
@@ -147,8 +149,8 @@ class QPEAnalysis(Analysis):
     @property
     def max_physical_qubit_count(self) -> int:
         """Total number of physical qubits of the circuit."""
-        assert len(self.circuit_qubit_count) == 1
-        return list(self.circuit_qubit_count.values())[0]
+        assert len(self.circuit_physical_qubit_count) == 1
+        return list(self.circuit_physical_qubit_count.values())[0]
 
     @classmethod
     def from_circuit_list(
@@ -176,6 +178,9 @@ class QPEAnalysis(Analysis):
             ),
             circuit_qubit_count=CircuitMapping(
                 [(c, circuit_analysis.qubit_count) for c in circuit_list]
+            ),
+            circuit_physical_qubit_count=CircuitMapping(
+                [(c, circuit_analysis.physical_qubit_count) for c in circuit_list]
             ),
         )
 

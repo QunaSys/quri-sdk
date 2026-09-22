@@ -51,6 +51,10 @@ class AnalyzeResult:
 
     lowering_level: Holds LoweringLevel where the analysis has been carried out.
     qubit_count: Number of qubits qctually used in the gates.
+    physical_qubit_count: Number of physical qubits required to realize the
+        circuit's qubits on the target device. Equal to qubit_count when the
+        device has no error-correction overhead (or when analyzing without a
+        device).
     gate_count: Number of gates in the circuit.
     depth: Depth of the circuit.
     latency: Estimated latency of the circuit execution.
@@ -59,6 +63,7 @@ class AnalyzeResult:
 
     lowering_level: LoweringLevel
     qubit_count: int
+    physical_qubit_count: int
     gate_count: int
     depth: int
     latency: TimeValue | None = None
@@ -143,15 +148,17 @@ class _DevicePropertyBackend(VMBackend):
             circuit = self._device.analyze_transpiler(circuit)
         else:
             circuit = self.transpile(circuit, lowering_level)
+        qubit_count = len(
+            set(
+                q
+                for g in circuit.gates
+                for q in tuple(g.control_indices) + tuple(g.target_indices)
+            )
+        )
         return AnalyzeResult(
             lowering_level=lowering_level,
-            qubit_count=len(
-                set(
-                    q
-                    for g in circuit.gates
-                    for q in tuple(g.control_indices) + tuple(g.target_indices)
-                )
-            ),
+            qubit_count=qubit_count,
+            physical_qubit_count=self._device.physical_qubit_count or qubit_count,
             gate_count=len(circuit.gates),
             depth=circuit.depth,
             latency=cost_estimator.estimate_circuit_latency(circuit, self._device),

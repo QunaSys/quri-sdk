@@ -53,6 +53,7 @@ class CompilationAnalysis(Analysis):
         circuit_execution_count: CircuitMapping[int],
         circuit_fidelities: CircuitMapping[float | None],
         circuit_qubit_count: CircuitMapping[int],
+        circuit_physical_qubit_count: CircuitMapping[int],
         concurrency: int = 1,
     ):
         super().__init__(
@@ -63,6 +64,7 @@ class CompilationAnalysis(Analysis):
             circuit_execution_count,
             circuit_fidelities,
             circuit_qubit_count,
+            circuit_physical_qubit_count,
         )
 
         self.concurrency = concurrency
@@ -95,6 +97,9 @@ class CompilationAnalysis(Analysis):
             circuit_qubit_count=CircuitMapping(
                 [(c, circuit_analysis.qubit_count) for c in circuit_list]
             ),
+            circuit_physical_qubit_count=CircuitMapping(
+                [(c, circuit_analysis.physical_qubit_count) for c in circuit_list]
+            ),
             # The analysis is the same for all circuits
             concurrency=concurrency,
         )
@@ -113,7 +118,9 @@ class CompilationAnalysis(Analysis):
     @property
     def max_physical_qubit_count(self) -> int:
         """Total number of physical qubits of the circuit."""
-        qubit_counts = [c * self.concurrency for c in self.circuit_qubit_count.values()]
+        qubit_counts = [
+            c * self.concurrency for c in self.circuit_physical_qubit_count.values()
+        ]
         return max(qubit_counts)
 
 

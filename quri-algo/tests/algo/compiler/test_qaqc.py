@@ -32,6 +32,7 @@ def test_qaqc() -> None:
     analyze_result = Mock()
     analyze_result.lowering_level = LoweringLevel.ArchInstruction
     analyze_result.qubit_count = 4
+    analyze_result.physical_qubit_count = 4
     analyze_result.latency = Mock()
     analyze_result.latency.in_ns = Mock(return_value=1000)
     vm = Mock()

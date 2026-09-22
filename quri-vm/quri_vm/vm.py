@@ -178,15 +178,17 @@ class VM:
         """Analyze and estimate the costs of the given circuit at current
         lowering level."""
         if self._lowering_level == LoweringLevel.LogicalCircuit:
+            qubit_count = len(
+                set(
+                    q
+                    for g in circuit.gates
+                    for q in tuple(g.control_indices) + tuple(g.target_indices)
+                )
+            )
             return AnalyzeResult(
                 lowering_level=self._lowering_level,
-                qubit_count=len(
-                    set(
-                        q
-                        for g in circuit.gates
-                        for q in tuple(g.control_indices) + tuple(g.target_indices)
-                    )
-                ),
+                qubit_count=qubit_count,
+                physical_qubit_count=qubit_count,
                 gate_count=len(circuit.gates),
                 depth=circuit.depth,
                 fidelity=1.0,
