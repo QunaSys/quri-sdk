@@ -336,8 +336,9 @@ class MolecularSystem(HamiltonianMixin):
         occupations (:attr:`hartree_fock`.mo_occ), mapped through
         :attr:`active_space`'s orbital ordering, so it stays correct
         regardless of how the active orbitals are selected or ordered.
-        A singly-occupied (ROHF open-shell) orbital contributes only an
-        alpha electron, following the restricted Hartree-Fock convention.
+        A singly-occupied (ROHF open-shell) orbital contributes an alpha
+        electron, or a beta electron when the molecule's spin is negative,
+        following the PySCF ROHF convention.
         Also correct for any :attr:`fermion_qubit_mapping`: it is derived
         from that mapping's own state mapper rather than a mapping-
         specific bit convention, so it stays consistent with
@@ -357,6 +358,7 @@ class MolecularSystem(HamiltonianMixin):
                 self.pyscf_mol.nelectron,
             )
         mo_occ = self.hartree_fock.mo_occ
+        single_spin = 1 if self.pyscf_mol.spin < 0 else 0
         occupied = []
         for position, mo_index in enumerate(active_orbs_indices):
             occ = round(float(mo_occ[mo_index]))
@@ -365,8 +367,8 @@ class MolecularSystem(HamiltonianMixin):
                     f"Unsupported occupation {mo_occ[mo_index]} for MO "
                     f"{mo_index}; hf_state requires occupations of 0, 1, or 2."
                 )
-            if occ > 0:
-                occupied.append(2 * position)
-            if occ > 1:
-                occupied.append(2 * position + 1)
+            if occ == 1:
+                occupied.append(2 * position + single_spin)
+            elif occ == 2:
+                occupied.extend([2 * position, 2 * position + 1])
         return mapping.state_mapper(occupied)

@@ -242,6 +242,26 @@ def test_from_pyscf_hf_state_rejects_fractional_occupation() -> None:
         mol.hf_state
 
 
+@pytest.mark.parametrize(
+    "atom, spin, sz, expected_bits",
+    [
+        (H2_COORDS, 0, 0.0, 0b0011),  # RHF: doubly occupied
+        ("H 0 0 0", 1, 0.5, 0b01),  # ROHF: single alpha
+        ("H 0 0 0", -1, -0.5, 0b10),  # ROHF: single beta
+    ],
+)
+def test_from_pyscf_hf_state_integer_occupations(
+    atom: str, spin: int, sz: float, expected_bits: int
+) -> None:
+    mole = gto.M(atom=atom, basis="sto-3g", spin=spin)
+    mf = (scf.ROHF(mole) if spin else scf.RHF(mole)).run(verbose=0)
+    for mol in (
+        MolecularSystem.from_pyscf(mf),
+        MolecularSystem.from_pyscf(mf, sz=sz),
+    ):
+        assert mol.hf_state.bits == expected_bits
+
+
 def test_from_pyscf_matches_default_constructor() -> None:
     """The two constructors must converge on the same Hamiltonian/HF state."""
     default = MolecularSystem(atom=H2_COORDS, basis="sto-3g")
