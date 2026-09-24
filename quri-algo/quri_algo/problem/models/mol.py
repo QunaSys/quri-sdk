@@ -170,15 +170,14 @@ class MolecularSystem(HamiltonianMixin):
                 raise RuntimeError("Provided PySCF mean field is not converged.")
             mol = mf.mol
 
-        instance = cls.__new__(cls)
-        instance.atom = mol.atom
-        instance.basis = mol.basis
-        instance.charge = mol.charge
-        instance.spin = mol.spin
-        instance.frozen = None
-        instance.backend = "pyscf_mem_efficient"
-        instance.fermion_qubit_mapping = fermion_qubit_mapping
-        instance.sz = sz
+        instance = cls(
+            atom=mol.atom,
+            basis=mol.basis,
+            charge=mol.charge,
+            spin=mol.spin,
+            fermion_qubit_mapping=fermion_qubit_mapping,
+            sz=sz,
+        )
         instance._active_space_override = active_space
         # Pre-seed the cached_property caches below: assigning directly to a
         # cached_property-backed attribute stores the value in __dict__,
