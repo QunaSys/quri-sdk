@@ -15,6 +15,7 @@ import numpy as np
 import pytest
 from openfermion.ops.representations.interaction_operator import InteractionOperator
 from pyscf import df, gto, scf
+from pyscf.soscf.newton_ah import _CIAH_SOSCF
 from quri_parts.chem.mol import ActiveSpace
 from quri_parts.core.operator import get_sparse_matrix
 from quri_parts.core.operator.operator import Operator
@@ -220,6 +221,48 @@ def test_from_pyscf_converged_mf_is_reused_not_rerun() -> None:
         mol = MolecularSystem.from_pyscf(mf)
         assert mol.hartree_fock is mf
     kernel.assert_not_called()
+
+
+def _cap_rhf_max_cycle(monkeypatch: pytest.MonkeyPatch, newton_max_cycle: int) -> None:
+    """Leave the initial RHF unconverged and cap its Newton fallback.
+
+    The initial RHF in ``hartree_fock`` gets ``max_cycle=0``; its Newton
+    fallback gets ``newton_max_cycle`` iterations.
+    """
+    orig_rhf = scf.RHF
+
+    def capped_rhf(mol: gto.Mole) -> scf.hf.SCF:
+        mf = orig_rhf(mol)
+        mf.max_cycle = 0
+        orig_newton = mf.newton
+
+        def newton() -> scf.hf.SCF:
+            newton_mf = orig_newton()
+            newton_mf.max_cycle = newton_max_cycle
+            return newton_mf
+
+        mf.newton = newton
+        return mf
+
+    monkeypatch.setattr(scf, "RHF", capped_rhf)
+
+
+def test_hartree_fock_newton_fallback_converges(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _cap_rhf_max_cycle(monkeypatch, newton_max_cycle=50)
+    mol = MolecularSystem(atom=H2_COORDS, basis="sto-3g")
+    mf = mol.hartree_fock
+    assert mf.converged
+    assert isinstance(mf, _CIAH_SOSCF)
+    assert mol.hartree_fock is mf
+
+
+def test_hartree_fock_newton_fallback_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    _cap_rhf_max_cycle(monkeypatch, newton_max_cycle=0)
+    mol = MolecularSystem(atom=H2_COORDS, basis="sto-3g")
+    with pytest.raises(RuntimeError):
+        mol.hartree_fock
 
 
 def test_from_pyscf_fewer_mos_than_aos(monkeypatch: pytest.MonkeyPatch) -> None:
