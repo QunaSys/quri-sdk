@@ -233,6 +233,15 @@ def test_from_pyscf_fewer_mos_than_aos(monkeypatch: pytest.MonkeyPatch) -> None:
     assert mol.hf_state.bits == 0b0011
 
 
+def test_from_pyscf_hf_state_rejects_fractional_occupation() -> None:
+    mf = scf.addons.smearing_(
+        scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")), sigma=0.5
+    ).run(verbose=0)
+    mol = MolecularSystem.from_pyscf(mf)
+    with pytest.raises(ValueError, match="occupation"):
+        mol.hf_state
+
+
 def test_from_pyscf_matches_default_constructor() -> None:
     """The two constructors must converge on the same Hamiltonian/HF state."""
     default = MolecularSystem(atom=H2_COORDS, basis="sto-3g")

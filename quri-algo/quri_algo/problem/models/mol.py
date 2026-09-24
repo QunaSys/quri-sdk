@@ -342,6 +342,10 @@ class MolecularSystem(HamiltonianMixin):
         from that mapping's own state mapper rather than a mapping-
         specific bit convention, so it stays consistent with
         :attr:`qubit_hamiltonian` even for non-Jordan-Wigner mappings.
+
+        Raises:
+            ValueError: If an active orbital has a fractional occupation
+                (e.g. from a smeared mean field).
         """
         _, mapping = self._qubit_op_and_mapping
         active_space = self.active_space
@@ -355,7 +359,12 @@ class MolecularSystem(HamiltonianMixin):
         mo_occ = self.hartree_fock.mo_occ
         occupied = []
         for position, mo_index in enumerate(active_orbs_indices):
-            occ = mo_occ[mo_index]
+            occ = round(float(mo_occ[mo_index]))
+            if occ not in (0, 1, 2) or abs(mo_occ[mo_index] - occ) > 1e-8:
+                raise ValueError(
+                    f"Unsupported occupation {mo_occ[mo_index]} for MO "
+                    f"{mo_index}; hf_state requires occupations of 0, 1, or 2."
+                )
             if occ > 0:
                 occupied.append(2 * position)
             if occ > 1:
