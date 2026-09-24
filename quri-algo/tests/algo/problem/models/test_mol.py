@@ -219,6 +219,20 @@ def test_from_pyscf_converged_mf_is_reused_not_rerun() -> None:
     assert mol.hartree_fock is mf
 
 
+def test_from_pyscf_fewer_mos_than_aos(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The default active space must follow the mean field's MO count, which
+    linear-dependence removal can make smaller than ``mol.nao``."""
+    monkeypatch.setattr(scf.hf, "remove_overlap_zero_eigenvalue", True)
+    monkeypatch.setattr(scf.hf, "overlap_zero_eigenvalue_threshold", 0.5)
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="6-31g")).run(verbose=0)
+    assert mf.mol.nao == 4
+    assert mf.mo_coeff.shape == (4, 2)
+    mol = MolecularSystem.from_pyscf(mf)
+    assert mol.active_space.n_active_orb == 2
+    assert mol.n_qubits == 4
+    assert mol.hf_state.bits == 0b0011
+
+
 def test_from_pyscf_matches_default_constructor() -> None:
     """The two constructors must converge on the same Hamiltonian/HF state."""
     default = MolecularSystem(atom=H2_COORDS, basis="sto-3g")

@@ -139,9 +139,11 @@ class MolecularSystem(HamiltonianMixin):
             mol_or_mf: A :class:`~pyscf.gto.Mole`, or an already-converged
                 restricted (RHF/ROHF) PySCF mean field. Unrestricted (UHF)
                 mean fields are not supported.
-            active_space: Active space to restrict to. ``None`` derives the
-                full space from the molecule (equivalent to ``frozen=None``
-                on the default constructor).
+            active_space: Active space to restrict to. ``None`` uses the
+                full space: all electrons in all molecular orbitals of the
+                mean field (which may be fewer than the atomic orbitals,
+                e.g. after linear-dependence removal), or all atomic
+                orbitals for a bare :class:`~pyscf.gto.Mole`.
             sz: Target Sz passed through to the fermion-qubit mapping.
             fermion_qubit_mapping: Fermion-to-qubit mapping factory (default
                 Jordan-Wigner).
@@ -169,6 +171,8 @@ class MolecularSystem(HamiltonianMixin):
             if not getattr(mf, "converged", True):
                 raise RuntimeError("Provided PySCF mean field is not converged.")
             mol = mf.mol
+            if active_space is None:
+                active_space = cas(mol.nelectron, mf.mo_coeff.shape[1])
 
         instance = cls(
             atom=mol.atom,
