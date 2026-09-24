@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from typing import Literal, cast
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -215,8 +216,10 @@ def test_from_pyscf_bare_mole_is_lazy() -> None:
 
 def test_from_pyscf_converged_mf_is_reused_not_rerun() -> None:
     mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
-    mol = MolecularSystem.from_pyscf(mf)
-    assert mol.hartree_fock is mf
+    with patch.object(mf, "kernel") as kernel:
+        mol = MolecularSystem.from_pyscf(mf)
+        assert mol.hartree_fock is mf
+    kernel.assert_not_called()
 
 
 def test_from_pyscf_fewer_mos_than_aos(monkeypatch: pytest.MonkeyPatch) -> None:
