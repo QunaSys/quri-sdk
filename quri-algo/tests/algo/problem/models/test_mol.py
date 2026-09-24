@@ -255,8 +255,8 @@ def test_from_pyscf_active_space_override() -> None:
 
 
 def test_from_pyscf_hf_state_reordered_active_orbitals() -> None:
-    """hf_state must follow the mean field's actual occupation, not
-    active-orbital index order (issue #952)."""
+    """hf_state must follow the mean field's actual occupation, not the active
+    orbital index order (issue #952)."""
     mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
     mol = MolecularSystem.from_pyscf(mf, ActiveSpace(2, 2, [1, 0]))
     assert mol.hf_state.bits == 0b1100
@@ -266,9 +266,11 @@ def test_from_pyscf_hf_state_reordered_active_orbitals() -> None:
 
 
 def test_from_pyscf_hf_state_permuted_mean_field() -> None:
-    """Same bug without an active-space override: hf_state must follow
-    mo_occ even when mo_coeff/mo_occ/mo_energy are consistently permuted
-    (issue #952)."""
+    """hf_state must follow mo_occ of a permuted mean field (issue #952).
+
+    Same bug as above without an active-space override: mo_coeff,
+    mo_occ, and mo_energy are consistently permuted.
+    """
     mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
     perm = [1, 0]
     mf.mo_coeff = mf.mo_coeff[:, perm]
@@ -282,9 +284,9 @@ def test_from_pyscf_hf_state_permuted_mean_field() -> None:
 
 
 def test_from_pyscf_hf_state_matches_mapping_for_non_jw() -> None:
-    """hf_state must be derived from the requested mapping's own state
-    mapper, not a Jordan-Wigner-shaped bit convention -- this is the bug
-    the from_pyscf helper this replaces had (see PR #297)."""
+    """hf_state must be derived from the requested mapping's own state mapper,
+    not a Jordan-Wigner-shaped bit convention -- this is the bug the from_pyscf
+    helper this replaces had (see PR #297)."""
     mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
     mol = MolecularSystem.from_pyscf(mf, fermion_qubit_mapping=bravyi_kitaev)
     _, mapping = mol._qubit_op_and_mapping
@@ -302,9 +304,11 @@ def test_from_pyscf_hf_state_matches_mapping_for_non_jw() -> None:
 
 
 def test_from_pyscf_n_qubits_matches_reduced_mapping() -> None:
-    """n_qubits must reflect the mapping's own qubit count, not
-    2 * n_active_orb -- symmetry_conserving_bravyi_kitaev drops two
-    qubits, and qubit_hamiltonian.n_qubit/hf_state must agree (issue #953)."""
+    """``n_qubits`` must reflect the mapping's own qubit count (issue #953).
+
+    Not 2 * n_active_orb: symmetry_conserving_bravyi_kitaev drops two
+    qubits, and qubit_hamiltonian.n_qubit/hf_state must agree.
+    """
     mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
     mol = MolecularSystem.from_pyscf(
         mf, fermion_qubit_mapping=symmetry_conserving_bravyi_kitaev, sz=0
