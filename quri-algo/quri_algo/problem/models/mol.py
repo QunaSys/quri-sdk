@@ -8,6 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Molecular System (:mod:`quri_algo.problem.models.mol`)
+======================================================
+
+PySCF-backed molecular problem model providing the fermionic and qubit
+Hamiltonians and a Hartree-Fock reference state.
+"""
+
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Literal, Optional, Sequence, Union, cast
@@ -97,6 +105,7 @@ class MolecularSystem(HamiltonianMixin):
     sz: Optional[float] = None
 
     def __post_init__(self) -> None:
+        """Initialize the active-space override set by :meth:`from_pyscf`."""
         self._active_space_override: Optional[ActiveSpace] = None
 
     @classmethod
@@ -194,6 +203,7 @@ class MolecularSystem(HamiltonianMixin):
         )
 
     def get_pyscf_molecule(self) -> gto.Mole:
+        """Return :attr:`pyscf_mol`."""
         return self.pyscf_mol
 
     @cached_property
@@ -214,6 +224,7 @@ class MolecularSystem(HamiltonianMixin):
         return pyscf_scf
 
     def get_hartree_fock(self) -> scf.hf.SCF:
+        """Return :attr:`hartree_fock`."""
         return self.hartree_fock
 
     @property
@@ -256,11 +267,12 @@ class MolecularSystem(HamiltonianMixin):
         )
 
     def get_active_space(self) -> ActiveSpace:
+        """Return :attr:`active_space`."""
         return self.active_space
 
     @property
     def n_qubits(self) -> int:
-        """Number of qubits the qubit Hamiltonian acts on (= 2 * active orbitals)."""
+        """Number of qubits the qubit Hamiltonian acts on."""
         return self.qubit_hamiltonian.n_qubit
 
     @property
@@ -270,6 +282,12 @@ class MolecularSystem(HamiltonianMixin):
 
     @cached_property
     def fermionic_hamiltonian(self) -> FermionicHamiltonian:
+        """Fermionic Hamiltonian of the active space, computed once and cached.
+
+        Built from the spin-orbital electron integrals of
+        :attr:`pyscf_mol` in the :attr:`hartree_fock` molecular-orbital
+        basis, restricted to :attr:`active_space`.
+        """
         as_eint_set, mo_eint_set = get_spin_mo_integrals_from_mole(
             self.pyscf_mol, self.hartree_fock.mo_coeff, self.active_space
         )
@@ -281,6 +299,7 @@ class MolecularSystem(HamiltonianMixin):
         )
 
     def get_fermionic_hamiltonian(self) -> FermionicHamiltonian:
+        """Return :attr:`fermionic_hamiltonian`."""
         return self.fermionic_hamiltonian
 
     @cached_property
@@ -303,6 +322,7 @@ class MolecularSystem(HamiltonianMixin):
         )
 
     def get_qubit_hamiltonian(self) -> QubitHamiltonian:
+        """Return :attr:`qubit_hamiltonian`."""
         return self.qubit_hamiltonian
 
     @cached_property
