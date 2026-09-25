@@ -109,23 +109,23 @@ def _apply_gate_to_classical_array(gate: QuantumGate, state: NDArray[np.bool_]) 
         raise ValueError(f"{gate.name} is not supported in ClassicalSimulator.")
 
 
-def state_sampler(state: ClassicalState, n_shots: int) -> _MeasurementCounts:
+def _state_sampler(state: ClassicalState, n_shots: int) -> _MeasurementCounts:
     return state.sample(n_shots)
 
 
-def sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> _MeasurementCounts:
-    return state_sampler(ClassicalState(circuit.qubit_count, circuit), n_shots)
+def _sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> _MeasurementCounts:
+    return _state_sampler(ClassicalState(circuit.qubit_count, circuit), n_shots)
 
 
 def create_classical_state_sampler() -> (
     Callable[[ClassicalState, int], _MeasurementCounts]
 ):
     """Returns a function that performs on `ClassicalState`."""
-    return state_sampler
+    return _state_sampler
 
 
 def create_classical_sampler() -> _Sampler:
     """Returns a function that uses classical simulator for sampling.
     The function conforms to the interface of `quri_parts.core.sampling.Sampler`,
     but is not an instance of it due to circular dependencies."""
-    return sampler
+    return _sampler
