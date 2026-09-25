@@ -12,6 +12,7 @@ _Sampler = Callable[[ImmutableQuantumCircuit, int], _MeasurementCounts]
 
 
 class ClassicalState:
+    """A :class: for sampling with classical simulation."""
     def __init__(
         self, n_qubits: int, circuit: Optional[ImmutableQuantumCircuit] = None
     ) -> None:
@@ -119,8 +120,12 @@ def sampler(circuit: ImmutableQuantumCircuit, n_shots: int) -> _MeasurementCount
 def create_classical_state_sampler() -> (
     Callable[[ClassicalState, int], _MeasurementCounts]
 ):
+    """Returns a function that performs on `ClassicalState`."""
     return state_sampler
 
 
 def create_classical_sampler() -> _Sampler:
+    """Returns a function that uses classical simulator for sampling.
+    The function conforms to the interface of `quri_parts.core.sampling.Sampler`,
+    but is not an instance of it due to circular dependencies."""
     return sampler
