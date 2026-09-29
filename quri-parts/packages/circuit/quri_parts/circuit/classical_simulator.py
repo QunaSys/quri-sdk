@@ -129,6 +129,9 @@ def create_classical_state_sampler() -> (
 
 def create_classical_sampler() -> _Sampler:
     """Returns a function that uses classical simulator for sampling.
-    The function conforms to the interface of `quri_parts.core.sampling.Sampler`,
-    but is not an instance of it due to circular dependencies."""
+
+    The function conforms to the interface of
+    `quri_parts.core.sampling.Sampler`, but is not an instance of it due
+    to circular dependencies.
+    """
     return _sampler
