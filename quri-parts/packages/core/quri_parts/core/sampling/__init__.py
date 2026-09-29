@@ -453,7 +453,9 @@ def sample_from_probability_distribution(
 
 
 def sample_from_state_vector(
-    state_vector: npt.NDArray[np.complex128], shots: int
+    state_vector: npt.NDArray[np.complex128],
+    shots: int,
+    seed: Optional[int] = None,
 ) -> MeasurementCounts:
     """Perform sampling from a state vector."""
     n_qubits: float = np.log2(state_vector.shape[0])
@@ -461,7 +463,7 @@ def sample_from_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
     probs = cast(npt.NDArray[np.float64], np.abs(state_vector) ** 2)
-    return sample_from_probability_distribution(shots, probs)
+    return sample_from_probability_distribution(shots, probs, seed)
 
 
 def ideal_sample_from_state_vector(

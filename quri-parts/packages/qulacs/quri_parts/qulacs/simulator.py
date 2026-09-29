@@ -236,7 +236,7 @@ def create_qulacs_vector_state_sampler(
         if backend.should_use_multinomial(shots, state.qubit_count):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state, backend).vector
-            return sample_from_state_vector(state_vector, shots)
+            return sample_from_state_vector(state_vector, shots, random_seed)
 
         qs_state = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
         if random_seed is None:
