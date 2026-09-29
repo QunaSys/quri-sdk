@@ -53,7 +53,7 @@ class ClassicalState:
 
 
 def _apply_gate_to_classical_array(
-    gate: QuantumGate, state: npt.NDArray[np.bool_[bool]]
+    gate: QuantumGate, state: "npt.NDArray[np.bool_[bool]]"
 ) -> None:
     if gate.name == "X":
         tgt = gate.target_indices[0]
