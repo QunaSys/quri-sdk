@@ -2,7 +2,7 @@ from collections import Counter
 from typing import Callable, List, Mapping, Optional, Sequence, Union
 
 import numpy as np
-from numpy.typing import NDArray
+import numpy.typing as npt
 
 from .circuit import GateSequence, ImmutableQuantumCircuit, QuantumCircuit
 from .gate import QuantumGate
@@ -13,6 +13,7 @@ _Sampler = Callable[[ImmutableQuantumCircuit, int], _MeasurementCounts]
 
 class ClassicalState:
     """A :class: for sampling with classical simulation."""
+
     def __init__(
         self, n_qubits: int, circuit: Optional[ImmutableQuantumCircuit] = None
     ) -> None:
@@ -41,7 +42,7 @@ class ClassicalState:
 
     def sample(self, n_shots: int) -> _MeasurementCounts:
         gates: Sequence[QuantumGate] = self.circuit.gates
-        state: NDArray[np.bool_] = np.zeros(self._n_qubits, dtype=np.bool_)
+        state: npt.NDArray[np.bool_[bool]] = np.zeros(self._n_qubits, dtype=np.bool_)
         for gate in gates:
             _apply_gate_to_classical_array(gate, state)
         state_idx: int = 0
@@ -51,7 +52,9 @@ class ClassicalState:
         return Counter({state_idx: n_shots})
 
 
-def _apply_gate_to_classical_array(gate: QuantumGate, state: NDArray[np.bool_]) -> None:
+def _apply_gate_to_classical_array(
+    gate: QuantumGate, state: npt.NDArray[np.bool_[bool]]
+) -> None:
     if gate.name == "X":
         tgt = gate.target_indices[0]
         state[tgt] ^= True
