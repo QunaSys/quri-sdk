@@ -12,9 +12,10 @@ from collections.abc import Sequence
 from typing import Callable
 
 import numpy as np
+import pytest
 
 import quri_parts.circuit.gate_names as names
-from quri_parts.circuit import QuantumGate, gates
+from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
 from quri_parts.circuit.noise import (
     AmplitudeDampingNoise,
     BitFlipNoise,
@@ -23,6 +24,7 @@ from quri_parts.circuit.noise import (
     GateNoiseInstruction,
     GeneralDepolarizingNoise,
     KrausNoise,
+    MeasurementNoise,
     NoiseModel,
     PauliNoise,
     PhaseAmplitudeDampingNoise,
@@ -63,6 +65,24 @@ def test_gate_noises_for_all() -> None:
         ((5,), noises[0]),
         ((7,), noises[0]),
     ]
+
+
+@pytest.mark.parametrize(
+    "qubit_indices,expected_targets",
+    [
+        ([0], [(0,)]),
+        ([1], [(1,)]),
+        ([], [(0,), (1,)]),
+    ],
+)
+def test_measurement_noise_targets_selected_qubits(
+    qubit_indices: Sequence[int], expected_targets: Sequence[tuple[int, ...]]
+) -> None:
+    circuit = QuantumCircuit(2).freeze()
+    noise = BitFlipNoise(1.0)
+    model = NoiseModel([MeasurementNoise([noise], qubit_indices=qubit_indices)])
+    pairs = model.noises_for_circuit().noises_for_depth((0, 1), circuit)
+    assert [tuple(targets) for targets, _ in pairs] == expected_targets
 
 
 def test_gate_noises_for_all_qubits_specified_gates() -> None:
