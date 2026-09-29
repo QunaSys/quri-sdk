@@ -1,9 +1,11 @@
 import pytest
+from pyqret.frontend import Module
 
 import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
 from quri_parts.qsub.lib.qpe import QPE
 from quri_parts.qsub.opsub import NonUnitarySubDef, UnitarySubDef, opsub
+from quri_parts.qsub.primitive import FTQCBasicSet
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -47,6 +49,41 @@ class _Conditional(NonUnitarySubDef):
 
 
 Conditional, _ = opsub(_Conditional)
+
+
+class _Bell(NonUnitarySubDef):
+    name = "Bell"
+    qubit_count = 2
+    reg_count = 2
+
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1 = builder.qubits
+        r0, r1 = builder.registers
+        builder.add_op(std.H, (q0,))
+        builder.add_op(std.CNOT, (q0, q1))
+        builder.add_op(std.M, (q0,), (r0,))
+        builder.add_op(std.M, (q1,), (r1,))
+
+
+Bell, _ = opsub(_Bell)
+
+
+class _AndCliffordT(UnitarySubDef):
+    name = "AndCliffordT"
+    qubit_count = 3
+
+    def sub(self, builder: SubBuilder) -> None:
+        i0, i1, t = builder.qubits
+        with std.scoped_and_clifford_t(builder, i0, i1) as a:
+            builder.add_op(std.CNOT, (a, t))
+
+
+AndCliffordT, _ = opsub(_AndCliffordT)
+
+
+def _instruction_names(module: Module, circuit_name: str) -> list[str]:
+    circuit = module.get_circuit(circuit_name)
+    return [str(inst).split()[0] for block in circuit.get_ir() for inst in block]
 
 
 class TestCreateModuleFromQsubOp:
@@ -102,6 +139,30 @@ class TestCreateModuleFromQsubOp:
         ir_blocks = list(circuit.get_ir())
         assert len(ir_blocks) > 1
         assert "entry" in circuit.get_ir().gen_cfg()
+
+    def test_create_module_from_measure_op(self) -> None:
+        module = create_module_from_qsub_op(Bell)
+
+        names = _instruction_names(module, Bell.id.to_str())
+        assert names.count("Measurement") == 2
+
+    def test_measure_with_gateset_primitives(self) -> None:
+        module = create_module_from_qsub_op(Bell, primitives=FTQCBasicSet)
+
+        circuits = module.get_circuit_list()
+        assert circuits == [Bell.id.to_str()]
+        names = _instruction_names(module, Bell.id.to_str())
+        assert names.count("Measurement") == 2
+
+    def test_conditional_with_gateset_primitives(self) -> None:
+        gateset = (std.H, std.Sdag, std.T, std.Tdag, std.CNOT, std.CZ)
+        module = create_module_from_qsub_op(AndCliffordT, primitives=gateset)
+
+        circuit_name = AndCliffordT.id.to_str()
+        assert module.get_circuit_list() == [circuit_name]
+        names = _instruction_names(module, circuit_name)
+        assert "Measurement" in names
+        assert "Branch" in names
 
     @pytest.mark.parametrize("control_bits", [2, 3, 4])
     def test_create_module_from_single_mcx_op(self, control_bits: int) -> None:

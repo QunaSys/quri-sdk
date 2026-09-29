@@ -46,6 +46,10 @@ QRETInstrSet: Iterable[AbstractOp] = (
 )
 QRETInstrBaseIds = set(instr.base_id for instr in QRETInstrSet)
 
+# Measurement and classical control are always lowered to qret intrinsics,
+# independently of the gate set chosen via ``primitives``.
+_non_unitary_instrs: tuple[AbstractOp, ...] = (std.M, std.Cbz, std.Label)
+
 _meas_instr_map = {std.M: intrinsic.measure}
 _unary_instr_map = {
     std.Identity: intrinsic.i,
@@ -260,6 +264,7 @@ def create_module_from_qsub_op(
     repository: SubRepository = default_repository(),
     primitives: Iterable[AbstractOp] = QRETInstrSet,
 ) -> Module:
+    primitives = tuple(primitives)
     if not set(p.base_id for p in primitives).issubset(QRETInstrBaseIds):
         raise ValueError(
             f"primitives contain instructions incompatible with qret IR: {set(p.base_id for p in primitives) - QRETInstrBaseIds}"
@@ -267,7 +272,7 @@ def create_module_from_qsub_op(
 
     collector = SubCollector(repository)
     subs = collector.collect_subs(entry_op)
-    codegen = CodeGenerator(primitives)
+    codegen = CodeGenerator((*primitives, *_non_unitary_instrs))
     msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
     entry_msub = msubs[entry_op]
     link(entry_msub, msubs)
