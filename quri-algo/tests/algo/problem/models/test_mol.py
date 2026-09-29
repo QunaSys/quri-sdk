@@ -24,7 +24,9 @@ from quri_parts.openfermion.mol import (
     get_qubit_mapped_hamiltonian,
 )
 from quri_parts.openfermion.transforms import (
+    OpenFermionQubitMapperFactory,
     bravyi_kitaev,
+    jordan_wigner,
     symmetry_conserving_bravyi_kitaev,
 )
 from quri_parts.pyscf.mol import get_spin_mo_integrals_from_mole
@@ -390,6 +392,23 @@ def test_from_pyscf_hf_state_matches_mapping_for_non_jw() -> None:
         get_sparse_matrix(jw.qubit_hamiltonian.qubit_hamiltonian).toarray()
     )[0]
     assert abs(bk_gse - jw_gse) < 1e-8  # same physics, different mapping
+
+
+@pytest.mark.parametrize(
+    "fermion_qubit_mapping",
+    [jordan_wigner, bravyi_kitaev, symmetry_conserving_bravyi_kitaev],
+)
+def test_qubit_mapping_decodes_hf_state(
+    fermion_qubit_mapping: OpenFermionQubitMapperFactory,
+) -> None:
+    mf = scf.RHF(gto.M(atom=H2_COORDS, basis="sto-3g")).run(verbose=0)
+    mol = MolecularSystem.from_pyscf(
+        mf, fermion_qubit_mapping=fermion_qubit_mapping, sz=0
+    )
+
+    assert mol.qubit_mapping is mol._qubit_op_and_mapping[1]
+    assert mol.qubit_mapping.n_qubits == mol.n_qubits
+    assert list(mol.qubit_mapping.inv_state_mapper(mol.hf_state)) == [0, 1]
 
 
 def test_from_pyscf_n_qubits_matches_reduced_mapping() -> None:
