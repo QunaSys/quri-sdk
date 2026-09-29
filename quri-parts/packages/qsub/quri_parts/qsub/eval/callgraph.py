@@ -39,12 +39,13 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], dict[Ident, i
     def reset(self) -> None:
         # Nodes are reported in the order subs are first entered, so both
         # dicts rely on insertion order.
-        self._caller_to_calees: dict[SubId, dict[Ident, int]] = {}
+        self._caller_to_callees: dict[SubId, dict[Ident, int]] = {}
         self._nodes: dict[SubId, Optional[Ident]] = {}
 
     def result(self) -> dict[Optional[Ident], dict[Ident, int]]:
         return {
-            self._nodes[sid]: callees for sid, callees in self._caller_to_calees.items()
+            self._nodes[sid]: callees
+            for sid, callees in self._caller_to_callees.items()
         }
 
     def enter_sub(
@@ -55,7 +56,7 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], dict[Ident, i
         call_stack: list[SubId],
     ) -> bool:
         sid = sub.sub_id
-        if sid in self._caller_to_calees:
+        if sid in self._caller_to_callees:
             return False
 
         # A sub is named by the op calling it; only the root has no call
@@ -66,7 +67,7 @@ class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], dict[Ident, i
             if is_subcall(mop) and mop.sub is not None:
                 self._nodes[mop.sub.sub_id] = mop.op.id
                 callees[mop.op.id] = callees.get(mop.op.id, 0) + 1
-        self._caller_to_calees[sid] = callees
+        self._caller_to_callees[sid] = callees
 
         return True
 
