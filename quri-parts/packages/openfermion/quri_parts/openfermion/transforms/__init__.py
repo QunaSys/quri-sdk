@@ -207,22 +207,27 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
         to the set of occupied spin orbital indices."""
 
         n_qubits = self.n_qubits
-        n_spin_orbitals = self.n_spin_orbitals
+        qubit_mask = (1 << n_qubits) - 1
+        # The dropped bits do not depend on the measured bits, so compute them
+        # once and add them to every state.
+        augmented = self._augment_dropped_bits(
+            [0] * n_qubits, self.n_spin_orbitals, self.n_fermions, self.sz
+        )
+        dropped_bits = BinaryArray(augmented).binary & ~qubit_mask
+        # Occupancy of orbital i is the parity of its matrix row applied to the
+        # bits, flipped when the number operator maps to -Z.
+        rows = [
+            (row.binary, sign == -1)
+            for row, sign in zip(self._inv_trans_mat, self._signs)
+        ]
 
         def mapper(state: ComputationalBasisState) -> Collection[int]:
-            bits = state.bits
-            bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
-            bit_array = self._augment_dropped_bits(
-                bit_array, n_spin_orbitals, self.n_fermions, self.sz
-            )
-            qubit_vector = BinaryArray(bit_array)
-            occupancy_vector = self._inv_trans_mat @ qubit_vector
-            occupancy_set = [
+            bits = state.bits & qubit_mask | dropped_bits
+            return [
                 i
-                for i, o in enumerate(occupancy_vector)
-                if (o == 1 and self._signs[i] == 1) or (o == 0 and self._signs[i] == -1)
+                for i, (row, flip) in enumerate(rows)
+                if (row & bits).bit_count() & 1 != flip
             ]
-            return occupancy_set
 
         return mapper
 
