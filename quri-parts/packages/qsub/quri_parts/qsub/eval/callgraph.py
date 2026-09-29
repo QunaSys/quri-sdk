@@ -19,18 +19,18 @@ from ..register import Register
 
 
 class CallGraphEvaluatorHooks(EvaluatorHooks[dict[Optional[Ident], dict[Ident, int]]]):
-    """Report the call graph of the evaluated sub as an adjacency mapping.
+    """Report the call graph of a sub.
 
-    Each key is a caller sub and its value maps each sub it calls
-    directly to the number of those calls per caller invocation, in
-    first-call order; subs calling no other sub map to an empty dict.
-    Nodes are op ``Ident``\\ s, the same identity
-    :class:`SubwiseProfileEntry` reports as ``source_op``, so the two
-    reports join on them; use :meth:`Ident.to_str` for a display name.
-    The key is ``None`` for a root sub whose source op is unknown (the
-    entry sub of ``compile_sub``, which receives a ``Sub`` rather than
-    an ``Op``). Parametric subs are distinct nodes per parameter
-    (``MCX<5>`` and ``MCX<6>`` are separate nodes).
+    The result maps each sub to the subs it calls directly. Each
+    callee maps to the number of calls in one invocation of the
+    caller. Callees appear in the order of the first call. A sub that
+    calls no sub maps to an empty dict.
+
+    Each sub appears as the ``Ident`` of the op it implements, the
+    same value :class:`SubwiseProfileEntry` reports as ``source_op``.
+    Parametric subs are distinct per parameter: ``MCX<5>`` and
+    ``MCX<6>`` are two subs. Only the entry sub of ``compile_sub`` has
+    no op; its key is ``None``.
     """
 
     def __init__(self) -> None:
