@@ -1,0 +1,20 @@
+source: IR
+input: _assets/basic_resource_estimation/cnot_ir.json
+function: main
+target: SC_LS_FIXED_V0
+output: _assets/basic_resource_estimation/compiled_cnot.json
+sc_ls_fixed_v0_topology: _assets/basic_resource_estimation/topology_for_cnot.yaml
+sc_ls_fixed_v0_machine_type: Dim2
+sc_ls_fixed_v0_magic_generation_period: 15
+sc_ls_fixed_v0_maximum_magic_state_stock: 10000
+sc_ls_fixed_v0_entanglement_generation_period: 100
+sc_ls_fixed_v0_maximum_entangled_state_stock: 10
+sc_ls_fixed_v0_reaction_time: 1
+sc_ls_fixed_v0_drop_rate: 0.1
+sc_ls_fixed_v0_code_cycle_time_sec: 0.00000001
+sc_ls_fixed_v0_physical_error_rate: 0.01
+sc_ls_fixed_v0_allowed_failure_prob: 0.01
+sc_ls_fixed_v0_pass:
+  - sc_ls_fixed_v0::init_compile_info
+  - sc_ls_fixed_v0::mapping
+  - sc_ls_fixed_v0::routing

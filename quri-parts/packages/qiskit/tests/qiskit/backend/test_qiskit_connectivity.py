@@ -12,9 +12,16 @@ from typing import Optional
 
 import networkx as nx
 import pytest
-from qiskit.providers import BackendV1, BackendV2
+from qiskit.providers import BackendV2
 
 from quri_parts.qiskit.backend import device_connectivity_graph
+
+from ._qiskit_compat import BackendV1
+
+# ``BackendV1`` was removed in qiskit 2.0. Use a harmless placeholder base
+# class so ``MockBackendV1`` can still be defined (and collected) on qiskit
+# 2.x; the V1-only test class itself is skipped there.
+_BackendV1Base = BackendV1 if BackendV1 is not None else object
 
 
 class MockCouplingMap:
@@ -39,7 +46,7 @@ class NoMap(MockConfiguration):
         self.num_qubits = num_qubits
 
 
-class MockBackendV1(BackendV1):  # type: ignore
+class MockBackendV1(_BackendV1Base):  # type: ignore
     def __init__(self, configuration: MockConfiguration) -> None:
         self.config = configuration
 
@@ -92,6 +99,9 @@ class MockBackendV2(BackendV2):  # type: ignore
         pass
 
 
+@pytest.mark.skipif(
+    BackendV1 is None, reason="BackendV1 was removed in qiskit 2.0 (qiskit<2.0 only)."
+)
 class TestQiskitConnectivityGraphV1:
     def test_adjacency(self) -> None:
         coupling_map = [(0, 1), (1, 0)]

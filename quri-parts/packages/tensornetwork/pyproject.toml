@@ -1,57 +1,66 @@
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning", "setuptools"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "quri-parts-tensornetwork"
-version = "0.0.0"
+dynamic = ["version"]
 description = "A plugin to use tensornetwork with QURI Parts"
 license = "Apache-2.0"
-authors = ["QURI Parts Authors <opensource@qunasys.com>"]
+authors = [{ name = "QURI Parts Authors", email = "opensource@qunasys.com" }]
 readme = "README.md"
-repository = "https://github.com/QunaSys/quri-sdk"
-documentation = "https://quri-parts.qunasys.com"
 keywords = ["quantum", "quantum computing"]
 classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
     "Typing :: Typed"
 ]
-packages = [
-    { include = "quri_parts" }
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "quri-parts-circuit",
+    "quri-parts-core",
+    "tensornetwork-ng>=0.5.1,<0.6.0",
+    # tensorflow/jax/jaxlib were non-optional under poetry (the extras below
+    # were no-ops); kept mandatory to preserve published metadata.
+    # They have no cp314 wheels and are not imported by quri-parts
+    # (tensornetwork-ng defaults to the NumPy backend); keep them on
+    # Python <3.14 so the package itself still installs on 3.14.
+    "tensorflow>=2.0,<3.0; python_version < '3.14'",
+    "jax>=0.4,<0.5; python_version < '3.14'",
+    "jaxlib>=0.4,<0.5; python_version < '3.14'",
 ]
 
-[tool.poetry-dynamic-versioning]
-enable = true
+[project.optional-dependencies]
+tensorflow = ["tensorflow>=2.0,<3.0"]
+jax = ["jax>=0.4,<0.5", "jaxlib>=0.4,<0.5"]
+
+[project.urls]
+Repository = "https://github.com/QunaSys/quri-sdk"
+Documentation = "https://quri-parts.qunasys.com"
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.1,<9.0.0",
+    "numpy>=1.22.0",
+]
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.uv-dynamic-versioning]
 style = "pep440"
+# Release CI bakes the resolved version in here before uv build so that
+# sdists carry the correct version when built without git metadata.
+fallback-version = "0.0.0"
 
-[tool.poetry.dependencies]
-python = "^3.9.8"
-quri-parts-circuit = "*"
-quri-parts-core = "*"
-tensornetwork-ng = "^0.5.1"
-tensorflow = "^2.0"
-jax = "^0.4"
-jaxlib = "^0.4"
+[tool.hatch.build.targets.wheel]
+packages = ["quri_parts"]
 
-[tool.poetry.extras]
-tensorflow = ["tensorflow"]
-jax = ["jax", "jaxlib"]
+[tool.hatch.build.targets.sdist]
+only-include = ["quri_parts"]
 
-[tool.poetry.group.dev.dependencies]
-quri-parts-circuit = {path = "../circuit", develop = true}
-quri-parts-core = {path = "../core", develop = true}
-
-pytest = "^7.0.1"
-black = "^22.1.0"
-flake8 = "^4.0.1"
-mypy = ">=0.950"
-docformatter = "^1.4"
-isort = "^5.10.1"
-
-
-[tool.black]
-line-length = 88
+[tool.uv.sources]
+quri-parts-circuit = { path = "../circuit", editable = true }
+quri-parts-core = { path = "../core", editable = true }
 
 [tool.isort]
 profile = "black"
-

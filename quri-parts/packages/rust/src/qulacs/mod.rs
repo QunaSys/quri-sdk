@@ -13,7 +13,7 @@ pub fn convert_add_gate<'py>(
     match gate {
         QuantumGate::Identity(q1) => {
             let identity_gate = py
-                .import_bound("qulacs.gate")?
+                .import("qulacs.gate")?
                 .getattr("Identity")?
                 .call1((*q1,))?;
             qulacs_circuit.call_method1("add_gate", (identity_gate,))?;
@@ -83,7 +83,7 @@ pub fn convert_add_gate<'py>(
         }
         QuantumGate::TOFFOLI(q1, q2, q3) => {
             let toffoli_gate = py
-                .import_bound("qulacs.gate")?
+                .import("qulacs.gate")?
                 .getattr("TOFFOLI")?
                 .call1((*q1, *q2, *q3))?;
             qulacs_circuit.call_method1("add_gate", (toffoli_gate,))?;
@@ -100,15 +100,18 @@ pub fn convert_add_gate<'py>(
             )?;
         }
         QuantumGate::Pauli(qs, pauli_ids) => {
-            qulacs_circuit.call_method1(
-                "add_multi_Pauli_gate",
-                (Vec::from(qs.clone()), Vec::from(pauli_ids.clone())),
-            )?;
+            // Widen pauli_ids to u32 so it converts to a Python list[int]; a
+            // Vec<u8> would become `bytes` under pyo3's IntoPyObject.
+            let pauli_ids: Vec<u32> = pauli_ids.iter().map(|&p| p as u32).collect();
+            qulacs_circuit
+                .call_method1("add_multi_Pauli_gate", (Vec::from(qs.clone()), pauli_ids))?;
         }
         QuantumGate::PauliRotation(qs, pauli_ids, angle) => {
+            // See above: keep pauli_ids a list[int] rather than bytes.
+            let pauli_ids: Vec<u32> = pauli_ids.iter().map(|&p| p as u32).collect();
             qulacs_circuit.call_method1(
                 "add_multi_Pauli_rotation_gate",
-                (Vec::from(qs.clone()), Vec::from(pauli_ids.clone()), -*angle),
+                (Vec::from(qs.clone()), pauli_ids, -*angle),
             )?;
         }
         other => {
@@ -129,7 +132,7 @@ fn convert_circuit<'py>(
 ) -> PyResult<Bound<'py, PyAny>> {
     let circuit = circuit.borrow();
     let mut qulacs_circuit = py
-        .import_bound("qulacs")?
+        .import("qulacs")?
         .getattr("QuantumCircuit")?
         .call1((circuit.qubit_count,))?;
     for gate in &circuit.gates.0 {
@@ -139,7 +142,7 @@ fn convert_circuit<'py>(
 }
 
 pub fn py_module(py: Python<'_>) -> PyResult<Bound<'_, PyModule>> {
-    let m = PyModule::new_bound(py, "qulacs")?;
+    let m = PyModule::new(py, "qulacs")?;
     m.add_function(wrap_pyfunction!(convert_circuit, &m)?)?;
     m.add_function(wrap_pyfunction!(
         noise::convert_circuit_with_noise_model,

@@ -232,17 +232,17 @@ def create_qulacs_vector_state_sampler(
         A :class:`StateSampler` that samples measurement outcomes.
     """
 
-    def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
-        if backend.should_use_multinomial(n_shots, state.qubit_count):
+    def state_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
+        if backend.should_use_multinomial(shots, state.qubit_count):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state, backend).vector
-            return sample_from_state_vector(state_vector, n_shots)
+            return sample_from_state_vector(state_vector, shots)
 
         qs_state = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
         if random_seed is None:
-            return Counter(qs_state.sampling(n_shots))
+            return Counter(qs_state.sampling(shots))
         else:
-            return Counter(qs_state.sampling(n_shots, random_seed))
+            return Counter(qs_state.sampling(shots, random_seed))
 
     return state_sampler
 
@@ -329,10 +329,10 @@ def create_qulacs_ideal_vector_state_sampler(
     """
 
     def ideal_state_sampler(
-        state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
+        state: Union[CircuitQuantumState, QuantumStateVector], shots: int
     ) -> MeasurementCounts:
         state_vector = evaluate_state_to_vector(state, backend).vector
-        return ideal_sample_from_state_vector(state_vector, n_shots)
+        return ideal_sample_from_state_vector(state_vector, shots)
 
     return ideal_state_sampler
 

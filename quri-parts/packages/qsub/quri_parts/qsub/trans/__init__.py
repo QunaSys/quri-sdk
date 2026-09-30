@@ -8,10 +8,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .qp_trans import SeparateQURIPartsTranspiler
 from .transpiler import SequentialTranspiler, SubTranspiler, SubTranspilerProtocol
 
 __all__ = [
     "SequentialTranspiler",
+    "SeparateQURIPartsTranspiler",
     "SubTranspiler",
     "SubTranspilerProtocol",
 ]

@@ -11,8 +11,7 @@
 from unittest.mock import Mock
 
 import pytest
-from qiskit.providers.backend import Backend, BackendV1, BackendV2
-from qiskit.providers.models import QasmBackendConfiguration
+from qiskit.providers.backend import Backend, BackendV2
 from qiskit_ibm_runtime import IBMBackend
 
 from quri_parts.backend import BackendError
@@ -26,6 +25,8 @@ from quri_parts.qiskit.backend import (
     get_job_mapper_and_circuit_transpiler,
 )
 from quri_parts.qiskit.backend.utils import DEFAULT_MAX_SHOT
+
+from ._qiskit_compat import BackendV1, make_mock_config
 
 
 class TestDistributeBackendShots:
@@ -138,43 +139,6 @@ def test_get_backend_min_max_shot() -> None:
     with pytest.raises(BackendError, match="Backend not supported"):
         get_backend_min_max_shot(backend)
 
-    backend = Mock(spec=BackendV1)
-    conf = Mock(spec=QasmBackendConfiguration)
-    conf.max_shots = int(1e3)
-    backend.configuration.return_value = conf
-    min_shots, max_shots = get_backend_min_max_shot(backend)
-    assert min_shots == 1
-    assert max_shots == int(1e3)
-
-    backend = Mock(spec=BackendV1)
-    conf = Mock(spec=QasmBackendConfiguration)
-    backend.configuration.return_value = conf
-    with pytest.warns(
-        UserWarning,
-        match=(
-            "No max_shots setting is found. "
-            "The max shot is set to default value 1000000"
-        ),
-    ):
-        min_shots, max_shots = get_backend_min_max_shot(backend)
-        assert min_shots == 1
-        assert max_shots == DEFAULT_MAX_SHOT
-
-    backend = Mock(spec=BackendV1)
-    conf = Mock(spec=QasmBackendConfiguration)
-    conf.max_shots = 0
-    backend.configuration.return_value = conf
-    with pytest.warns(
-        UserWarning,
-        match=(
-            "No max_shots setting is found. "
-            "The max shot is set to default value 1000000"
-        ),
-    ):
-        min_shots, max_shots = get_backend_min_max_shot(backend)
-        assert min_shots == 1
-        assert max_shots == DEFAULT_MAX_SHOT
-
     backend = Mock(spec=BackendV2)
     backend.max_shots = 10
     min_shots, max_shots = get_backend_min_max_shot(backend)
@@ -207,16 +171,14 @@ def test_get_backend_min_max_shot() -> None:
         assert max_shots == DEFAULT_MAX_SHOT
 
     backend = Mock(spec=IBMBackend)
-    conf = Mock(spec=QasmBackendConfiguration)
-    conf.max_shots = int(1e3)
+    conf = make_mock_config(max_shots=int(1e3))
     backend.configuration.return_value = conf
     min_shots, max_shots = get_backend_min_max_shot(backend)
     assert min_shots == 1
     assert max_shots == 1000
 
     backend = Mock(spec=IBMBackend)
-    conf = Mock(spec=QasmBackendConfiguration)
-    conf.max_shots = 0
+    conf = make_mock_config(max_shots=0)
     backend.configuration.return_value = conf
     with pytest.warns(
         UserWarning,
@@ -228,3 +190,43 @@ def test_get_backend_min_max_shot() -> None:
         min_shots, max_shots = get_backend_min_max_shot(backend)
     assert min_shots == 1
     assert max_shots == DEFAULT_MAX_SHOT
+
+
+@pytest.mark.skipif(
+    BackendV1 is None, reason="BackendV1 was removed in qiskit 2.0 (qiskit<2.0 only)."
+)
+def test_get_backend_min_max_shot_v1() -> None:
+    backend = Mock(spec=BackendV1)
+    conf = make_mock_config(max_shots=int(1e3))
+    backend.configuration.return_value = conf
+    min_shots, max_shots = get_backend_min_max_shot(backend)
+    assert min_shots == 1
+    assert max_shots == int(1e3)
+
+    backend = Mock(spec=BackendV1)
+    conf = make_mock_config()
+    backend.configuration.return_value = conf
+    with pytest.warns(
+        UserWarning,
+        match=(
+            "No max_shots setting is found. "
+            "The max shot is set to default value 1000000"
+        ),
+    ):
+        min_shots, max_shots = get_backend_min_max_shot(backend)
+        assert min_shots == 1
+        assert max_shots == DEFAULT_MAX_SHOT
+
+    backend = Mock(spec=BackendV1)
+    conf = make_mock_config(max_shots=0)
+    backend.configuration.return_value = conf
+    with pytest.warns(
+        UserWarning,
+        match=(
+            "No max_shots setting is found. "
+            "The max shot is set to default value 1000000"
+        ),
+    ):
+        min_shots, max_shots = get_backend_min_max_shot(backend)
+        assert min_shots == 1
+        assert max_shots == DEFAULT_MAX_SHOT

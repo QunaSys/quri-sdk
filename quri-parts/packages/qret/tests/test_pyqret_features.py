@@ -78,9 +78,9 @@ class TestPyQRETFeatures:
 
         assert str(option.topology) == ""
         assert option.magic_generation_period == 15
-        assert option.maximum_magic_state_stock == 10000
+        assert option.magic_generation_maximum_stock == 10000
         assert option.entanglement_generation_period == 100
-        assert option.maximum_entangled_state_stock == 10
+        assert option.entanglement_generation_maximum_stock == 10
         assert option.reaction_time == 1
 
     def test_backend_compile_option_with_ftqc_option(self) -> None:
@@ -126,7 +126,7 @@ class TestPyQRETFeatures:
         assert len(run_order) == len(elapsed)
         assert info.gate_count > 0
         assert info.gate_depth > 0
-        assert info.runtime >= 0
+        assert info.execution_time >= 0
         assert info.qubit_volume >= 0
 
     def test_backend_compiler_pass_list(self) -> None:

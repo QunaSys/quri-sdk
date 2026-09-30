@@ -19,7 +19,7 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 def operator_from_cirq_op(operator: Union[PauliString[Any], PauliSum]) -> Operator:
     """
     Converts an :class:`PauliString` (or :class:`PauliSum`) to
-    :class:`Operator.
+    :class:`Operator`.
     """
     qp_op = Operator()
     if isinstance(operator, PauliString):

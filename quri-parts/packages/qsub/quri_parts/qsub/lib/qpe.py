@@ -10,7 +10,7 @@
 
 # =============================================================================
 # DEPRECATED: This module is deprecated and feature-frozen.
-# Please develop on the identically named module under quri_algo.qsub instead.
+# Please develop on the identically named module under quri_algo.circuit_lib instead.
 #
 # This module should only receive critical bug fixes.
 # =============================================================================
@@ -29,7 +29,7 @@ from quri_parts.qsub.sub import SubBuilder
 from . import NS as parent_ns
 
 warnings.warn(
-    "quri_parts.qsub.lib.qpe is deprecated and no longer maintained. Please import with quri_algo.qsub.qpe instead.",
+    "quri_parts.qsub.lib.qpe is deprecated and no longer maintained. Please import with quri_algo.circuit_lib.qpe instead.",
     FutureWarning,
     stacklevel=2,
 )

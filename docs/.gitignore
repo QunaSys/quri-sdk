@@ -1,0 +1,8 @@
+/_build/
+/.venv/
+/.netlify/
+/source/_api_staged/
+**/.ipynb_checkpoints/
+*.pyc
+__pycache__/
+locale/**/*.mo

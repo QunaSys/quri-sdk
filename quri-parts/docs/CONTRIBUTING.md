@@ -1,2 +1,5 @@
-```{include} ../CONTRIBUTING.md
+# Contributing
+
+```{include} ../../CONTRIBUTING.md
+:start-line: 1
 ```

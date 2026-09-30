@@ -11,14 +11,24 @@
 from typing import Any, Optional
 from unittest.mock import patch
 
+import pytest
 from qiskit import QuantumCircuit
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 from qiskit_ibm_runtime import Session
 
+from .._qiskit_compat import SESSION_ACCEPTS_SERVICE
 from .ibm_runtime_service_mock import mock_get_backend
 
 
 class TestMockRuntimeService:
+    @pytest.mark.skipif(
+        not SESSION_ACCEPTS_SERVICE,
+        reason=(
+            "Session(service=...) was removed in qiskit-ibm-runtime>=0.30 "
+            "(paired with qiskit 2.0); the service is now derived from the "
+            "backend, so this mock-service flow only applies to qiskit<2.0."
+        ),
+    )
     @patch("qiskit_ibm_runtime.SamplerV2._validate_options", return_value=None)
     def test_fake_service_call(self, _: Optional[Any] = None) -> None:
         # Checking if fake backend works

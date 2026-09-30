@@ -46,13 +46,13 @@ class HadamardTestMeasurementCount(NamedTuple):
 
 
 def _general_sample_on_state(
-    sampler: Union[Sampler, StateSampler[StateT]], state: State, n_shots: int
+    sampler: Union[Sampler, StateSampler[StateT]], state: State, shots: int
 ) -> MeasurementCounts:
     if isinstance(state, QuantumStateVector):
         sampler = cast(StateSampler[State], sampler)
-        return sampler(state, n_shots)
+        return sampler(state, shots)
     sampler = cast(Sampler, sampler)
-    return sampler(state.circuit, n_shots)
+    return sampler(state.circuit, shots)
 
 
 class HadamardTest(ExpectationValueEstimator[StateT]):
@@ -89,7 +89,7 @@ class HadamardTest(ExpectationValueEstimator[StateT]):
         )
 
     def __call__(
-        self, state: StateT, n_shots: int, *args: Any, **kwd: Any
+        self, state: StateT, shots: int, *args: Any, **kwd: Any
     ) -> Estimate[complex]:
         # TODO: Break into smaller pieces
         input_state = remap_state_for_hadamard_test(state)  # type: ignore
@@ -101,8 +101,8 @@ class HadamardTest(ExpectationValueEstimator[StateT]):
         )
 
         # TODO: Fix after GeneralSampler is available in QURI Parts
-        real_cnt = _general_sample_on_state(self.sampler, real_hadamard_state, n_shots)
-        imag_cnt = _general_sample_on_state(self.sampler, imag_hadamard_state, n_shots)
+        real_cnt = _general_sample_on_state(self.sampler, real_hadamard_state, shots)
+        imag_cnt = _general_sample_on_state(self.sampler, imag_hadamard_state, shots)
 
         real_cnt = get_hadamard_test_ancilla_qubit_counter(real_cnt)
         imag_cnt = get_hadamard_test_ancilla_qubit_counter(imag_cnt)
@@ -131,7 +131,7 @@ def remap_state_for_hadamard_test(
         padding[0] = 1.0
         state_list = [state.vector]
         state_list.extend([padding])
-        vector = reduce(np.kron, state_list)
+        vector = reduce(np.kron, state_list)  # type: ignore[arg-type]
         return QuantumStateVector(n_hadamard_test_qubit, vector=vector, circuit=circuit)
     return GeneralCircuitQuantumState(n_hadamard_test_qubit, circuit=circuit)
 

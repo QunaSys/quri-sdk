@@ -1,0 +1,10 @@
+# Black configuration used by CI and pre-commit via `black --config .black.toml`.
+#
+# This lives in a separate file (without a [project] table) so that black
+# keeps detecting target versions per file, as it did under the old poetry
+# manifests. If black read pyproject.toml, black >=23.1 would infer target
+# versions from [project] requires-python and start enforcing formatting
+# (e.g. magic trailing commas in function definitions) that large parts of
+# this codebase predate, requiring a tree-wide reformat.
+[tool.black]
+line-length = 88

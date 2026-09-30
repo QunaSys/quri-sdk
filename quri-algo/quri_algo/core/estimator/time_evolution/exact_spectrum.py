@@ -46,7 +46,7 @@ class ExactTimeEvolutionExpectationValueEstimator(
         self.transpiler = transpiler
 
     def __call__(
-        self, state: State, evolution_time: float, n_shots: Optional[int] = None
+        self, state: State, evolution_time: float, shots: Optional[int] = None
     ) -> Estimate[complex]:
         vector = evaluate_state_to_vector(state).vector
         pi = np.abs(vector.conj() @ self.eigenvectors) ** 2

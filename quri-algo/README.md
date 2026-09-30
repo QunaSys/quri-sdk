@@ -10,25 +10,21 @@ To get an overview of QURI Algo, we recommend checking out the tutorials.
 
 ## Getting started
 
-Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QURI Algo in a virtual environment using poetry or pip directly. If you are working inside the `quri-sdk` monorepo, install dependencies once at the repository root with `poetry install --with dev,lint,typecheck,doc` and run all commands via `poetry run` from there.
+Presently QURI Algo requires Python 3.11.1 or later. We recommend installing QURI Algo in a virtual environment using [uv](https://docs.astral.sh/uv/) or pip directly. If you are working inside the `quri-sdk` monorepo, install dependencies once at the repository root with `uv sync --all-groups` and run all commands via `uv run` from there.
 
-For the poetry installation, first make sure to upgrade your pip and virtualenv package. Then create a virtual environment, activate it and within it install poetry
+For the uv installation, first [install uv](https://docs.astral.sh/uv/getting-started/installation/). Since `quri-algo` is a member of the uv workspace, dependencies are installed from the repository root and the shared virtual environment lives at the repository root `.venv`. From the repository root, run
+
+```bash
+$ uv sync --all-groups
+```
+
+(`--all-groups` also installs the lint, typecheck, and doc tooling; drop it for just the runtime + test dependencies.)
+
+Otherwise you can create and activate a virtual environment yourself and install the requirements from the requirements.txt file as
 
 ```bash
 $ python -m venv .venv
 $ source .venv/bin/activate
-(.venv)$ python -m pip install poetry
-```
-
-Then use poetry to install dependencies.
-
-```bash
-(.venv)$ python -m poetry install
-```
-
-Otherwise you can install the requirements from the requirements.txt file as
-
-```bash
 (.venv)$ pip install -r requirements.txt
 ```
 

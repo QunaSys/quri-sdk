@@ -239,7 +239,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
 
 
 class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
-    """Mapping from Fermionic operators and states to :class:`Operator`s and
+    """Mapping from Fermionic operators and states to :class:`Operator`\\s and
     states using OpenFermion."""
 
     _mapping_method: type[OpenFermionQubitMapping]

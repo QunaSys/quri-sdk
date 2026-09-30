@@ -74,7 +74,7 @@ class BraketSavedDataSamplingJob(SamplingJob):
             circuit. It can be accessed by `braket_circuit.to_ir().json()`.
         n_shots: The total shots of a sampling job.
         saved_result: A `BraketSavedDataSamplingResult` instance that represents the
-            result when (circuit_str, n_shots) is passed into the sampler.
+            result when (circuit_str, shots) is passed into the sampler.
     """
 
     circuit_program_str: str
@@ -88,7 +88,7 @@ class BraketSavedDataSamplingJob(SamplingJob):
 class BraketSavedDataSamplingBackend(SamplingBackend):
     """A Braket backend for replaying saved sampling experiments. When a
     sampler is created with a BraketSavedDataSamplingBackend object, the
-    sequence of (circuit, n_shots) pairs should be passed in to the sampler the
+    sequence of (circuit, shots) pairs should be passed in to the sampler the
     same order as the orginal experiment.
 
     Example:
@@ -104,9 +104,9 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
 
         1-b: Perform sampling experiments
 
-        >>> sampling_count_1 = sampler(circuit_1, n_shots_1)
-        >>> sampling_count_2 = sampler(circuit_2, n_shots_2)
-        >>> sampling_count_3 = sampler(circuit_3, n_shots_3)
+        >>> sampling_count_1 = sampler(circuit_1, shots_1)
+        >>> sampling_count_2 = sampler(circuit_2, shots_2)
+        >>> sampling_count_3 = sampler(circuit_3, shots_3)
 
         1-c: Dump sampling data
 
@@ -127,12 +127,12 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
 
         2-b: Replay sampling experiment.
 
-        (circuit, n_shots) pairs are passed in to the `saved_data_sampler`
+        (circuit, shots) pairs are passed in to the `saved_data_sampler`
         the same order as they were passed in to the `sampler`.
 
-        >>> replayed_sampling_count_1 = sampler(circuit_1, n_shots_1)
-        >>> replayed_sampling_count_2 = sampler(circuit_2, n_shots_2)
-        >>> replayed_sampling_count_3 = sampler(circuit_3, n_shots_3)
+        >>> replayed_sampling_count_1 = sampler(circuit_1, shots_1)
+        >>> replayed_sampling_count_2 = sampler(circuit_2, shots_2)
+        >>> replayed_sampling_count_3 = sampler(circuit_3, shots_3)
 
     Args:
         device: A Braket :class:`braket.devices.Device` for circuit execution.
@@ -205,24 +205,24 @@ class BraketSavedDataSamplingBackend(SamplingBackend):
         self._saved_data = self._load_data(saved_data)
         self._replay_memory = {k: 0 for k in self._saved_data}
 
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
-        if self._max_shots is not None and n_shots > self._max_shots:
-            shot_dist = [self._max_shots] * (n_shots // self._max_shots)
-            remaining = n_shots % self._max_shots
+    def sample(self, circuit: ImmutableQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
+        if self._max_shots is not None and shots > self._max_shots:
+            shot_dist = [self._max_shots] * (shots // self._max_shots)
+            remaining = shots % self._max_shots
             if remaining > 0:
                 if remaining >= self._min_shots:
                     shot_dist.append(remaining)
                 elif self._enable_shots_roundup:
                     shot_dist.append(self._min_shots)
         else:
-            if n_shots >= self._min_shots or self._enable_shots_roundup:
-                shot_dist = [max(n_shots, self._min_shots)]
+            if shots >= self._min_shots or self._enable_shots_roundup:
+                shot_dist = [max(shots, self._min_shots)]
             else:
                 raise ValueError(
-                    f"n_shots is smaller than minimum shot count ({self._min_shots}) "
-                    "supported by the device. Try larger n_shots or use "
+                    f"shots is smaller than minimum shot count ({self._min_shots}) "
+                    "supported by the device. Try larger shots or use "
                     "enable_shots_roundup=True when creating the backend."
                 )
 

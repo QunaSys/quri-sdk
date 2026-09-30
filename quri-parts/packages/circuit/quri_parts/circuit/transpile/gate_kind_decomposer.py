@@ -397,6 +397,28 @@ class Tdag2RZTranspiler(GateKindDecomposer):
         return [gates.RZ(target, -np.pi / 4.0)]
 
 
+class Tdag2STTranspiler(GateKindDecomposer):
+    """CircuitTranspiler, which decomposes a Tdag gate into S and T gates.
+
+    ``Tdag`` equals ``S S S T`` as named gates, so this expresses
+    ``Tdag`` in a target gate set that contains ``S`` and ``T`` but not
+    ``Tdag``.
+    """
+
+    @property
+    def target_gate_names(self) -> Sequence[str]:
+        return [gate_names.Tdag]
+
+    def decompose(self, gate: QuantumGate) -> Sequence[QuantumGate]:
+        target = gate.target_indices[0]
+        return [
+            gates.S(target),
+            gates.S(target),
+            gates.S(target),
+            gates.T(target),
+        ]
+
+
 class TOFFOLI2HTTdagCNOTTranspiler(GateKindDecomposer):
     """CircuitTranspiler, which decomposes TOFFOLI gates into sequences of H,
     T, TDag, and CNOT gates."""

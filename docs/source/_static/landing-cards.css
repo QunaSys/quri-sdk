@@ -1,0 +1,45 @@
+/* Landing-page entry cards (index.md): a distinct accent colour per card,
+   theme-safe (only the top border is coloured, text/background stay themed). */
+.landing-card {
+  border-top-width: 4px;
+  border-top-style: solid;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.landing-card:hover {
+  transform: translateY(-3px);
+}
+.card-get-started {
+  border-top-color: #2f9e44;
+}
+.card-tutorials {
+  border-top-color: #1971c2;
+}
+.card-howto {
+  border-top-color: #e8590c;
+}
+.card-reference {
+  border-top-color: #0c8599;
+}
+.card-concepts {
+  border-top-color: #9c36b5;
+}
+
+/* Sidebar: the four top-level sections are caption-like headers that are also
+   links. Their children are always shown (no toggle), so the sidebar reads
+   like the caption layout while the headers stay clickable. */
+.sidebar-tree li.toctree-l1 > label {
+  display: none;
+}
+.sidebar-tree li.toctree-l1 > ul {
+  display: block !important;
+}
+.sidebar-tree li.toctree-l1 > .reference {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  font-size: var(--sidebar-caption-font-size, 0.8125rem);
+  color: var(--color-sidebar-caption-text);
+}
+.sidebar-tree li.toctree-l1 > .reference:hover {
+  color: var(--color-sidebar-link-text--top-level, var(--color-link));
+}

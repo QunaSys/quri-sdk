@@ -173,10 +173,7 @@ def zero() -> Operator:
 
 
 def commutator(op1: Operator, op2: Operator) -> Operator:
-    """Returns the commutator of op1 and op2 :math:`[\\text{op1},
-
-    \\text{op2}]`.
-    """
+    """Returns the commutator :math:`[\\text{op1}, \\text{op2}]`."""
     op_res = op1 * op2 - op2 * op1
     return op_res
 

@@ -3,7 +3,7 @@ import pytest
 import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
 from quri_parts.qsub.lib.qpe import QPE
-from quri_parts.qsub.opsub import UnitarySubDef, opsub
+from quri_parts.qsub.opsub import NonUnitarySubDef, UnitarySubDef, opsub
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -31,6 +31,22 @@ class _UMCX(UnitarySubDef):
 
 
 UMCX, _ = opsub(_UMCX)
+
+
+class _Conditional(NonUnitarySubDef):
+    name = "Conditional"
+    qubit_count = 1
+    reg_count = 1
+
+    def sub(self, builder: SubBuilder) -> None:
+        (q0,) = builder.qubits
+        (r0,) = builder.registers
+        builder.add_op(std.M, (q0,), (r0,))
+        with std.conditional(builder, r0):
+            builder.add_op(std.X, (q0,))
+
+
+Conditional, _ = opsub(_Conditional)
 
 
 class TestCreateModuleFromQsubOp:
@@ -78,6 +94,14 @@ class TestCreateModuleFromQsubOp:
         assert len(circuits_without_wrapper) == 1
         assert custom_entry_name not in circuits_without_wrapper
         assert any("UMCX" in name for name in circuits_without_wrapper)
+
+    def test_create_module_from_conditional_op(self) -> None:
+        module = create_module_from_qsub_op(Conditional)
+
+        circuit = module.get_circuit(Conditional.id.to_str())
+        ir_blocks = list(circuit.get_ir())
+        assert len(ir_blocks) > 1
+        assert "entry" in circuit.get_ir().gen_cfg()
 
     @pytest.mark.parametrize("control_bits", [2, 3, 4])
     def test_create_module_from_single_mcx_op(self, control_bits: int) -> None:

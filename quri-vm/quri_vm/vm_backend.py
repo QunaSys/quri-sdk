@@ -28,13 +28,15 @@ class LoweringLevel(IntEnum):
     All levels are listed below, but if you want to specify processing in a certain
     level, VMBackend must support that level.
 
-    LogicalCircuit: No changes are made to the input logical quantum circuit.
-    ArchLogicalCircuit: Conversions are performed at the logical circuit level, such
-        as gate set conversion and qubit mapping, to suit the target architecture.
-    ArchInstruction: Lower to primitive instructions for the target architecture. May
-        not be expressed as a quantum circuit.
-    DeviceInstruction: Lower to physical instructions for the device. Representations
-        such as physical quantum circuits are assumed.
+    Attributes:
+        LogicalCircuit: No changes are made to the input logical quantum circuit.
+        ArchLogicalCircuit: Conversions are performed at the logical circuit level,
+            such as gate set conversion and qubit mapping, to suit the target
+            architecture.
+        ArchInstruction: Lower to primitive instructions for the target
+            architecture. May not be expressed as a quantum circuit.
+        DeviceInstruction: Lower to physical instructions for the device.
+            Representations such as physical quantum circuits are assumed.
     """
 
     LogicalCircuit = 0

@@ -11,7 +11,10 @@
 from typing import Union
 
 import numpy as np
+import pytest
+from numpy.typing import NDArray
 
+import quri_parts.circuit.transpile.rz2hst as rz2hst
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
     NonParametricQuantumCircuit,
@@ -27,6 +30,7 @@ from quri_parts.circuit.gate_names import CliffordGateNameType, GateNameType
 from quri_parts.circuit.transpile import (
     CliffordConversionTranspiler,
     CliffordRZSetTranspiler,
+    CliffordTSetTranspiler,
     GateSetConversionTranspiler,
     ParametricRX2RZHTranspiler,
     ParametricRY2RZHTranspiler,
@@ -69,6 +73,35 @@ def _circuit_close(
 
 def _gate_kinds(circuit: ImmutableQuantumCircuit) -> set[str]:
     return {gate.name for gate in circuit.gates}
+
+
+# Full unitary matrix of a circuit, computed with qulacs when available.
+def _circuit_unitary(circuit: ImmutableQuantumCircuit) -> NDArray[np.complex128]:
+    qulacs = pytest.importorskip("qulacs")
+    qulacs_circuit = pytest.importorskip("quri_parts.qulacs.circuit")
+
+    n = circuit.qubit_count
+    qc = qulacs_circuit.convert_circuit(circuit)
+    dim = 1 << n
+    u = np.zeros((dim, dim), dtype=np.complex128)
+    for i in range(dim):
+        state = qulacs.QuantumState(n)
+        state.set_computational_basis(i)
+        qc.update_quantum_state(state)
+        u[:, i] = state.get_vector()
+    return u
+
+
+# Assert two circuits implement the same unitary up to a global phase.
+def _assert_equivalent(
+    original: ImmutableQuantumCircuit, transpiled: ImmutableQuantumCircuit
+) -> None:
+    u1 = _circuit_unitary(original)
+    u2 = _circuit_unitary(transpiled)
+    idx = np.unravel_index(int(np.argmax(np.abs(u1))), u1.shape)
+    assert abs(u1[idx]) > 1e-9
+    phase = u2[idx] / u1[idx]
+    assert np.allclose(u1 * phase, u2, atol=1e-6)
 
 
 def _single_qubit_clifford_circuit() -> ImmutableQuantumCircuit:
@@ -481,31 +514,7 @@ class TestGateSetConversion:
         circuit.add_PauliRotation_gate(targets, ids, theta)
         transpiled = GateSetConversionTranspiler(target_gateset)(circuit)
         assert _gate_kinds(transpiled) <= set(target_gateset)
-        assert list(transpiled.gates) == [
-            gates.S(0),
-            gates.S(0),
-            gates.S(0),
-            gates.H(0),
-            gates.S(0),
-            gates.S(0),
-            gates.S(0),
-            gates.S(2),
-            gates.S(2),
-            gates.S(2),
-            gates.H(2),
-            gates.S(2),
-            gates.S(2),
-            gates.S(2),
-            gates.CNOT(2, 0),
-            gates.RZ(0, theta),
-            gates.CNOT(2, 0),
-            gates.S(0),
-            gates.H(0),
-            gates.S(0),
-            gates.S(2),
-            gates.H(2),
-            gates.S(2),
-        ]
+        _assert_equivalent(circuit, transpiled)
 
 
 class TestTypicalGateSetConversion:
@@ -530,3 +539,197 @@ class TestTypicalGateSetConversion:
         ]
 
         assert list(transpiled_circuit.gates) == expected_gates
+
+
+#: Allowed gate names in the Clifford+T gate set.
+_CLIFFORD_T_GATE_NAMES = {
+    gate_names.H,
+    gate_names.X,
+    gate_names.Y,
+    gate_names.Z,
+    gate_names.S,
+    gate_names.Sdag,
+    gate_names.SqrtX,
+    gate_names.SqrtXdag,
+    gate_names.SqrtY,
+    gate_names.SqrtYdag,
+    gate_names.CNOT,
+    gate_names.CZ,
+    gate_names.SWAP,
+    gate_names.T,
+    gate_names.Tdag,
+}
+
+
+class TestCliffordTSetTranspiler:
+    def test_toffoli_decomposed_to_clifford_t(self) -> None:
+        """A Toffoli gate is decomposed into only Clifford+T gates."""
+        circuit = QuantumCircuit(3)
+        circuit.add_TOFFOLI_gate(0, 1, 2)
+
+        transpiled = CliffordTSetTranspiler()(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+
+    def test_rz_pi_over_4_becomes_t(self) -> None:
+        """RZ(pi/4) is converted to a T gate."""
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, np.pi / 4.0)
+
+        transpiled = CliffordTSetTranspiler()(circuit)
+        assert list(transpiled.gates) == [gates.T(0)]
+
+    def test_rz_pi_over_2_becomes_s(self) -> None:
+        """RZ(pi/2) is converted to an S gate."""
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, np.pi / 2.0)
+
+        transpiled = CliffordTSetTranspiler()(circuit)
+        assert list(transpiled.gates) == [gates.S(0)]
+
+    def test_already_clifford_t_circuit_passes_through(self) -> None:
+        """A circuit already using only Clifford+T gates passes through
+        unchanged."""
+        circuit = QuantumCircuit(2)
+        circuit.add_H_gate(0)
+        circuit.add_T_gate(0)
+        circuit.add_CNOT_gate(0, 1)
+        circuit.add_Tdag_gate(1)
+        circuit.add_S_gate(0)
+
+        transpiled = CliffordTSetTranspiler()(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        assert list(transpiled.gates) == list(circuit.gates)
+
+    def test_complex_circuit_only_clifford_t_gates(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A complex circuit with many gate types, including arbitrary-angle
+        rotations, is transpiled to only Clifford+T gates."""
+        monkeypatch.setattr(
+            rz2hst,
+            "driver_pygridsynth",
+            lambda *a, **k: lambda theta, eps: ("HSTX", float("nan")),
+        )
+        transpiled = CliffordTSetTranspiler()(_complex_circuit())
+        # Arbitrary-angle RZ gates are approximated into {H, S, T} gates, so
+        # no RZ should remain in the output.
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        assert gate_names.RZ not in _gate_kinds(transpiled)
+
+    def test_arbitrary_rz_approximated_to_clifford_t(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An RZ whose angle is not a Clifford+T gate is approximated into a
+        sequence of Clifford+T gates."""
+        monkeypatch.setattr(
+            rz2hst,
+            "driver_pygridsynth",
+            lambda *a, **k: lambda theta, eps: ("HSTX", float("nan")),
+        )
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, 0.3)
+
+        transpiled = CliffordTSetTranspiler(epsilon=1e-3)(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        assert gate_names.RZ not in _gate_kinds(transpiled)
+
+    def test_clifford_gates_only_in_output(self) -> None:
+        """Output of a circuit with only Clifford+T-representable rotations
+        uses no RZ."""
+        circuit = QuantumCircuit(2)
+        circuit.add_H_gate(0)
+        circuit.add_CNOT_gate(0, 1)
+        circuit.add_RZ_gate(0, np.pi / 2.0)  # S
+        circuit.add_RZ_gate(1, np.pi / 4.0)  # T
+        circuit.add_RZ_gate(0, np.pi)  # Z
+        circuit.add_RZ_gate(1, -np.pi / 4.0)  # Tdag
+
+        transpiled = CliffordTSetTranspiler()(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        assert gate_names.RZ not in _gate_kinds(transpiled)
+
+
+class TestUnsupportedGates:
+    def test_multi_controlled_gate_not_in_target_raises(self) -> None:
+        # MC gates are not decomposed; validation rejects them when they are not
+        # part of the target gate set.
+        circuit = QuantumCircuit(3)
+        circuit.add_gate(gates.MCX(2, [0, 1]))
+        transpiler = GateSetConversionTranspiler(
+            [gate_names.RX, gate_names.RY, gate_names.RZ, gate_names.CNOT]
+        )
+        with pytest.raises(ValueError, match="cannot be converted"):
+            transpiler(circuit)
+
+    def test_multi_controlled_rotation_gate_not_in_target_raises(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.add_gate(
+            QuantumGate(
+                name=gate_names.MCRZ,
+                target_indices=(2,),
+                control_indices=(0, 1),
+                params=(0.3,),
+            )
+        )
+        transpiler = GateSetConversionTranspiler([gate_names.RZ, gate_names.CNOT])
+        with pytest.raises(ValueError, match="cannot be converted"):
+            transpiler(circuit)
+
+    def test_multi_controlled_gate_in_target_is_kept(self) -> None:
+        # MC gates are not decomposed; if they are in the target gate set they
+        # are passed through unchanged.
+        circuit = QuantumCircuit(3)
+        circuit.add_gate(gates.MCX(2, [0, 1]))
+        transpiler = GateSetConversionTranspiler([gate_names.MCX, gate_names.CNOT])
+        transpiled = transpiler(circuit)
+        assert [g.name for g in transpiled.gates] == [gate_names.MCX]
+
+
+_CLIFFORD_T_TARGET: list[GateNameType] = [
+    gate_names.H,
+    gate_names.X,
+    gate_names.Y,
+    gate_names.Z,
+    gate_names.S,
+    gate_names.Sdag,
+    gate_names.SqrtX,
+    gate_names.SqrtXdag,
+    gate_names.SqrtY,
+    gate_names.SqrtYdag,
+    gate_names.CNOT,
+    gate_names.CZ,
+    gate_names.SWAP,
+    gate_names.T,
+    gate_names.Tdag,
+]
+
+
+class TestGateSetConversionCliffordT:
+    def test_toffoli_to_clifford_t(self) -> None:
+        circuit = QuantumCircuit(3)
+        circuit.add_TOFFOLI_gate(0, 1, 2)
+        transpiled = GateSetConversionTranspiler(_CLIFFORD_T_TARGET)(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        # Toffoli is decomposed via TOFFOLI2CNOTTTranspiler (H, T, Tdag, CNOT).
+        assert _gate_kinds(transpiled) <= {
+            gate_names.H,
+            gate_names.T,
+            gate_names.Tdag,
+            gate_names.CNOT,
+        }
+
+    def test_clifford_angle_rz_needs_no_gridsynth(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, np.pi / 4.0)
+        circuit.add_RZ_gate(0, np.pi / 2.0)
+        transpiled = GateSetConversionTranspiler(_CLIFFORD_T_TARGET)(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        assert gate_names.RZ not in _gate_kinds(transpiled)
+
+    @pytest.mark.gridsynth
+    def test_arbitrary_rz_approximated_to_clifford_t(self) -> None:
+        circuit = QuantumCircuit(1)
+        circuit.add_RZ_gate(0, 0.3)
+        transpiled = GateSetConversionTranspiler(_CLIFFORD_T_TARGET)(circuit)
+        assert _gate_kinds(transpiled) <= _CLIFFORD_T_GATE_NAMES
+        assert gate_names.RZ not in _gate_kinds(transpiled)

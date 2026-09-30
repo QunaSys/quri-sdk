@@ -1,3 +1,13 @@
+# Licensed under the MIT License (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#      https://mit-license.org/
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from math import pi
 from typing import Any, Final, Mapping, Optional, Sequence
 
@@ -173,7 +183,7 @@ def execute_qpe(
     algorithm_instance: QuantumAlgorithm,
     trial_state: CircuitQuantumState,
     sampler: Sampler,
-    n_shots: int,
+    shots: int,
     ancilla_count: int,
     qpe_msub: MachineSub,
     **kwargs: Any,
@@ -182,7 +192,7 @@ def execute_qpe(
     qp_circuit: ImmutableQuantumCircuit = qp_generator.run(qpe_msub).freeze()
     padded_trial_state = remap_state_for_hadamard_test(trial_state, ancilla_count)
     total_circuit = padded_trial_state.circuit + qp_circuit
-    counts = dict(sampler(total_circuit, n_shots))
+    counts = dict(sampler(total_circuit, shots))
     ancilla_register_counts = get_ancilla_register_counts(counts, ancilla_count)
     eigen_values = qpe_counts_to_eigenvalues(
         ancilla_register_counts, ancilla_count, **kwargs
@@ -193,7 +203,7 @@ def execute_qpe(
 
 def analyze_qpe(
     trial_state: CircuitQuantumState,
-    n_shots: int,
+    shots: int,
     ancilla_count: int,
     analyzer: Analyzer,
     qpe_msub: MachineSub,
@@ -204,7 +214,7 @@ def analyze_qpe(
     total_circuit = padded_trial_state.circuit + qp_circuit
     analysis = analyzer(total_circuit)
 
-    return QPEAnalysis.from_circuit_list(analysis, n_shots, [qp_circuit])
+    return QPEAnalysis.from_circuit_list(analysis, shots, [qp_circuit])
 
 
 class QPE(QuantumAlgorithm):
@@ -238,24 +248,24 @@ class QPE(QuantumAlgorithm):
     def run(
         self,
         trial_state: CircuitQuantumState,
-        n_shots: int,
+        shots: int,
         ancilla_count: int,
         qpe_msub: MachineSub,
         **kwargs: Any,
     ) -> QPEResult:
         return execute_qpe(
-            self, trial_state, self.sampler, n_shots, ancilla_count, qpe_msub, **kwargs
+            self, trial_state, self.sampler, shots, ancilla_count, qpe_msub, **kwargs
         )
 
     def analyze(
         self,
         trial_state: CircuitQuantumState,
-        n_shots: int,
+        shots: int,
         ancilla_count: int,
         analyzer: Analyzer,
         qpe_msub: MachineSub,
     ) -> QPEAnalysis:
-        return analyze_qpe(trial_state, n_shots, ancilla_count, analyzer, qpe_msub)
+        return analyze_qpe(trial_state, shots, ancilla_count, analyzer, qpe_msub)
 
 
 class TimeEvolutionQPE(QuantumAlgorithm):
@@ -291,7 +301,7 @@ class TimeEvolutionQPE(QuantumAlgorithm):
     def run(
         self,
         trial_state: CircuitQuantumState,
-        n_shots: int,
+        shots: int,
         ancilla_count: int,
         hamiltonian: QubitHamiltonian,
         evolution_time: float,
@@ -314,7 +324,7 @@ class TimeEvolutionQPE(QuantumAlgorithm):
             self,
             trial_state,
             self.sampler,
-            n_shots,
+            shots,
             ancilla_count,
             qpe_msub,
             scale_factor=evolution_time,
@@ -324,7 +334,7 @@ class TimeEvolutionQPE(QuantumAlgorithm):
     def analyze(
         self,
         trial_state: CircuitQuantumState,
-        n_shots: int,
+        shots: int,
         ancilla_count: int,
         analyzer: Analyzer,
         hamiltonian: QubitHamiltonian,
@@ -341,4 +351,4 @@ class TimeEvolutionQPE(QuantumAlgorithm):
             primitives=primitives,
         )
 
-        return analyze_qpe(trial_state, n_shots, ancilla_count, analyzer, qpe_msub)
+        return analyze_qpe(trial_state, shots, ancilla_count, analyzer, qpe_msub)
