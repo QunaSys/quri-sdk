@@ -457,9 +457,15 @@ def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> s
     if entry is None:
         return name
     lines = [name, f"calls: {entry.call_count}"]
+    # Largest count first so each box leads with its dominant cost; the
+    # qualified name breaks ties deterministically.
+    gate_counts = sorted(
+        entry.gate_counts.cumulative.all_calls.items(),
+        key=lambda item: (-item[1], item[0].to_str(full=True)),
+    )
     lines.extend(
         f"{gate.to_str(full=False, param_truncate=8)}: {count}"
-        for gate, count in entry.gate_counts.cumulative.all_calls.items()
+        for gate, count in gate_counts
     )
     # DOT's escape for a centered line break.
     return "\\n".join(lines)

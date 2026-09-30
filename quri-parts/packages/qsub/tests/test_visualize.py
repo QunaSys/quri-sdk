@@ -377,6 +377,13 @@ class TestDrawCallGraph:
         assert nodes == {r_label, a_label}
         assert edges[(r_label, a_label)]["label"] == "x2"
 
+    def test_gate_counts_listed_by_decreasing_count(self) -> None:
+        R = _ident("R")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {}}
+        profile = [self._entry("R", 1, {"H": 2, "T": 5, "CNOT": 2})]
+        nodes, _ = self._parse(draw_call_graph(graph, profile))
+        assert nodes == {r"R\ncalls: 1\nT: 5\nCNOT: 2\nH: 2"}
+
     def test_without_profile_plain_names_and_multiplicities(self) -> None:
         R, A = _ident("R"), _ident("A")
         graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
