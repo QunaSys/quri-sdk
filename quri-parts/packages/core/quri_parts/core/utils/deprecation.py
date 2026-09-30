@@ -23,6 +23,11 @@ def deprecated_kwarg(old_name: str, new_name: str) -> Callable[[_F], _F]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             if old_name in kwargs:
+                if new_name in kwargs:
+                    raise TypeError(
+                        f"{func.__name__}() got both '{old_name}' and "
+                        f"'{new_name}'; pass only '{new_name}'."
+                    )
                 warnings.warn(
                     f"The '{old_name}' keyword argument is deprecated and "
                     f"will be removed in a future release; use '{new_name}' "
