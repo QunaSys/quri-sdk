@@ -419,7 +419,7 @@ impl ImmutableParametricQuantumCircuit {
         Ok(ret)
     }
 
-    #[pyo3(signature = (shots=None, params=None, shot_count=None))]
+    #[pyo3(signature = (shots=None, params=None, *, shot_count=None))]
     fn sample<'py>(
         slf: &Bound<'py, Self>,
         shots: Option<i32>,

@@ -178,7 +178,7 @@ impl ImmutableQuantumCircuit {
         Py::new(slf.py(), (QuantumCircuit(), slf.borrow().clone()))
     }
 
-    #[pyo3(signature = (shots=None, shot_count=None))]
+    #[pyo3(signature = (shots=None, *, shot_count=None))]
     fn sample<'py>(
         slf: &Bound<'py, Self>,
         shots: Option<i32>,

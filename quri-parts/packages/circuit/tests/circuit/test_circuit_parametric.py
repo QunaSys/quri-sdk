@@ -174,6 +174,12 @@ class TestUnboundParametricQuantumCircuit:
                 shots=10, params=[np.pi / 4], shot_count=1000
             )
 
+    def test_sample_rejects_positional_shot_count(self) -> None:
+        circuit = ParametricQuantumCircuit(3)
+        circuit.add_ParametricRX_gate(0)
+        with pytest.raises(TypeError, match="positional arguments"):
+            circuit.sample(10, [np.pi / 4], 1000)  # type: ignore[call-arg]
+
     def test_hash(self) -> None:
         import pytest
 

@@ -134,6 +134,11 @@ class TestQuantumCircuit:
         assert sum(samples.values()) == 1000
         assert record[0].filename == __file__
 
+    def test_sample_rejects_positional_shot_count(self) -> None:
+        circuit = QuantumCircuit(2)
+        with pytest.raises(TypeError, match="positional arguments"):
+            circuit.sample(10, 1000)  # type: ignore[call-arg]
+
     def test_sample_rejects_shots_and_shot_count(self) -> None:
         circuit = QuantumCircuit(2)
         with pytest.raises(TypeError, match="got both 'shot_count' and 'shots'"):
