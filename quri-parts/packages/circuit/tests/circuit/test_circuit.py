@@ -133,6 +133,11 @@ class TestQuantumCircuit:
             samples = circuit.sample(shot_count=1000)  # type: ignore[call-arg]
         assert sum(samples.values()) == 1000
 
+    def test_sample_rejects_shots_and_shot_count(self) -> None:
+        circuit = QuantumCircuit(2)
+        with pytest.raises(TypeError):
+            circuit.sample(shots=10, shot_count=1000)  # type: ignore[call-arg]
+
     def test_hash(self) -> None:
         circuit1 = mutable_circuit()
         with pytest.raises(TypeError, match="unhashable type: 'QuantumCircuit'"):

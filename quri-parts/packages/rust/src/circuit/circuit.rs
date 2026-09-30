@@ -185,7 +185,12 @@ impl ImmutableQuantumCircuit {
         shot_count: Option<i32>,
     ) -> PyResult<Bound<'py, PyAny>> {
         let shots = match (shots, shot_count) {
-            (Some(shots), _) => shots,
+            (Some(_), Some(_)) => {
+                return Err(pyo3::exceptions::PyTypeError::new_err(
+                    "sample() got both 'shot_count' and 'shots'; pass only 'shots'.",
+                ))
+            }
+            (Some(shots), None) => shots,
             (None, Some(shot_count)) => {
                 slf.py().run(
                     cr#"

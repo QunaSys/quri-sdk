@@ -165,6 +165,14 @@ class TestUnboundParametricQuantumCircuit:
             )
         assert sum(samples.values()) == 1000
 
+    def test_sample_rejects_shots_and_shot_count(self) -> None:
+        circuit = ParametricQuantumCircuit(3)
+        circuit.add_ParametricRX_gate(0)
+        with pytest.raises(TypeError):
+            circuit.sample(  # type: ignore[call-arg]
+                shots=10, params=[np.pi / 4], shot_count=1000
+            )
+
     def test_hash(self) -> None:
         import pytest
 
