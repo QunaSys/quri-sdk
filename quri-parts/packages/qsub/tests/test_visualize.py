@@ -1,11 +1,14 @@
+import re
+import shutil
+import sys
+from pathlib import Path
 from typing import Any, Optional
 
 from matplotlib import colors as mcolors
 from matplotlib import patches as mpatches
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
-from matplotlib.text import Annotation
-from pytest import MonkeyPatch, raises
+from pytest import MonkeyPatch, mark, raises
 
 import quri_parts.qsub._visualization as vis_impl
 import quri_parts.qsub.visualize as visualize
@@ -38,7 +41,6 @@ from quri_parts.qsub.visualize import (
     ControlBitInfo,
     GateData,
     GateType,
-    _call_graph_depths,
     _op_controls,
     draw_call_graph,
     draw_sub,
@@ -321,6 +323,15 @@ def _ident(local_name: str) -> Ident:
     return Ident(_CG_NS, local_name)
 
 
+_DOT_ATTR = re.compile(r'(\w+)=("(?:[^"\\]|\\.)*"|[^\s\]]+)')
+_DOT_NODE = re.compile(r"^\t(n\d+) \[(.*)\]$")
+_DOT_EDGE = re.compile(r"^\t(n\d+) -> (n\d+) \[(.*)\]$")
+
+
+def _dot_attrs(attrs: str) -> dict[str, str]:
+    return {k: v.strip('"') for k, v in _DOT_ATTR.findall(attrs)}
+
+
 class TestDrawCallGraph:
     def _entry(
         self, name: str, call_count: int, cumulative: dict[str, int]
@@ -339,27 +350,20 @@ class TestDrawCallGraph:
             ),
         )
 
-    def _texts(self, fig: Figure) -> set[str]:
-        return {t.get_text() for t in fig.axes[0].texts if t.get_text()}
-
-    def test_depths_use_longest_path(self) -> None:
-        R, A, C = _ident("R"), _ident("A"), _ident("C")
-        graph: dict[Optional[Ident], dict[Ident, int]] = {
-            R: {A: 1, C: 1},
-            A: {C: 1},
-            C: {},
-        }
-        assert _call_graph_depths(graph) == {R: 0, A: 1, C: 2}
-
-    def test_cycle_raises(self) -> None:
-        R, A, B = _ident("R"), _ident("A"), _ident("B")
-        graph: dict[Optional[Ident], dict[Ident, int]] = {
-            R: {A: 1},
-            A: {B: 1},
-            B: {A: 1},
-        }
-        with raises(ValueError):
-            _call_graph_depths(graph)
+    def _parse(
+        self, dot: Any
+    ) -> tuple[set[str], dict[tuple[str, str], dict[str, str]]]:
+        """Node labels, and edge attributes keyed by (caller, callee) label."""
+        labels: dict[str, str] = {}
+        edges: dict[tuple[str, str], dict[str, str]] = {}
+        for line in dot.body:
+            line = line.rstrip("\n")
+            if m := _DOT_EDGE.match(line):
+                caller, callee, attrs = m.groups()
+                edges[(labels[caller], labels[callee])] = _dot_attrs(attrs)
+            elif m := _DOT_NODE.match(line):
+                labels[m.group(1)] = _dot_attrs(m.group(2))["label"]
+        return set(labels.values()), edges
 
     def test_nodes_annotated_from_profile(self) -> None:
         R, A = _ident("R"), _ident("A")
@@ -368,20 +372,23 @@ class TestDrawCallGraph:
             self._entry("R", 1, {"CNOT": 6}),
             self._entry("A", 2, {"CNOT": 6}),
         ]
-        fig = draw_call_graph(graph, profile)
-        texts = self._texts(fig)
-        plt.close(fig)
-        assert "R\ncalls: 1\nCNOT: 6" in texts
-        assert "A\ncalls: 2\nCNOT: 6" in texts
-        assert "x2" in texts
+        nodes, edges = self._parse(draw_call_graph(graph, profile))
+        r_label, a_label = r"R\ncalls: 1\nCNOT: 6", r"A\ncalls: 2\nCNOT: 6"
+        assert nodes == {r_label, a_label}
+        assert edges[(r_label, a_label)]["label"] == "x2"
 
     def test_without_profile_plain_names_and_multiplicities(self) -> None:
         R, A = _ident("R"), _ident("A")
         graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
-        fig = draw_call_graph(graph)
-        texts = self._texts(fig)
-        plt.close(fig)
-        assert texts == {"R", "A", "x2"}
+        nodes, edges = self._parse(draw_call_graph(graph))
+        assert nodes == {"R", "A"}
+        assert {k: v["label"] for k, v in edges.items()} == {("R", "A"): "x2"}
+
+    def test_repeated_calls_are_highlighted(self) -> None:
+        R, A, B = _ident("R"), _ident("A"), _ident("B")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 1, B: 3}, A: {}, B: {}}
+        _, edges = self._parse(draw_call_graph(graph))
+        assert edges[("R", "B")]["fontcolor"] != edges[("R", "A")]["fontcolor"]
 
     def test_truncated_labels_fall_back_to_qualified_names(self) -> None:
         """Distinct subs whose short names truncate to the same text are drawn
@@ -389,10 +396,8 @@ class TestDrawCallGraph:
         long1 = Ident(_CG_NS, "LongParam", (11111111111111111,))
         long2 = Ident(_CG_NS, "LongParam", (11111111111111112,))
         graph: dict[Optional[Ident], dict[Ident, int]] = {long1: {}, long2: {}}
-        fig = draw_call_graph(graph)
-        texts = self._texts(fig)
-        plt.close(fig)
-        assert texts == {long1.to_str(full=True), long2.to_str(full=True)}
+        nodes, _ = self._parse(draw_call_graph(graph))
+        assert nodes == {long1.to_str(full=True), long2.to_str(full=True)}
 
     def test_multi_caller_edges_keep_their_multiplicities(self) -> None:
         """Edge counts come from the graph itself, so a callee with several
@@ -404,39 +409,33 @@ class TestDrawCallGraph:
             B: {C: 1},
             C: {},
         }
-        profile = [
-            self._entry("R", 1, {"X": 4}),
-            self._entry("A", 1, {"X": 3}),
-            self._entry("B", 1, {"X": 1}),
-            self._entry("C", 4, {"X": 4}),
-        ]
-        fig = draw_call_graph(graph, profile)
-        texts = self._texts(fig)
-        plt.close(fig)
-        assert "x3" in texts  # A -> C
-        assert "x1" in texts  # R -> A, R -> B, B -> C
-
-    def test_skip_level_edge_is_drawn_curved(self) -> None:
-        """C -> A alongside C -> B -> A: all three nodes stack in one column,
-        so the layer-skipping edge must bow out instead of hiding behind the
-        chain."""
-        C, B, A = _ident("C"), _ident("B"), _ident("A")
-        graph: dict[Optional[Ident], dict[Ident, int]] = {
-            C: {A: 1, B: 1},
-            B: {A: 1},
-            A: {},
+        _, edges = self._parse(draw_call_graph(graph))
+        assert {k: v["label"] for k, v in edges.items()} == {
+            ("R", "A"): "x1",
+            ("R", "B"): "x1",
+            ("A", "C"): "x3",
+            ("B", "C"): "x1",
         }
-        fig = draw_call_graph(graph)
-        arrows = [
-            t.arrow_patch
-            for t in fig.axes[0].texts
-            if isinstance(t, Annotation) and t.arrow_patch is not None
-        ]
-        rads = []
-        for arrow in arrows:
-            style = arrow.get_connectionstyle()
-            assert isinstance(style, mpatches.ConnectionStyle.Arc3)
-            rads.append(style.rad)
-        plt.close(fig)
-        assert len(arrows) == 3
-        assert sorted(rads) == [-0.4, 0.0, 0.0]
+
+    def test_port_like_idents_stay_single_nodes(self) -> None:
+        """graphviz reads ':' in an edge endpoint as a port, so an ident whose
+        string contains one must not become the edge endpoint itself."""
+        R = _ident("R")
+        P = Ident(_CG_NS, "P", (Ident(NameSpace("a:b"), "Q"),))
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {P: 1}, P: {}}
+        nodes, edges = self._parse(draw_call_graph(graph))
+        assert len(nodes) == 2
+        assert list(edges) == [("R", P.to_str(full=False, param_truncate=8))]
+
+    @mark.skipif(shutil.which("dot") is None, reason="Graphviz is not installed")
+    def test_filename_renders_by_extension(self, tmp_path: Path) -> None:
+        R, A = _ident("R"), _ident("A")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 1}, A: {}}
+        out = tmp_path / "graph.svg"
+        draw_call_graph(graph, filename=str(out))
+        assert out.read_text().lstrip().startswith("<?xml")
+
+    def test_missing_graphviz_names_the_extra(self, monkeypatch: MonkeyPatch) -> None:
+        monkeypatch.setitem(sys.modules, "graphviz", None)
+        with raises(ImportError, match=r"quri-parts-qsub\[graphviz\]"):
+            draw_call_graph({})

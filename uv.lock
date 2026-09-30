@@ -5313,12 +5313,19 @@ dependencies = [
     { name = "quri-parts-qulacs" },
 ]
 
+[package.optional-dependencies]
+graphviz = [
+    { name = "graphviz" },
+]
+
 [package.metadata]
 requires-dist = [
+    { name = "graphviz", marker = "extra == 'graphviz'", specifier = ">=0.20,<1.0" },
     { name = "qulacsvis", specifier = ">=0.7.6,<0.8.0" },
     { name = "quri-parts-circuit", editable = "quri-parts/packages/circuit" },
     { name = "quri-parts-qulacs", editable = "quri-parts/packages/qulacs" },
 ]
+provides-extras = ["graphviz"]
 
 [[package]]
 name = "quri-parts-quantinuum"
@@ -5520,7 +5527,7 @@ dev = [
     { name = "quri-parts-pyscf" },
     { name = "quri-parts-qiskit" },
     { name = "quri-parts-qret" },
-    { name = "quri-parts-qsub" },
+    { name = "quri-parts-qsub", extra = ["graphviz"] },
     { name = "quri-parts-quantinuum" },
     { name = "quri-parts-qulacs" },
     { name = "quri-parts-rust" },
@@ -5600,7 +5607,7 @@ dev = [
     { name = "quri-parts-pyscf", editable = "quri-parts/packages/pyscf" },
     { name = "quri-parts-qiskit", editable = "quri-parts/packages/qiskit" },
     { name = "quri-parts-qret", marker = "python_full_version >= '3.10'", editable = "quri-parts/packages/qret" },
-    { name = "quri-parts-qsub", marker = "python_full_version >= '3.10'", editable = "quri-parts/packages/qsub" },
+    { name = "quri-parts-qsub", extras = ["graphviz"], marker = "python_full_version >= '3.10'", editable = "quri-parts/packages/qsub" },
     { name = "quri-parts-quantinuum", editable = "quri-parts/packages/quantinuum" },
     { name = "quri-parts-qulacs", editable = "quri-parts/packages/qulacs" },
     { name = "quri-parts-rust", directory = "quri-parts/packages/rust" },

@@ -12,8 +12,6 @@ from collections import Counter
 from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Mapping, Optional, TypeAlias
 
-import matplotlib.pyplot as plt
-
 from quri_parts.qsub._visualization import (
     CircuitData,
     ConditionalBlock,
@@ -41,6 +39,7 @@ from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_s
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 if TYPE_CHECKING:
+    import graphviz
     import matplotlib
 
 
@@ -434,45 +433,6 @@ def draw(
         return draw_msub(sub, dpi=dpi, scale=scale, debug=debug, filename=filename)
 
 
-def _call_graph_depths(
-    graph: Mapping[Optional[Ident], Mapping[Ident, int]],
-) -> dict[Optional[Ident], int]:
-    """Layer each node at its longest path from a root so every edge points to
-    a strictly lower layer."""
-    depths: dict[Optional[Ident], int] = {}
-    called = {callee for callees in graph.values() for callee in callees}
-    in_progress: list[Optional[Ident]] = []
-
-    def assign(node: Optional[Ident], depth: int) -> None:
-        if node in in_progress:
-            raise ValueError(f"Call graph contains a cycle through: {node}")
-        if node in depths and depths[node] >= depth:
-            return
-        depths[node] = depth
-        in_progress.append(node)
-        for callee in graph.get(node, ()):
-            assign(callee, depth + 1)
-        in_progress.pop()
-
-    for root in (node for node in graph if node not in called):
-        assign(root, 0)
-    return depths
-
-
-def _call_graph_positions(
-    graph: Mapping[Optional[Ident], Mapping[Ident, int]],
-) -> dict[Optional[Ident], tuple[float, float]]:
-    depths = _call_graph_depths(graph)
-    layers: dict[int, list[Optional[Ident]]] = {}
-    for node, depth in depths.items():
-        layers.setdefault(depth, []).append(node)
-    positions: dict[Optional[Ident], tuple[float, float]] = {}
-    for depth, nodes in layers.items():
-        for i, node in enumerate(nodes):
-            positions[node] = (i - (len(nodes) - 1) / 2, float(-depth))
-    return positions
-
-
 def _call_graph_node_names(
     nodes: Iterable[Optional[Ident]],
 ) -> dict[Optional[Ident], str]:
@@ -501,7 +461,8 @@ def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> s
         f"{gate.to_str(full=False, param_truncate=8)}: {count}"
         for gate, count in entry.gate_counts.cumulative.all_calls.items()
     )
-    return "\n".join(lines)
+    # DOT's escape for a centered line break.
+    return "\\n".join(lines)
 
 
 def draw_call_graph(
@@ -509,9 +470,9 @@ def draw_call_graph(
     profile: Optional[Sequence[SubwiseProfileEntry]] = None,
     *,
     filename: Optional[str] = None,
-) -> "matplotlib.figure.Figure":
+) -> "graphviz.Digraph":
     """Draw a call graph produced by :class:`CallGraphEvaluatorHooks`, laid out
-    top-down by call depth.
+    top-down by Graphviz.
 
     Each edge is annotated with its number of calls per caller
     invocation, highlighted when greater than one. Pass the report of
@@ -519,81 +480,66 @@ def draw_call_graph(
     ``profile`` to also annotate each node with its call count and
     cumulative gate counts (the two reports join on the op ``Ident``:
     graph nodes against profile ``source_op``).
+
+    The returned :class:`graphviz.Digraph` renders inline in Jupyter.
+    Pass ``filename`` to also save the drawing. The file extension sets
+    the format, for example ``.svg``, ``.png`` or ``.pdf``.
+
+    The ``graphviz`` extra (``pip install "quri-parts-qsub[graphviz]"``)
+    provides the Python package. Rendering also needs the Graphviz
+    system package (https://graphviz.org/download/).
     """
+    try:
+        import graphviz
+    except ImportError as e:
+        raise ImportError(
+            "draw_call_graph requires the graphviz package: "
+            "pip install 'quri-parts-qsub[graphviz]'. Rendering also needs the "
+            "Graphviz system package: https://graphviz.org/download/"
+        ) from e
+
     entries: Mapping[Optional[Ident], SubwiseProfileEntry] = (
         {e.source_op: e for e in profile} if profile is not None else {}
     )
-    positions = _call_graph_positions(graph)
-
-    if not positions:
-        fig, ax = plt.subplots()
-        ax.axis("off")
-        plt.close(fig)
-        return fig
-
-    names = _call_graph_node_names(positions)
-    labels = {
-        node: _call_graph_node_label(names[node], entries.get(node))
-        for node in positions
-    }
-
-    xs = [x for x, _ in positions.values()]
-    ys = [y for _, y in positions.values()]
-    max_lines = max(label.count("\n") + 1 for label in labels.values())
-    max_chars = max(
-        len(line) for label in labels.values() for line in label.split("\n")
-    )
-    layer_height = 0.55 + 0.22 * max_lines
-    column_width = max(2.4, 0.6 + 0.08 * max_chars)
-    fig, ax = plt.subplots(
-        figsize=(
-            max(4.0, column_width * (max(xs) - min(xs) + 1)),
-            max(2.0, layer_height * (max(ys) - min(ys) + 1)),
+    nodes = list(
+        dict.fromkeys(
+            [*graph, *(callee for callees in graph.values() for callee in callees)]
         )
     )
-    for node, (x, y) in positions.items():
-        ax.text(
-            x,
-            y,
-            labels[node],
-            ha="center",
-            va="center",
-            bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="gray"),
-        )
+    names = _call_graph_node_names(nodes)
+    # graphviz reads ':' in an edge endpoint as a port separator, so nodes get
+    # plain ids and show their ident strings only as labels.
+    node_ids = {node: f"n{i}" for i, node in enumerate(nodes)}
+
+    dot = graphviz.Digraph()
+    dot.attr(
+        "node",
+        shape="box",
+        style="rounded",
+        # dot estimates text width from its own font metrics, which can run
+        # narrower than the font that finally renders; pad so labels fit.
+        margin="0.15,0.06",
+        color="#808080",
+        fontname="Helvetica,Arial,sans-serif",
+        fontsize="11",
+    )
+    dot.attr(
+        "edge",
+        color="#808080",
+        arrowsize="0.7",
+        fontname="Helvetica,Arial,sans-serif",
+        fontsize="10",
+    )
+    for node in nodes:
+        dot.node(node_ids[node], _call_graph_node_label(names[node], entries.get(node)))
     for caller, callees in graph.items():
         for callee, m in callees.items():
-            (x0, y0), (x1, y1) = positions[caller], positions[callee]
-            start = (x0, y0 - 0.38)
-            end = (x1, y1 + 0.38)
-            # An edge skipping layers bows out (negative rad bows right on a
-            # downward edge), so it neither runs through the boxes in between
-            # nor hides behind the chain of one-layer edges.
-            rad = -0.4 if y0 - y1 > 1 else 0.0
-            ax.annotate(
-                "",
-                xy=end,
-                xytext=start,
-                arrowprops=dict(
-                    arrowstyle="-|>",
-                    color="gray",
-                    connectionstyle=f"arc3,rad={rad}",
-                ),
+            dot.edge(
+                node_ids[caller],
+                node_ids[callee],
+                label=f"x{m}",
+                fontcolor="#d62728" if m > 1 else "#808080",
             )
-            # The arc3 curve peaks rad/2 off the chord midpoint, perpendicular
-            # to it; put the label there so it follows a bowed edge.
-            dx, dy = end[0] - start[0], end[1] - start[1]
-            ax.text(
-                (start[0] + end[0]) / 2 + dy * rad / 2 + 0.1,
-                (start[1] + end[1]) / 2 - dx * rad / 2,
-                f"x{m}",
-                ha="left",
-                va="center",
-                color="tab:red" if m > 1 else "gray",
-            )
-    ax.set_xlim(min(xs) - 1, max(xs) + 1)
-    ax.set_ylim(min(ys) - 0.5, max(ys) + 0.5)
-    ax.axis("off")
     if filename:
-        fig.savefig(filename, bbox_inches="tight")
-    plt.close(fig)
-    return fig
+        dot.render(outfile=filename, cleanup=True)
+    return dot

@@ -21,6 +21,9 @@ dependencies = [
     "qulacsvis>=0.7.6,<0.8.0",
 ]
 
+[project.optional-dependencies]
+graphviz = ["graphviz>=0.20,<1.0"]
+
 [project.urls]
 Repository = "https://github.com/QunaSys/quri-sdk"
 Documentation = "https://quri-parts.qunasys.com"

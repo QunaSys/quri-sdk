@@ -72,7 +72,7 @@ dev = [
     "quri-parts-pyscf",
     "quri-parts-tensornetwork",
     "quri-parts-tket; python_version >= '3.10'",
-    "quri-parts-qsub; python_version >= '3.10'",
+    "quri-parts-qsub[graphviz]; python_version >= '3.10'",
     "quri-parts-qret; python_version >= '3.10'",
     "pytest>=7.0.1,<9.0.0",
     "maturin>=1.0,<2.0",
