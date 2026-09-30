@@ -328,6 +328,17 @@ class MolecularSystem(HamiltonianMixin):
         """Return :attr:`qubit_hamiltonian`."""
         return self.qubit_hamiltonian
 
+    @property
+    def qubit_mapping(self) -> OpenFermionQubitMapping:
+        """Fermion-to-qubit mapping behind :attr:`qubit_hamiltonian` and
+        :attr:`hf_state`.
+
+        Built from :attr:`fermion_qubit_mapping` for :attr:`active_space`
+        and :attr:`sz`. Use its ``inv_state_mapper`` to decode sampled
+        computational basis states into occupied spin orbitals.
+        """
+        return self._qubit_op_and_mapping[1]
+
     @cached_property
     def hf_state(self) -> ComputationalBasisState:
         """Hartree-Fock reference as a computational basis state.
