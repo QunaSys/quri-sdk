@@ -32,7 +32,7 @@ from quri_parts.qsub.lib.std import (
     Toffoli,
 )
 from quri_parts.qsub.machineinst import MachineSub
-from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.op import Ident, Op, Param
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
@@ -453,19 +453,47 @@ def _call_graph_node_names(
     }
 
 
+def _angle_free_param_str(param: Param) -> str:
+    if isinstance(param, float):
+        return "θ"
+    if isinstance(param, Ident):
+        return _angle_free_gate_str(param, full=True)
+    if isinstance(param, Op):
+        return _angle_free_gate_str(param.id, full=True)
+    if isinstance(param, tuple):
+        return "(" + ", ".join(_angle_free_param_str(p) for p in param) + ")"
+    return str(param)
+
+
+def _angle_free_gate_str(gate: Ident, full: bool, param_truncate: int = 0) -> str:
+    """Format like :meth:`Ident.to_str`, but with every float parameter shown
+    as ``θ``, also inside op parameters such as ``Controlled<Phase<θ>>``."""
+    s = f"{gate.ns}.{gate.local_name}" if full else gate.local_name
+    if not gate.params:
+        return s
+    joined = ", ".join(_angle_free_param_str(p) for p in gate.params)
+    if param_truncate > 0 and len(joined) > param_truncate:
+        joined = joined[:param_truncate] + "..."
+    return f"{s}<{joined}>"
+
+
 def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> str:
     if entry is None:
         return name
     lines = [name, f"calls: {entry.call_count}"]
+    # Rotation angles are continuous, so one line per angle would grow without
+    # bound; the profile itself keeps the per-angle counts.
+    grouped: Counter[str] = Counter()
+    short: dict[str, str] = {}
+    for gate, count in entry.gate_counts.cumulative.all_calls.items():
+        key = _angle_free_gate_str(gate, full=True)
+        grouped[key] += count
+        short[key] = _angle_free_gate_str(gate, full=False, param_truncate=8)
     # Largest count first so each box leads with its dominant cost; the
     # qualified name breaks ties deterministically.
-    gate_counts = sorted(
-        entry.gate_counts.cumulative.all_calls.items(),
-        key=lambda item: (-item[1], item[0].to_str(full=True)),
-    )
     lines.extend(
-        f"{gate.to_str(full=False, param_truncate=8)}: {count}"
-        for gate, count in gate_counts
+        f"{short[key]}: {count}"
+        for key, count in sorted(grouped.items(), key=lambda kv: (-kv[1], kv[0]))
     )
     # DOT's escape for a centered line break.
     return "\\n".join(lines)

@@ -384,6 +384,50 @@ class TestDrawCallGraph:
         nodes, _ = self._parse(draw_call_graph(graph, profile))
         assert nodes == {r"R\ncalls: 1\nT: 5\nCNOT: 2\nH: 2"}
 
+    def test_rotation_angles_grouped_into_one_line(self) -> None:
+        """Gates differing only in float params share a line; op and int params
+        still tell gates apart."""
+        R = _ident("R")
+        std_ns = NameSpace("std")
+        rz = [Ident(std_ns, "RZ", (a,)) for a in (0.1, 0.2, 0.3)]
+        c_phase = [
+            Ident(std_ns, "Controlled", (Ident(std_ns, "Phase", (a,)),))
+            for a in (0.5, 0.25)
+        ]
+        c_h = Ident(std_ns, "Controlled", (Ident(std_ns, "H"),))
+        mcx = [Ident(std_ns, "MCX", (n,)) for n in (3, 4)]
+        counts = GateCounts(
+            per_call={},
+            all_calls={
+                rz[0]: 1,
+                rz[1]: 2,
+                rz[2]: 1,
+                c_phase[0]: 1,
+                c_phase[1]: 1,
+                c_h: 3,
+                mcx[0]: 1,
+                mcx[1]: 1,
+            },
+        )
+        empty = GateCounts(per_call={}, all_calls={})
+        entry = SubwiseProfileEntry(
+            source_op=R,
+            call_count=1,
+            qubit_counts=QubitCounts(data=0, auxiliary=0, total=0),
+            gate_counts=GateCountBreakdown(
+                own=empty, descendants=empty, cumulative=counts
+            ),
+        )
+        nodes, _ = self._parse(draw_call_graph({R: {}}, [entry]))
+        (label,) = nodes
+        assert label.split(r"\n")[2:] == [
+            "RZ<θ>: 4",
+            "Controlled<std.H>: 3",
+            "Controlled<std.Phas...>: 2",
+            "MCX<3>: 1",
+            "MCX<4>: 1",
+        ]
+
     def test_without_profile_plain_names_and_multiplicities(self) -> None:
         R, A = _ident("R"), _ident("A")
         graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
