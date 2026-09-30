@@ -14,6 +14,41 @@ pub enum MaybeUnbound {
     Unbound(parameter::Parameter),
 }
 
+/// Resolves an argument that can also be passed under a deprecated keyword
+/// `old_name`, mirroring `quri_parts.core.utils.deprecation.deprecated_kwarg`
+/// for PyO3 methods, which Python decorators cannot wrap.
+pub(crate) fn resolve_deprecated_kwarg<T>(
+    py: Python<'_>,
+    func_name: &str,
+    new_name: &str,
+    new: Option<T>,
+    old_name: &str,
+    old: Option<T>,
+) -> PyResult<T> {
+    match (new, old) {
+        (Some(_), Some(_)) => Err(pyo3::exceptions::PyTypeError::new_err(format!(
+            "{func_name}() got both '{old_name}' and '{new_name}'; pass only '{new_name}'."
+        ))),
+        (Some(value), None) => Ok(value),
+        (None, Some(value)) => {
+            let message = std::ffi::CString::new(format!(
+                "The '{old_name}' keyword argument is deprecated and will be removed \
+                 in a future release; use '{new_name}' instead."
+            ))?;
+            PyErr::warn(
+                py,
+                &py.get_type::<pyo3::exceptions::PyDeprecationWarning>(),
+                &message,
+                1,
+            )?;
+            Ok(value)
+        }
+        (None, None) => Err(pyo3::exceptions::PyTypeError::new_err(format!(
+            "{func_name}() missing 1 required positional argument: '{new_name}'"
+        ))),
+    }
+}
+
 /// `__repr__` must never raise (it can be invoked implicitly by logging,
 /// debuggers, etc.), so fall back to a compact representation if the circuit
 /// has more gates than the ASCII-art drawer's gate-index width supports, if

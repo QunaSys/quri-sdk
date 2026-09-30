@@ -184,33 +184,14 @@ impl ImmutableQuantumCircuit {
         shots: Option<i32>,
         shot_count: Option<i32>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let shots = match (shots, shot_count) {
-            (Some(_), Some(_)) => {
-                return Err(pyo3::exceptions::PyTypeError::new_err(
-                    "sample() got both 'shot_count' and 'shots'; pass only 'shots'.",
-                ))
-            }
-            (Some(shots), None) => shots,
-            (None, Some(shot_count)) => {
-                slf.py().run(
-                    cr#"
-import warnings
-warnings.warn(
-    "The 'shot_count' keyword argument is deprecated; use 'shots' instead.",
-    DeprecationWarning,
-)
-                    "#,
-                    None,
-                    None,
-                )?;
-                shot_count
-            }
-            (None, None) => {
-                return Err(pyo3::exceptions::PyTypeError::new_err(
-                    "sample() missing 1 required positional argument: 'shots'",
-                ))
-            }
-        };
+        let shots = crate::circuit::resolve_deprecated_kwarg(
+            slf.py(),
+            "sample",
+            "shots",
+            shots,
+            "shot_count",
+            shot_count,
+        )?;
         let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
         let sampling_counts = sampling.getattr("DEFAULT_SAMPLER")?.call1((slf, shots));
         sampling_counts

@@ -426,33 +426,14 @@ impl ImmutableParametricQuantumCircuit {
         params: Option<Vec<f64>>,
         shot_count: Option<i32>,
     ) -> PyResult<Bound<'py, PyAny>> {
-        let shots = match (shots, shot_count) {
-            (Some(_), Some(_)) => {
-                return Err(pyo3::exceptions::PyTypeError::new_err(
-                    "sample() got both 'shot_count' and 'shots'; pass only 'shots'.",
-                ))
-            }
-            (Some(shots), None) => shots,
-            (None, Some(shot_count)) => {
-                slf.py().run(
-                    cr#"
-import warnings
-warnings.warn(
-    "The 'shot_count' keyword argument is deprecated; use 'shots' instead.",
-    DeprecationWarning,
-)
-                    "#,
-                    None,
-                    None,
-                )?;
-                shot_count
-            }
-            (None, None) => {
-                return Err(pyo3::exceptions::PyTypeError::new_err(
-                    "sample() missing 1 required positional argument: 'shots'",
-                ))
-            }
-        };
+        let shots = crate::circuit::resolve_deprecated_kwarg(
+            slf.py(),
+            "sample",
+            "shots",
+            shots,
+            "shot_count",
+            shot_count,
+        )?;
         let params = params.ok_or_else(|| {
             pyo3::exceptions::PyTypeError::new_err(
                 "sample() missing 1 required positional argument: 'params'",
