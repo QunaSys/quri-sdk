@@ -176,6 +176,7 @@ def _create_circuit_gen(
                 cast(QretRegister, arg[f"ar{i}"])
                 for i in range(len(msub.aux_registers), local_aux_register_count)
             ]
+            aux_register_offset = 0
             branch_conditions: dict[QretRegister, QretRegister] = {}
 
             for mop, qs, rs in msub.instructions:
@@ -186,10 +187,16 @@ def _create_circuit_gen(
                 elif is_subcall(mop):
                     ancilla_count = ancilla_counts[mop.op]
                     aux_register_count = aux_register_counts[mop.op]
+                    # Unlike clean ancillas, aux registers cannot be shared
+                    # between calls: a qret register may be written only once.
+                    call_aux_registers = aux_registers[
+                        aux_register_offset : aux_register_offset + aux_register_count
+                    ]
+                    aux_register_offset += aux_register_count
                     _add_funcall(
                         mop,
                         list(mapped_qs) + ancillas[:ancilla_count],
-                        list(mapped_rs) + aux_registers[:aux_register_count],
+                        list(mapped_rs) + call_aux_registers,
                         op_circuit_gen_map,
                     )
 
@@ -238,12 +245,13 @@ def _compute_aux_register_counts(msubs: Mapping[Op, MachineSub]) -> dict[Op, int
         visiting.add(op)
 
         msub = msubs[op]
-        child_max = 0
+        # Registers are not reused across calls, so sum over all subcalls.
+        child_total = 0
         for mop, _, _ in msub.instructions:
             if is_subcall(mop):
-                child_max = max(child_max, _dfs(mop.op))
+                child_total += _dfs(mop.op)
 
-        total = len(msub.aux_registers) + child_max
+        total = len(msub.aux_registers) + child_total
         memo[op] = total
         visiting.remove(op)
         return total
