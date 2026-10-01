@@ -385,8 +385,10 @@ class TestDrawCallGraph:
         assert nodes == {r"R\ncalls: 1\nT: 5\nCNOT: 2\nH: 2"}
 
     def test_rotation_angles_grouped_into_one_line(self) -> None:
-        """Gates differing only in float params share a line; op and int params
-        still tell gates apart."""
+        """Gates that differ only in float params share one line.
+
+        Gates that differ in an op or int param keep separate lines.
+        """
         R = _ident("R")
         std_ns = NameSpace("std")
         rz = [Ident(std_ns, "RZ", (a,)) for a in (0.1, 0.2, 0.3)]

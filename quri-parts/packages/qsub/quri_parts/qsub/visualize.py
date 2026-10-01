@@ -466,8 +466,12 @@ def _angle_free_param_str(param: Param) -> str:
 
 
 def _angle_free_gate_str(gate: Ident, full: bool, param_truncate: int = 0) -> str:
-    """Format like :meth:`Ident.to_str`, but with every float parameter shown
-    as ``θ``, also inside op parameters such as ``Controlled<Phase<θ>>``."""
+    """Format a gate like :meth:`Ident.to_str`, with each float parameter shown
+    as ``θ``.
+
+    The replacement also applies inside op parameters, as in
+    ``Controlled<Phase<θ>>``.
+    """
     s = f"{gate.ns}.{gate.local_name}" if full else gate.local_name
     if not gate.params:
         return s
@@ -481,16 +485,16 @@ def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> s
     if entry is None:
         return name
     lines = [name, f"calls: {entry.call_count}"]
-    # Rotation angles are continuous, so one line per angle would grow without
-    # bound; the profile itself keeps the per-angle counts.
+    # Rotation angles take continuous values, so one line per angle gives a box
+    # an unbounded number of lines. The profile keeps the per-angle counts.
     grouped: Counter[str] = Counter()
     short: dict[str, str] = {}
     for gate, count in entry.gate_counts.cumulative.all_calls.items():
         key = _angle_free_gate_str(gate, full=True)
         grouped[key] += count
         short[key] = _angle_free_gate_str(gate, full=False, param_truncate=8)
-    # Largest count first so each box leads with its dominant cost; the
-    # qualified name breaks ties deterministically.
+    # Sort by decreasing count so the first gate line shows the largest cost.
+    # The qualified name orders gates with equal counts.
     lines.extend(
         f"{short[key]}: {count}"
         for key, count in sorted(grouped.items(), key=lambda kv: (-kv[1], kv[0]))
