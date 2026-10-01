@@ -302,8 +302,8 @@ class TimeEvolutionQPE(QuantumAlgorithm):
     def sampler(self) -> Sampler:
         return self._sampler
 
-    @timer
     @deprecated_shots_kwarg
+    @timer
     def run(
         self,
         trial_state: CircuitQuantumState,
