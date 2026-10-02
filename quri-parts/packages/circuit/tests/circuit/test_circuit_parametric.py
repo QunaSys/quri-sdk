@@ -186,22 +186,6 @@ class TestUnboundParametricQuantumCircuit:
         samples = circuit.sample(shots=1000, params=[np.pi / 4])
         assert sum(samples.values()) == 1000
 
-    def test_sample_deprecated_param_kwarg(self) -> None:
-        circuit = ParametricQuantumCircuit(3)
-        circuit.add_ParametricRX_gate(0)
-        with pytest.deprecated_call() as record:
-            samples = circuit.sample(1000, param=[np.pi / 4])  # type: ignore[call-arg]
-        assert sum(samples.values()) == 1000
-        assert record[0].filename == __file__
-
-    def test_sample_rejects_params_and_param(self) -> None:
-        circuit = ParametricQuantumCircuit(3)
-        circuit.add_ParametricRX_gate(0)
-        with pytest.raises(TypeError, match="got both 'param' and 'params'"):
-            circuit.sample(  # type: ignore[call-arg]
-                10, params=[np.pi / 4], param=[np.pi / 4]
-            )
-
     def test_hash(self) -> None:
         import pytest
 
