@@ -14,6 +14,7 @@ import numpy as np
 import numpy.typing as npt
 from quri_parts.circuit.transpile import CircuitTranspiler
 from quri_parts.core.estimator import Estimate
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 from quri_parts.qulacs.simulator import evaluate_state_to_vector
 
 from quri_algo.core.estimator import State
@@ -45,6 +46,7 @@ class ExactTimeEvolutionExpectationValueEstimator(
         self.eigenvectors = eigenvectors
         self.transpiler = transpiler
 
+    @deprecated_shots_kwarg
     def __call__(
         self, state: State, evolution_time: float, shots: Optional[int] = None
     ) -> Estimate[complex]:

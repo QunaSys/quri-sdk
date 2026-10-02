@@ -34,6 +34,7 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
@@ -333,6 +334,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 )
             jobs_list.append(qiskit_runtime_sampling_job)
 
+    @deprecated_shots_kwarg
     def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> SamplingJob:
         if not shots >= 1:
             raise ValueError("shots should be a positive integer.")

@@ -25,6 +25,7 @@ from quri_parts.circuit import (
 from quri_parts.circuit.gate_names import is_pauli_name
 
 from ..utils.bit import different_bit_index, get_bit
+from ..utils.deprecation import deprecated_shots_kwarg
 from .state import CircuitQuantumState, GeneralCircuitQuantumState
 
 _SinglePauliNameType: TypeAlias = Union[Literal["X"], Literal["Y"], Literal["Z"]]
@@ -155,6 +156,7 @@ class ComputationalBasisState(CircuitQuantumState):
         """The phase of the state."""
         return self._phase * np.pi / 2
 
+    @deprecated_shots_kwarg
     def sample(self, shots: int) -> Mapping[int, Union[int, float]]:
         """Sample the state using qulacs."""
         return self.circuit.sample(shots)

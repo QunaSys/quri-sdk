@@ -24,10 +24,12 @@ except ImportError:
 from quri_parts.backend import BackendError, SamplingCounts, SamplingJob
 from quri_parts.backend.qubit_mapping import BackendQubitMapping, QubitMappedSamplingJob
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 
 DEFAULT_MAX_SHOT = int(1e6)
 
 
+@deprecated_shots_kwarg
 def distribute_backend_shots(
     shots: int,
     min_shots: int,

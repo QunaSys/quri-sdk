@@ -17,6 +17,7 @@ from quri_parts.core.operator import PAULI_IDENTITY, Operator
 from quri_parts.core.sampling import MeasurementCounts, Sampler
 from quri_parts.core.sampling.default_sampler import DEFAULT_SAMPLER
 from quri_parts.core.state import CircuitQuantumState
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 from quri_parts.qsub.compile import compile_sub
 from quri_parts.qsub.eval import QURIPartsEvaluatorHooks
 from quri_parts.qsub.evaluate import Evaluator
@@ -179,6 +180,7 @@ class QPEAnalysis(Analysis):
         )
 
 
+@deprecated_shots_kwarg
 def execute_qpe(
     algorithm_instance: QuantumAlgorithm,
     trial_state: CircuitQuantumState,
@@ -201,6 +203,7 @@ def execute_qpe(
     return QPEResult(algorithm_instance, eigen_values, ancilla_register_counts)
 
 
+@deprecated_shots_kwarg
 def analyze_qpe(
     trial_state: CircuitQuantumState,
     shots: int,
@@ -245,6 +248,7 @@ class QPE(QuantumAlgorithm):
     def sampler(self) -> Sampler:
         return self._sampler
 
+    @deprecated_shots_kwarg
     def run(
         self,
         trial_state: CircuitQuantumState,
@@ -257,6 +261,7 @@ class QPE(QuantumAlgorithm):
             self, trial_state, self.sampler, shots, ancilla_count, qpe_msub, **kwargs
         )
 
+    @deprecated_shots_kwarg
     def analyze(
         self,
         trial_state: CircuitQuantumState,
@@ -297,6 +302,7 @@ class TimeEvolutionQPE(QuantumAlgorithm):
     def sampler(self) -> Sampler:
         return self._sampler
 
+    @deprecated_shots_kwarg
     @timer
     def run(
         self,
@@ -331,6 +337,7 @@ class TimeEvolutionQPE(QuantumAlgorithm):
             constant=constant,
         )
 
+    @deprecated_shots_kwarg
     def analyze(
         self,
         trial_state: CircuitQuantumState,

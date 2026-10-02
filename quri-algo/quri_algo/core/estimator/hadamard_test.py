@@ -22,6 +22,7 @@ from quri_parts.core.state import (
     QuantumStateT,
     QuantumStateVector,
 )
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 
 from quri_algo.circuit.hadamard_test import HadamardTestCircuitFactory
 from quri_algo.circuit.interface import CircuitFactory
@@ -88,6 +89,7 @@ class HadamardTest(ExpectationValueEstimator[StateT]):
             transpiler=self.transpiler,
         )
 
+    @deprecated_shots_kwarg
     def __call__(
         self, state: StateT, shots: int, *args: Any, **kwd: Any
     ) -> Estimate[complex]:

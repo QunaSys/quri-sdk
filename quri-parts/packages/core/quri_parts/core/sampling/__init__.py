@@ -42,6 +42,10 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
+from quri_parts.core.utils.deprecation import (
+    deprecated_measurement_cnt_kwarg,
+    deprecated_shots_kwarg,
+)
 
 #: A type variable represents *any* non-parametric quantum state classes.
 #: This is different from :class:`quri_parts.core.state.QuantumStateT`;
@@ -370,6 +374,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
 def create_parametric_sampler_from_sampler(sampler: Sampler) -> ParametricSampler:
     """Create a :class:`ParametricSampler` from a :class:`Sampler`."""
 
+    @deprecated_measurement_cnt_kwarg
     def _parametric_sampler(
         param_circuit: UnboundParametricQuantumCircuitProtocol,
         shots: int,
@@ -406,6 +411,7 @@ def create_parametric_state_sampler_from_state_sampler(
     """Create a :class:`ParametricStateSampler` from a
     :class:`StateSampler`."""
 
+    @deprecated_measurement_cnt_kwarg
     def _parametric_state_sampler(
         param_state: _ParametricStateT,
         shots: int,
@@ -452,6 +458,7 @@ def sample_from_probability_distribution(
     return Counter(dict(((i, count) for i, count in enumerate(counts) if count > 0)))
 
 
+@deprecated_shots_kwarg
 def sample_from_state_vector(
     state_vector: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
@@ -464,6 +471,7 @@ def sample_from_state_vector(
     return sample_from_probability_distribution(shots, probs)
 
 
+@deprecated_shots_kwarg
 def ideal_sample_from_state_vector(
     state_vector: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
@@ -477,6 +485,7 @@ def ideal_sample_from_state_vector(
     return {i: prob * shots for i, prob in enumerate(probs)}
 
 
+@deprecated_shots_kwarg
 def sample_from_density_matrix(
     density_matrix: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
@@ -494,6 +503,7 @@ def sample_from_density_matrix(
     return sample_from_probability_distribution(shots, probs)
 
 
+@deprecated_shots_kwarg
 def ideal_sample_from_density_matrix(
     density_matrix: npt.NDArray[np.complex128], shots: int
 ) -> MeasurementCounts:
@@ -514,6 +524,7 @@ def ideal_sample_from_density_matrix(
 def create_sampler_from_sampling_backend(backend: SamplingBackend) -> Sampler:
     """Create a simple :class:`~Sampler` using a :class:`~SamplingBackend`."""
 
+    @deprecated_shots_kwarg
     def sampler(circuit: ImmutableQuantumCircuit, shots: int) -> MeasurementCounts:
         job = backend.sample(circuit, shots)
         return job.result().counts
