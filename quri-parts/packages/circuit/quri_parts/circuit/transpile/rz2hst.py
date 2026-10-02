@@ -1,3 +1,17 @@
+"""RZ-to-HST decomposition (:mod:`quri_parts.circuit.transpile.rz2hst`)
+=======================================================================
+
+Gridsynth-based decomposition of RZ rotations into H, S, T, and X
+gates, with pluggable drivers for the synthesis backend.
+
+Contents:
+
+- :class:`RZ2HSTTranspiler` -- replace RZ gates with a gridsynth-generated H/S/T/X sequence
+- :func:`driver_pygridsynth` -- default gridsynth driver backed by the pygridsynth package
+- :func:`driver_cli` -- gridsynth driver that shells out to the external gridsynth CLI
+- :data:`GridsynthDriver` -- callable protocol for a gridsynth driver
+"""
+
 import os
 import subprocess
 from typing import Callable, Optional

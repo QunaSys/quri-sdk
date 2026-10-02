@@ -8,6 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Transpile (:mod:`quri_parts.circuit.transpile`)
+==================================================
+
+Circuit transpilation protocols, decomposers, and
+optimisation passes.
+"""
+
+
 from typing import Callable
 
 from quri_parts.circuit import gate_names
