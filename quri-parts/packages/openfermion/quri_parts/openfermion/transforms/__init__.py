@@ -208,12 +208,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
 
         n_qubits = self.n_qubits
         qubit_mask = (1 << n_qubits) - 1
-        # The dropped bits do not depend on the measured bits, so compute them
-        # once and add them to every state.
-        augmented = self._augment_dropped_bits(
-            [0] * n_qubits, self.n_spin_orbitals, self.n_fermions, self.sz
-        )
-        dropped_bits = BinaryArray(augmented).binary & ~qubit_mask
         # Occupancy of orbital i is the parity of its matrix row applied to the
         # bits, flipped when the number operator maps to -Z.
         rows = [
@@ -222,7 +216,7 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
         ]
 
         def mapper(state: ComputationalBasisState) -> Collection[int]:
-            bits = state.bits & qubit_mask | dropped_bits
+            bits = state.bits & qubit_mask
             return [
                 i
                 for i, (row, flip) in enumerate(rows)
@@ -230,17 +224,6 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
             ]
 
         return mapper
-
-    @staticmethod
-    def _augment_dropped_bits(
-        bit_array: list[int],
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> list[int]:
-        """Returns a bit array which is augmented by adding qubits dropped by a
-        :class:`FermionQubitMapping`."""
-        return bit_array
 
 
 class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
@@ -574,16 +557,6 @@ class OpenFermionSymmetryConservingBravyiKitaev(
             return operator_from_openfermion_op(operator_tappered)
 
         return mapper
-
-    @staticmethod
-    def _augment_dropped_bits(
-        bit_array: list[int],
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> list[int]:
-        # Add two qubits dropped by the fermion-to-qubit mapping.
-        return bit_array + [0, 0]
 
 
 class OpenFermionSymmetryConservingBravyiKitaevFactory(
