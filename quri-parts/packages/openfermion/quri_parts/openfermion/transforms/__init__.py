@@ -207,35 +207,23 @@ class OpenFermionQubitMapping(FermionQubitMapping, ABC):
         to the set of occupied spin orbital indices."""
 
         n_qubits = self.n_qubits
-        n_spin_orbitals = self.n_spin_orbitals
+        qubit_mask = (1 << n_qubits) - 1
+        # Occupancy of orbital i is the parity of its matrix row applied to the
+        # bits, flipped when the number operator maps to -Z.
+        rows = [
+            (row.binary, sign == -1)
+            for row, sign in zip(self._inv_trans_mat, self._signs)
+        ]
 
         def mapper(state: ComputationalBasisState) -> Collection[int]:
-            bits = state.bits
-            bit_array = [(bits & 1 << index) >> index for index in range(n_qubits)]
-            bit_array = self._augment_dropped_bits(
-                bit_array, n_spin_orbitals, self.n_fermions, self.sz
-            )
-            qubit_vector = BinaryArray(bit_array)
-            occupancy_vector = self._inv_trans_mat @ qubit_vector
-            occupancy_set = [
+            bits = state.bits & qubit_mask
+            return [
                 i
-                for i, o in enumerate(occupancy_vector)
-                if (o == 1 and self._signs[i] == 1) or (o == 0 and self._signs[i] == -1)
+                for i, (row, flip) in enumerate(rows)
+                if (row & bits).bit_count() & 1 != flip
             ]
-            return occupancy_set
 
         return mapper
-
-    @staticmethod
-    def _augment_dropped_bits(
-        bit_array: list[int],
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> list[int]:
-        """Returns a bit array which is augmented by adding qubits dropped by a
-        :class:`FermionQubitMapping`."""
-        return bit_array
 
 
 class OpenFermionQubitMapperFactory(FermionQubitMapperFactory):
@@ -569,16 +557,6 @@ class OpenFermionSymmetryConservingBravyiKitaev(
             return operator_from_openfermion_op(operator_tappered)
 
         return mapper
-
-    @staticmethod
-    def _augment_dropped_bits(
-        bit_array: list[int],
-        n_spin_orbitals: int,
-        n_fermions: Optional[int] = None,
-        sz: Optional[float] = None,
-    ) -> list[int]:
-        # Add two qubits dropped by the fermion-to-qubit mapping.
-        return bit_array + [0, 0]
 
 
 class OpenFermionSymmetryConservingBravyiKitaevFactory(
