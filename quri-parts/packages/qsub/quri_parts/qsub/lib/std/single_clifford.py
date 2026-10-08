@@ -16,7 +16,8 @@ Fixed (non-parametric) single-qubit Clifford gates.
 
 Contents:
 
-- :data:`H`, :data:`X`, :data:`Y`, :data:`Z`: Pauli + Hadamard
+- :data:`H`: Hadamard gate
+- :data:`X`, :data:`Y`, :data:`Z`: Pauli gates
 - :data:`S`, :data:`Sdag`: phase gates
 - :data:`SqrtX`, :data:`SqrtXdag`, :data:`SqrtY`, :data:`SqrtYdag`:
   square roots of X and Y and their inverses
