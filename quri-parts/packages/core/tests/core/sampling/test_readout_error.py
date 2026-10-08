@@ -63,12 +63,14 @@ def test_per_qubit_probabilities() -> None:
 
 def test_flip_rates_match_probabilities() -> None:
     shots = 100000
-    noisy = sample({0b01: shots}, 2, 0.1, 0.2)
+    p0_to_1 = 0.1
+    p1_to_0 = 0.2
+    noisy = sample({0b01: shots}, 2, p0_to_1, p1_to_0)
     # Qubit 0 reads 1 and qubit 1 reads 0 before readout errors.
     p_qubit0_flipped = sum(c for bits, c in noisy.items() if not bits & 0b01) / shots
     p_qubit1_flipped = sum(c for bits, c in noisy.items() if bits & 0b10) / shots
-    assert p_qubit0_flipped == pytest.approx(0.2, abs=0.01)
-    assert p_qubit1_flipped == pytest.approx(0.1, abs=0.01)
+    assert p_qubit0_flipped == pytest.approx(p1_to_0, abs=0.01)
+    assert p_qubit1_flipped == pytest.approx(p0_to_1, abs=0.01)
     assert sum(noisy.values()) == shots
 
 
