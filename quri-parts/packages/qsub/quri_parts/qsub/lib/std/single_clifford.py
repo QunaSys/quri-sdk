@@ -18,7 +18,8 @@ Contents:
 
 - :data:`H`, :data:`X`, :data:`Y`, :data:`Z`: Pauli + Hadamard
 - :data:`S`, :data:`Sdag`: phase gates
-- :data:`SqrtX`, :data:`SqrtXdag`, :data:`SqrtY`, :data:`SqrtYdag`
+- :data:`SqrtX`, :data:`SqrtXdag`, :data:`SqrtY`, :data:`SqrtYdag`:
+  square roots of X and Y and their inverses
 """
 
 from quri_parts.qsub.op import Ident, Op
