@@ -1,5 +1,6 @@
-"""Sub-routine resolution (:mod:`quri_parts.qsub.resolve`)
-==========================================================
+"""
+Sub-routine resolution (:mod:`quri_parts.qsub.resolve`)
+=======================================================
 
 Re-exports the repository and resolver types used to map an
 :class:`~quri_parts.qsub.op.Op` to its
@@ -7,12 +8,12 @@ Re-exports the repository and resolver types used to map an
 
 Contents:
 
-- :class:`SubRepository` -- resolver-registry protocol
-- :class:`SimpleSubRepository` -- mutable, standalone registry of sub-resolvers
-- :class:`CompositeSubRepository` -- overrides a base repository with an addition
-- :class:`SubCollector` -- recursively gathers all subs for an Op tree
-- :func:`default_repository` -- module-global singleton repository
-- :func:`resolve_sub` -- convenience one-shot resolution
+- :class:`SubRepository`: resolver-registry protocol
+- :class:`SimpleSubRepository`: mutable, standalone registry of sub-resolvers
+- :class:`CompositeSubRepository`: overrides a base repository with an addition
+- :class:`SubCollector`: recursively gathers all subs for an Op tree
+- :func:`default_repository`: module-global singleton repository
+- :func:`resolve_sub`: convenience one-shot resolution
 """
 
 from .resolve import (

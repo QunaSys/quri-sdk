@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""End-to-end compilation pipeline (:mod:`quri_parts.qsub.compile`)
-===================================================================
+"""
+End-to-end compilation pipeline (:mod:`quri_parts.qsub.compile`)
+================================================================
 
 Orchestrates sub-resolution, transpilation, code generation, and
 linking to produce a fully linked
@@ -18,8 +19,8 @@ linking to produce a fully linked
 
 Contents:
 
-- :func:`compile` -- compile an Op into a linked MachineSub
-- :func:`compile_sub` -- compile a Sub into a linked MachineSub
+- :func:`compile`: compile an Op into a linked MachineSub
+- :func:`compile_sub`: compile a Sub into a linked MachineSub
 """
 
 from collections.abc import Iterable

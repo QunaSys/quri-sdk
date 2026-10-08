@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""CZ gate definition (:mod:`quri_parts.qsub.lib.std.cz`)
-=========================================================
+"""
+CZ gate definition (:mod:`quri_parts.qsub.lib.std.cz`)
+======================================================
 
 Defines the two-qubit controlled-Z (CZ) gate as a self-inverse
 :class:`~quri_parts.qsub.op.Op`.

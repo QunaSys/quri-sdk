@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""CNOT gate definition (:mod:`quri_parts.qsub.lib.std.cnot`)
-=============================================================
+"""
+CNOT gate definition (:mod:`quri_parts.qsub.lib.std.cnot`)
+==========================================================
 
 Defines the two-qubit controlled-NOT (CNOT) gate as a self-inverse
 :class:`~quri_parts.qsub.op.Op`.

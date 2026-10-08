@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Code generation (:mod:`quri_parts.qsub.codegen`)
-===================================================
+"""
+Code generation (:mod:`quri_parts.qsub.codegen`)
+================================================
 
 Lowers high-level :class:`~quri_parts.qsub.sub.Sub` definitions into
 :class:`~quri_parts.qsub.machineinst.MachineSub` sequences by
@@ -17,7 +18,7 @@ classifying each operation as either a primitive or a sub-call.
 
 Contents:
 
-- :class:`CodeGenerator` -- converts a Sub into a MachineSub
+- :class:`CodeGenerator`: converts a Sub into a MachineSub
 """
 
 from collections.abc import Iterable

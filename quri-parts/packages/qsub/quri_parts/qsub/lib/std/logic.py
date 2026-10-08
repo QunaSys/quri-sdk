@@ -8,17 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Scoped AND-computation helpers (:mod:`quri_parts.qsub.lib.std.logic`)
-========================================================================
+"""
+Scoped AND-computation helpers (:mod:`quri_parts.qsub.lib.std.logic`)
+=====================================================================
 
 Context managers that allocate an auxiliary qubit, compute the logical
 AND of two input qubits into it, and automatically uncompute on exit.
 
 Contents:
 
-- :func:`scoped_and` -- Toffoli-based compute/uncompute
-- :func:`scoped_and_clifford_t` -- Clifford+T decomposition variant
-- :func:`scoped_and_single_toffoli` -- measure-and-correct variant
+- :func:`scoped_and`: Toffoli-based compute/uncompute
+- :func:`scoped_and_clifford_t`: Clifford+T decomposition variant
+- :func:`scoped_and_single_toffoli`: measure-and-correct variant
 """
 
 from contextlib import contextmanager

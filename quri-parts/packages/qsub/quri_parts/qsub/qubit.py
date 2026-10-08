@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Qubit identifier (:mod:`quri_parts.qsub.qubit`)
-==================================================
+"""
+Qubit identifier (:mod:`quri_parts.qsub.qubit`)
+===============================================
 
 Defines the lightweight, hashable :class:`Qubit` type used throughout
 qsub to reference individual qubits by integer index.

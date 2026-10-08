@@ -8,16 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Hierarchical namespace identifiers (:mod:`quri_parts.qsub.namespace`)
-========================================================================
+"""
+Hierarchical namespace identifiers (:mod:`quri_parts.qsub.namespace`)
+=====================================================================
 
 Provides a lightweight, hashable namespace type used to scope operation
 identifiers across gate libraries.
 
 Contents:
 
-- :class:`NameSpace` -- immutable (local_name, parent) pair
-- :data:`DEFAULT` -- sentinel namespace for unscoped identifiers
+- :class:`NameSpace`: immutable (local_name, parent) pair
+- :data:`DEFAULT`: sentinel namespace for unscoped identifiers
 """
 
 from typing import NamedTuple, Optional

@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sub collection (:mod:`quri_parts.qsub.resolve.subcollector`)
-===============================================================
+"""
+Sub collection (:mod:`quri_parts.qsub.resolve.subcollector`)
+============================================================
 
 Defines :class:`SubCollector`, which recursively resolves and collects
 every :class:`~quri_parts.qsub.sub.Sub` needed to realize an
@@ -17,7 +18,7 @@ every :class:`~quri_parts.qsub.sub.Sub` needed to realize an
 
 Contents:
 
-- :class:`SubCollector` -- recursively gathers all subs for an Op tree
+- :class:`SubCollector`: recursively gathers all subs for an Op tree
 """
 
 import logging

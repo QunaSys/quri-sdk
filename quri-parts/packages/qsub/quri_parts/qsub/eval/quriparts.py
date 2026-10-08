@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""QURI Parts circuit evaluator (:mod:`quri_parts.qsub.eval.quriparts`)
-=======================================================================
+"""
+QURI Parts circuit evaluator (:mod:`quri_parts.qsub.eval.quriparts`)
+====================================================================
 
 Evaluator hooks that convert a
 :class:`~quri_parts.qsub.machineinst.MachineSub` tree into a
@@ -18,9 +19,9 @@ to QURI Parts gates.
 
 Contents:
 
-- :class:`QURIPartsEvaluatorHooks` -- produces a QuantumCircuit result
-- :data:`quri_parts_codegen` -- pre-configured CodeGenerator
-- :data:`primitive_op_gate_mapping` -- qsub-op to gate lookup table
+- :class:`QURIPartsEvaluatorHooks`: produces a QuantumCircuit result
+- :data:`quri_parts_codegen`: pre-configured CodeGenerator
+- :data:`primitive_op_gate_mapping`: qsub-op to gate lookup table
 """
 
 from collections.abc import Mapping, Sequence

@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Built-in evaluator hooks (:mod:`quri_parts.qsub.eval`)
-=========================================================
+"""
+Built-in evaluator hooks (:mod:`quri_parts.qsub.eval`)
+======================================================
 
 Re-exports concrete :class:`~quri_parts.qsub.evaluate.EvaluatorHooks`
 implementations for gate counting, qubit counting, and QURI Parts

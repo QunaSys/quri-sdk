@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Joint Op + Sub definitions (:mod:`quri_parts.qsub.opsub`)
-============================================================
+"""
+Joint Op + Sub definitions (:mod:`quri_parts.qsub.opsub`)
+=========================================================
 
 Helpers that simultaneously create an :class:`~quri_parts.qsub.op.Op`
 (or :class:`~quri_parts.qsub.op.OpFactory`) and its corresponding
@@ -18,8 +19,8 @@ default repository.
 
 Contents:
 
-- :func:`opsub` -- create a fixed Op + Sub pair and register it
-- :func:`param_opsub` -- create a parametric OpFactory + SubFactory pair
+- :func:`opsub`: create a fixed Op + Sub pair and register it
+- :func:`param_opsub`: create a parametric OpFactory + SubFactory pair
 """
 
 from .op import (

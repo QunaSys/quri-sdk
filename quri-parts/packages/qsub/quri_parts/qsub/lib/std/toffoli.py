@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Toffoli gate definition (:mod:`quri_parts.qsub.lib.std.toffoli`)
-===================================================================
+"""
+Toffoli gate definition (:mod:`quri_parts.qsub.lib.std.toffoli`)
+================================================================
 
 Defines the three-qubit Toffoli (CCX) gate as a self-inverse
 :class:`~quri_parts.qsub.op.Op`.

@@ -8,15 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""RZ-to-HST transpiler (:mod:`quri_parts.qsub.trans.rz2hst`)
-==============================================================
+"""
+RZ-to-HST transpiler (:mod:`quri_parts.qsub.trans.rz2hst`)
+==========================================================
 
 Wraps the circuit-level gridsynth-based RZ decomposition so it can
 rewrite a qsub ``Sub`` in place.
 
 Contents:
 
-- :class:`RZ2HSTTranspiler` -- decompose Sub RZ rotations into H, S, T (and X) via gridsynth
+- :class:`RZ2HSTTranspiler`: decompose Sub RZ rotations into H, S, T (and X) via
+  gridsynth
 """
 
 from typing import Optional
