@@ -18,10 +18,10 @@ including multi-controlled (MC) variants.
 
 Contents:
 
-- :func:`H`, :func:`X`, :func:`CNOT`, ... -- standard gate factories
+- :func:`H`, :func:`X`, :func:`CNOT`, ...: standard gate factories
 - :func:`RX`, :func:`RY`, :func:`RZ`: rotation gate factories
 - :func:`ParametricRX`, :func:`ParametricRY`: parametric factories
-- :func:`MCX`, :func:`MCZ`, ... -- multi-controlled gate factories
+- :func:`MCX`, :func:`MCZ`, ...: multi-controlled gate factories
 """
 
 from typing import Any, Literal, Sequence
