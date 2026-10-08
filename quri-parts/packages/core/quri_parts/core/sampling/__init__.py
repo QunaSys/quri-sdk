@@ -606,7 +606,7 @@ def create_readout_error_concurrent_sampler(
                 raise ValueError("Readout errors require integer counts.")
             is_one = (np.uint64(bits) >> qubit_indices) & np.uint64(1) == 1
             flips = rng.random((int(count), qubit_count)) < np.where(is_one, p10, p01)
-            noisy_bits = np.bitwise_xor.reduce(
+            noisy_bits = np.bitwise_or.reduce(
                 np.where(flips, qubit_masks, np.uint64(0)), axis=1
             ) ^ np.uint64(bits)
             values, value_counts = np.unique(noisy_bits, return_counts=True)
