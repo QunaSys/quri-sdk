@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Circuit (:mod:`quri_parts.circuit`)
-======================================
+"""
+Circuit (:mod:`quri_parts.circuit`)
+===================================
 
 Public API surface for the QURI Parts circuit package.
 

@@ -8,16 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Linear-mapped circuits (:mod:`quri_parts.circuit.circuit_linear_mapped`)
-===========================================================================
+"""
+Linear-mapped circuits (:mod:`quri_parts.circuit.circuit_linear_mapped`)
+========================================================================
 
 Parametric quantum circuits whose gate parameters are linear (affine)
 functions of the circuit-level parameters.
 
 Contents:
 
-- :class:`LinearMappedParametricQuantumCircuit` -- mutable builder
-- :class:`ImmutableLinearMappedParametricQuantumCircuit` -- frozen form
+- :class:`LinearMappedParametricQuantumCircuit`: mutable builder
+- :class:`ImmutableLinearMappedParametricQuantumCircuit`: frozen form
 """
 
 from collections.abc import Iterable, Sequence

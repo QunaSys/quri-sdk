@@ -8,18 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Fuse (:mod:`quri_parts.circuit.transpile.fuse`)
-==================================================
+"""
+Fuse (:mod:`quri_parts.circuit.transpile.fuse`)
+===============================================
 
 Gate-fusion transpilers that merge adjacent gates to reduce
 circuit depth and gate count.
 
 Contents:
 
-- :class:`AdjacentGateFuser` -- abstract base for gate-fusing passes
-- :class:`CNOTHCNOTFusingTranspiler` -- fuse CNOT-H-CNOT patterns
-- :class:`FuseRotationTranspiler` -- merge consecutive same-axis rotations
-- :class:`NormalizeRotationTranspiler` -- normalise rotation angles to [0, 2pi)
+- :class:`AdjacentGateFuser`: abstract base for gate-fusing passes
+- :class:`CNOTHCNOTFusingTranspiler`: fuse CNOT-H-CNOT patterns
+- :class:`FuseRotationTranspiler`: merge consecutive same-axis rotations
+- :class:`NormalizeRotationTranspiler`: normalise rotation angles to [0, 2pi)
 """
 
 
