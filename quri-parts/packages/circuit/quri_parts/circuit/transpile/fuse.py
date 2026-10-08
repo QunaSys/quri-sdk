@@ -12,15 +12,22 @@
 Fuse (:mod:`quri_parts.circuit.transpile.fuse`)
 ===============================================
 
-Gate-fusion transpilers that merge adjacent gates to reduce
-circuit depth and gate count.
+Transpilers that fuse, normalize, or eliminate rotation gates, and convert
+rotation gates to named Clifford+T gates.
 
 Contents:
 
 - :class:`AdjacentGateFuser`: abstract base for gate-fusing passes
 - :class:`CNOTHCNOTFusingTranspiler`: fuse CNOT-H-CNOT patterns
 - :class:`FuseRotationTranspiler`: merge consecutive same-axis rotations
-- :class:`NormalizeRotationTranspiler`: normalise rotation angles to [0, 2pi)
+- :class:`NormalizeRotationTranspiler`: normalize rotation angles into a range (default
+  0 to 4pi)
+- :class:`RX2NamedTranspiler`, :class:`RY2NamedTranspiler`: convert RX or RY gates to
+  equivalent named gates
+- :class:`RZ2NamedTranspiler`: convert RZ gates to equivalent Z, S, Sdag, T, or Tdag
+  gates
+- :class:`Rotation2NamedTranspiler`: apply all three conversions above
+- :class:`ZeroRotationEliminationTranspiler`: remove rotations with near-zero angles
 """
 
 
