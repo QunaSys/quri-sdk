@@ -95,8 +95,10 @@ class TestQulacsVectorSampler:
 
         counts1 = create_qulacs_vector_sampler(7)(circuit, shots)
         counts2 = create_qulacs_vector_sampler(7)(circuit, shots)
+        counts3 = create_qulacs_vector_sampler(8)(circuit, shots)
 
         assert counts1 == counts2
+        assert counts1 != counts3
 
     @pytest.mark.parametrize("qubits", [4, 12])
     @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])

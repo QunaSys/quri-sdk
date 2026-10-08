@@ -77,6 +77,11 @@ def test_same_seed_gives_same_counts() -> None:
     assert sample(counts, 4, 0.1, 0.1, seed=3) == sample(counts, 4, 0.1, 0.1, seed=3)
 
 
+def test_different_seeds_give_different_counts() -> None:
+    counts = {0b0101: 500, 0b0011: 500}
+    assert sample(counts, 4, 0.1, 0.1, seed=3) != sample(counts, 4, 0.1, 0.1, seed=4)
+
+
 def test_supports_64_qubits() -> None:
     bits = (1 << 63) | 1
     assert sample({bits: 5}, 64, 0.0, 1.0) == {0: 5}
