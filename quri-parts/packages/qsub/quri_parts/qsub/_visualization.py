@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Circuit visualization internals (:mod:`quri_parts.qsub._visualization`)
-==========================================================================
+"""
+Circuit visualization internals (:mod:`quri_parts.qsub._visualization`)
+=======================================================================
 
 Private implementation layer for :mod:`quri_parts.qsub.visualize`: data
 classes mirroring a Sub/MachineSub as a drawable circuit, layout
@@ -17,10 +18,10 @@ calculations, and the matplotlib-based :class:`MPLCircuitlDrawer`.
 
 Contents:
 
-- :class:`CircuitData` -- drawable circuit: gates, qubit/register counts, layers
-- :class:`GateData` -- a single drawable gate (name, qubits, controls, params)
-- :class:`ConditionalBlock` -- classical-conditional grouping of gates
-- :class:`MPLCircuitlDrawer` -- renders a CircuitData to a matplotlib figure
+- :class:`CircuitData`: drawable circuit: gates, qubit/register counts, layers
+- :class:`GateData`: a single drawable gate (name, qubits, controls, params)
+- :class:`ConditionalBlock`: classical-conditional grouping of gates
+- :class:`MPLCircuitlDrawer`: renders a CircuitData to a matplotlib figure
 """
 
 from collections import deque

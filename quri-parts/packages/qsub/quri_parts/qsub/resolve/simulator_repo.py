@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Simulator sub-repository (:mod:`quri_parts.qsub.resolve.simulator_repo`)
-===========================================================================
+"""
+Simulator sub-repository (:mod:`quri_parts.qsub.resolve.simulator_repo`)
+========================================================================
 
 Module-global :class:`~quri_parts.qsub.resolve.resolve.CompositeSubRepository`
 used for simulation, layering a multi-controlled-gate resolver on top of
@@ -17,7 +18,7 @@ the default repository.
 
 Contents:
 
-- :func:`simulator_repository` -- the simulator-specific singleton repository
+- :func:`simulator_repository`: the simulator-specific singleton repository
 """
 
 from .resolve import CompositeSubRepository, SimpleSubRepository, default_repository

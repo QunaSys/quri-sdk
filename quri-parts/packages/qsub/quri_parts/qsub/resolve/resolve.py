@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sub-routine resolvers and repositories (:mod:`quri_parts.qsub.resolve.resolve`)
-==================================================================================
+"""
+Sub-routine resolvers and repositories (:mod:`quri_parts.qsub.resolve.resolve`)
+===============================================================================
 
 Defines the :class:`SubResolver` protocol and the :class:`SubRepository`
 registries that map an :class:`~quri_parts.qsub.op.Op` to its
@@ -18,12 +19,12 @@ qubit/register consistency checks performed by :func:`resolve_sub`.
 
 Contents:
 
-- :class:`SubResolver` -- callable protocol: ``Op -> Sub | None``
-- :class:`SubRepository` -- resolver-registry protocol
-- :class:`SimpleSubRepository` -- mutable, standalone registry of sub-resolvers
-- :class:`CompositeSubRepository` -- overrides a base repository with an addition
-- :func:`default_repository` -- module-global singleton repository
-- :func:`resolve_sub` -- resolve an Op, asserting qubit/register ordering
+- :class:`SubResolver`: callable protocol: ``Op -> Sub | None``
+- :class:`SubRepository`: resolver-registry protocol
+- :class:`SimpleSubRepository`: mutable, standalone registry of sub-resolvers
+- :class:`CompositeSubRepository`: overrides a base repository with an addition
+- :func:`default_repository`: module-global singleton repository
+- :func:`resolve_sub`: resolve an Op, asserting qubit/register ordering
 """
 
 import logging

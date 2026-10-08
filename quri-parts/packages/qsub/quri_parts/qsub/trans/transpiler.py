@@ -8,16 +8,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Transpiler protocol and combinators (:mod:`quri_parts.qsub.trans.transpiler`)
-================================================================================
+"""
+Transpiler protocol and combinators (:mod:`quri_parts.qsub.trans.transpiler`)
+=============================================================================
 
 Defines the :class:`SubTranspilerProtocol` callable interface and
 concrete combinators for composing sub-routine rewrites.
 
 Contents:
 
-- :class:`SequentialTranspiler` -- runs transpilers in sequence
-- :class:`SeparateTranspiler` -- applies a pass to contiguous op chunks
+- :class:`SequentialTranspiler`: runs transpilers in sequence
+- :class:`SeparateTranspiler`: applies a pass to contiguous op chunks
 """
 
 from abc import ABC, abstractmethod

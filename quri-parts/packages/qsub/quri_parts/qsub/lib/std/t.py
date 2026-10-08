@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""T gate definitions (:mod:`quri_parts.qsub.lib.std.t`)
-========================================================
+"""
+T gate definitions (:mod:`quri_parts.qsub.lib.std.t`)
+=====================================================
 
 Defines the single-qubit T (pi/8) gate and its adjoint T-dagger as
 :class:`~quri_parts.qsub.op.Op` instances.

@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Standard gate library (:mod:`quri_parts.qsub.lib.std`)
-=========================================================
+"""
+Standard gate library (:mod:`quri_parts.qsub.lib.std`)
+======================================================
 
 Re-exports every gate, controlled-gate constructor, and scoped-AND
 helper from the ``lib.std`` sub-modules into a single public namespace.

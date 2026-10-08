@@ -8,8 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Sub-routine data model and builder (:mod:`quri_parts.qsub.sub`)
-==================================================================
+"""
+Sub-routine data model and builder (:mod:`quri_parts.qsub.sub`)
+===============================================================
 
 Defines the high-level :class:`Sub` (sub-routine) data structure --
 a sequence of :class:`~quri_parts.qsub.op.Op` applications on qubits
@@ -17,10 +18,10 @@ and registers -- together with a builder API for constructing them.
 
 Contents:
 
-- :class:`Sub` -- immutable sub-routine of op applications
-- :class:`SubBuilder` -- imperative builder with aux-qubit management
-- :class:`SubDef` -- declarative base for fixed sub definitions
-- :class:`ParamSubDef` -- declarative base for parametric subs
+- :class:`Sub`: immutable sub-routine of op applications
+- :class:`SubBuilder`: imperative builder with aux-qubit management
+- :class:`SubDef`: declarative base for fixed sub definitions
+- :class:`ParamSubDef`: declarative base for parametric subs
 """
 
 import functools
