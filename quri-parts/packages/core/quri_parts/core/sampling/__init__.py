@@ -578,8 +578,15 @@ def create_readout_error_concurrent_sampler(
     def flip_probabilities(
         p: Union[float, Sequence[float]], qubit_count: int
     ) -> npt.NDArray[np.float64]:
-        probs = np.broadcast_to(np.asarray(p, dtype=np.float64), (qubit_count,))
-        if np.any((probs < 0) | (probs > 1)):
+        probs = np.asarray(p, dtype=np.float64)
+        if probs.ndim != 0 and probs.shape != (qubit_count,):
+            raise ValueError(
+                f"Expected {qubit_count} readout error probabilities, "
+                f"got {len(probs)}."
+            )
+        probs = np.broadcast_to(probs, (qubit_count,))
+        # NaN fails every comparison, so test in-range to reject it.
+        if not np.all((probs >= 0) & (probs <= 1)):
             raise ValueError("Readout error probabilities must be in [0, 1].")
         return probs
 

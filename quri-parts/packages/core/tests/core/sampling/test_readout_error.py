@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 from collections.abc import Iterable
 
 import pytest
@@ -86,6 +87,18 @@ def test_rejects_non_integer_counts() -> None:
         sample({0: 0.5, 1: 0.5}, 1, 0.1, 0.1)
 
 
-def test_rejects_invalid_probability() -> None:
-    with pytest.raises(ValueError, match=r"\[0, 1\]"):
-        sample({0: 10}, 1, 1.5, 0.1)
+@pytest.mark.parametrize("bad", [1.5, -0.1, math.nan, [0.1, math.nan]])
+def test_rejects_invalid_probability(bad: float | list[float]) -> None:
+    for p0_to_1, p1_to_0 in [(bad, 0.1), (0.1, bad)]:
+        with pytest.raises(ValueError, match=r"\[0, 1\]"):
+            sample({0: 10}, 2, p0_to_1, p1_to_0)
+
+
+def test_rejects_probability_length_mismatch() -> None:
+    cases: list[tuple[float | list[float], float | list[float]]] = [
+        ([0.1] * 3, 0.1),
+        (0.1, [0.1] * 3),
+    ]
+    for p0_to_1, p1_to_0 in cases:
+        with pytest.raises(ValueError, match="Expected 2 .* got 3"):
+            sample({0: 10}, 2, p0_to_1, p1_to_0)
