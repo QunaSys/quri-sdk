@@ -33,6 +33,11 @@ from .circuit_parametric import (
     UnboundParametricQuantumCircuit,
     UnboundParametricQuantumCircuitProtocol,
 )
+from .classical_simulator import (
+    ClassicalState,
+    create_classical_sampler,
+    create_classical_state_sampler,
+)
 from .clifford_gate import is_clifford
 from .gate import ParametricQuantumGate, QuantumGate
 from .gates import (
@@ -154,4 +159,7 @@ __all__ = [
     "inverse_circuit",
     "is_clifford",
     "draw_circuit",
+    "ClassicalState",
+    "create_classical_sampler",
+    "create_classical_state_sampler",
 ]
