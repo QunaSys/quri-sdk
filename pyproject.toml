@@ -35,7 +35,7 @@ cirq = ["quri-parts-cirq"]
 openfermion = ["quri-parts-openfermion"]
 stim = ["quri-parts-stim"]
 openqasm = ["quri-parts-openqasm"]
-quantinuum = ["quri-parts-quantinuum"]
+quantinuum = ["quri-parts-quantinuum[nexus]"]
 ionq = ["quri-parts-ionq"]
 itensor = ["quri-parts-itensor"]
 pyscf = ["quri-parts-pyscf"]
@@ -66,7 +66,7 @@ dev = [
     "quri-parts-openfermion",
     "quri-parts-stim",
     "quri-parts-openqasm",
-    "quri-parts-quantinuum",
+    "quri-parts-quantinuum[nexus]",
     "quri-parts-ionq",
     "quri-parts-itensor",
     "quri-parts-pyscf",

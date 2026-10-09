@@ -20,6 +20,10 @@ Submit sampling jobs to AWS Braket devices.
 
 Submit sampling jobs to IBM devices through Qiskit.
 
+### [Run on Quantinuum](quantinuum_sampling.ipynb)
+
+Submit sampling jobs to Quantinuum devices through Nexus.
+
 ### [Simulate with Noise](noisy_simulation.ipynb)
 
 Define noise models and reproduce device noise on simulators.

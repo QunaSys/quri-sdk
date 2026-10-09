@@ -41,6 +41,7 @@ parts:
               - file: docs/howto/running_and_simulating/sampling_backends
               - file: docs/howto/running_and_simulating/braket_sampling
               - file: docs/howto/running_and_simulating/qiskit_sampling
+              - file: docs/howto/running_and_simulating/quantinuum_sampling
               - file: docs/howto/running_and_simulating/noisy_simulation
               - file: docs/howto/running_and_simulating/data_recording
           - file: docs/howto/error_mitigation/index
