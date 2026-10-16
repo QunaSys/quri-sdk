@@ -10,6 +10,7 @@
 
 from collections import Counter
 from dataclasses import dataclass, field
+from numbers import Integral
 from typing import (
     Any,
     Callable,
@@ -296,7 +297,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         return [cast(MeasurementCounts, self(*comb)) for comb in sampler_input]
 
     def _check_shot_is_int(self, shots: int) -> None:
-        if not isinstance(shots, int):
+        if not isinstance(shots, Integral):
             raise ValueError(
                 f"Shot expected to be integer, but got {type(shots)}. "
                 f"Input value is {shots}."
