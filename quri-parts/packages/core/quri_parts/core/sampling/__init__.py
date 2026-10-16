@@ -150,6 +150,13 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
 
     @overload
     def __call__(
+        self, circuit: ImmutableQuantumCircuit, /, *, shots: int
+    ) -> MeasurementCounts:
+        """A :class:`Sampler` with ``shots`` as a keyword argument."""
+        ...
+
+    @overload
+    def __call__(
         self,
         *sampler_input: Unpack[
             tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]
@@ -175,6 +182,11 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         self, *sampler_input: Unpack[tuple[_StateT, int]]
     ) -> MeasurementCounts:
         """A :class:`StateSampler`"""
+        ...
+
+    @overload
+    def __call__(self, state: _StateT, /, *, shots: int) -> MeasurementCounts:
+        """A :class:`StateSampler` with ``shots`` as a keyword argument."""
         ...
 
     @overload
@@ -271,8 +283,10 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         ...
 
     def __call__(
-        self, *sampler_input: Any
+        self, *sampler_input: Any, shots: Optional[int] = None
     ) -> Union[MeasurementCounts, Iterable[MeasurementCounts]]:
+        if shots is not None:
+            sampler_input = (*sampler_input, shots)
         if isinstance(sampler_input[0], ImmutableQuantumCircuit):
             return self._sample(*sampler_input)
         if isinstance(sampler_input[0], UnboundParametricQuantumCircuitProtocol):
