@@ -22,7 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-graphviz = ["graphviz>=0.20,<1.0"]
+visualize = ["graphviz>=0.20,<1.0"]
 
 [project.urls]
 Repository = "https://github.com/QunaSys/quri-sdk"

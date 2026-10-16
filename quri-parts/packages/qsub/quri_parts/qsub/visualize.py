@@ -523,7 +523,7 @@ def draw_call_graph(
     Pass ``filename`` to also save the drawing. The file extension sets
     the format, for example ``.svg``, ``.png`` or ``.pdf``.
 
-    The ``graphviz`` extra (``pip install "quri-parts-qsub[graphviz]"``)
+    The ``visualize`` extra (``pip install "quri-parts-qsub[visualize]"``)
     provides the Python package. Rendering also needs the Graphviz
     system package (https://graphviz.org/download/).
     """
@@ -532,7 +532,7 @@ def draw_call_graph(
     except ImportError as e:
         raise ImportError(
             "draw_call_graph requires the graphviz package: "
-            "pip install 'quri-parts-qsub[graphviz]'. Rendering also needs the "
+            "pip install 'quri-parts-qsub[visualize]'. Rendering also needs the "
             "Graphviz system package: https://graphviz.org/download/"
         ) from e
 

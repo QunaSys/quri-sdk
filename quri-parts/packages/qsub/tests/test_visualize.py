@@ -490,5 +490,5 @@ class TestDrawCallGraph:
 
     def test_missing_graphviz_names_the_extra(self, monkeypatch: MonkeyPatch) -> None:
         monkeypatch.setitem(sys.modules, "graphviz", None)
-        with raises(ImportError, match=r"quri-parts-qsub\[graphviz\]"):
+        with raises(ImportError, match=r"quri-parts-qsub\[visualize\]"):
             draw_call_graph({})
