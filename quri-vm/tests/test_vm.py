@@ -27,8 +27,13 @@ from quri_parts.circuit import (
 from quri_parts.circuit.topology import SquareLattice
 from quri_parts.core.estimator import Estimate
 from quri_parts.core.operator import pauli_label
-from quri_parts.core.sampling import MeasurementCounts
-from quri_parts.core.state import quantum_state
+from quri_parts.core.sampling import (
+    ConcurrentSampler,
+    MeasurementCounts,
+    Sampler,
+    StateSampler,
+)
+from quri_parts.core.state import CircuitQuantumState, quantum_state
 
 from quri_vm.vm import VM
 from quri_vm.vm_backend import AnalyzeResult, VMBackend, _DevicePropertyBackend
@@ -153,6 +158,21 @@ def _test_vm_with_device_property_backend(
     assert analysis.depth == tr_circuit.depth
     assert analysis.latency is not None and 0.0 < analysis.latency.value
     assert analysis.fidelity is not None and 0.0 < analysis.fidelity < 1.0
+
+
+def test_vm_sample_is_general_sampler() -> None:
+    vm = VM()
+    circuit = _circuit()
+    state = quantum_state(2, circuit=circuit)
+
+    sampler: Sampler = vm.sample
+    concurrent_sampler: ConcurrentSampler = vm.sample
+    state_sampler: StateSampler[CircuitQuantumState] = vm.sample
+
+    assert sum(sampler(circuit, 100).values()) == 100
+    counts = concurrent_sampler([(circuit, 10), (circuit, 20)])
+    assert [sum(c.values()) for c in counts] == [10, 20]
+    assert sum(state_sampler(state, 100).values()) == 100
 
 
 class TestVMBackend:
