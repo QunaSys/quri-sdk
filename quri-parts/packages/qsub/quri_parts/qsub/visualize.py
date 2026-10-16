@@ -433,71 +433,70 @@ def draw(
         return draw_msub(sub, dpi=dpi, scale=scale, debug=debug, filename=filename)
 
 
+# Node names keep float values, which distinguish nodes, so they need more
+# room than the gate lines inside a node.
+_NODE_PARAM_TRUNCATE = 16
+
+
+def _ident_str(
+    ident: Ident, full: bool, param_truncate: int = 0, float_str: Optional[str] = None
+) -> str:
+    """Format an ident like :meth:`Ident.to_str`, with nested idents following
+    ``full`` and each float param shown as ``float_str`` when given."""
+
+    def param_str(p: Param) -> str:
+        if isinstance(p, float) and float_str is not None:
+            return float_str
+        if isinstance(p, Op):
+            p = p.id
+        if isinstance(p, Ident):
+            return _ident_str(p, full, float_str=float_str)
+        if isinstance(p, tuple):
+            return "(" + ", ".join(param_str(q) for q in p) + ")"
+        return str(p)
+
+    s = f"{ident.ns}.{ident.local_name}" if full else ident.local_name
+    if not ident.params:
+        return s
+    joined = ", ".join(map(param_str, ident.params))
+    if 0 < param_truncate < len(joined):
+        joined = joined[:param_truncate] + "..."
+    return f"{s}<{joined}>"
+
+
 def _call_graph_node_names(
     nodes: Iterable[Optional[Ident]],
 ) -> dict[Optional[Ident], str]:
     """Name each node by its short ident, falling back to the fully qualified
     one where truncation would make distinct subs look alike."""
     short = {
-        node: node.to_str(full=False, param_truncate=8)
+        node: _ident_str(node, False, _NODE_PARAM_TRUNCATE)
         if node is not None
         else "(unnamed)"
         for node in nodes
     }
     collisions = {name for name, n in Counter(short.values()).items() if n > 1}
     return {
-        node: node.to_str(full=True)
+        node: _ident_str(node, True)
         if node is not None and name in collisions
         else name
         for node, name in short.items()
     }
 
 
-def _angle_free_param_str(param: Param) -> str:
-    if isinstance(param, float):
-        return "θ"
-    if isinstance(param, Ident):
-        return _angle_free_gate_str(param, full=True)
-    if isinstance(param, Op):
-        return _angle_free_gate_str(param.id, full=True)
-    if isinstance(param, tuple):
-        return "(" + ", ".join(_angle_free_param_str(p) for p in param) + ")"
-    return str(param)
-
-
-def _angle_free_gate_str(gate: Ident, full: bool, param_truncate: int = 0) -> str:
-    """Format a gate like :meth:`Ident.to_str`, with each float parameter shown
-    as ``θ``.
-
-    The replacement also applies inside op parameters, as in
-    ``Controlled<Phase<θ>>``.
-    """
-    s = f"{gate.ns}.{gate.local_name}" if full else gate.local_name
-    if not gate.params:
-        return s
-    joined = ", ".join(_angle_free_param_str(p) for p in gate.params)
-    if param_truncate > 0 and len(joined) > param_truncate:
-        joined = joined[:param_truncate] + "..."
-    return f"{s}<{joined}>"
-
-
 def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> str:
     if entry is None:
         return name
     lines = [name, f"calls: {entry.call_count}"]
-    # Rotation angles take continuous values, so one line per angle gives a box
-    # an unbounded number of lines. The profile keeps the per-angle counts.
-    grouped: Counter[str] = Counter()
-    short: dict[str, str] = {}
+    # Float params take continuous values, so one line per value gives a box an
+    # unbounded number of lines. The profile keeps the per-value counts.
+    grouped: Counter[tuple[str, str]] = Counter()
     for gate, count in entry.gate_counts.cumulative.all_calls.items():
-        key = _angle_free_gate_str(gate, full=True)
-        grouped[key] += count
-        short[key] = _angle_free_gate_str(gate, full=False, param_truncate=8)
-    # Sort by decreasing count so the first gate line shows the largest cost.
-    # The qualified name orders gates with equal counts.
+        full = _ident_str(gate, True, float_str="*")
+        grouped[full, _ident_str(gate, False, 8, float_str="*")] += count
     lines.extend(
-        f"{short[key]}: {count}"
-        for key, count in sorted(grouped.items(), key=lambda kv: (-kv[1], kv[0]))
+        f"{short}: {count}"
+        for (_, short), count in sorted(grouped.items(), key=lambda kv: (-kv[1], kv[0]))
     )
     # DOT's escape for a centered line break.
     return "\\n".join(lines)
@@ -509,23 +508,15 @@ def draw_call_graph(
     *,
     filename: Optional[str] = None,
 ) -> "graphviz.Digraph":
-    """Draw a call graph produced by :class:`CallGraphEvaluatorHooks`, laid out
-    top-down by Graphviz.
+    """Draw a call graph from :class:`CallGraphEvaluatorHooks` with Graphviz.
 
-    Each edge is annotated with its number of calls per caller
-    invocation, highlighted when greater than one. Pass the report of
-    :class:`SubwiseProfileEvaluatorHooks` for the same compiled sub as
-    ``profile`` to also annotate each node with its call count and
-    cumulative gate counts (the two reports join on the op ``Ident``:
-    graph nodes against profile ``source_op``).
+    Each edge shows the calls per caller invocation. Pass the
+    :class:`SubwiseProfileEvaluatorHooks` report of the same sub as
+    ``profile`` to add call and gate counts to each node. ``filename``
+    saves the drawing in the format of its extension.
 
-    The returned :class:`graphviz.Digraph` renders inline in Jupyter.
-    Pass ``filename`` to also save the drawing. The file extension sets
-    the format, for example ``.svg``, ``.png`` or ``.pdf``.
-
-    The ``visualize`` extra (``pip install "quri-parts-qsub[visualize]"``)
-    provides the Python package. Rendering also needs the Graphviz
-    system package (https://graphviz.org/download/).
+    Requires the ``graphviz`` package (the ``visualize`` extra) and the
+    Graphviz system package.
     """
     try:
         import graphviz
@@ -536,39 +527,32 @@ def draw_call_graph(
             "Graphviz system package: https://graphviz.org/download/"
         ) from e
 
-    entries: Mapping[Optional[Ident], SubwiseProfileEntry] = (
-        {e.source_op: e for e in profile} if profile is not None else {}
-    )
-    nodes = list(
-        dict.fromkeys(
-            [*graph, *(callee for callees in graph.values() for callee in callees)]
-        )
-    )
-    names = _call_graph_node_names(nodes)
+    entries: Mapping[Optional[Ident], SubwiseProfileEntry] = {
+        e.source_op: e for e in profile or ()
+    }
+    names = _call_graph_node_names(graph)
     # graphviz reads ':' in an edge endpoint as a port separator, so nodes get
     # plain ids and show their ident strings only as labels.
-    node_ids = {node: f"n{i}" for i, node in enumerate(nodes)}
+    node_ids = {node: f"n{i}" for i, node in enumerate(graph)}
 
-    dot = graphviz.Digraph()
-    dot.attr(
-        "node",
-        shape="box",
-        style="rounded",
-        # dot estimates text width from its own font metrics, which can run
-        # narrower than the font that finally renders; pad so labels fit.
-        margin="0.15,0.06",
-        color="#808080",
-        fontname="Helvetica,Arial,sans-serif",
-        fontsize="11",
+    dot = graphviz.Digraph(
+        node_attr={
+            "shape": "box",
+            "style": "rounded",
+            # dot underestimates text width; pad so labels fit.
+            "margin": "0.15,0.06",
+            "color": "#808080",
+            "fontname": "Helvetica,Arial,sans-serif",
+            "fontsize": "11",
+        },
+        edge_attr={
+            "color": "#808080",
+            "arrowsize": "0.7",
+            "fontname": "Helvetica,Arial,sans-serif",
+            "fontsize": "10",
+        },
     )
-    dot.attr(
-        "edge",
-        color="#808080",
-        arrowsize="0.7",
-        fontname="Helvetica,Arial,sans-serif",
-        fontsize="10",
-    )
-    for node in nodes:
+    for node in graph:
         dot.node(node_ids[node], _call_graph_node_label(names[node], entries.get(node)))
     for caller, callees in graph.items():
         for callee, m in callees.items():

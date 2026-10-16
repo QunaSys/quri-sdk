@@ -384,7 +384,7 @@ class TestDrawCallGraph:
         nodes, _ = self._parse(draw_call_graph(graph, profile))
         assert nodes == {r"R\ncalls: 1\nT: 5\nCNOT: 2\nH: 2"}
 
-    def test_rotation_angles_grouped_into_one_line(self) -> None:
+    def test_float_params_grouped_into_one_line(self) -> None:
         """Gates that differ only in float params share one line.
 
         Gates that differ in an op or int param keep separate lines.
@@ -423,9 +423,9 @@ class TestDrawCallGraph:
         nodes, _ = self._parse(draw_call_graph({R: {}}, [entry]))
         (label,) = nodes
         assert label.split(r"\n")[2:] == [
-            "RZ<θ>: 4",
-            "Controlled<std.H>: 3",
-            "Controlled<std.Phas...>: 2",
+            "RZ<*>: 4",
+            "Controlled<H>: 3",
+            "Controlled<Phase<*>>: 2",
             "MCX<3>: 1",
             "MCX<4>: 1",
         ]
@@ -478,7 +478,7 @@ class TestDrawCallGraph:
         graph: dict[Optional[Ident], dict[Ident, int]] = {R: {P: 1}, P: {}}
         nodes, edges = self._parse(draw_call_graph(graph))
         assert len(nodes) == 2
-        assert list(edges) == [("R", P.to_str(full=False, param_truncate=8))]
+        assert list(edges) == [("R", "P<Q>")]
 
     @mark.skipif(shutil.which("dot") is None, reason="Graphviz is not installed")
     def test_filename_renders_by_extension(self, tmp_path: Path) -> None:
