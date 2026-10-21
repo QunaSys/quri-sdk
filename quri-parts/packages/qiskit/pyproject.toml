@@ -21,7 +21,8 @@ dependencies = [
     "quri-parts-core",
     "pydantic>=2.0,<3.0",
     "networkx",
-    "qiskit>=2.2.0,<3.0",
+    # Avoid Linux TLS failures with Qulacs: https://github.com/Qiskit/qiskit/issues/17213
+    "qiskit>=2.2.0,<2.6",
     "qiskit-ibm-runtime>=0.47.0,<0.48.0",
 ]
 

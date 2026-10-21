@@ -8,12 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from itertools import combinations
+
 import pytest
 from openfermion import FermionOperator as OpenFermionFermionOperator
 from openfermion import (
     symmetry_conserving_bravyi_kitaev as of_symmetry_conserving_bravyi_kitaev,
 )
 
+from quri_parts.chem.utils.spin import occupation_state_sz
 from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState
 from quri_parts.openfermion.operator import (
@@ -21,6 +24,7 @@ from quri_parts.openfermion.operator import (
     operator_from_openfermion_op,
 )
 from quri_parts.openfermion.transforms import (
+    OpenFermionQubitMapping,
     bravyi_kitaev,
     jordan_wigner,
     symmetry_conserving_bravyi_kitaev,
@@ -530,3 +534,30 @@ class TestStateMapper:
             ComputationalBasisState(n_spin_orbitals - 2, bits=0b110000)
         )
         assert inv_mapped == [3, 5, 7]
+
+    @pytest.mark.parametrize(
+        "mapping",
+        [
+            jordan_wigner(8),
+            bravyi_kitaev(8),
+            symmetry_conserving_bravyi_kitaev(8, 4, 0.0),
+            symmetry_conserving_bravyi_kitaev(8, 3, -0.5),
+        ],
+    )
+    def test_inv_state_mapper_inverts_state_mapper(
+        self, mapping: OpenFermionQubitMapping
+    ) -> None:
+        n_fermions_list = (
+            [mapping.n_fermions]
+            if mapping.n_fermions is not None
+            else range(mapping.n_spin_orbitals + 1)
+        )
+        for n_fermions in n_fermions_list:
+            for occupied in combinations(range(mapping.n_spin_orbitals), n_fermions):
+                if (
+                    mapping.sz is not None
+                    and occupation_state_sz(occupied) != mapping.sz
+                ):
+                    continue
+                state = mapping.state_mapper(list(occupied))
+                assert mapping.inv_state_mapper(state) == list(occupied)
