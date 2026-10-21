@@ -460,7 +460,9 @@ def sample_from_probability_distribution(
 
 @deprecated_shots_kwarg
 def sample_from_state_vector(
-    state_vector: npt.NDArray[np.complex128], shots: int
+    state_vector: npt.NDArray[np.complex128],
+    shots: int,
+    seed: Optional[int] = None,
 ) -> MeasurementCounts:
     """Perform sampling from a state vector."""
     n_qubits: float = np.log2(state_vector.shape[0])
@@ -468,7 +470,7 @@ def sample_from_state_vector(
     if not np.isclose(np.linalg.norm(state_vector), 1):
         raise ValueError("probabilities do not sum to 1")
     probs = cast(npt.NDArray[np.float64], np.abs(state_vector) ** 2)
-    return sample_from_probability_distribution(shots, probs)
+    return sample_from_probability_distribution(shots, probs, seed)
 
 
 @deprecated_shots_kwarg
@@ -556,6 +558,85 @@ def create_sampler_from_concurrent_sampler(
     return sampler
 
 
+def create_readout_error_concurrent_sampler(
+    concurrent_sampler: ConcurrentSampler,
+    p0_to_1: Union[float, Sequence[float]],
+    p1_to_0: Union[float, Sequence[float]],
+    seed: Optional[int] = None,
+) -> ConcurrentSampler:
+    """Wrap a :class:`ConcurrentSampler` to add independent per-qubit readout
+    errors to each shot.
+
+    Each measured bit flips from 0 to 1 with probability ``p0_to_1`` and from
+    1 to 0 with probability ``p1_to_0``. This is the classical readout error
+    model with a per-qubit confusion matrix. Wrap a noise-free sampler to
+    simulate readout errors with a single state simulation per circuit.
+
+    Args:
+        concurrent_sampler: Sampler whose counts receive readout errors. The
+            counts must be integers, so ideal samplers are not supported.
+        p0_to_1: Probability that a measured 0 reads as 1. Either one value
+            for all qubits, or one value per qubit.
+        p1_to_0: Probability that a measured 1 reads as 0. Either one value
+            for all qubits, or one value per qubit.
+        seed: Seed for the readout error random numbers.
+
+    Returns:
+        A :class:`ConcurrentSampler` returning counts with readout errors.
+    """
+    rng = np.random.default_rng(seed)
+
+    def flip_probabilities(
+        p: Union[float, Sequence[float]], qubit_count: int
+    ) -> npt.NDArray[np.float64]:
+        probs = np.asarray(p, dtype=np.float64)
+        if probs.ndim != 0 and probs.shape != (qubit_count,):
+            raise ValueError(
+                f"Expected {qubit_count} readout error probabilities, "
+                f"got {len(probs)}."
+            )
+        probs = np.broadcast_to(probs, (qubit_count,))
+        # NaN fails every comparison, so test in-range to reject it.
+        if not np.all((probs >= 0) & (probs <= 1)):
+            raise ValueError("Readout error probabilities must be in [0, 1].")
+        return probs
+
+    def add_readout_errors(
+        counts: MeasurementCounts, qubit_count: int
+    ) -> MeasurementCounts:
+        # ponytail: uint64 bit arithmetic, so at most 64 qubits.
+        if qubit_count > 64:
+            raise ValueError("Readout errors support at most 64 qubits.")
+        p01 = flip_probabilities(p0_to_1, qubit_count)
+        p10 = flip_probabilities(p1_to_0, qubit_count)
+        qubit_indices = np.arange(qubit_count, dtype=np.uint64)
+        qubit_masks = np.left_shift(np.uint64(1), qubit_indices)
+        noisy_counts: Counter[int] = Counter()
+        for bits, count in counts.items():
+            if count != int(count):
+                raise ValueError("Readout errors require integer counts.")
+            is_one = (np.uint64(bits) >> qubit_indices) & np.uint64(1) == 1
+            flips = rng.random((int(count), qubit_count)) < np.where(is_one, p10, p01)
+            noisy_bits = np.bitwise_or.reduce(
+                np.where(flips, qubit_masks, np.uint64(0)), axis=1
+            ) ^ np.uint64(bits)
+            values, value_counts = np.unique(noisy_bits, return_counts=True)
+            for value, value_count in zip(values.tolist(), value_counts.tolist()):
+                noisy_counts[value] += value_count
+        return noisy_counts
+
+    def sampler(
+        shot_circuit_pairs: Iterable[tuple[ImmutableQuantumCircuit, int]]
+    ) -> Iterable[MeasurementCounts]:
+        pairs = list(shot_circuit_pairs)
+        return [
+            add_readout_errors(counts, circuit.qubit_count)
+            for (circuit, _), counts in zip(pairs, concurrent_sampler(pairs))
+        ]
+
+    return sampler
+
+
 class PauliSamplingSetting(NamedTuple):
     pauli_set: CommutablePauliSet
     n_shots: int
@@ -598,6 +679,7 @@ __all__ = [
     "create_sampler_from_sampling_backend",
     "create_concurrent_sampler_from_sampling_backend",
     "create_sampler_from_concurrent_sampler",
+    "create_readout_error_concurrent_sampler",
     "PauliSamplingSetting",
     "PauliSamplingShotsAllocator",
     "WeightedSamplingShotsAllocator",
