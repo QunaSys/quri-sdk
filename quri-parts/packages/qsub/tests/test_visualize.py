@@ -1,13 +1,23 @@
-from typing import Any
+import re
+import shutil
+import sys
+from pathlib import Path
+from typing import Any, Optional
 
 from matplotlib import colors as mcolors
 from matplotlib import patches as mpatches
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
-from pytest import MonkeyPatch
+from pytest import MonkeyPatch, mark, raises
 
 import quri_parts.qsub._visualization as vis_impl
 import quri_parts.qsub.visualize as visualize
+from quri_parts.qsub.eval.subwiseprofile import (
+    GateCountBreakdown,
+    GateCounts,
+    QubitCounts,
+    SubwiseProfileEntry,
+)
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -21,6 +31,8 @@ from quri_parts.qsub.lib.std import (
     X,
     conditional,
 )
+from quri_parts.qsub.namespace import NameSpace
+from quri_parts.qsub.op import Ident
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.sub import Sub, SubBuilder
@@ -30,6 +42,7 @@ from quri_parts.qsub.visualize import (
     GateData,
     GateType,
     _op_controls,
+    draw_call_graph,
     draw_sub,
     op_to_vis_data,
     sub_to_vis_data,
@@ -301,3 +314,181 @@ class TestDrawSub:
             ]
         finally:
             plt.close(figure)
+
+
+_CG_NS = NameSpace("test_call_graph")
+
+
+def _ident(local_name: str) -> Ident:
+    return Ident(_CG_NS, local_name)
+
+
+_DOT_ATTR = re.compile(r'(\w+)=("(?:[^"\\]|\\.)*"|[^\s\]]+)')
+_DOT_NODE = re.compile(r"^\t(n\d+) \[(.*)\]$")
+_DOT_EDGE = re.compile(r"^\t(n\d+) -> (n\d+) \[(.*)\]$")
+
+
+def _dot_attrs(attrs: str) -> dict[str, str]:
+    return {k: v.strip('"') for k, v in _DOT_ATTR.findall(attrs)}
+
+
+class TestDrawCallGraph:
+    def _entry(
+        self, name: str, call_count: int, cumulative: dict[str, int]
+    ) -> SubwiseProfileEntry:
+        counts = GateCounts(
+            per_call={},
+            all_calls={_ident(g): n for g, n in cumulative.items()},
+        )
+        empty = GateCounts(per_call={}, all_calls={})
+        return SubwiseProfileEntry(
+            source_op=_ident(name),
+            call_count=call_count,
+            qubit_counts=QubitCounts(data=0, auxiliary=0, total=0),
+            gate_counts=GateCountBreakdown(
+                own=empty, descendants=empty, cumulative=counts
+            ),
+        )
+
+    def _parse(
+        self, dot: Any
+    ) -> tuple[set[str], dict[tuple[str, str], dict[str, str]]]:
+        """Node labels, and edge attributes keyed by (caller, callee) label."""
+        labels: dict[str, str] = {}
+        edges: dict[tuple[str, str], dict[str, str]] = {}
+        for line in dot.body:
+            line = line.rstrip("\n")
+            if m := _DOT_EDGE.match(line):
+                caller, callee, attrs = m.groups()
+                edges[(labels[caller], labels[callee])] = _dot_attrs(attrs)
+            elif m := _DOT_NODE.match(line):
+                labels[m.group(1)] = _dot_attrs(m.group(2))["label"]
+        return set(labels.values()), edges
+
+    def test_nodes_annotated_from_profile(self) -> None:
+        R, A = _ident("R"), _ident("A")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
+        profile = [
+            self._entry("R", 1, {"CNOT": 6}),
+            self._entry("A", 2, {"CNOT": 6}),
+        ]
+        nodes, edges = self._parse(draw_call_graph(graph, profile))
+        r_label, a_label = r"R\ncalls: 1\nCNOT: 6", r"A\ncalls: 2\nCNOT: 6"
+        assert nodes == {r_label, a_label}
+        assert edges[(r_label, a_label)]["label"] == "x2"
+
+    def test_gate_counts_listed_by_decreasing_count(self) -> None:
+        R = _ident("R")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {}}
+        profile = [self._entry("R", 1, {"H": 2, "T": 5, "CNOT": 2})]
+        nodes, _ = self._parse(draw_call_graph(graph, profile))
+        assert nodes == {r"R\ncalls: 1\nT: 5\nCNOT: 2\nH: 2"}
+
+    def test_float_params_grouped_into_one_line(self) -> None:
+        """Gates that differ only in float params share one line.
+
+        Gates that differ in an op or int param keep separate lines.
+        """
+        R = _ident("R")
+        std_ns = NameSpace("std")
+        rz = [Ident(std_ns, "RZ", (a,)) for a in (0.1, 0.2, 0.3)]
+        c_phase = [
+            Ident(std_ns, "Controlled", (Ident(std_ns, "Phase", (a,)),))
+            for a in (0.5, 0.25)
+        ]
+        c_h = Ident(std_ns, "Controlled", (Ident(std_ns, "H"),))
+        mcx = [Ident(std_ns, "MCX", (n,)) for n in (3, 4)]
+        counts = GateCounts(
+            per_call={},
+            all_calls={
+                rz[0]: 1,
+                rz[1]: 2,
+                rz[2]: 1,
+                c_phase[0]: 1,
+                c_phase[1]: 1,
+                c_h: 3,
+                mcx[0]: 1,
+                mcx[1]: 1,
+            },
+        )
+        empty = GateCounts(per_call={}, all_calls={})
+        entry = SubwiseProfileEntry(
+            source_op=R,
+            call_count=1,
+            qubit_counts=QubitCounts(data=0, auxiliary=0, total=0),
+            gate_counts=GateCountBreakdown(
+                own=empty, descendants=empty, cumulative=counts
+            ),
+        )
+        nodes, _ = self._parse(draw_call_graph({R: {}}, [entry]))
+        (label,) = nodes
+        assert label.split(r"\n")[2:] == [
+            "RZ<*>: 4",
+            "Controlled<H>: 3",
+            "Controlled<Phase<*>>: 2",
+            "MCX<3>: 1",
+            "MCX<4>: 1",
+        ]
+
+    def test_without_profile_plain_names_and_multiplicities(self) -> None:
+        R, A = _ident("R"), _ident("A")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
+        nodes, edges = self._parse(draw_call_graph(graph))
+        assert nodes == {"R", "A"}
+        assert {k: v["label"] for k, v in edges.items()} == {("R", "A"): "x2"}
+
+    def test_repeated_calls_are_highlighted(self) -> None:
+        R, A, B = _ident("R"), _ident("A"), _ident("B")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 1, B: 3}, A: {}, B: {}}
+        _, edges = self._parse(draw_call_graph(graph))
+        assert edges[("R", "B")]["fontcolor"] != edges[("R", "A")]["fontcolor"]
+
+    def test_truncated_labels_fall_back_to_qualified_names(self) -> None:
+        """Distinct subs whose short names truncate to the same text are drawn
+        with their fully qualified names instead of two look-alike boxes."""
+        long1 = Ident(_CG_NS, "LongParam", (11111111111111111,))
+        long2 = Ident(_CG_NS, "LongParam", (11111111111111112,))
+        graph: dict[Optional[Ident], dict[Ident, int]] = {long1: {}, long2: {}}
+        nodes, _ = self._parse(draw_call_graph(graph))
+        assert nodes == {long1.to_str(full=True), long2.to_str(full=True)}
+
+    def test_multi_caller_edges_keep_their_multiplicities(self) -> None:
+        """Edge counts come from the graph itself, so a callee with several
+        callers still gets one exact label per edge."""
+        R, A, B, C = _ident("R"), _ident("A"), _ident("B"), _ident("C")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {
+            R: {A: 1, B: 1},
+            A: {C: 3},
+            B: {C: 1},
+            C: {},
+        }
+        _, edges = self._parse(draw_call_graph(graph))
+        assert {k: v["label"] for k, v in edges.items()} == {
+            ("R", "A"): "x1",
+            ("R", "B"): "x1",
+            ("A", "C"): "x3",
+            ("B", "C"): "x1",
+        }
+
+    def test_port_like_idents_stay_single_nodes(self) -> None:
+        """graphviz reads ':' in an edge endpoint as a port, so an ident whose
+        string contains one must not become the edge endpoint itself."""
+        R = _ident("R")
+        P = Ident(_CG_NS, "P", (Ident(NameSpace("a:b"), "Q"),))
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {P: 1}, P: {}}
+        nodes, edges = self._parse(draw_call_graph(graph))
+        assert len(nodes) == 2
+        assert list(edges) == [("R", "P<Q>")]
+
+    @mark.skipif(shutil.which("dot") is None, reason="Graphviz is not installed")
+    def test_filename_renders_by_extension(self, tmp_path: Path) -> None:
+        R, A = _ident("R"), _ident("A")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 1}, A: {}}
+        out = tmp_path / "graph.svg"
+        draw_call_graph(graph, filename=str(out))
+        assert out.read_text().lstrip().startswith("<?xml")
+
+    def test_missing_graphviz_names_the_extra(self, monkeypatch: MonkeyPatch) -> None:
+        monkeypatch.setitem(sys.modules, "graphviz", None)
+        with raises(ImportError, match=r"quri-parts-qsub\[visualize\]"):
+            draw_call_graph({})

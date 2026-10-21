@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from .callgraph import CallGraphEvaluatorHooks
 from .gatecount import GateCountEvaluatorHooks
 from .qubitcount import AuxQubitCountEvaluatorHooks, TotalQubitCountEvaluatorHooks
 from .quriparts import QURIPartsEvaluatorHooks
@@ -21,6 +22,7 @@ from .subwiseprofile import (
 
 __all__ = [
     "AuxQubitCountEvaluatorHooks",
+    "CallGraphEvaluatorHooks",
     "TotalQubitCountEvaluatorHooks",
     "GateCountBreakdown",
     "GateCountEvaluatorHooks",

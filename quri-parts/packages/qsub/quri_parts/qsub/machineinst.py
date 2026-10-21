@@ -55,7 +55,7 @@ class MachineSub:
     aux_registers: Sequence[Register]
     instructions: Sequence[MachineInst]
     #: Identifies the op this sub implements, when it is known.
-    source_op: Optional[Ident] = None
+    source_op_id: Optional[Ident] = None
 
     @property
     def sub_id(self) -> SubId:
