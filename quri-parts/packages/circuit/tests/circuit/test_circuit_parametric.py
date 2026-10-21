@@ -180,6 +180,12 @@ class TestUnboundParametricQuantumCircuit:
         with pytest.raises(TypeError, match="positional arguments"):
             circuit.sample(10, [np.pi / 4], 1000)  # type: ignore[call-arg]
 
+    def test_sample_params_kwarg(self) -> None:
+        circuit = ParametricQuantumCircuit(3)
+        circuit.add_ParametricRX_gate(0)
+        samples = circuit.sample(shots=1000, params=[np.pi / 4])
+        assert sum(samples.values()) == 1000
+
     def test_hash(self) -> None:
         import pytest
 

@@ -8,6 +8,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Qulacs Simulator (:mod:`quri_parts.qulacs.simulator`)
+=====================================================
+
+Helpers that evaluate circuits on Qulacs state objects, and state samplers
+for state vector and density matrix simulation.
+
+Contents:
+
+- :func:`evaluate_state_to_vector`: run a state's circuit, return the vector
+- :func:`run_circuit`: apply a circuit to an initial state vector
+- :func:`get_marginal_probability`: probability of a partial measurement
+- :func:`create_qulacs_vector_state_sampler`: state vector sampler
+- :func:`create_concurrent_vector_state_sampler`: concurrent vector sampler
+- :func:`create_qulacs_ideal_vector_state_sampler`: ideal vector sampler
+- :func:`create_qulacs_density_matrix_state_sampler`: density matrix sampler
+- :func:`create_qulacs_ideal_density_matrix_state_sampler`: ideal density matrix sampler
+- :func:`create_qulacs_noisesimulator_state_sampler`: ``NoiseSimulator`` sampler
+"""
+
 import warnings
 from collections import Counter
 from collections.abc import Sequence
@@ -238,7 +258,7 @@ def create_qulacs_vector_state_sampler(
         if backend.should_use_multinomial(shots, state.qubit_count):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state, backend).vector
-            return sample_from_state_vector(state_vector, shots)
+            return sample_from_state_vector(state_vector, shots, random_seed)
 
         qs_state = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
         if random_seed is None:
