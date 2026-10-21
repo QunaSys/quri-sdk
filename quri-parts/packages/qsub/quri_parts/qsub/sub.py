@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from math import pi
 from typing import TypeAlias
 
-from .op import Op, ParametricMixin, Params
+from .op import Ident, Op, ParametricMixin, Params
 from .qubit import Qubit
 from .register import (
     QRegSpec,
@@ -36,6 +36,9 @@ class Sub:
     phase: float = 0
     qregs: dict[str, QuantumRegister] | None = None
     aux_qregs: dict[str, QuantumRegister] | None = None
+    #: Identifies the op this sub implements. Attached when the sub is
+    #: resolved for an op.
+    source_op: Ident | None = None
 
     @functools.cached_property
     def qreg_specs(self) -> Sequence[QRegSpec]:

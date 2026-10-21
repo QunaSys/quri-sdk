@@ -11,10 +11,22 @@
 from .gatecount import GateCountEvaluatorHooks
 from .qubitcount import AuxQubitCountEvaluatorHooks, TotalQubitCountEvaluatorHooks
 from .quriparts import QURIPartsEvaluatorHooks
+from .subwiseprofile import (
+    GateCountBreakdown,
+    GateCounts,
+    QubitCounts,
+    SubwiseProfileEntry,
+    SubwiseProfileEvaluatorHooks,
+)
 
 __all__ = [
     "AuxQubitCountEvaluatorHooks",
     "TotalQubitCountEvaluatorHooks",
+    "GateCountBreakdown",
     "GateCountEvaluatorHooks",
+    "GateCounts",
+    "QubitCounts",
     "QURIPartsEvaluatorHooks",
+    "SubwiseProfileEntry",
+    "SubwiseProfileEvaluatorHooks",
 ]

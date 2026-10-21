@@ -1,3 +1,5 @@
+from collections.abc import Mapping
+from dataclasses import replace
 from typing import Optional, cast
 
 from quri_parts.qsub.lib.std import MCX, H, MultiControlled, Pauli, X, Y
@@ -10,11 +12,18 @@ from quri_parts.qsub.resolve import (
     SimpleSubResolver,
     SubCollector,
     SubRepository,
+    resolve_sub,
 )
 from quri_parts.qsub.resolve.simulator_repo import simulator_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 NS = NameSpace("test")
+
+
+def _with_source_ops(subs: Mapping[Op, Sub]) -> dict[Op, Sub]:
+    """Resolution records each sub's source op, so expectations carry it
+    too."""
+    return {op: replace(sub, source_op=op.id) for op, sub in subs.items()}
 
 
 class TestSubRepository:
@@ -378,6 +387,40 @@ class TestSubRepository:
         )
 
 
+class TestResolveSourceOp:
+    def test_records_source_op(self) -> None:
+        op = Op.from_qubit_count(Ident(NS, "op"), 1)
+        builder = SubBuilder(1)
+        builder.add_op(X, builder.qubits)
+
+        repository = SimpleSubRepository()
+        repository.register_sub(op, builder.build())
+
+        resolved = resolve_sub(op, repository)
+        assert resolved is not None
+        assert resolved.source_op == op.id
+
+    def test_leaves_the_registered_sub_untouched(self) -> None:
+        """A resolver may return one Sub registered for several ops, so the
+        source op must land on a copy."""
+        builder = SubBuilder(1)
+        builder.add_op(X, builder.qubits)
+        shared = builder.build()
+
+        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
+        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
+        repository = SimpleSubRepository()
+        repository.register_sub(op1, shared)
+        repository.register_sub(op2, shared)
+
+        first = resolve_sub(op1, repository)
+        second = resolve_sub(op2, repository)
+        assert first is not None and second is not None
+        assert first.source_op == op1.id
+        assert second.source_op == op2.id
+        assert shared.source_op is None
+
+
 class TestCollectSubs:
     def test_collect_subs(self) -> None:
         op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
@@ -417,7 +460,7 @@ class TestCollectSubs:
 
         collector = SubCollector(repository)
         collected_subs = collector.collect_subs(op3)
-        assert collected_subs == {op3: op3_sub(), op2: op2_sub()}
+        assert collected_subs == _with_source_ops({op3: op3_sub(), op2: op2_sub()})
 
     def test_collect_subs_parametric(self) -> None:
         op = Op.from_qubit_count(Ident(NS, "op"), 1)
@@ -463,22 +506,24 @@ class TestCollectSubs:
 
         collector = SubCollector(repository)
         collected_subs = collector.collect_subs(op)
-        assert collected_subs == {
-            op: op_sub(),
-            # used in op
-            indexed_op1(2): indexed_op1_sub(2),
-            indexed_op1(4): indexed_op1_sub(4),
-            # used in op1(2)
-            indexed_op2(4): indexed_op2_sub(4),
-            indexed_op2(6): indexed_op2_sub(6),
-            # used in op2(4)
-            indexed_op2(2): indexed_op2_sub(2),
-            indexed_op2(1): indexed_op2_sub(1),
-            #  used in op2(6)
-            indexed_op2(3): indexed_op2_sub(3),
-            # used in op1(4)
-            indexed_op2(8): indexed_op2_sub(8),
-        }
+        assert collected_subs == _with_source_ops(
+            {
+                op: op_sub(),
+                # used in op
+                indexed_op1(2): indexed_op1_sub(2),
+                indexed_op1(4): indexed_op1_sub(4),
+                # used in op1(2)
+                indexed_op2(4): indexed_op2_sub(4),
+                indexed_op2(6): indexed_op2_sub(6),
+                # used in op2(4)
+                indexed_op2(2): indexed_op2_sub(2),
+                indexed_op2(1): indexed_op2_sub(1),
+                #  used in op2(6)
+                indexed_op2(3): indexed_op2_sub(3),
+                # used in op1(4)
+                indexed_op2(8): indexed_op2_sub(8),
+            }
+        )
 
     def test_collect_subs_custom_resolver(self) -> None:
         op = Op.from_qubit_count(Ident(NS, "op"), 2)
@@ -534,8 +579,10 @@ class TestCollectSubs:
 
         collector = SubCollector(repository)
         collected_subs = collector.collect_subs(op)
-        assert collected_subs == {
-            op: op_sub(),
-            # used in op
-            control(op1): control_op1_sub(),
-        }
+        assert collected_subs == _with_source_ops(
+            {
+                op: op_sub(),
+                # used in op
+                control(op1): control_op1_sub(),
+            }
+        )

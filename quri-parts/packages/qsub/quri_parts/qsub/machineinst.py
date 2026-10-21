@@ -14,7 +14,7 @@ from typing import Optional, TypeAlias
 
 from typing_extensions import TypeGuard
 
-from .op import Op
+from .op import Ident, Op
 from .qubit import Qubit
 from .register import Register
 
@@ -54,6 +54,8 @@ class MachineSub:
     aux_qubits: Sequence[Qubit]
     aux_registers: Sequence[Register]
     instructions: Sequence[MachineInst]
+    #: Identifies the op this sub implements, when it is known.
+    source_op: Optional[Ident] = None
 
     @property
     def sub_id(self) -> SubId:

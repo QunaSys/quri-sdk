@@ -22,7 +22,7 @@ parts:
               - file: docs/tutorials/quri-parts/variational_algorithms
               - file: docs/tutorials/quri-parts/qsub
               - file: docs/tutorials/quri-parts/transpiler
-              - file: docs/tutorials/quri-parts/subwise_mcx
+              - file: docs/tutorials/quri-parts/subwise
               - file: docs/tutorials/quri-parts/quration/index
                 sections:
                   - file: docs/tutorials/quri-parts/quration/basic_resource_estimation

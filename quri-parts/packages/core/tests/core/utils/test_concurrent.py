@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import threading
 from collections.abc import Sequence
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from os import getpid
@@ -23,11 +22,13 @@ class TestExecuteConcurrently:
         assert r == [101, 102, 103]
 
     def test_iterate_with_thread_pool_executor(self) -> None:
-        threads = {}
+        # Collect per-call chunks rather than keying on thread id: the pool may
+        # reuse a worker for more than one chunk, which is not what is tested.
+        chunks: list[tuple[int, ...]] = []
 
         def fn(c: int, s: Sequence[int]) -> Sequence[int]:
             x = [c + i for i in s]
-            threads[threading.get_ident()] = tuple(x)
+            chunks.append(tuple(x))
             sleep(0.01)
             return x
 
@@ -37,7 +38,7 @@ class TestExecuteConcurrently:
             )
 
         assert r == [10 + i for i in range(10)]
-        assert set(threads.values()) == {(10, 11), (12, 13), (14, 15, 16), (17, 18, 19)}
+        assert sorted(chunks) == [(10, 11), (12, 13), (14, 15, 16), (17, 18, 19)]
 
     def test_iterate_with_process_pool_executor(self) -> None:
         with ProcessPoolExecutor(max_workers=4) as executor:

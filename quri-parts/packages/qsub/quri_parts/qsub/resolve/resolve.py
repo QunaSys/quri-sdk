@@ -12,7 +12,7 @@ import logging
 from abc import abstractmethod
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Generic, Protocol, TypeAlias, cast
 
 from typing_extensions import Self
@@ -163,6 +163,9 @@ def resolve_sub(op: Op, repository: SubRepository = default_repository()) -> Sub
             assert (
                 len(actual_registers) == op.reg_count
             ), f"While resolving op {op!r}: expected {op.reg_count} registers, but got {len(actual_registers)}."
+            # A resolver may hand back a Sub shared with other ops, so record
+            # the source op on a copy rather than on the registered instance.
+            return replace(result, source_op=op.id)
         return result
     else:
         return None
