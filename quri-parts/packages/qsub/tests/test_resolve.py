@@ -10,7 +10,6 @@ from quri_parts.qsub.resolve import (
     SimpleSubResolver,
     SubCollector,
     SubRepository,
-    resolve_sub,
 )
 from quri_parts.qsub.resolve.simulator_repo import simulator_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
@@ -377,40 +376,6 @@ class TestSubRepository:
             (X, (sub.qubits[0],), ()),
             (X, (sub.qubits[1],), ()),
         )
-
-
-class TestResolveSourceOp:
-    def test_records_source_op(self) -> None:
-        op = Op.from_qubit_count(Ident(NS, "op"), 1)
-        builder = SubBuilder(1)
-        builder.add_op(X, builder.qubits)
-
-        repository = SimpleSubRepository()
-        repository.register_sub(op, builder.build())
-
-        resolved = resolve_sub(op, repository)
-        assert resolved is not None
-        assert resolved.source_op == op.id
-
-    def test_leaves_the_registered_sub_untouched(self) -> None:
-        """A resolver may return one Sub registered for several ops, so the
-        source op must land on a copy."""
-        builder = SubBuilder(1)
-        builder.add_op(X, builder.qubits)
-        shared = builder.build()
-
-        op1 = Op.from_qubit_count(Ident(NS, "op1"), 1)
-        op2 = Op.from_qubit_count(Ident(NS, "op2"), 1)
-        repository = SimpleSubRepository()
-        repository.register_sub(op1, shared)
-        repository.register_sub(op2, shared)
-
-        first = resolve_sub(op1, repository)
-        second = resolve_sub(op2, repository)
-        assert first is not None and second is not None
-        assert first.source_op == op1.id
-        assert second.source_op == op2.id
-        assert shared.source_op is None
 
 
 class TestCollectSubs:

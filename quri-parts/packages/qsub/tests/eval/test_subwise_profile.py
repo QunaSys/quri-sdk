@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from dataclasses import replace
 
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.compile import compile
@@ -15,13 +14,7 @@ from quri_parts.qsub.namespace import NameSpace
 from quri_parts.qsub.op import Ident, Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.register import QRegSpec
-from quri_parts.qsub.sub import Sub, SubBuilder
-
-
-def _implementing(sub: Sub, op: Op) -> Sub:
-    """Stand in for resolution, which is what normally records the source
-    op."""
-    return replace(sub, source_op=op.id)
+from quri_parts.qsub.sub import SubBuilder
 
 
 def _by_source_op(
@@ -47,13 +40,13 @@ def test_call_count_and_gate_scopes() -> None:
 
     hb = SubBuilder(2)
     hb.add_op(std.CNOT, hb.qubits)
-    hsub = _implementing(hb.build(), H)
+    hsub = hb.build()
 
     gb = SubBuilder(2)
     gb.add_op(std.CNOT, gb.qubits)
     gb.add_op(H, gb.qubits)
     gb.add_op(H, gb.qubits)
-    gsub = _implementing(gb.build(), G)
+    gsub = gb.build()
 
     rb = SubBuilder(2)
     rb.add_op(G, rb.qubits)
@@ -61,7 +54,9 @@ def test_call_count_and_gate_scopes() -> None:
 
     codegen = CodeGenerator([std.CNOT])
     msub = codegen.lower(rb.build())
-    linked = Linker({G: codegen.lower(gsub), H: codegen.lower(hsub)}).link(msub)
+    linked = Linker({G: codegen.lower(gsub, G.id), H: codegen.lower(hsub, H.id)}).link(
+        msub
+    )
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.CNOT,))).run(linked)
     named = _by_source_op(report)
@@ -95,15 +90,15 @@ def test_shared_sub_across_parents() -> None:
 
     cb = SubBuilder(1)
     cb.add_op(std.X, cb.qubits)
-    csub = _implementing(cb.build(), C)
+    csub = cb.build()
 
     ab = SubBuilder(1)
     ab.add_op(C, ab.qubits)
-    asub = _implementing(ab.build(), A)
+    asub = ab.build()
 
     bb = SubBuilder(1)
     bb.add_op(C, bb.qubits)
-    bsub = _implementing(bb.build(), B)
+    bsub = bb.build()
 
     rb = SubBuilder(1)
     rb.add_op(A, rb.qubits)
@@ -113,7 +108,11 @@ def test_shared_sub_across_parents() -> None:
     codegen = CodeGenerator([std.X])
     msub = codegen.lower(rb.build())
     linked = Linker(
-        {A: codegen.lower(asub), B: codegen.lower(bsub), C: codegen.lower(csub)}
+        {
+            A: codegen.lower(asub, A.id),
+            B: codegen.lower(bsub, B.id),
+            C: codegen.lower(csub, C.id),
+        }
     ).link(msub)
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(linked)
@@ -136,7 +135,7 @@ def test_qubit_counts_with_auxiliary() -> None:
     fa0 = fb.add_aux_qubit()
     fb.add_op(std.X, (fq0,))
     fb.add_op(std.X, (fa0,))
-    fsub = _implementing(fb.build(), F)
+    fsub = fb.build()
 
     rb = SubBuilder(2)
     (rq0, _rq1) = rb.qubits
@@ -145,7 +144,7 @@ def test_qubit_counts_with_auxiliary() -> None:
 
     codegen = CodeGenerator([std.X])
     msub = codegen.lower(rb.build())
-    linked = Linker({F: codegen.lower(fsub)}).link(msub)
+    linked = Linker({F: codegen.lower(fsub, F.id)}).link(msub)
 
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
 
@@ -167,21 +166,21 @@ def test_auxiliary_peak_over_siblings() -> None:
 
     f1b = SubBuilder(1)
     f1b.add_op(std.X, (f1b.add_aux_qubit(),))
-    f1sub = _implementing(f1b.build(), F1)
+    f1sub = f1b.build()
 
     f2b = SubBuilder(1)
     f2b.add_op(std.X, (f2b.add_aux_qubit(),))
     f2b.add_op(std.X, (f2b.add_aux_qubit(),))
-    f2sub = _implementing(f2b.build(), F2)
+    f2sub = f2b.build()
 
     rb = SubBuilder(1)
     rb.add_op(F1, rb.qubits)
     rb.add_op(F2, rb.qubits)
 
     codegen = CodeGenerator([std.X])
-    linked = Linker({F1: codegen.lower(f1sub), F2: codegen.lower(f2sub)}).link(
-        codegen.lower(rb.build())
-    )
+    linked = Linker(
+        {F1: codegen.lower(f1sub, F1.id), F2: codegen.lower(f2sub, F2.id)}
+    ).link(codegen.lower(rb.build()))
 
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
     assert _root(report).qubit_counts.auxiliary == 2  # max(1, 2)
