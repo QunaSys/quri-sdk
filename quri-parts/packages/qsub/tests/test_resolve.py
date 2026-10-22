@@ -1,5 +1,3 @@
-from collections.abc import Mapping
-from dataclasses import replace
 from typing import Optional, cast
 
 from quri_parts.qsub.lib.std import MCX, H, MultiControlled, Pauli, X, Y
@@ -18,12 +16,6 @@ from quri_parts.qsub.resolve.simulator_repo import simulator_repository
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 NS = NameSpace("test")
-
-
-def _with_source_ops(subs: Mapping[Op, Sub]) -> dict[Op, Sub]:
-    """Resolution records each sub's source op, so expectations carry it
-    too."""
-    return {op: replace(sub, source_op=op.id) for op, sub in subs.items()}
 
 
 class TestSubRepository:
@@ -460,7 +452,7 @@ class TestCollectSubs:
 
         collector = SubCollector(repository)
         collected_subs = collector.collect_subs(op3)
-        assert collected_subs == _with_source_ops({op3: op3_sub(), op2: op2_sub()})
+        assert collected_subs == {op3: op3_sub(), op2: op2_sub()}
 
     def test_collect_subs_parametric(self) -> None:
         op = Op.from_qubit_count(Ident(NS, "op"), 1)
@@ -506,24 +498,22 @@ class TestCollectSubs:
 
         collector = SubCollector(repository)
         collected_subs = collector.collect_subs(op)
-        assert collected_subs == _with_source_ops(
-            {
-                op: op_sub(),
-                # used in op
-                indexed_op1(2): indexed_op1_sub(2),
-                indexed_op1(4): indexed_op1_sub(4),
-                # used in op1(2)
-                indexed_op2(4): indexed_op2_sub(4),
-                indexed_op2(6): indexed_op2_sub(6),
-                # used in op2(4)
-                indexed_op2(2): indexed_op2_sub(2),
-                indexed_op2(1): indexed_op2_sub(1),
-                #  used in op2(6)
-                indexed_op2(3): indexed_op2_sub(3),
-                # used in op1(4)
-                indexed_op2(8): indexed_op2_sub(8),
-            }
-        )
+        assert collected_subs == {
+            op: op_sub(),
+            # used in op
+            indexed_op1(2): indexed_op1_sub(2),
+            indexed_op1(4): indexed_op1_sub(4),
+            # used in op1(2)
+            indexed_op2(4): indexed_op2_sub(4),
+            indexed_op2(6): indexed_op2_sub(6),
+            # used in op2(4)
+            indexed_op2(2): indexed_op2_sub(2),
+            indexed_op2(1): indexed_op2_sub(1),
+            #  used in op2(6)
+            indexed_op2(3): indexed_op2_sub(3),
+            # used in op1(4)
+            indexed_op2(8): indexed_op2_sub(8),
+        }
 
     def test_collect_subs_custom_resolver(self) -> None:
         op = Op.from_qubit_count(Ident(NS, "op"), 2)
@@ -579,10 +569,8 @@ class TestCollectSubs:
 
         collector = SubCollector(repository)
         collected_subs = collector.collect_subs(op)
-        assert collected_subs == _with_source_ops(
-            {
-                op: op_sub(),
-                # used in op
-                control(op1): control_op1_sub(),
-            }
-        )
+        assert collected_subs == {
+            op: op_sub(),
+            # used in op
+            control(op1): control_op1_sub(),
+        }

@@ -11,7 +11,7 @@
 import functools
 import itertools
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import pi
 from typing import TypeAlias
 
@@ -37,8 +37,9 @@ class Sub:
     qregs: dict[str, QuantumRegister] | None = None
     aux_qregs: dict[str, QuantumRegister] | None = None
     #: Identifies the op this sub implements. Attached when the sub is
-    #: resolved for an op.
-    source_op: Ident | None = None
+    #: resolved for an op. Excluded from equality so a resolved sub still
+    #: compares equal to the sub it was registered as.
+    source_op: Ident | None = field(default=None, compare=False)
 
     @functools.cached_property
     def qreg_specs(self) -> Sequence[QRegSpec]:
