@@ -45,7 +45,7 @@ Qsub, the DSL for describing structured quantum programs that represent FTQC alg
 
 Rewrite qsub programs into a target gate set for fault-tolerant compilation.
 
-### [Locating a Buggy Sub with Subwise Counting](subwise.ipynb)
+### [Locating a Buggy Sub with Subwise Profiling](subwise.ipynb)
 
 Profile a compiled qsub program sub by sub to find which sub inflates the gate and qubit counts.
 
