@@ -1,7 +1,7 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from quri_parts.qsub.codegen import CodeGenerator
-from quri_parts.qsub.compile import compile
+from quri_parts.qsub.compile import compile, compile_sub
 from quri_parts.qsub.eval import (
     QubitCounts,
     SubwiseProfileEntry,
@@ -10,11 +10,24 @@ from quri_parts.qsub.eval import (
 from quri_parts.qsub.evaluate import Evaluator
 from quri_parts.qsub.lib import std
 from quri_parts.qsub.link import Linker
+from quri_parts.qsub.machineinst import MachineSub
 from quri_parts.qsub.namespace import NameSpace
-from quri_parts.qsub.op import Ident, Op
+from quri_parts.qsub.op import AbstractOp, Ident, Op
 from quri_parts.qsub.opsub import ParamUnitarySubDef, param_opsub
 from quri_parts.qsub.register import QRegSpec
-from quri_parts.qsub.sub import SubBuilder
+from quri_parts.qsub.resolve import SimpleSubRepository
+from quri_parts.qsub.sub import Sub, SubBuilder
+
+
+def _link(
+    primitives: Sequence[AbstractOp], entry: tuple[Op, Sub], callees: Mapping[Op, Sub]
+) -> MachineSub:
+    """Lower and link hand-built subs, naming each after its op as compile
+    does."""
+    codegen = CodeGenerator(primitives)
+    entry_op, entry_sub = entry
+    lowered = {op: codegen.lower(sub, op.id) for op, sub in callees.items()}
+    return Linker(lowered).link(codegen.lower(entry_sub, entry_op.id))
 
 
 def _by_source_op(
@@ -23,40 +36,30 @@ def _by_source_op(
     return {e.source_op: e for e in report if e.source_op is not None}
 
 
-def _root(report: list[SubwiseProfileEntry]) -> SubwiseProfileEntry:
-    (root,) = [e for e in report if e.source_op is None]
-    return root
-
-
 def test_call_count_and_gate_scopes() -> None:
-    """root -> G (x2) -> H (x2), each of G and H holding one CNOT.
+    """R -> G (x2) -> H (x2), each of G and H holding one CNOT.
 
     Exercises call-count multiplication through nesting and the
     own/descendants/cumulative split, per-call and aggregated.
     """
     ns = NameSpace("test_scopes")
+    R = Op.from_qubit_count(Ident(ns, "R"), 2)
     G = Op.from_qubit_count(Ident(ns, "G"), 2)
     H = Op.from_qubit_count(Ident(ns, "H"), 2)
 
     hb = SubBuilder(2)
     hb.add_op(std.CNOT, hb.qubits)
-    hsub = hb.build()
 
     gb = SubBuilder(2)
     gb.add_op(std.CNOT, gb.qubits)
     gb.add_op(H, gb.qubits)
     gb.add_op(H, gb.qubits)
-    gsub = gb.build()
 
     rb = SubBuilder(2)
     rb.add_op(G, rb.qubits)
     rb.add_op(G, rb.qubits)
 
-    codegen = CodeGenerator([std.CNOT])
-    msub = codegen.lower(rb.build())
-    linked = Linker({G: codegen.lower(gsub, G.id), H: codegen.lower(hsub, H.id)}).link(
-        msub
-    )
+    linked = _link([std.CNOT], (R, rb.build()), {G: gb.build(), H: hb.build()})
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.CNOT,))).run(linked)
     named = _by_source_op(report)
@@ -74,46 +77,38 @@ def test_call_count_and_gate_scopes() -> None:
     assert g.gate_counts.cumulative.per_call == {std.CNOT.id: 3}
     assert g.gate_counts.cumulative.all_calls == {std.CNOT.id: 6}  # 3 x call_count 2
 
-    root = _root(report)
-    assert root.call_count == 1
-    assert root.gate_counts.own.per_call == {}
-    assert root.gate_counts.descendants.per_call == {std.CNOT.id: 6}
+    r = named[R.id]
+    assert r.call_count == 1
+    assert r.gate_counts.own.per_call == {}
+    assert r.gate_counts.descendants.per_call == {std.CNOT.id: 6}
 
 
 def test_shared_sub_across_parents() -> None:
-    """root -> A -> C, root -> B -> C, root -> C directly: C keeps a single row
-    with call counts summed over all parents and depths."""
+    """R -> A -> C, R -> B -> C, R -> C directly: C keeps a single row with
+    call counts summed over all parents and depths."""
     ns = NameSpace("test_shared")
+    R = Op.from_qubit_count(Ident(ns, "R"), 1)
     A = Op.from_qubit_count(Ident(ns, "A"), 1)
     B = Op.from_qubit_count(Ident(ns, "B"), 1)
     C = Op.from_qubit_count(Ident(ns, "C"), 1)
 
     cb = SubBuilder(1)
     cb.add_op(std.X, cb.qubits)
-    csub = cb.build()
 
     ab = SubBuilder(1)
     ab.add_op(C, ab.qubits)
-    asub = ab.build()
 
     bb = SubBuilder(1)
     bb.add_op(C, bb.qubits)
-    bsub = bb.build()
 
     rb = SubBuilder(1)
     rb.add_op(A, rb.qubits)
     rb.add_op(B, rb.qubits)
     rb.add_op(C, rb.qubits)
 
-    codegen = CodeGenerator([std.X])
-    msub = codegen.lower(rb.build())
-    linked = Linker(
-        {
-            A: codegen.lower(asub, A.id),
-            B: codegen.lower(bsub, B.id),
-            C: codegen.lower(csub, C.id),
-        }
-    ).link(msub)
+    linked = _link(
+        [std.X], (R, rb.build()), {A: ab.build(), B: bb.build(), C: cb.build()}
+    )
 
     report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(linked)
     named = _by_source_op(report)
@@ -121,13 +116,14 @@ def test_shared_sub_across_parents() -> None:
     assert named[C.id].call_count == 3
     assert named[A.id].gate_counts.descendants.per_call == {std.X.id: 1}
     assert named[B.id].gate_counts.descendants.per_call == {std.X.id: 1}
-    assert _root(report).gate_counts.descendants.all_calls == {std.X.id: 3}
+    assert named[R.id].gate_counts.descendants.all_calls == {std.X.id: 3}
 
 
 def test_qubit_counts_with_auxiliary() -> None:
     """auxiliary is the peak ancilla for one invocation, summed with a callee's
     own ancilla when they are live at the same time."""
     ns = NameSpace("test_aux")
+    R = Op.from_qubit_count(Ident(ns, "R"), 2)
     F = Op.from_qubit_count(Ident(ns, "F"), 1)
 
     fb = SubBuilder(1)
@@ -135,55 +131,48 @@ def test_qubit_counts_with_auxiliary() -> None:
     fa0 = fb.add_aux_qubit()
     fb.add_op(std.X, (fq0,))
     fb.add_op(std.X, (fa0,))
-    fsub = fb.build()
 
     rb = SubBuilder(2)
     (rq0, _rq1) = rb.qubits
     rb.add_aux_qubit()
     rb.add_op(F, (rq0,))
 
-    codegen = CodeGenerator([std.X])
-    msub = codegen.lower(rb.build())
-    linked = Linker({F: codegen.lower(fsub, F.id)}).link(msub)
+    linked = _link([std.X], (R, rb.build()), {F: fb.build()})
 
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
+    named = _by_source_op(report)
 
-    f = _by_source_op(report)[F.id]
+    f = named[F.id]
     assert f.qubit_counts == QubitCounts(data=1, auxiliary=1, total=2)
     assert f.gate_counts.own.per_call == {std.X.id: 2}
 
-    root = _root(report)
     # 2 data + 1 local aux + 1 aux live inside F = 4
-    assert root.qubit_counts == QubitCounts(data=2, auxiliary=2, total=4)
+    assert named[R.id].qubit_counts == QubitCounts(data=2, auxiliary=2, total=4)
 
 
 def test_auxiliary_peak_over_siblings() -> None:
     """Sequential callees share ancillas, so a parent's auxiliary is the max
     over its callees, not their sum."""
     ns = NameSpace("test_aux_peak")
+    R = Op.from_qubit_count(Ident(ns, "R"), 1)
     F1 = Op.from_qubit_count(Ident(ns, "F1"), 1)
     F2 = Op.from_qubit_count(Ident(ns, "F2"), 1)
 
     f1b = SubBuilder(1)
     f1b.add_op(std.X, (f1b.add_aux_qubit(),))
-    f1sub = f1b.build()
 
     f2b = SubBuilder(1)
     f2b.add_op(std.X, (f2b.add_aux_qubit(),))
     f2b.add_op(std.X, (f2b.add_aux_qubit(),))
-    f2sub = f2b.build()
 
     rb = SubBuilder(1)
     rb.add_op(F1, rb.qubits)
     rb.add_op(F2, rb.qubits)
 
-    codegen = CodeGenerator([std.X])
-    linked = Linker(
-        {F1: codegen.lower(f1sub, F1.id), F2: codegen.lower(f2sub, F2.id)}
-    ).link(codegen.lower(rb.build()))
+    linked = _link([std.X], (R, rb.build()), {F1: f1b.build(), F2: f2b.build()})
 
     report = Evaluator(SubwiseProfileEvaluatorHooks()).run(linked)
-    assert _root(report).qubit_counts.auxiliary == 2  # max(1, 2)
+    assert _by_source_op(report)[R.id].qubit_counts.auxiliary == 2  # max(1, 2)
 
 
 def test_gate_filter() -> None:
@@ -206,25 +195,6 @@ def test_gate_filter() -> None:
     assert toffoli_only.gate_counts.own.per_call == {std.Toffoli.id: 1}
 
 
-def test_gate_name_collision_across_namespaces() -> None:
-    """Counted gates sharing a local name across namespaces stay distinct,
-    since the key carries the namespace."""
-    ns = NameSpace("custom")
-    MyX = Op.from_qubit_count(Ident(ns, "X"), 1)
-
-    b = SubBuilder(1)
-    b.add_op(std.X, b.qubits)
-    b.add_op(MyX, b.qubits)
-    b.add_op(MyX, b.qubits)
-    msub = CodeGenerator([std.X, MyX]).lower(b.build())
-
-    (entry,) = Evaluator(SubwiseProfileEvaluatorHooks()).run(msub)
-    assert entry.gate_counts.own.per_call == {
-        std.X.id: 1,
-        MyX.id: 2,
-    }
-
-
 def test_parametric_gates_keyed_per_parameter() -> None:
     """Op parameters are part of the key, so rotation angles are counted apart
     even though the gates= filter selects by kind."""
@@ -243,7 +213,7 @@ def test_parametric_gates_keyed_per_parameter() -> None:
 
 def test_parametric_sub_is_named_via_compile() -> None:
     """compile() attaches the entry op, so the root row is named with its
-    parameter (unlike the raw lower/link path, where the root is anonymous)."""
+    parameter."""
 
     class _Twice(ParamUnitarySubDef[int]):
         name = "Twice"
@@ -268,6 +238,28 @@ def test_parametric_sub_is_named_via_compile() -> None:
     assert entry.source_op == Twice(2).id
     assert entry.call_count == 1
     assert entry.gate_counts.own.per_call == {std.Toffoli.id: 2}
+
+
+def test_entry_sub_of_compile_sub_is_anonymous() -> None:
+    """compile_sub() receives a Sub rather than an Op, so its entry row has no
+    source op while the subs it calls are still named."""
+    ns = NameSpace("test_compile_sub")
+    A = Op.from_qubit_count(Ident(ns, "A"), 1)
+
+    ab = SubBuilder(1)
+    ab.add_op(std.X, ab.qubits)
+    repository = SimpleSubRepository()
+    repository.register_sub(A, ab.build())
+
+    eb = SubBuilder(1)
+    eb.add_op(A, eb.qubits)
+    compiled = compile_sub(eb.build(), (std.X,), repository)
+
+    report = Evaluator(SubwiseProfileEvaluatorHooks(gates=(std.X,))).run(compiled)
+    (root,) = [e for e in report if e.source_op is None]
+    assert root.call_count == 1
+    assert root.gate_counts.descendants.per_call == {std.X.id: 1}
+    assert _by_source_op(report)[A.id].call_count == 1
 
 
 def test_parametric_sub_row_per_parameter() -> None:

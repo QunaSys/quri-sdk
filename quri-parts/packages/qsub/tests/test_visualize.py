@@ -1,6 +1,7 @@
 import re
 import shutil
 import sys
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Optional
 
@@ -319,6 +320,10 @@ class TestDrawSub:
 _CG_NS = NameSpace("test_call_graph")
 
 
+def _as_ident(name: "str | Ident") -> Ident:
+    return name if isinstance(name, Ident) else _ident(name)
+
+
 def _ident(local_name: str) -> Ident:
     return Ident(_CG_NS, local_name)
 
@@ -334,15 +339,18 @@ def _dot_attrs(attrs: str) -> dict[str, str]:
 
 class TestDrawCallGraph:
     def _entry(
-        self, name: str, call_count: int, cumulative: dict[str, int]
+        self,
+        source_op: "str | Ident",
+        call_count: int,
+        cumulative: "Mapping[str | Ident, int]",
     ) -> SubwiseProfileEntry:
         counts = GateCounts(
             per_call={},
-            all_calls={_ident(g): n for g, n in cumulative.items()},
+            all_calls={_as_ident(g): n for g, n in cumulative.items()},
         )
         empty = GateCounts(per_call={}, all_calls={})
         return SubwiseProfileEntry(
-            source_op=_ident(name),
+            source_op=_as_ident(source_op),
             call_count=call_count,
             qubit_counts=QubitCounts(data=0, auxiliary=0, total=0),
             gate_counts=GateCountBreakdown(
@@ -398,9 +406,10 @@ class TestDrawCallGraph:
         ]
         c_h = Ident(std_ns, "Controlled", (Ident(std_ns, "H"),))
         mcx = [Ident(std_ns, "MCX", (n,)) for n in (3, 4)]
-        counts = GateCounts(
-            per_call={},
-            all_calls={
+        entry = self._entry(
+            R,
+            1,
+            {
                 rz[0]: 1,
                 rz[1]: 2,
                 rz[2]: 1,
@@ -410,15 +419,6 @@ class TestDrawCallGraph:
                 mcx[0]: 1,
                 mcx[1]: 1,
             },
-        )
-        empty = GateCounts(per_call={}, all_calls={})
-        entry = SubwiseProfileEntry(
-            source_op=R,
-            call_count=1,
-            qubit_counts=QubitCounts(data=0, auxiliary=0, total=0),
-            gate_counts=GateCountBreakdown(
-                own=empty, descendants=empty, cumulative=counts
-            ),
         )
         nodes, _ = self._parse(draw_call_graph({R: {}}, [entry]))
         (label,) = nodes
@@ -431,11 +431,23 @@ class TestDrawCallGraph:
         ]
 
     def test_without_profile_plain_names_and_multiplicities(self) -> None:
-        R, A = _ident("R"), _ident("A")
-        graph: dict[Optional[Ident], dict[Ident, int]] = {R: {A: 2}, A: {}}
+        """Nodes are labelled with plain names and each edge with the count
+        from the graph, also for a callee with several callers."""
+        R, A, B, C = _ident("R"), _ident("A"), _ident("B"), _ident("C")
+        graph: dict[Optional[Ident], dict[Ident, int]] = {
+            R: {A: 1, B: 2},
+            A: {C: 3},
+            B: {C: 1},
+            C: {},
+        }
         nodes, edges = self._parse(draw_call_graph(graph))
-        assert nodes == {"R", "A"}
-        assert {k: v["label"] for k, v in edges.items()} == {("R", "A"): "x2"}
+        assert nodes == {"R", "A", "B", "C"}
+        assert {k: v["label"] for k, v in edges.items()} == {
+            ("R", "A"): "x1",
+            ("R", "B"): "x2",
+            ("A", "C"): "x3",
+            ("B", "C"): "x1",
+        }
 
     def test_repeated_calls_are_highlighted(self) -> None:
         R, A, B = _ident("R"), _ident("A"), _ident("B")
@@ -451,24 +463,6 @@ class TestDrawCallGraph:
         graph: dict[Optional[Ident], dict[Ident, int]] = {long1: {}, long2: {}}
         nodes, _ = self._parse(draw_call_graph(graph))
         assert nodes == {long1.to_str(full=True), long2.to_str(full=True)}
-
-    def test_multi_caller_edges_keep_their_multiplicities(self) -> None:
-        """Edge counts come from the graph itself, so a callee with several
-        callers still gets one exact label per edge."""
-        R, A, B, C = _ident("R"), _ident("A"), _ident("B"), _ident("C")
-        graph: dict[Optional[Ident], dict[Ident, int]] = {
-            R: {A: 1, B: 1},
-            A: {C: 3},
-            B: {C: 1},
-            C: {},
-        }
-        _, edges = self._parse(draw_call_graph(graph))
-        assert {k: v["label"] for k, v in edges.items()} == {
-            ("R", "A"): "x1",
-            ("R", "B"): "x1",
-            ("A", "C"): "x3",
-            ("B", "C"): "x1",
-        }
 
     def test_port_like_idents_stay_single_nodes(self) -> None:
         """graphviz reads ':' in an edge endpoint as a port, so an ident whose
