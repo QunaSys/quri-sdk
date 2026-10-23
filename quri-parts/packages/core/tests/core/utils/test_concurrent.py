@@ -10,7 +10,6 @@
 
 from collections.abc import Sequence
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from os import getpid
 from time import sleep
 
 from quri_parts.core.utils.concurrent import execute_concurrently
@@ -43,22 +42,26 @@ class TestExecuteConcurrently:
     def test_iterate_with_process_pool_executor(self) -> None:
         with ProcessPoolExecutor(max_workers=4) as executor:
             r = execute_concurrently(
-                _getpid,
+                _tag_with_chunk,
                 10,
                 list(range(10)),
                 executor=executor,
                 concurrency=4,
             )
 
-        # Return value is: [(pid1, 10), (pid1, 11), (pid2, 12), ...]
+        # Return value is: [((10, 11), 10), ((10, 11), 11), ((12, 13), 12), ...]
         assert [a for _, a in r] == [10 + i for i in range(10)]
-        # Create a dict with pid as keys and result value tuples as values
-        d: dict[int, Sequence[int]] = {}
-        for p, a in r:
-            d[p] = (*(d.get(p, ())), a)
-        assert set(d.values()) == {(10, 11), (12, 13), (14, 15, 16), (17, 18, 19)}
+        assert {chunk for chunk, _ in r} == {
+            (10, 11),
+            (12, 13),
+            (14, 15, 16),
+            (17, 18, 19),
+        }
 
 
-def _getpid(c: int, s: Sequence[int]) -> Sequence[tuple[int, int]]:
-    sleep(0.3)
-    return [(getpid(), c + i) for i in s]
+def _tag_with_chunk(c: int, s: Sequence[int]) -> Sequence[tuple[tuple[int, ...], int]]:
+    # Worker processes share no memory with the test, so each result carries
+    # the chunk it was computed in; grouping by pid would break when the pool
+    # reuses a worker for a second chunk.
+    chunk = tuple(c + i for i in s)
+    return [(chunk, a) for a in chunk]
