@@ -27,9 +27,9 @@ class QubitCounts:
     ``data`` are the qubits the caller passes in. ``auxiliary`` are the
     sub's own ancillas (its ``aux_qubits``) plus the largest
     ``auxiliary`` among the subs it calls: sequential callees reuse the
-    same ancilla space, so they contribute a maximum rather than a sum,
-    while the sub's own ancillas stay live across those calls and add on
-    top.
+    same ancilla space, so they contribute a maximum rather than a sum.
+    The sub's own ancillas stay live across those calls, so they add to
+    that maximum.
     """
 
     data: int
@@ -127,11 +127,11 @@ class SubwiseProfileEvaluatorHooks(EvaluatorHooks[list[SubwiseProfileEntry]]):
     """Report, per distinct sub, how often it is called and the gate/qubit
     counts attributable to it.
 
-    Mirrors :class:`GateCountEvaluatorHooks`: pass the ops to break
-    down, or nothing to count every primitive. A row's ``source_op``
-    carries the op parameters, so parametric subs are reported
-    separately per parameter (``MCX<5>`` and ``MCX<6>`` are distinct
-    rows).
+    Takes the same arguments as :class:`GateCountEvaluatorHooks`: pass
+    the ops to break down, or nothing to count every primitive. A row's
+    ``source_op`` carries the op parameters, so parametric subs are
+    reported separately per parameter (``MCX<5>`` and ``MCX<6>`` are
+    distinct rows).
     """
 
     def __init__(self, gates: Iterable[AbstractOp] = ()) -> None:
