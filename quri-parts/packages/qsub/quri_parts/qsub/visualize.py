@@ -8,7 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection, Sequence
+from collections import Counter
+from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Mapping, Optional, TypeAlias
 
 from quri_parts.qsub._visualization import (
@@ -19,6 +20,7 @@ from quri_parts.qsub._visualization import (
     GateType,
     MPLCircuitlDrawer,
 )
+from quri_parts.qsub.eval.subwiseprofile import SubwiseProfileEntry
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
@@ -30,13 +32,14 @@ from quri_parts.qsub.lib.std import (
     Toffoli,
 )
 from quri_parts.qsub.machineinst import MachineSub
-from quri_parts.qsub.op import Op
+from quri_parts.qsub.op import Ident, Op, Param
 from quri_parts.qsub.qubit import Qubit
 from quri_parts.qsub.register import Register
 from quri_parts.qsub.resolve import SubRepository, default_repository, resolve_sub
 from quri_parts.qsub.sub import Sub, SubBuilder
 
 if TYPE_CHECKING:
+    import graphviz
     import matplotlib
 
 
@@ -48,6 +51,7 @@ __all__ = [
     "GateType",
     "MPLCircuitlDrawer",
     "draw",
+    "draw_call_graph",
     "draw_msub",
     "draw_sub",
     "machine_sub_to_vis_data",
@@ -427,3 +431,137 @@ def draw(
         return draw_sub(sub, dpi=dpi, scale=scale, debug=debug, filename=filename)
     else:
         return draw_msub(sub, dpi=dpi, scale=scale, debug=debug, filename=filename)
+
+
+# Node names keep float values, which distinguish nodes, so they need more
+# room than the gate lines inside a node.
+_NODE_PARAM_TRUNCATE = 16
+
+
+def _ident_str(
+    ident: Ident, full: bool, param_truncate: int = 0, float_str: Optional[str] = None
+) -> str:
+    """Format an ident like :meth:`Ident.to_str`, with nested idents following
+    ``full`` and each float param shown as ``float_str`` when given."""
+
+    def param_str(p: Param) -> str:
+        if isinstance(p, float) and float_str is not None:
+            return float_str
+        if isinstance(p, Op):
+            p = p.id
+        if isinstance(p, Ident):
+            return _ident_str(p, full, float_str=float_str)
+        if isinstance(p, tuple):
+            return "(" + ", ".join(param_str(q) for q in p) + ")"
+        return str(p)
+
+    s = f"{ident.ns}.{ident.local_name}" if full else ident.local_name
+    if not ident.params:
+        return s
+    joined = ", ".join(map(param_str, ident.params))
+    if 0 < param_truncate < len(joined):
+        joined = joined[:param_truncate] + "..."
+    return f"{s}<{joined}>"
+
+
+def _call_graph_node_names(
+    nodes: Iterable[Optional[Ident]],
+) -> dict[Optional[Ident], str]:
+    """Name each node by its short ident, falling back to the fully qualified
+    one where truncation would make distinct subs look alike."""
+    short = {
+        node: _ident_str(node, False, _NODE_PARAM_TRUNCATE)
+        if node is not None
+        else "(unnamed)"
+        for node in nodes
+    }
+    collisions = {name for name, n in Counter(short.values()).items() if n > 1}
+    return {
+        node: _ident_str(node, True)
+        if node is not None and name in collisions
+        else name
+        for node, name in short.items()
+    }
+
+
+def _call_graph_node_label(name: str, entry: Optional[SubwiseProfileEntry]) -> str:
+    if entry is None:
+        return name
+    lines = [name, f"calls: {entry.call_count}"]
+    # Float params take continuous values, so one line per value gives a box an
+    # unbounded number of lines. The profile keeps the per-value counts.
+    grouped: Counter[tuple[str, str]] = Counter()
+    for gate, count in entry.gate_counts.cumulative.all_calls.items():
+        full = _ident_str(gate, True, float_str="*")
+        grouped[full, _ident_str(gate, False, 8, float_str="*")] += count
+    lines.extend(
+        f"{short}: {count}"
+        for (_, short), count in sorted(grouped.items(), key=lambda kv: (-kv[1], kv[0]))
+    )
+    # DOT's escape for a centered line break.
+    return "\\n".join(lines)
+
+
+def draw_call_graph(
+    graph: Mapping[Optional[Ident], Mapping[Ident, int]],
+    profile: Optional[Sequence[SubwiseProfileEntry]] = None,
+    *,
+    filename: Optional[str] = None,
+) -> "graphviz.Digraph":
+    """Draw a call graph from :class:`CallGraphEvaluatorHooks` with Graphviz.
+
+    Each edge shows the calls per caller invocation. Pass the
+    :class:`SubwiseProfileEvaluatorHooks` report of the same sub as
+    ``profile`` to add call and gate counts to each node. ``filename``
+    saves the drawing in the format of its extension.
+
+    Requires the ``graphviz`` package (the ``visualize`` extra) and the
+    Graphviz system package.
+    """
+    try:
+        import graphviz
+    except ImportError as e:
+        raise ImportError(
+            "draw_call_graph requires the graphviz package: "
+            "pip install 'quri-parts-qsub[visualize]'. Rendering also needs the "
+            "Graphviz system package: https://graphviz.org/download/"
+        ) from e
+
+    entries: Mapping[Optional[Ident], SubwiseProfileEntry] = {
+        e.source_op: e for e in profile or ()
+    }
+    names = _call_graph_node_names(graph)
+    # graphviz reads ':' in an edge endpoint as a port separator, so nodes get
+    # plain ids and show their ident strings only as labels.
+    node_ids = {node: f"n{i}" for i, node in enumerate(graph)}
+
+    dot = graphviz.Digraph(
+        node_attr={
+            "shape": "box",
+            "style": "rounded",
+            # dot underestimates text width; pad so labels fit.
+            "margin": "0.15,0.06",
+            "color": "#808080",
+            "fontname": "Helvetica,Arial,sans-serif",
+            "fontsize": "11",
+        },
+        edge_attr={
+            "color": "#808080",
+            "arrowsize": "0.7",
+            "fontname": "Helvetica,Arial,sans-serif",
+            "fontsize": "10",
+        },
+    )
+    for node in graph:
+        dot.node(node_ids[node], _call_graph_node_label(names[node], entries.get(node)))
+    for caller, callees in graph.items():
+        for callee, m in callees.items():
+            dot.edge(
+                node_ids[caller],
+                node_ids[callee],
+                label=f"x{m}",
+                fontcolor="#d62728" if m > 1 else "#808080",
+            )
+    if filename:
+        dot.render(outfile=filename, cleanup=True)
+    return dot

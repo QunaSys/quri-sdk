@@ -50,7 +50,7 @@ def compile(
         trans = SequentialTranspiler(sub_transpilers)
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)
-    msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
+    msubs = {op: codegen.lower(sub, op.id) for op, sub in subs.items()}
     entry_msub = msubs[entry_op]
     return link(entry_msub, msubs)
 
@@ -71,6 +71,6 @@ def compile_sub(
         entry_sub = trans(entry_sub)
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)
-    msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
+    msubs = {op: codegen.lower(sub, op.id) for op, sub in subs.items()}
     entry_msub = codegen.lower(entry_sub)
     return link(entry_msub, msubs)
