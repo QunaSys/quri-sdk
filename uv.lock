@@ -2273,19 +2273,19 @@ wheels = [
 
 [[package]]
 name = "juliacall"
-version = "0.9.24"
+version = "0.9.37"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "juliapkg" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/cb/4b/63965b6ebc97c861b5b565bdfc5fbe942aaf6ac99b1b17427e1369fb4bec/juliacall-0.9.24.tar.gz", hash = "sha256:31bed223489b535e4e8db46bfff4596350c24f757b9c2d17296c07397f75948b", size = 470319, upload-time = "2025-01-22T10:39:49.438Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/8e/bf4fdb7bcb077747ba0031bea51023e559476c0ab7fc8ba8ea0d59a608eb/juliacall-0.9.37.tar.gz", hash = "sha256:246db2ec648cd50dcd446d02323e0b187949a2ab50e06e32fe6db1a4323eba75", size = 502805, upload-time = "2026-10-19T19:03:30.597Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/2b/88/bc544390a0bbf1eb425540b2ba2abe0d478c31d3002a703fdb640f4abc2a/juliacall-0.9.24-py3-none-any.whl", hash = "sha256:f1d7b718228c477aeba770290647f3b2d0052f683da891b4e9f88c1e1da0a394", size = 11950, upload-time = "2025-01-22T10:39:47.389Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/fc/97ba79312c411bb25e31ea460b7080b2da932c884086967e5d06ddf80107/juliacall-0.9.37-py3-none-any.whl", hash = "sha256:e8413f2081e77c04a4ba379bdb93620c0753bd7bc335127773c318ce3526b1b9", size = 12774, upload-time = "2026-10-19T19:03:29.144Z" },
 ]
 
 [[package]]
 name = "juliapkg"
-version = "0.1.24"
+version = "0.1.27"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
@@ -2293,9 +2293,9 @@ dependencies = [
     { name = "tomli" },
     { name = "tomlkit" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/42/db/a419cef4a40f2a85578509e8369da1295c05a405cf6f4f097ab030ffb7bd/juliapkg-0.1.24.tar.gz", hash = "sha256:5fdb000639c2d00edbc7524753cc732d1503902473bdbf6bd46e69c7d8f2cbd5", size = 23872, upload-time = "2026-05-31T15:09:06.498Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/10/cb/e1bdfe4e8ad365532f560a39c87a70a9ef40464d82226bbc022654d54243/juliapkg-0.1.27.tar.gz", hash = "sha256:89cbdc56030f3de82c26bc84e2c0e99740675b6c14a746585522b84f52c47e08", size = 26018, upload-time = "2026-09-19T13:03:33.308Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1c/00/fe4ed0756d1bbc30c7de45ec084f2468b74de4cdebcca2a27fb1bb366d62/juliapkg-0.1.24-py3-none-any.whl", hash = "sha256:cc3d39ccd26c82aa1fcaea413c6d7be062bbabdda07b922ac73a1abb7f38b7f8", size = 22297, upload-time = "2026-05-31T15:09:05.488Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/fc/019ecccb5ed710aa38ae4173facf0bb411d855d2d137ad29ec31c16342da/juliapkg-0.1.27-py3-none-any.whl", hash = "sha256:c2f6c53a65a4f4a1c124db8400ad48c9f142b2def67b2db86703f0cedc42c150", size = 23087, upload-time = "2026-09-19T13:03:31.648Z" },
 ]
 
 [[package]]
@@ -5327,7 +5327,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "juliacall", specifier = ">=0.9.12,<0.9.25" },
+    { name = "juliacall", specifier = ">=0.9.32,<0.10.0" },
     { name = "quri-parts-circuit", editable = "quri-parts/packages/circuit" },
     { name = "quri-parts-core", editable = "quri-parts/packages/core" },
 ]
@@ -5503,7 +5503,7 @@ requires-dist = [
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.27.0"
+version = "0.28.0"
 source = { directory = "quri-parts/packages/rust" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -5775,7 +5775,7 @@ typecheck = [{ name = "mypy", specifier = "==1.8.0" }]
 
 [[package]]
 name = "quri-vm"
-version = "0.27.0"
+version = "0.28.0"
 source = { editable = "quri-vm" }
 dependencies = [
     { name = "matplotlib" },
