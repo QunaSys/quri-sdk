@@ -8,6 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Named multi-controlled gates (:mod:`quri_parts.qsub.lib.std.multi_control_gates`)
+=================================================================================
+
+Defines parametric op factories for every standard multi-controlled gate
+(MCX, MCY, MCZ, MCS, MCT, MCH, MCRX, etc.) with variable control-bit
+count, together with their sub-resolvers.
+
+Contents:
+
+- :data:`MCX`, :data:`MCY`, :data:`MCZ`: multi-controlled Paulis
+- :data:`MCS`, :data:`MCT`, :data:`MCH`: multi-controlled Clifford gates
+- :data:`MCRX`, :data:`MCRY`, :data:`MCRZ`: multi-controlled rotations
+- :func:`generate_multicontrolled_to_mc_sub_resolver`: smart resolver
+"""
+
 import math
 from contextlib import AbstractContextManager
 from typing import Callable, Sequence

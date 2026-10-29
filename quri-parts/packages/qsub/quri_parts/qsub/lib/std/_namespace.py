@@ -8,6 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Internal namespace for std (:mod:`quri_parts.qsub.lib.std._namespace`)
+======================================================================
+
+Defines the ``lib.std``
+:class:`~quri_parts.qsub.namespace.NameSpace` used to scope all
+standard-library gate identifiers.
+"""
+
 from quri_parts.qsub.namespace import NameSpace
 
 from .. import NS as parent_ns

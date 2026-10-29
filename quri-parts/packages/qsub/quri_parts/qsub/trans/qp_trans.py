@@ -8,6 +8,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+QURI Parts circuit transpiler bridge (:mod:`quri_parts.qsub.trans.qp_trans`)
+============================================================================
+
+Bridges qsub sub-routines to QURI Parts circuit transpilers by
+converting operation chunks to
+:class:`~quri_parts.circuit.QuantumCircuit`, running external
+transpiler passes, and converting back.
+
+Contents:
+
+- :class:`SeparateQURIPartsTranspiler`: chunk-based QURI Parts bridge
+- :func:`convert_to_qp`: operations to QuantumCircuit
+- :func:`convert_from_qp`: QuantumCircuit to operations
+"""
+
 from collections.abc import Collection, Iterable, Mapping
 from typing import Any, cast
 

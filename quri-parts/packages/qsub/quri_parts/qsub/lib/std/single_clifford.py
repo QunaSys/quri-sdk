@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Single-qubit Clifford gates (:mod:`quri_parts.qsub.lib.std.single_clifford`)
+============================================================================
+
+Fixed (non-parametric) single-qubit Clifford gates.
+
+Contents:
+
+- :data:`H`: Hadamard gate
+- :data:`X`, :data:`Y`, :data:`Z`: Pauli gates
+- :data:`S`, :data:`Sdag`: phase gates
+- :data:`SqrtX`, :data:`SqrtXdag`, :data:`SqrtY`, :data:`SqrtYdag`:
+  square roots of X and Y and their inverses
+"""
+
 from quri_parts.qsub.op import Ident, Op
 from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 
