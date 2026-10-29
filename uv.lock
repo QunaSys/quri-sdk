@@ -5496,7 +5496,7 @@ requires-dist = [
 
 [[package]]
 name = "quri-parts-rust"
-version = "0.27.0"
+version = "0.28.0"
 source = { directory = "quri-parts/packages/rust" }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -5768,7 +5768,7 @@ typecheck = [{ name = "mypy", specifier = "==1.8.0" }]
 
 [[package]]
 name = "quri-vm"
-version = "0.27.0"
+version = "0.28.0"
 source = { editable = "quri-vm" }
 dependencies = [
     { name = "matplotlib" },
