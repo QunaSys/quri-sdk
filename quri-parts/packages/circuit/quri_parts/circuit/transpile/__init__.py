@@ -8,6 +8,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Transpile (:mod:`quri_parts.circuit.transpile`)
+===============================================
+
+Circuit transpilation protocols, decomposers, and
+optimisation passes.
+
+Contents:
+
+- :data:`RZSetTranspiler`: transpile to X, SqrtX, CNOT, and RZ
+- :data:`RotationSetTranspiler`: transpile to RX, RY, RZ, and CNOT
+- :class:`CliffordRZSetTranspiler`: transpile to Clifford gates, RZ, CZ, and CNOT
+- :data:`STARSetTranspiler`: transpile to the STAR architecture gate set (H, RZ, and
+  CNOT)
+"""
+
+
 from typing import Callable
 
 from quri_parts.circuit import gate_names
