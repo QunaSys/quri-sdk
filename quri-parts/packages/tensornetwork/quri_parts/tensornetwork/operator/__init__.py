@@ -273,15 +273,17 @@ def operator_to_tensor(
 
     data: Union[npt.NDArray[np.complex128], Literal[0]]
     if isinstance(operator, PauliLabel):
-        qubit_count = len(operator.qubit_indices())
-        data = pauli_label_to_array(operator)
-        all_indices = set(operator.qubit_indices())
+        all_indices = set(operator.qubit_indices()) or {0}
+        qubit_count = len(all_indices)
+        data = pauli_label_to_array(operator, all_indices)
     else:
         assert isinstance(operator, Operator)
         indices_list = [{i for i in p.qubit_indices()} for p in operator.keys()]
         all_indices = set()
         for i in indices_list:
             all_indices.update(i)
+        if not all_indices:
+            all_indices = {0}
         qubit_count = len(all_indices)
         data = sum(
             map(
@@ -311,15 +313,20 @@ def pauli_label_to_tensor(
     pl: PauliLabel, backend: str = "numpy", coefficient: Optional[complex] = None
 ) -> TensorNetworkOperator:
     tensor_map = {}
+    if pl == PAULI_IDENTITY:
+        arr = np.array(_PAULI_OPERATOR_DATA_MAP[0], dtype=np.complex128)
+        if coefficient is not None:
+            arr *= coefficient
+        tensor_map[0] = Node(arr, backend=backend)
     input_edges = []
     output_edges = []
-    for qb, p in pl:
+    for i, (qb, p) in enumerate(pl):
         arr = np.array(_PAULI_OPERATOR_DATA_MAP[p], dtype=np.complex128)
-        if coefficient is not None:
+        if i == 0 and coefficient is not None:
             arr *= coefficient
         tensor_map[qb] = Node(arr, backend=backend)
 
-    for qb in sorted([t[0] for t in pl]):
+    for qb in sorted(tensor_map):
         input_edges.append(tensor_map[qb][0])
         output_edges.append(tensor_map[qb][1])
 
