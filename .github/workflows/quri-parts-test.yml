@@ -97,6 +97,12 @@ jobs:
         source .venv/bin/activate
         julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
+    # draw_call_graph tests render with dot and are skipped without it.
+    - name: Install Graphviz
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends graphviz
+
     - name: Run pytest
       # gridsynth-marked tests use pygridsynth, which requires Python >= 3.10.
       run: |
