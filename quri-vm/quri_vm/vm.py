@@ -61,9 +61,6 @@ class VM:
             lowering_level = max(vm_backend.lowering_levels)
 
         self._set_vm_backend(vm_backend, lowering_level)
-        self._sampler: GeneralSampler[
-            CircuitQuantumState, ParametricCircuitQuantumState
-        ] = GeneralSampler(self._sample, self._sample_state)
 
     def _set_vm_backend(
         self, vm_backend: VMBackend | None, lowering_level: LoweringLevel
@@ -125,7 +122,9 @@ class VM:
         parametric samplers. For example, ``vm.sample(circuit, shots)`` samples one
         circuit and ``vm.sample([(circuit, shots), ...])`` samples several.
         """
-        return self._sampler
+        # Built on each access: GeneralSampler holds local functions, so storing
+        # it on the VM would make the VM unpicklable.
+        return GeneralSampler(self._sample, self._sample_state)
 
     def _sample(
         self,

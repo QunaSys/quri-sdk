@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pickle
 from math import pi
 
 import pytest
@@ -181,6 +182,11 @@ def test_vm_sample_rejects_state_vector() -> None:
     state = quantum_state(2, vector=[0, 1, 0, 0])
     with pytest.raises(ValueError):
         VM().sample(state, 100)  # type: ignore[call-overload]
+
+
+def test_vm_is_picklable() -> None:
+    vm = pickle.loads(pickle.dumps(VM()))
+    assert sum(vm.sample(_circuit(), 100).values()) == 100
 
 
 class TestVMBackend:
