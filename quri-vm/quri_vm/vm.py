@@ -15,6 +15,7 @@ from quri_parts.core.sampling import GeneralSampler, MeasurementCounts
 from quri_parts.core.state import (
     CircuitQuantumState,
     ParametricCircuitQuantumState,
+    QuantumStateVector,
     quantum_state,
 )
 
@@ -150,6 +151,9 @@ class VM:
     def _sample_state(
         self, state: CircuitQuantumState, shots: int
     ) -> MeasurementCounts:
+        # _sample only sees the circuit, so the initial vector would be dropped.
+        if isinstance(state, QuantumStateVector):
+            raise ValueError(f"Unsupported state type: {state}")
         return self._sample(state.circuit, shots)
 
     def transpile(

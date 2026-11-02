@@ -10,6 +10,8 @@
 
 from math import pi
 
+import pytest
+
 # from quri_vm.backend.devices import (
 from quri_parts.backend.devices import (
     clifford_t_device,
@@ -173,6 +175,12 @@ def test_vm_sample_is_general_sampler() -> None:
     counts = concurrent_sampler([(circuit, 10), (circuit, 20)])
     assert [sum(c.values()) for c in counts] == [10, 20]
     assert sum(state_sampler(state, 100).values()) == 100
+
+
+def test_vm_sample_rejects_state_vector() -> None:
+    state = quantum_state(2, vector=[0, 1, 0, 0])
+    with pytest.raises(ValueError):
+        VM().sample(state, 100)  # type: ignore[call-overload]
 
 
 class TestVMBackend:
