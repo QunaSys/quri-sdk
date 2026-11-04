@@ -173,6 +173,7 @@ def test_vm_sample_is_general_sampler() -> None:
     state_sampler: StateSampler[CircuitQuantumState] = vm.sample
 
     assert sum(sampler(circuit, 100).values()) == 100
+    assert sum(vm.sample(circuit=circuit, shots=100).values()) == 100
     counts = concurrent_sampler([(circuit, 10), (circuit, 20)])
     assert [sum(c.values()) for c in counts] == [10, 20]
     assert sum(state_sampler(state, 100).values()) == 100

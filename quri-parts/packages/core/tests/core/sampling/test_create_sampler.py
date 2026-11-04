@@ -236,6 +236,7 @@ class TestGeneralSampler(TestCase):
     def test_shots_kwarg(self) -> None:
         circuit = self.param_circuit_1.bind_parameters([1, 2])
         assert self.general_sampler(circuit, shots=1000) == {0: 3000}
+        assert self.general_sampler(circuit=circuit, shots=1000) == {0: 3000}
         state = self.param_state_1.bind_parameters([1.0, 2.0])
         assert self.general_sampler(state, shots=1000) == {0: 3000}
 
