@@ -67,3 +67,7 @@ with open("qp_type_aliases.json") as f:
 
 autodoc_typehints = "description"
 add_module_names = False
+
+# Avoids duplicate object description warnings for classes documenting an
+# Attributes: section alongside :members:/:undoc-members:.
+napoleon_use_ivar = True

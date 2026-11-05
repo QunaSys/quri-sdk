@@ -34,6 +34,7 @@ from quri_parts.backend import (
 )
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 from quri_parts.qiskit.circuit import QiskitCircuitConverter, convert_circuit
 
 from .saved_sampling import (
@@ -95,8 +96,8 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         backend: A Qiskit :class:`qiskit_ibm_runtime.ibm_backend` that
             interfaces with IBM quantum backend.
         service: A Qiskit
-        :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
-        that interacts with the Qiskit Runtime service.
+            :class:`qiskit_ibm_runtime.qiskit_runtime_service.QiskitRuntimeService`
+            that interacts with the Qiskit Runtime service.
         circuit_converter: A function converting
             :class:`~quri_parts.circuit.NonParametricQuantumCircuit` to
             a Qiskit :class:`qiskit.circuit.QuantumCircuit`.
@@ -206,7 +207,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
     def __enter__(self) -> "QiskitRuntimeSamplingBackend":
         """The backend passed during `__init__`, is used to construct a
         session, which will be closed after the `with` scope ends."""
-        session = Session(service=self._service, backend=self._backend)
+        session = Session(backend=self._backend)
         session.__enter__()
 
         self._session = session
@@ -333,13 +334,14 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
                 )
             jobs_list.append(qiskit_runtime_sampling_job)
 
-    def sample(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
+    @deprecated_shots_kwarg
+    def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
 
         # Distribute shot count and execution time
         shot_dist = distribute_backend_shots(
-            n_shots, self._min_shots, self._max_shots, self._enable_shots_roundup
+            shots, self._min_shots, self._max_shots, self._enable_shots_roundup
         )
         (
             single_batch_execution_time,
@@ -363,9 +365,9 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
         try:
             if self._session is None:
                 # Create a session if there is no session
-                with Session(service=self._service, backend=self._backend) as session:
+                with Session(backend=self._backend) as session:
                     runtime_sampler = Sampler(
-                        session=session, options=qiskit_sampler_options
+                        mode=session, options=qiskit_sampler_options
                     )
                     self._execute_shots(
                         runtime_sampler, transpiled_circuit, shot_dist, jobs
@@ -374,7 +376,7 @@ class QiskitRuntimeSamplingBackend(SamplingBackend):
             else:
                 # Do not end the session if it has been already created
                 runtime_sampler = Sampler(
-                    session=self._session, options=qiskit_sampler_options
+                    mode=self._session, options=qiskit_sampler_options
                 )
                 self._execute_shots(
                     runtime_sampler, transpiled_circuit, shot_dist, jobs

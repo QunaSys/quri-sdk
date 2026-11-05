@@ -201,6 +201,52 @@ class TestQiskitPrimitive:
         expected_counts = {1: 20.0}
         assert counts == expected_counts
 
+    @patch("quri_parts.qiskit.backend.primitive.Sampler")
+    @patch("quri_parts.qiskit.backend.primitive.Session")
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    def test_sampler_uses_runtime_mode_api(
+        self, session_cls: MagicMock, sampler_cls: MagicMock
+    ) -> None:
+        # qiskit-ibm-runtime >= 0.30 constructs the session from the backend
+        # alone and receives it through ``Sampler(mode=...)``.
+        session = MagicMock()
+        session_cls.return_value.__enter__.return_value = session
+        sampler_cls.return_value.run = fake_run
+        backend = mock_get_backend().backend()
+        options = SamplerOptions()
+
+        sampler = QiskitRuntimeSamplingBackend(backend=backend, sampler_options=options)
+        job = sampler.sample(QuantumCircuit(2), 10)
+
+        session_cls.assert_called_once_with(backend=backend)
+        sampler_cls.assert_called_once()
+        assert sampler_cls.call_args.kwargs["mode"] is session
+        assert isinstance(sampler_cls.call_args.kwargs["options"], SamplerOptions)
+        assert isinstance(job, QiskitRuntimeSamplingJob)
+        assert job.result().counts == {1: 10.0}
+
+    @patch("quri_parts.qiskit.backend.primitive.Sampler")
+    @patch("quri_parts.qiskit.backend.primitive.Session")
+    @patch("qiskit.transpile", fake_qiskit_transpile)
+    def test_sampler_context_manager_uses_runtime_mode_api(
+        self, session_cls: MagicMock, sampler_cls: MagicMock
+    ) -> None:
+        session = session_cls.return_value
+        sampler_cls.return_value.run = fake_run
+        backend = mock_get_backend(False).backend()
+
+        with QiskitRuntimeSamplingBackend(backend=backend) as sampler:
+            job = sampler.sample(QuantumCircuit(2), 10)
+            session.__exit__.assert_not_called()
+
+        session_cls.assert_called_once_with(backend=backend)
+        session.__enter__.assert_called_once()
+        session.__exit__.assert_called_once()
+        sampler_cls.assert_called_once()
+        assert sampler_cls.call_args.kwargs["mode"] is session
+        assert isinstance(job, QiskitRuntimeSamplingJob)
+        assert job.result().counts == {1: 10.0}
+
     @pytest.mark.api
     def test_sampler_live_simple(self) -> None:
         service = QiskitRuntimeService()

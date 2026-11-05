@@ -86,6 +86,20 @@ class TestQulacsVectorSampler:
         assert all(c >= 0 for c in counts.values())
         assert sum(counts.values()) == shots
 
+    # Up to 1024 shots on 4 qubits uses qulacs sampling; more uses multinomial.
+    @pytest.mark.parametrize("shots", [1000, 2000])
+    def test_sampler_is_reproducible_with_seed(self, shots: int) -> None:
+        circuit = QuantumCircuit(4)
+        for i in range(4):
+            circuit.add_H_gate(i)
+
+        counts1 = create_qulacs_vector_sampler(7)(circuit, shots)
+        counts2 = create_qulacs_vector_sampler(7)(circuit, shots)
+        counts3 = create_qulacs_vector_sampler(8)(circuit, shots)
+
+        assert counts1 == counts2
+        assert counts1 != counts3
+
     @pytest.mark.parametrize("qubits", [4, 12])
     @pytest.mark.parametrize("shots", [800, 1200, 2**12 + 100])
     def test_ideal_sampler(self, qubits: int, shots: int) -> None:

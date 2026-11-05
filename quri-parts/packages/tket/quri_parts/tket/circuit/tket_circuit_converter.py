@@ -8,11 +8,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+tket to QURI Parts (:mod:`quri_parts.tket.circuit.tket_circuit_converter`)
+==========================================================================
+
+Convert tket quantum circuits to QURI Parts.
+
+Contents:
+
+- :func:`circuit_from_tket`: convert a tket circuit to a QURI Parts circuit
+"""
+
 from collections.abc import Mapping
 from typing import Callable, Sequence, cast
 
 from numpy import array, pi
 from pytket import Circuit, OpType, Qubit
+from pytket.utils import permute_rows_cols_in_unitary
 
 from quri_parts.circuit import (
     ImmutableQuantumCircuit,
@@ -129,6 +141,12 @@ def circuit_from_tket(tket_circuit: Circuit) -> ImmutableQuantumCircuit:
                 matrix = operation.op.get_matrix()
             else:
                 matrix = operation.op.get_unitary()
+            if len(qubits) > 1:
+                # tket returns matrices in big-endian order.
+                # QURI Parts uses little-endian order for the same target indices.
+                matrix = permute_rows_cols_in_unitary(
+                    matrix, tuple(reversed(range(len(qubits))))
+                )
             circuit.add_UnitaryMatrix_gate(target_indices=qubits, unitary_matrix=matrix)
 
         else:

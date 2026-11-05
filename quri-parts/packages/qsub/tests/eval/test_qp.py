@@ -1,3 +1,5 @@
+import pytest
+
 from quri_parts.circuit import QuantumCircuit, gates
 from quri_parts.qsub.compile import compile, compile_sub
 from quri_parts.qsub.eval.quriparts import (
@@ -7,7 +9,7 @@ from quri_parts.qsub.eval.quriparts import (
 )
 from quri_parts.qsub.evaluate import Evaluator
 from quri_parts.qsub.expand import full_expand
-from quri_parts.qsub.lib.std import CNOT, CZ, RZ, H, S, T, Toffoli, X
+from quri_parts.qsub.lib.std import CNOT, CZ, RX, RY, RZ, H, S, T, Toffoli, X
 from quri_parts.qsub.opsub import OpSubDef, opsub
 from quri_parts.qsub.sub import SubBuilder
 
@@ -135,3 +137,19 @@ def test_reuse_evaluator() -> None:
     qp_circuit_1 = qp_generator.run(compiled)
 
     assert qp_circuit_0.gates == qp_circuit_1.gates
+
+
+def test_compile_sub_applies_default_gate_set_conversion() -> None:
+    builder = SubBuilder(1)
+    q = builder.qubits[0]
+    builder.add_op(RX(0.1), (q,))
+    builder.add_op(RY(0.2), (q,))
+    builder.add_op(RZ(0.3), (q,))
+    sub = builder.build()
+    primitives = (H, S, RZ, CNOT)
+
+    converted = Evaluator(QURIPartsEvaluatorHooks()).run(compile_sub(sub, primitives))
+    assert {gate.name for gate in converted.gates} <= {"H", "S", "RZ", "CNOT"}
+
+    with pytest.raises(ValueError, match="not found in calltable"):
+        compile_sub(sub, primitives, sub_transpilers=())

@@ -250,7 +250,7 @@ impl CircuitNoiseInstruction for MeasurementNoise {
     fn create_resolver(&self) -> Box<dyn CircuitNoiseResolver + Send + Sync> {
         Box::new(MeasurementNoiseResolver {
             noises: self.noises.clone(),
-            qubit_indices: vec![],
+            qubit_indices: self.qubit_indices.clone(),
         })
     }
 }

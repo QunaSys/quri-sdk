@@ -75,7 +75,7 @@ class SamplingBackend(Protocol):
     """A quantum computing backend that can perform a sampling measurement."""
 
     @abstractmethod
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
+    def sample(self, circuit: ImmutableQuantumCircuit, shots: int) -> SamplingJob:
         """Perform a sampling measurement of a circuit."""
         ...
 

@@ -12,12 +12,13 @@ from collections.abc import Mapping
 from typing import Callable, Sequence
 
 import numpy as np
+import pytest
 from pytket import Circuit, OpType, Qubit
-from pytket.circuit import Unitary1qBox, Unitary2qBox, Unitary3qBox
+from pytket.circuit import BasisOrder, Unitary1qBox, Unitary2qBox, Unitary3qBox
 from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
-from quri_parts.tket.circuit import convert_circuit
+from quri_parts.tket.circuit import circuit_from_tket, convert_circuit
 
 
 def circuit_equal(c1: Circuit, c2: Circuit) -> bool:
@@ -227,7 +228,9 @@ def test_convert_unitary_matrix_2q_gate() -> None:
     qp_circuit.add_gate(qp_gate)
 
     tket_circuit = Circuit(n_qubit)
-    tket_circuit.add_unitary2qbox(Unitary2qBox(umat), *target_indices)
+    tket_circuit.add_unitary2qbox(
+        Unitary2qBox(umat, basis=BasisOrder.dlo), *target_indices
+    )
 
     converted = convert_circuit(qp_circuit)
     expected = tket_circuit
@@ -246,12 +249,54 @@ def test_convert_unitary_matrix_3q_gate() -> None:
     qp_circuit.add_gate(qp_gate)
 
     tket_circuit = Circuit(n_qubit)
-    tket_circuit.add_unitary3qbox(Unitary3qBox(umat), *target_indices)
+    tket_circuit.add_unitary3qbox(
+        Unitary3qBox(umat, basis=BasisOrder.dlo), *target_indices
+    )
 
     converted = convert_circuit(qp_circuit)
     expected = tket_circuit
 
     assert circuit_equal(converted, expected)
+
+
+@pytest.mark.parametrize(
+    "target_indices",
+    [(0, 1), (1, 0), (1, 3), (3, 1), (0, 1, 2), (2, 0, 1), (3, 0, 2)],
+)
+def test_convert_unitary_matrix_basis_order(target_indices: tuple[int, ...]) -> None:
+    x = np.array([[0, 1], [1, 0]])
+    y = np.array([[0, -1j], [1j, 0]])
+    z = np.diag([1, -1])
+    umat = np.kron(z, x)
+    expected = Circuit(4).X(target_indices[0]).Z(target_indices[-1])
+    if len(target_indices) == 3:
+        umat = np.kron(z, np.kron(y, x))
+        expected.Y(target_indices[1])
+
+    circuit = QuantumCircuit(4)
+    circuit.add_UnitaryMatrix_gate(target_indices, umat.tolist())
+
+    np.testing.assert_allclose(
+        convert_circuit(circuit).get_unitary(), expected.get_unitary(), atol=1e-14
+    )
+
+
+@pytest.mark.parametrize(
+    "target_indices",
+    [(3,), (0, 1), (3, 1), (0, 1, 2), (2, 0, 1), (3, 0, 2)],
+)
+def test_unitary_matrix_round_trip(target_indices: tuple[int, ...]) -> None:
+    umat = unitary_group.rvs(2 ** len(target_indices), random_state=42)
+    circuit = QuantumCircuit(4)
+    circuit.add_UnitaryMatrix_gate(target_indices, umat.tolist())
+
+    converted = convert_circuit(circuit)
+    restored = circuit_from_tket(converted)
+
+    assert restored.qubit_count == circuit.qubit_count
+    assert len(restored.gates) == 1
+    assert restored.gates[0].target_indices == target_indices
+    np.testing.assert_allclose(restored.gates[0].unitary_matrix, umat, atol=1e-14)
 
 
 def test_convert_u1_gate() -> None:

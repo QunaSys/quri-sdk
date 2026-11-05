@@ -9,6 +9,7 @@
 # limitations under the License.
 
 from collections.abc import Iterable
+from typing import Optional
 
 from quri_parts.qsub.codegen import CodeGenerator
 from quri_parts.qsub.link import link
@@ -19,19 +20,37 @@ from quri_parts.qsub.sub import Sub
 from quri_parts.qsub.trans import SequentialTranspiler, SubTranspiler
 
 
+def _default_sub_transpilers(
+    primitives: Iterable[AbstractOp],
+) -> tuple[SubTranspiler, ...]:
+    from quri_parts.circuit.transpile import GateSetConversionTranspiler
+    from quri_parts.qsub.trans.qp_trans import (
+        SeparateQURIPartsTranspiler,
+        gateset_from_primitives,
+    )
+
+    target = gateset_from_primitives(primitives)
+    if not target:
+        return ()
+    return (SeparateQURIPartsTranspiler([GateSetConversionTranspiler(target)]),)
+
+
 def compile(
     entry_op: Op,
     primitives: Iterable[AbstractOp],
     repository: SubRepository = default_repository(),
-    sub_transpilers: Iterable[SubTranspiler] = (),
+    sub_transpilers: Optional[Iterable[SubTranspiler]] = None,
 ) -> MachineSub:
+    primitives = tuple(primitives)
+    if sub_transpilers is None:
+        sub_transpilers = _default_sub_transpilers(primitives)
     collector = SubCollector(repository)
     subs = collector.collect_subs(entry_op)
     if sub_transpilers:
         trans = SequentialTranspiler(sub_transpilers)
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)
-    msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
+    msubs = {op: codegen.lower(sub, op.id) for op, sub in subs.items()}
     entry_msub = msubs[entry_op]
     return link(entry_msub, msubs)
 
@@ -40,8 +59,11 @@ def compile_sub(
     entry_sub: Sub,
     primitives: Iterable[AbstractOp],
     repository: SubRepository = default_repository(),
-    sub_transpilers: Iterable[SubTranspiler] = (),
+    sub_transpilers: Optional[Iterable[SubTranspiler]] = None,
 ) -> MachineSub:
+    primitives = tuple(primitives)
+    if sub_transpilers is None:
+        sub_transpilers = _default_sub_transpilers(primitives)
     collector = SubCollector(repository)
     subs = collector.collect_subs(entry_sub)
     if sub_transpilers:
@@ -49,6 +71,6 @@ def compile_sub(
         entry_sub = trans(entry_sub)
         subs = {k: trans(v) for k, v in subs.items()}
     codegen = CodeGenerator(primitives)
-    msubs = {op: codegen.lower(sub) for op, sub in subs.items()}
+    msubs = {op: codegen.lower(sub, op.id) for op, sub in subs.items()}
     entry_msub = codegen.lower(entry_sub)
     return link(entry_msub, msubs)

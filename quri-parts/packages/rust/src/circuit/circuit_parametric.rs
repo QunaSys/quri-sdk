@@ -419,15 +419,30 @@ impl ImmutableParametricQuantumCircuit {
         Ok(ret)
     }
 
+    #[pyo3(signature = (shots=None, params=None, *, shot_count=None))]
     fn sample<'py>(
         slf: &Bound<'py, Self>,
-        shot_count: i32,
-        params: Vec<f64>,
+        shots: Option<i32>,
+        params: Option<Vec<f64>>,
+        shot_count: Option<i32>,
     ) -> PyResult<Bound<'py, PyAny>> {
+        let shots = crate::circuit::resolve_deprecated_kwarg(
+            slf.py(),
+            "sample",
+            "shots",
+            shots,
+            "shot_count",
+            shot_count,
+        )?;
+        let params = params.ok_or_else(|| {
+            pyo3::exceptions::PyTypeError::new_err(
+                "sample() missing 1 required positional argument: 'params'",
+            )
+        })?;
         let sampling = PyModule::import(slf.py(), "quri_parts.core.sampling.default_sampler")?;
         let sampling_counts = sampling
             .getattr("DEFAULT_SAMPLER")?
-            .call1((slf, shot_count, params));
+            .call1((slf, shots, params));
         sampling_counts
     }
 
@@ -436,6 +451,14 @@ impl ImmutableParametricQuantumCircuit {
         circuit_drawer.getattr("draw_circuit")?.call1((slf,))?;
 
         Ok(())
+    }
+
+    #[pyo3(name = "__repr__")]
+    fn py_repr<'py>(slf: &Bound<'py, Self>) -> PyResult<String> {
+        let borrowed = slf.borrow();
+        let (qubit_count, gate_count) = (borrowed.qubit_count, borrowed.gates.0.len());
+        drop(borrowed);
+        crate::circuit::circuit_repr(slf.as_any(), qubit_count, gate_count)
     }
 
     #[pyo3(name = "__hash__")]

@@ -264,6 +264,20 @@ def _to_qulacsvis_circuit(circuit: CircuitData) -> Any:
     )
 
 
+def _patch_swap_controls(drawer: Any) -> None:
+    """qulacsvis' drawer doesn't draw control markers for SWAP gates."""
+    original_swap = getattr(drawer, "_swap", None)
+    if original_swap is None:
+        return
+
+    def _swap(gate: Any, xy: Tuple[float, float]) -> None:
+        original_swap(gate, xy)
+        if gate.control_bit_infos:
+            drawer._control_bits(gate.control_bit_infos, xy)
+
+    drawer._swap = _swap
+
+
 class MPLCircuitlDrawer:
     def __init__(
         self,
@@ -301,6 +315,7 @@ class MPLCircuitlDrawer:
         base_drawer = QVMPLCircuitlDrawer(
             qv_circuit, dpi=self._dpi, scale=self._fig_scale_factor
         )
+        _patch_swap_controls(base_drawer)
         figure: matplotlib.figure.Figure = base_drawer.draw(debug=debug, filename=None)
 
         self._figure = figure

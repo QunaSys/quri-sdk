@@ -62,7 +62,7 @@ class TketTranspiler(CircuitTranspilerProtocol):
     and optimization in optimization_level are performed.
 
     Note that this transpiler may perform optimization assuming that the input state of
-    all qubits is |0>.
+    all qubits is \\|0>.
 
     Args:
         backend: Tket's Backend instance. If specified, the gate set for the device

@@ -9,7 +9,15 @@
 # limitations under the License.
 
 import numpy as np
-from pytket.circuit import Circuit, OpType, Unitary1qBox, Unitary2qBox, Unitary3qBox
+import pytest
+from pytket.circuit import (
+    BasisOrder,
+    Circuit,
+    OpType,
+    Unitary1qBox,
+    Unitary2qBox,
+    Unitary3qBox,
+)
 from scipy.stats import unitary_group
 
 from quri_parts.circuit import QuantumGate, gates
@@ -20,6 +28,7 @@ def gate_equal(gate_1: QuantumGate, gate_2: QuantumGate) -> None:
     assert gate_1.name == gate_2.name
     assert gate_1.control_indices == gate_2.control_indices
     assert gate_1.target_indices == gate_2.target_indices
+    assert np.allclose(gate_1.unitary_matrix, gate_2.unitary_matrix)
     assert np.allclose(
         (np.array(gate_1.params) / np.pi) % 2, (np.array(gate_2.params) / np.pi) % 2
     )
@@ -53,8 +62,12 @@ def test_circuit_from_tket() -> None:
     tket_circuit.SWAP(0, 2)
     tket_circuit.CCX(0, 1, 2)
     tket_circuit.add_unitary1qbox(Unitary1qBox(np.array(unitary_1q_matrix)), 2)
-    tket_circuit.add_unitary2qbox(Unitary2qBox(unitary_2q_matrix), 0, 2)
-    tket_circuit.add_unitary3qbox(Unitary3qBox(unitary_3q_matrix), 0, 2, 3)
+    tket_circuit.add_unitary2qbox(
+        Unitary2qBox(unitary_2q_matrix, basis=BasisOrder.dlo), 0, 2
+    )
+    tket_circuit.add_unitary3qbox(
+        Unitary3qBox(unitary_3q_matrix, basis=BasisOrder.dlo), 0, 2, 3
+    )
 
     qp_circuit = circuit_from_tket(tket_circuit)
 
@@ -87,3 +100,31 @@ def test_circuit_from_tket() -> None:
 
     for i, g in enumerate(qp_circuit.gates):
         gate_equal(gate_sequence[i], g)
+
+
+@pytest.mark.parametrize(
+    "target_indices",
+    [(0, 1), (1, 0), (1, 3), (3, 1), (0, 1, 2), (2, 0, 1), (3, 0, 2)],
+)
+def test_circuit_from_tket_unitary_basis_order(
+    target_indices: tuple[int, ...],
+) -> None:
+    x = np.array([[0, 1], [1, 0]])
+    y = np.array([[0, -1j], [1j, 0]])
+    z = np.diag([1, -1])
+    tket_circuit = Circuit(4)
+    if len(target_indices) == 2:
+        unitary = Circuit(2).X(0).Z(1).get_unitary()
+        tket_circuit.add_unitary2qbox(Unitary2qBox(unitary), *target_indices)
+        expected = np.kron(z, x)
+    else:
+        unitary = Circuit(3).X(0).Y(1).Z(2).get_unitary()
+        tket_circuit.add_unitary3qbox(Unitary3qBox(unitary), *target_indices)
+        expected = np.kron(z, np.kron(y, x))
+
+    converted = circuit_from_tket(tket_circuit)
+
+    assert converted.qubit_count == 4
+    assert len(converted.gates) == 1
+    assert converted.gates[0].target_indices == target_indices
+    np.testing.assert_allclose(converted.gates[0].unitary_matrix, expected, atol=1e-14)

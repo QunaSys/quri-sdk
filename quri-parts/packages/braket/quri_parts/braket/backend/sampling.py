@@ -33,6 +33,7 @@ from quri_parts.braket.circuit import (
 )
 from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.circuit.transpile import CircuitTranspiler, SequentialTranspiler
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 
 from .saved_sampling import (
     BraketSavedDataSamplingJob,
@@ -144,24 +145,25 @@ class BraketSamplingBackend(SamplingBackend):
         self._save_data_while_sampling = save_data_while_sampling
         self._saved_data: list[tuple[str, int, BraketSamplingJob]] = []
 
-    def sample(self, circuit: ImmutableQuantumCircuit, n_shots: int) -> SamplingJob:
-        if not n_shots >= 1:
-            raise ValueError("n_shots should be a positive integer.")
-        if self._max_shots is not None and n_shots > self._max_shots:
-            shot_dist = [self._max_shots] * (n_shots // self._max_shots)
-            remaining = n_shots % self._max_shots
+    @deprecated_shots_kwarg
+    def sample(self, circuit: ImmutableQuantumCircuit, shots: int) -> SamplingJob:
+        if not shots >= 1:
+            raise ValueError("shots should be a positive integer.")
+        if self._max_shots is not None and shots > self._max_shots:
+            shot_dist = [self._max_shots] * (shots // self._max_shots)
+            remaining = shots % self._max_shots
             if remaining > 0:
                 if remaining >= self._min_shots:
                     shot_dist.append(remaining)
                 elif self._enable_shots_roundup:
                     shot_dist.append(self._min_shots)
         else:
-            if n_shots >= self._min_shots or self._enable_shots_roundup:
-                shot_dist = [max(n_shots, self._min_shots)]
+            if shots >= self._min_shots or self._enable_shots_roundup:
+                shot_dist = [max(shots, self._min_shots)]
             else:
                 raise ValueError(
-                    f"n_shots is smaller than minimum shot count ({self._min_shots}) "
-                    "supported by the device. Try larger n_shots or use "
+                    f"shots is smaller than minimum shot count ({self._min_shots}) "
+                    "supported by the device. Try larger shots or use "
                     "enable_shots_roundup=True when creating the backend."
                 )
 

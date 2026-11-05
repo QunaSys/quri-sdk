@@ -1,8 +1,12 @@
+from pathlib import Path
+
+import pyqret.backend as backend
 from pyqret.frontend import Module, QuantumAttribute, QuantumType
 
 import quri_parts.qsub.lib.std as std
 from quri_parts.qret.convert_qsub import create_module_from_qsub_op
-from quri_parts.qsub.opsub import UnitarySubDef, opsub
+from quri_parts.qret.topology_utils import write_generated_topology
+from quri_parts.qsub.opsub import NonUnitarySubDef, UnitarySubDef, opsub
 from quri_parts.qsub.sub import SubBuilder
 
 
@@ -337,3 +341,136 @@ class TestCreateModuleWithAuxQubits:
         inner_ops = _get_opcode_strings(module, inner)
         assert _count_opcode(inner_ops, "h") == 2
         assert _count_opcode(inner_ops, "cx") == 3
+
+
+class _MeasureAux(NonUnitarySubDef):
+    """Measures into its own auxiliary register."""
+
+    name = "MeasureAux"
+    qubit_count = 1
+
+    def sub(self, builder: SubBuilder) -> None:
+        builder.add_op(std.M, builder.qubits, (builder.add_aux_register(),))
+
+
+MeasureAux, _ = opsub(_MeasureAux)
+
+
+class _MeasureAuxX(NonUnitarySubDef):
+    name = "MeasureAuxX"
+    qubit_count = 1
+
+    def sub(self, builder: SubBuilder) -> None:
+        builder.add_op(std.H, builder.qubits)
+        builder.add_op(std.M, builder.qubits, (builder.add_aux_register(),))
+
+
+MeasureAuxX, _ = opsub(_MeasureAuxX)
+
+
+class _MeasureAuxTwice(NonUnitarySubDef):
+    name = "MeasureAuxTwice"
+    qubit_count = 2
+
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1 = builder.qubits
+        builder.add_op(MeasureAux, (q0,))
+        builder.add_op(MeasureAuxX, (q1,))
+
+
+MeasureAuxTwice, _ = opsub(_MeasureAuxTwice)
+
+
+class _MeasureAuxNested(NonUnitarySubDef):
+    name = "MeasureAuxNested"
+    qubit_count = 2
+
+    def sub(self, builder: SubBuilder) -> None:
+        q0, q1 = builder.qubits
+        builder.add_op(MeasureAuxTwice, (q0, q1))
+        builder.add_op(MeasureAuxTwice, (q1, q0))
+
+
+MeasureAuxNested, _ = opsub(_MeasureAuxNested)
+
+
+class _MeasuredAnd(UnitarySubDef):
+    """Measures into an aux register and branches on it."""
+
+    name = "MeasuredAnd"
+    qubit_count = 3
+
+    def sub(self, builder: SubBuilder) -> None:
+        i0, i1, t = builder.qubits
+        with std.scoped_and_single_toffoli(builder, i0, i1) as a:
+            builder.add_op(std.CNOT, (a, t))
+
+
+MeasuredAnd, _ = opsub(_MeasuredAnd)
+
+
+class _MeasuredAndTwice(UnitarySubDef):
+    name = "MeasuredAndTwice"
+    qubit_count = 3
+
+    def sub(self, builder: SubBuilder) -> None:
+        builder.add_op(MeasuredAnd, builder.qubits)
+        builder.add_op(MeasuredAnd, builder.qubits)
+
+
+MeasuredAndTwice, _ = opsub(_MeasuredAndTwice)
+
+
+def _call_outputs(module: Module, circuit_name: str) -> list[str]:
+    """Output register operands of each Call, e.g. ``"{@r0 @r1})"``."""
+    circuit = module.get_circuit(circuit_name)
+    return [
+        str(inst).rsplit(",", 1)[1]
+        for block in circuit.get_ir()
+        for inst in block
+        if str(inst.get_opcode()).lower().endswith("call")
+    ]
+
+
+def _compile(module: Module, circuit_name: str, tmp_path: Path) -> None:
+    topology = write_generated_topology(tmp_path / "topology.yaml", 16)
+    option = backend.CompileOption(
+        sc_ls_fixed_v0_option=backend.ScLsFixedV0Option(topology=str(topology))
+    )
+    backend.Compiler(option).compile(module.get_circuit(circuit_name))
+
+
+class TestCreateModuleWithAuxRegisters:
+    def test_sibling_subcalls_get_distinct_aux_registers(self, tmp_path: Path) -> None:
+        """bug: sibling subcalls shared an aux register, and qret rejected the
+        second write with "Reallocate symbol"."""
+        module = create_module_from_qsub_op(MeasureAuxTwice, entry_circuit_name="main")
+
+        _assert_input_output_counts(
+            module, "main", expected_inputs=0, expected_outputs=2
+        )
+        outputs = _call_outputs(module, "main")
+        assert len(outputs) == 2
+        assert len(set(outputs)) == 2
+        _compile(module, "main", tmp_path)
+
+    def test_nested_subcalls_get_distinct_aux_registers(self, tmp_path: Path) -> None:
+        module = create_module_from_qsub_op(MeasureAuxNested, entry_circuit_name="main")
+
+        _assert_input_output_counts(
+            module, "main", expected_inputs=0, expected_outputs=4
+        )
+        outputs = _call_outputs(module, "main")
+        assert len(outputs) == 2
+        assert len(set(outputs)) == 2
+        _compile(module, "main", tmp_path)
+
+    def test_sibling_conditional_subcalls_get_distinct_aux_registers(
+        self, tmp_path: Path
+    ) -> None:
+        module = create_module_from_qsub_op(MeasuredAndTwice, entry_circuit_name="main")
+
+        outputs = _call_outputs(module, "main")
+        assert len(outputs) == 2
+        assert len(set(outputs)) == 2
+        _compile(module, "main", tmp_path)

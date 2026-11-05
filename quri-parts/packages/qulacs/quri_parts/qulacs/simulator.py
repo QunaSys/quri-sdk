@@ -8,6 +8,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Qulacs Simulator (:mod:`quri_parts.qulacs.simulator`)
+=====================================================
+
+Helpers that evaluate circuits on Qulacs state objects, and state samplers
+for state vector and density matrix simulation.
+
+Contents:
+
+- :func:`evaluate_state_to_vector`: run a state's circuit, return the vector
+- :func:`run_circuit`: apply a circuit to an initial state vector
+- :func:`get_marginal_probability`: probability of a partial measurement
+- :func:`create_qulacs_vector_state_sampler`: state vector sampler
+- :func:`create_concurrent_vector_state_sampler`: concurrent vector sampler
+- :func:`create_qulacs_ideal_vector_state_sampler`: ideal vector sampler
+- :func:`create_qulacs_density_matrix_state_sampler`: density matrix sampler
+- :func:`create_qulacs_ideal_density_matrix_state_sampler`: ideal density matrix sampler
+- :func:`create_qulacs_noisesimulator_state_sampler`: ``NoiseSimulator`` sampler
+"""
+
 import warnings
 from collections import Counter
 from collections.abc import Sequence
@@ -31,6 +51,7 @@ from quri_parts.core.sampling import (
 )
 from quri_parts.core.state import CircuitQuantumState, QuantumStateVector
 from quri_parts.core.utils.concurrent import execute_concurrently
+from quri_parts.core.utils.deprecation import deprecated_shots_kwarg
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.circuit.compiled_circuit import _QulacsCircuit
 from quri_parts.qulacs.circuit.noise import convert_circuit_with_noise_model
@@ -232,17 +253,18 @@ def create_qulacs_vector_state_sampler(
         A :class:`StateSampler` that samples measurement outcomes.
     """
 
-    def state_sampler(state: QulacsStateT, n_shots: int) -> MeasurementCounts:
-        if backend.should_use_multinomial(n_shots, state.qubit_count):
+    @deprecated_shots_kwarg
+    def state_sampler(state: QulacsStateT, shots: int) -> MeasurementCounts:
+        if backend.should_use_multinomial(shots, state.qubit_count):
             # Use multinomial distribution for faster sampling
             state_vector = evaluate_state_to_vector(state, backend).vector
-            return sample_from_state_vector(state_vector, n_shots)
+            return sample_from_state_vector(state_vector, shots, random_seed)
 
         qs_state = _evaluate_qp_state_to_qulacs_state(state, backend=backend)
         if random_seed is None:
-            return Counter(qs_state.sampling(n_shots))
+            return Counter(qs_state.sampling(shots))
         else:
-            return Counter(qs_state.sampling(n_shots, random_seed))
+            return Counter(qs_state.sampling(shots, random_seed))
 
     return state_sampler
 
@@ -328,11 +350,12 @@ def create_qulacs_ideal_vector_state_sampler(
         A :class:`StateSampler` returning ideal (probability-weighted) counts.
     """
 
+    @deprecated_shots_kwarg
     def ideal_state_sampler(
-        state: Union[CircuitQuantumState, QuantumStateVector], n_shots: int
+        state: Union[CircuitQuantumState, QuantumStateVector], shots: int
     ) -> MeasurementCounts:
         state_vector = evaluate_state_to_vector(state, backend).vector
-        return ideal_sample_from_state_vector(state_vector, n_shots)
+        return ideal_sample_from_state_vector(state_vector, shots)
 
     return ideal_state_sampler
 

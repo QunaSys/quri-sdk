@@ -9,8 +9,16 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
+import qulacs
+from numpy.typing import NDArray
 
-from quri_parts.circuit import QuantumCircuit, QuantumGate, gates
+from quri_parts.circuit import (
+    ImmutableQuantumCircuit,
+    QuantumCircuit,
+    QuantumGate,
+    gates,
+)
 from quri_parts.circuit.transpile import (
     CNOTHCNOTFusingTranspiler,
     FuseRotationTranspiler,
@@ -20,6 +28,13 @@ from quri_parts.circuit.transpile import (
     RZ2NamedTranspiler,
     ZeroRotationEliminationTranspiler,
 )
+from quri_parts.qulacs.circuit import convert_circuit
+
+
+def _circuit_unitary(circuit: ImmutableQuantumCircuit) -> NDArray[np.complex128]:
+    qc = convert_circuit(circuit)
+    matrix = qulacs.circuit.QuantumCircuitOptimizer().merge_all(qc).get_matrix()
+    return np.asarray(matrix, dtype=np.complex128)
 
 
 def _gates_close(x: QuantumGate, y: QuantumGate) -> bool:
@@ -69,9 +84,27 @@ class TestFuseRotation:
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
 
+    def test_fuse_preserves_matrix(self) -> None:
+        """RX/RY/RZ have period 4*PI as matrices, not 2*PI, so fusing two
+        angles whose sum needs an odd number of 2*PI subtracted to come back
+        into range must not reduce mod 2*PI: that would silently flip the fused
+        gate's matrix sign."""
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 1.4 * np.pi),
+                gates.RX(0, 1.4 * np.pi),
+            ]
+        )
+        transpiled = FuseRotationTranspiler()(circuit)
+
+        original_unitary = _circuit_unitary(circuit)
+        transpiled_unitary = _circuit_unitary(transpiled)
+        assert np.allclose(original_unitary, transpiled_unitary, atol=1e-9)
+
 
 class TestNormalizeRotation:
-    def test_normalize_2pi(self) -> None:
+    def test_normalize_4pi(self) -> None:
         circuit = QuantumCircuit(1)
         circuit.extend(
             [
@@ -90,15 +123,35 @@ class TestNormalizeRotation:
             [
                 gates.RX(0, np.pi),
                 gates.RY(0, np.pi),
-                gates.RZ(0, 3.0 / 2.0 * np.pi),
+                gates.RZ(0, 7.0 / 2.0 * np.pi),
                 gates.RX(0, 3.0 / np.pi),
-                gates.RY(0, 0.0),
+                gates.RY(0, 2.0 * np.pi),
                 gates.RZ(0, 0.0),
             ]
         )
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+    def test_normalize_preserves_matrix(self) -> None:
+        """RX/RY/RZ have period 4*PI as matrices, not 2*PI: RX(t + 2*PI) =
+
+        -RX(t). The default cycle_range must be 4*PI wide so that
+        normalizing an angle never silently flips the gate's matrix.
+        """
+        circuit = QuantumCircuit(1)
+        circuit.extend(
+            [
+                gates.RX(0, 5.0 * np.pi),
+                gates.RY(0, -3.0 * np.pi),
+                gates.RZ(0, 7.0 / 2.0 * np.pi),
+            ]
+        )
+        transpiled = NormalizeRotationTranspiler()(circuit)
+
+        original_unitary = _circuit_unitary(circuit)
+        transpiled_unitary = _circuit_unitary(transpiled)
+        assert np.allclose(original_unitary, transpiled_unitary, atol=1e-9)
 
     def test_normalize_pi(self) -> None:
         circuit = QuantumCircuit(1)
@@ -182,6 +235,31 @@ class TestNormalizeRotation:
 
         for t, e in zip(transpiled.gates, expect.gates):
             assert _gates_close(t, e)
+
+    def test_cycle_range_validation(self) -> None:
+        # Valid: width is an exact multiple of 2*PI.
+        NormalizeRotationTranspiler((0.0, 2.0 * np.pi))
+        NormalizeRotationTranspiler((0.0, 4.0 * np.pi))
+        NormalizeRotationTranspiler((-2.0 * np.pi, 2.0 * np.pi))
+
+        # Valid: width is within epsilon of a multiple of 2*PI.
+        NormalizeRotationTranspiler((0.0, 2.0 * np.pi + 5.0e-10), epsilon=1.0e-9)
+
+        # Invalid: width is not a multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, 3.0 * np.pi))
+
+        # Invalid: width is outside epsilon tolerance of a multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, 2.0 * np.pi + 5.0e-8), epsilon=1.0e-9)
+
+        # Invalid: a positive width near zero is not a positive multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, 5.0e-10), epsilon=1.0e-9)
+
+        # Invalid: a non-finite width is not a multiple of 2*PI.
+        with pytest.raises(ValueError):
+            NormalizeRotationTranspiler((0.0, np.inf))
 
 
 class TestRotation2Named:
@@ -340,12 +418,16 @@ class TestZeroRotationElimination:
         )
         transpiled = ZeroRotationEliminationTranspiler(epsilon=1.0e-9)(circuit)
 
+        # Angles near 2*PI are -I, not I (RX/RY/RZ have period 4*PI as
+        # matrices), so they must be kept, not eliminated.
         expect = QuantumCircuit(1)
         expect.extend(
             [
                 gates.RY(0, 1.0e-7),
                 gates.RX(0, -1.0e-7),
+                gates.RY(0, 2.0 * np.pi - 1.0e-11),
                 gates.RZ(0, 2.0 * np.pi - 1.0e-7),
+                gates.RX(0, 2.0 * np.pi + 1.0e-11),
                 gates.RY(0, 2.0 * np.pi + 1.0e-7),
             ]
         )

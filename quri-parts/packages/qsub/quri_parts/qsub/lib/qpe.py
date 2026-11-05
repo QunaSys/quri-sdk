@@ -72,7 +72,7 @@ class _LineH(ParamUnitarySubDef[int]):
         return bits
 
     def qregs_fn(self, bits: int) -> Sequence[QRegSpec]:
-        return (QRegSpec("qs", bits),)
+        return (QRegSpec(DEFAULT_QNAME, bits),)
 
     def sub(self, builder: SubBuilder, bits: int) -> None:
         qubits = builder.qubits

@@ -125,6 +125,25 @@ class TestQuantumCircuit:
         assert len(samples) == 2
         assert sum(samples.values()) == 1000
 
+    def test_sample_deprecated_shot_count_kwarg(self) -> None:
+        circuit = QuantumCircuit(2)
+        circuit.add_H_gate(0)
+        circuit.add_CNOT_gate(0, 1)
+        with pytest.deprecated_call() as record:
+            samples = circuit.sample(shot_count=1000)  # type: ignore[call-arg]
+        assert sum(samples.values()) == 1000
+        assert record[0].filename == __file__
+
+    def test_sample_rejects_positional_shot_count(self) -> None:
+        circuit = QuantumCircuit(2)
+        with pytest.raises(TypeError, match="positional arguments"):
+            circuit.sample(10, 1000)  # type: ignore[call-arg]
+
+    def test_sample_rejects_shots_and_shot_count(self) -> None:
+        circuit = QuantumCircuit(2)
+        with pytest.raises(TypeError, match="got both 'shot_count' and 'shots'"):
+            circuit.sample(shots=10, shot_count=1000)  # type: ignore[call-arg]
+
     def test_hash(self) -> None:
         circuit1 = mutable_circuit()
         with pytest.raises(TypeError, match="unhashable type: 'QuantumCircuit'"):

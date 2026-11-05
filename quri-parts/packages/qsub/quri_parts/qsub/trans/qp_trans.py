@@ -8,18 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Collection, Mapping
-from typing import Any, Iterable
+from collections.abc import Collection, Iterable, Mapping
+from typing import Any, cast
 
 import quri_parts.circuit.transpile as qt
 from quri_parts.circuit import NonParametricQuantumCircuit, QuantumCircuit, gate_names
+from quri_parts.circuit.gate_names import GateNameType
 from quri_parts.qsub.eval.quriparts import (
     convert_op,
     primitive_op_gate_mapping,
     primitive_param_op_gate_mapping,
 )
 from quri_parts.qsub.lib import std
-from quri_parts.qsub.op import BaseIdent
+from quri_parts.qsub.op import AbstractOp, BaseIdent
 from quri_parts.qsub.qubit import Qubit
 
 from .transpiler import Operations, SeparateTranspiler
@@ -92,6 +93,22 @@ _mc_param_op_gate_map_qp = {
     gate_names.MCRZ: std.MCRZ,
     gate_names.MCU1: std.MCPhase,
 }
+
+
+def gateset_from_primitives(primitives: Iterable[AbstractOp]) -> list[GateNameType]:
+    """Circuit gate names for the qsub primitive ops that have a QURI Parts
+    counterpart, suitable as a ``GateSetConversionTranspiler`` target.
+
+    Ops with no QURI Parts gate counterpart are skipped.
+    """
+    base_id_to_name: dict[BaseIdent, GateNameType] = {}
+    for name, op in _op_gate_map_qp.items():
+        base_id_to_name[op.base_id] = cast(GateNameType, name)
+    for param_name, param_op in _param_op_gate_map_qp.items():
+        base_id_to_name[param_op.base_id] = cast(GateNameType, param_name)
+    return [
+        base_id_to_name[p.base_id] for p in primitives if p.base_id in base_id_to_name
+    ]
 
 
 def convert_from_qp(circuit: NonParametricQuantumCircuit) -> Operations:
