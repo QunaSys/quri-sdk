@@ -11,8 +11,13 @@
 from quri_parts.backend.device import DeviceProperty
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.estimator import Estimatable, Estimate
-from quri_parts.core.sampling import MeasurementCounts
-from quri_parts.core.state import CircuitQuantumState, quantum_state
+from quri_parts.core.sampling import GeneralSampler, MeasurementCounts
+from quri_parts.core.state import (
+    CircuitQuantumState,
+    ParametricCircuitQuantumState,
+    QuantumStateVector,
+    quantum_state,
+)
 
 from .simulator import LogicalCircuitSimulator, QulacsSimulator
 from .vm_backend import AnalyzeResult, LoweringLevel, VMBackend, _DevicePropertyBackend
@@ -106,18 +111,26 @@ class VM:
                     " Please use sampling estimater instead."
                 )
 
+    @property
     def sample(
+        self,
+    ) -> GeneralSampler[CircuitQuantumState, ParametricCircuitQuantumState]:
+        """Sampler that samples at the VM's lowering level.
+
+        It is a QURI Parts :class:`~quri_parts.core.sampling.GeneralSampler`, so it
+        works as a ``Sampler``, ``ConcurrentSampler``, ``StateSampler``, and the
+        parametric samplers. For example, ``vm.sample(circuit, shots)`` samples one
+        circuit and ``vm.sample([(circuit, shots), ...])`` samples several.
+        """
+        # Built on each access: GeneralSampler holds local functions, so storing
+        # it on the VM would make the VM unpicklable.
+        return GeneralSampler(self._sample, self._sample_state)
+
+    def _sample(
         self,
         circuit: NonParametricQuantumCircuit,
         shots: int,
     ) -> MeasurementCounts:
-        """Sample the given circuit at VM's lowering level. VM itself is an
-        Sampler of QURI Parts.
-
-        Args:
-            circuit: Target quantum circuit.
-            shots: Number of sampling shots.
-        """
         match self._lowering_level:
             case LoweringLevel.LogicalCircuit:
                 return self._logical_circuit_simulator.sample(circuit, shots)
@@ -133,6 +146,14 @@ class VM:
                     circuit = self.transpile(circuit)
                     return self._backend.sample(circuit, shots, self._lowering_level)
         raise ValueError("Cannot execute for the required LoweringLevel.")
+
+    def _sample_state(
+        self, state: CircuitQuantumState, shots: int
+    ) -> MeasurementCounts:
+        # _sample only sees the circuit, so the initial vector would be dropped.
+        if isinstance(state, QuantumStateVector):
+            raise ValueError(f"Unsupported state type: {state}")
+        return self._sample(state.circuit, shots)
 
     def transpile(
         self, circuit: NonParametricQuantumCircuit

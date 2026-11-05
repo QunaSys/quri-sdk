@@ -233,6 +233,19 @@ class TestGeneralSampler(TestCase):
         circuit = self.param_circuit_2.bind_parameters([3, 4])
         assert self.general_sampler(circuit, 2000) == {0: (-14 + 38) * 2000}
 
+    def test_shots_kwarg(self) -> None:
+        circuit = self.param_circuit_1.bind_parameters([1, 2])
+        assert self.general_sampler(circuit, shots=1000) == {0: 3000}
+        assert self.general_sampler(circuit=circuit, shots=1000) == {0: 3000}
+        state = self.param_state_1.bind_parameters([1.0, 2.0])
+        assert self.general_sampler(state, shots=1000) == {0: 3000}
+
+    def test_numpy_int_shots(self) -> None:
+        circuit = self.param_circuit_1.bind_parameters([1, 2])
+        # numpy integers are not ``int`` for mypy but are accepted at runtime.
+        shots = np.int64(1000)
+        assert self.general_sampler(circuit, shots) == {0: 3000}  # type: ignore
+
     def test_concurrent_sampler_input(self) -> None:
         circuit_1 = self.param_circuit_1.bind_parameters([1, 2])
         circuit_2 = self.param_circuit_1.bind_parameters([3, 4])

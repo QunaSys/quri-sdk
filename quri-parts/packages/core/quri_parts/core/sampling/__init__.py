@@ -10,6 +10,7 @@
 
 from collections import Counter
 from dataclasses import dataclass, field
+from numbers import Integral
 from typing import (
     Any,
     Callable,
@@ -149,6 +150,21 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
 
     @overload
     def __call__(
+        self, circuit: ImmutableQuantumCircuit, /, *, shots: int
+    ) -> MeasurementCounts:
+        """A :class:`Sampler` with ``shots`` as a keyword argument."""
+        ...
+
+    @overload
+    def __call__(
+        self, *, circuit: ImmutableQuantumCircuit, shots: int
+    ) -> MeasurementCounts:
+        """A :class:`Sampler` with ``circuit`` and ``shots`` as keyword
+        arguments."""
+        ...
+
+    @overload
+    def __call__(
         self,
         *sampler_input: Unpack[
             tuple[UnboundParametricQuantumCircuitProtocol, int, Sequence[float]]
@@ -174,6 +190,11 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         self, *sampler_input: Unpack[tuple[_StateT, int]]
     ) -> MeasurementCounts:
         """A :class:`StateSampler`"""
+        ...
+
+    @overload
+    def __call__(self, state: _StateT, /, *, shots: int) -> MeasurementCounts:
+        """A :class:`StateSampler` with ``shots`` as a keyword argument."""
         ...
 
     @overload
@@ -270,8 +291,15 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         ...
 
     def __call__(
-        self, *sampler_input: Any
+        self,
+        *sampler_input: Any,
+        circuit: Optional[ImmutableQuantumCircuit] = None,
+        shots: Optional[int] = None,
     ) -> Union[MeasurementCounts, Iterable[MeasurementCounts]]:
+        if circuit is not None:
+            sampler_input = (circuit, *sampler_input)
+        if shots is not None:
+            sampler_input = (*sampler_input, shots)
         if isinstance(sampler_input[0], ImmutableQuantumCircuit):
             return self._sample(*sampler_input)
         if isinstance(sampler_input[0], UnboundParametricQuantumCircuitProtocol):
@@ -296,7 +324,7 @@ class GeneralSampler(Generic[_StateT, _ParametricStateT]):
         return [cast(MeasurementCounts, self(*comb)) for comb in sampler_input]
 
     def _check_shot_is_int(self, shots: int) -> None:
-        if not isinstance(shots, int):
+        if not isinstance(shots, Integral):
             raise ValueError(
                 f"Shot expected to be integer, but got {type(shots)}. "
                 f"Input value is {shots}."
