@@ -13,6 +13,7 @@ from typing import Union, cast
 
 import numpy as np
 import numpy.typing as npt
+import pytest
 import qulacs
 
 import quri_parts.circuit.gate_names as names
@@ -326,3 +327,54 @@ def test_convert_pauli_noise() -> None:
     assert converted.get_gate_count() == len(expected_gates)
     for i, expected_gate in enumerate(expected_gates):
         assert converted.get_gate(i).to_json() == expected_gate.to_json()
+
+
+@pytest.mark.parametrize(
+    "label,indices,multi",
+    [
+        ("default-single", (), False),
+        ("filtered-single", (0, 1), False),
+        ("default-multi", (), True),
+        ("explicit-multi-reversed", (1, 0), True),
+        ("explicit-multi-sorted", (0, 1), True),
+    ],
+)
+def test_convert_pauli_noise_density_matrix(
+    label: str, indices: Sequence[int], multi: bool
+) -> None:
+    x = np.array([[0, 1], [1, 0]], dtype=complex)
+    z = np.diag([1.0, -1.0]).astype(complex)
+    eye = np.eye(2, dtype=complex)
+    v = np.array([1 + 2j, 2 - 1j, -0.5 + 0.7j, 0.3 - 0.2j], dtype=complex)
+    v /= np.linalg.norm(v)
+    rho = np.outer(v, v.conj())
+    cnot = np.zeros((4, 4), dtype=complex)
+    cnot[[0, 3, 2, 1], np.arange(4)] = 1
+
+    circuit = QuantumCircuit(2)
+    if multi:
+        circuit.add_CNOT_gate(0, 1)
+        operator = cnot
+        pauli = np.kron(x, z) if indices == (1, 0) else np.kron(z, x)
+    else:
+        circuit.add_X_gate(0)
+        operator = np.kron(eye, x)
+        pauli = np.kron(eye, z)
+
+    expected_ideal = operator @ rho @ operator.conj().T
+    expected = 0.7 * expected_ideal + 0.3 * pauli @ expected_ideal @ pauli.conj().T
+
+    noise = PauliNoise(
+        [[1, 3]] if multi else [[3]],
+        [0.3],
+        qubit_indices=indices,
+        target_gates=("CNOT",) if multi else ("X",),
+    )
+    model = NoiseModel([noise])
+
+    converted = convert_circuit_with_noise_model(circuit, model)
+    state = qulacs.DensityMatrix(2)
+    state.load(rho)
+    converted.update_quantum_state(state)
+    actual = np.asarray(state.get_matrix())
+    np.testing.assert_allclose(actual, expected, atol=1e-14, rtol=0)
