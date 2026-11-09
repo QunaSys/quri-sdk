@@ -11,7 +11,7 @@
 from numpy.testing import assert_almost_equal
 
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.operator import Operator, pauli_label
+from quri_parts.core.operator import PAULI_IDENTITY, Operator, pauli_label
 from quri_parts.core.state import ComputationalBasisState, GeneralCircuitQuantumState
 from quri_parts.tensornetwork.estimator import create_tensornetwork_estimator
 
@@ -87,3 +87,14 @@ class TestTensorNetworkEstimator:
             estimate = estimator(pauli, state)
             assert_almost_equal(estimate.value, -1)
             assert estimate.error == 0
+
+    def test_estimate_identity(self) -> None:
+        state = ComputationalBasisState(3, bits=0b101)
+        for matrix_product_operator in (False, True):
+            estimator = create_tensornetwork_estimator(
+                matrix_product_operator=matrix_product_operator
+            )
+            assert_almost_equal(estimator(PAULI_IDENTITY, state).value, 1.0)
+            assert_almost_equal(
+                estimator(Operator({PAULI_IDENTITY: 0.5}), state).value, 0.5
+            )
