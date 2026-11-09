@@ -14,7 +14,7 @@ import tensornetwork as tn
 from numpy.testing import assert_almost_equal
 
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.circuit.gates import CNOT, RY, U1, U2, U3, H, X, Y, Z
+from quri_parts.circuit.gates import CNOT, RY, U1, U2, U3, H, Identity, X, Y, Z
 from quri_parts.tensornetwork.circuit import convert_circuit
 
 circuit_tensor_pairs = [
@@ -70,6 +70,15 @@ def test_convert_circuit() -> None:
             tensornetwork_circuit._container, output_edge_order=all_edges
         )
         assert_almost_equal(contracted_state.tensor, t)
+
+
+def test_convert_circuit_retains_identity_layer() -> None:
+    circuit = QuantumCircuit(2, gates=[Identity(0), Identity(1), H(0), CNOT(0, 1)])
+    tensornetwork_circuit = convert_circuit(circuit)
+    first_layer = tensornetwork_circuit.layer_tensor_map[0]
+    assert sorted(first_layer) == [0, 1]
+    for node in first_layer.values():
+        assert_almost_equal(node.tensor, np.eye(2))
 
 
 def _ry_matrix(theta: float) -> npt.NDArray[np.complex128]:
