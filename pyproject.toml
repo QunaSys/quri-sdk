@@ -131,6 +131,15 @@ quri-parts-tket = { path = "quri-parts/packages/tket", editable = true }
 quri-parts-qsub = { path = "quri-parts/packages/qsub", editable = true }
 quri-parts-qret = { path = "quri-parts/packages/qret", editable = true }
 
+# untokenize 0.1.1 (pulled in by docformatter) ships only an sdist whose setup.py
+# fails on Python >= 3.14 (it reads ast.Constant.s, removed in 3.14). Static
+# metadata lets the resolver skip building it, so `uv lock --upgrade-package`
+# works on newer interpreters, including the one Dependabot uses.
+[[tool.uv.dependency-metadata]]
+name = "untokenize"
+version = "0.1.1"
+requires-dist = []
+
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
 
