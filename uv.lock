@@ -56,6 +56,10 @@ members = [
     "quri-vm",
 ]
 
+[[manifest.dependency-metadata]]
+name = "untokenize"
+version = "0.1.1"
+
 [[package]]
 name = "absl-py"
 version = "2.4.0"
