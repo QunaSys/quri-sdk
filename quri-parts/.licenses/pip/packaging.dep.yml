@@ -1,9 +1,9 @@
 ---
 name: packaging
-version: '24.2'
+version: '26.3'
 type: pip
 summary: Core utilities for Python packages
-homepage: ''
+homepage: https://github.com/pypa/packaging
 license: apache-2.0
 licenses:
 - sources: LICENSE
