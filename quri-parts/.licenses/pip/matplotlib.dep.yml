@@ -1,654 +1,799 @@
 ---
 name: matplotlib
-version: 3.10.5
+version: 3.11.2
 type: pip
 summary: Python plotting package
 homepage: https://matplotlib.org
 license: psf-2.0
 licenses:
 - sources: LICENSE
-  text: |-
-    License agreement for matplotlib versions 1.3.0 and later
-    =========================================================
-
-    1. This LICENSE AGREEMENT is between the Matplotlib Development Team
-    ("MDT"), and the Individual or Organization ("Licensee") accessing and
-    otherwise using matplotlib software in source or binary form and its
-    associated documentation.
-
-    2. Subject to the terms and conditions of this License Agreement, MDT
-    hereby grants Licensee a nonexclusive, royalty-free, world-wide license
-    to reproduce, analyze, test, perform and/or display publicly, prepare
-    derivative works, distribute, and otherwise use matplotlib
-    alone or in any derivative version, provided, however, that MDT's
-    License Agreement and MDT's notice of copyright, i.e., "Copyright (c)
-    2012- Matplotlib Development Team; All Rights Reserved" are retained in
-    matplotlib  alone or in any derivative version prepared by
-    Licensee.
-
-    3. In the event Licensee prepares a derivative work that is based on or
-    incorporates matplotlib or any part thereof, and wants to
-    make the derivative work available to others as provided herein, then
-    Licensee hereby agrees to include in any such work a brief summary of
-    the changes made to matplotlib .
-
-    4. MDT is making matplotlib available to Licensee on an "AS
-    IS" basis.  MDT MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
-    IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, MDT MAKES NO AND
-    DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
-    FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF MATPLOTLIB
-    WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
-
-    5. MDT SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF MATPLOTLIB
-     FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR
-    LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING
-    MATPLOTLIB , OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF
-    THE POSSIBILITY THEREOF.
-
-    6. This License Agreement will automatically terminate upon a material
-    breach of its terms and conditions.
-
-    7. Nothing in this License Agreement shall be deemed to create any
-    relationship of agency, partnership, or joint venture between MDT and
-    Licensee.  This License Agreement does not grant permission to use MDT
-    trademarks or trade name in a trademark sense to endorse or promote
-    products or services of Licensee, or any third party.
-
-    8. By copying, installing or otherwise using matplotlib ,
-    Licensee agrees to be bound by the terms and conditions of this License
-    Agreement.
-
-    License agreement for matplotlib versions prior to 1.3.0
-    ========================================================
-
-    1. This LICENSE AGREEMENT is between John D. Hunter ("JDH"), and the
-    Individual or Organization ("Licensee") accessing and otherwise using
-    matplotlib software in source or binary form and its associated
-    documentation.
-
-    2. Subject to the terms and conditions of this License Agreement, JDH
-    hereby grants Licensee a nonexclusive, royalty-free, world-wide license
-    to reproduce, analyze, test, perform and/or display publicly, prepare
-    derivative works, distribute, and otherwise use matplotlib
-    alone or in any derivative version, provided, however, that JDH's
-    License Agreement and JDH's notice of copyright, i.e., "Copyright (c)
-    2002-2011 John D. Hunter; All Rights Reserved" are retained in
-    matplotlib  alone or in any derivative version prepared by
-    Licensee.
-
-    3. In the event Licensee prepares a derivative work that is based on or
-    incorporates matplotlib  or any part thereof, and wants to
-    make the derivative work available to others as provided herein, then
-    Licensee hereby agrees to include in any such work a brief summary of
-    the changes made to matplotlib.
-
-    4. JDH is making matplotlib  available to Licensee on an "AS
-    IS" basis.  JDH MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR
-    IMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, JDH MAKES NO AND
-    DISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS
-    FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF MATPLOTLIB
-    WILL NOT INFRINGE ANY THIRD PARTY RIGHTS.
-
-    5. JDH SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF MATPLOTLIB
-     FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR
-    LOSS AS A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING
-    MATPLOTLIB , OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF
-    THE POSSIBILITY THEREOF.
-
-    6. This License Agreement will automatically terminate upon a material
-    breach of its terms and conditions.
-
-    7. Nothing in this License Agreement shall be deemed to create any
-    relationship of agency, partnership, or joint venture between JDH and
-    Licensee.  This License Agreement does not grant permission to use JDH
-    trademarks or trade name in a trademark sense to endorse or promote
-    products or services of Licensee, or any third party.
-
-    8. By copying, installing or otherwise using matplotlib,
-    Licensee agrees to be bound by the terms and conditions of this License
-    Agreement.
-- sources: LICENSE_BAKOMA
-  text: "\n\t\t\tBaKoMa Fonts Licence\n\t\t\t--------------------\n\n  This licence
-    covers two font packs (known as BaKoMa Fonts Collection,\n  which is available
-    at `CTAN:fonts/cm/ps-type1/bakoma/'):\n\n    1) BaKoMa-CM (1.1/12-Nov-94)\n       Computer
-    Modern Fonts in PostScript Type 1 and TrueType font formats.\n\n    2) BaKoMa-AMS
-    (1.2/19-Jan-95)\n       AMS TeX fonts in PostScript Type 1 and TrueType font formats.\n
-    \  \n  Copyright (C) 1994, 1995, Basil K. Malyshev. All Rights Reserved.\n\n  Permission
-    to copy and distribute these fonts for any purpose is \n  hereby granted without
-    fee, provided that the above copyright notice, \n  author statement and this permission
-    notice appear in all copies of \n  these fonts and related documentation.\n\n
-    \ Permission to modify and distribute modified fonts for any purpose is \n  hereby
-    granted without fee, provided that the copyright notice, \n  author statement,
-    this permission notice and location of original \n  fonts (http://www.ctan.org/tex-archive/fonts/cm/ps-type1/bakoma)\n
-    \ appear in all copies of modified fonts and related documentation.\n\n  Permission
-    to use these fonts (embedding into PostScript, PDF, SVG\n  and printing by using
-    any software) is hereby granted without fee. \n  It is not required to provide
-    any notices about using these fonts.\n\n Basil K. Malyshev\n INSTITUTE FOR HIGH
-    ENERGY PHYSICS\n IHEP, OMVT\n Moscow Region\n 142281 PROTVINO\n RUSSIA\n\n E-Mail:\tbakoma@mail.ru\n
-    \     or\tmalyshev@mail.ihep.ru\n\n"
-- sources: LICENSE_YORICK
-  text: "BSD-style license for gist/yorick colormaps.\n\nCopyright:\n\n  Copyright
-    (c) 1996.  The Regents of the University of California.\n\t\t\t All rights reserved.\n\nPermission
-    to use, copy, modify, and distribute this software for any\npurpose without fee
-    is hereby granted, provided that this entire\nnotice is included in all copies
-    of any software which is or includes\na copy or modification of this software
-    and in all copies of the\nsupporting documentation for such software.\n\nThis
-    work was produced at the University of California, Lawrence\nLivermore National
-    Laboratory under contract no. W-7405-ENG-48 between\nthe U.S. Department of Energy
-    and The Regents of the University of\nCalifornia for the operation of UC LLNL.\n\n\n\t\t\t
-    \     DISCLAIMER\n\nThis software was prepared as an account of work sponsored
-    by an\nagency of the United States Government.  Neither the United States\nGovernment
-    nor the University of California nor any of their\nemployees, makes any warranty,
-    express or implied, or assumes any\nliability or responsibility for the accuracy,
-    completeness, or\nusefulness of any information, apparatus, product, or process\ndisclosed,
-    or represents that its use would not infringe\nprivately-owned rights.  Reference
-    herein to any specific commercial\nproducts, process, or service by trade name,
-    trademark, manufacturer,\nor otherwise, does not necessarily constitute or imply
-    its\nendorsement, recommendation, or favoring by the United States\nGovernment
-    or the University of California.  The views and opinions of\nauthors expressed
-    herein do not necessarily state or reflect those of\nthe United States Government
-    or the University of California, and\nshall not be used for advertising or product
-    endorsement purposes.\n\n\n\t\t\t\tAUTHOR\n\nDavid H. Munro wrote Yorick and Gist.
-    \ Berkeley Yacc (byacc) generated\nthe Yorick parser.  The routines in Math are
-    from LAPACK and FFTPACK;\nMathC contains C translations by David H. Munro.  The
-    algorithms for\nYorick's random number generator and several special functions
-    in\nYorick/include were taken from Numerical Recipes by Press, et. al.,\nalthough
-    the Yorick implementations are unrelated to those in\nNumerical Recipes.  A small
-    amount of code in Gist was adapted from\nthe X11R4 release, copyright M.I.T. --
-    the complete copyright notice\nmay be found in the (unused) file Gist/host.c.\n"
-- sources: LICENSE_QT4_EDITOR
-  text: |2
-
-    Module creating PyQt4 form dialogs/layouts to edit various type of parameters
-
-
-    formlayout License Agreement (MIT License)
-    ------------------------------------------
-
-    Copyright (c) 2009 Pierre Raybaut
-
-    Permission is hereby granted, free of charge, to any person
-    obtaining a copy of this software and associated documentation
-    files (the "Software"), to deal in the Software without
-    restriction, including without limitation the rights to use,
-    copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the
-    Software is furnished to do so, subject to the following
-    conditions:
-
-    The above copyright notice and this permission notice shall be
-    included in all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-    OTHER DEALINGS IN THE SOFTWARE.
-    """
-- sources: LICENSE_COLORBREWER
-  text: "Apache-Style Software License for ColorBrewer Color Schemes\n\nVersion 1.1\n\nCopyright
-    (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania \nState University.
-    All rights reserved. Redistribution and use in source \nand binary forms, with
-    or without modification, are permitted provided \nthat the following conditions
-    are met:\n\n1. Redistributions as source code must retain the above copyright
-    notice, \nthis list of conditions and the following disclaimer.\n\n2. The end-user
-    documentation included with the redistribution, if any, \nmust include the following
-    acknowledgment: \"This product includes color \nspecifications and designs developed
-    by Cynthia Brewer \n(http://colorbrewer.org/).\" Alternately, this acknowledgment
-    may appear in \nthe software itself, if and wherever such third-party acknowledgments
-    \nnormally appear.\n\n3. The name \"ColorBrewer\" must not be used to endorse
-    or promote products \nderived from this software without prior written permission.
-    For written \npermission, please contact Cynthia Brewer at cbrewer@psu.edu.\n\n4.
-    Products derived from this software may not be called \"ColorBrewer\", \nnor may
-    \"ColorBrewer\" appear in their name, without prior written \npermission of Cynthia
-    Brewer.\n\nTHIS SOFTWARE IS PROVIDED \"AS IS\" AND ANY EXPRESSED OR IMPLIED WARRANTIES,
-    \nINCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY \nAND
-    FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL \nCYNTHIA BREWER,
-    MARK HARROWER, OR THE PENNSYLVANIA STATE UNIVERSITY BE \nLIABLE FOR ANY DIRECT,
-    INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR \nCONSEQUENTIAL DAMAGES (INCLUDING,
-    BUT NOT LIMITED TO, PROCUREMENT OF \nSUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS \nINTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-    OF LIABILITY, WHETHER IN \nCONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-    OR OTHERWISE) \nARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-    OF THE \nPOSSIBILITY OF SUCH DAMAGE.\n"
-- sources: LICENSE_QHULL
-  text: "                    Qhull, Copyright (c) 1993-2020\n                    \n
-    \                           C.B. Barber\n                           Arlington,
-    MA \n                          \n                               and\n\n       The
-    National Science and Technology Research Center for\n        Computation and Visualization
-    of Geometric Structures\n                        (The Geometry Center)\n                       University
-    of Minnesota\n\n                       email: qhull@qhull.org\n\nThis software
-    includes Qhull from C.B. Barber and The Geometry Center.  \nFiles derived from
-    Qhull 1.0 are copyrighted by the Geometry Center.  The\nremaining files are copyrighted
-    by C.B. Barber.  Qhull is free software \nand may be obtained via http from www.qhull.org.
-    \ It may be freely copied, \nmodified, and redistributed under the following conditions:\n\n1.
-    All copyright notices must remain intact in all files.\n\n2. A copy of this text
-    file must be distributed along with any copies \n   of Qhull that you redistribute;
-    this includes copies that you have \n   modified, or copies of programs or other
-    software products that \n   include Qhull.\n\n3. If you modify Qhull, you must
-    include a notice giving the\n   name of the person performing the modification,
-    the date of\n   modification, and the reason for such modification.\n\n4. When
-    distributing modified versions of Qhull, or other software \n   products that
-    include Qhull, you must provide notice that the original \n   source code may
-    be obtained as noted above.\n\n5. There is no warranty or other guarantee of fitness
-    for Qhull, it is \n   provided solely \"as is\".  Bug reports or fixes may be
-    sent to \n   qhull_bug@qhull.org; the authors may or may not act on them as \n
-    \  they desire.\n"
-- sources: LICENSE_AMSFONTS
-  text: "The cmr10.pfb file is a Type-1 version of one of Knuth's Computer Modern
-    fonts.\nIt is included here as test data only, but the following license applies.\n\nCopyright
-    (c) 1997, 2009, American Mathematical Society (http://www.ams.org).\nAll Rights
-    Reserved.\n\n\"cmb10\" is a Reserved Font Name for this Font Software.\n\"cmbsy10\"
-    is a Reserved Font Name for this Font Software.\n\"cmbsy5\" is a Reserved Font
-    Name for this Font Software.\n\"cmbsy6\" is a Reserved Font Name for this Font
-    Software.\n\"cmbsy7\" is a Reserved Font Name for this Font Software.\n\"cmbsy8\"
-    is a Reserved Font Name for this Font Software.\n\"cmbsy9\" is a Reserved Font
-    Name for this Font Software.\n\"cmbx10\" is a Reserved Font Name for this Font
-    Software.\n\"cmbx12\" is a Reserved Font Name for this Font Software.\n\"cmbx5\"
-    is a Reserved Font Name for this Font Software.\n\"cmbx6\" is a Reserved Font
-    Name for this Font Software.\n\"cmbx7\" is a Reserved Font Name for this Font
-    Software.\n\"cmbx8\" is a Reserved Font Name for this Font Software.\n\"cmbx9\"
-    is a Reserved Font Name for this Font Software.\n\"cmbxsl10\" is a Reserved Font
-    Name for this Font Software.\n\"cmbxti10\" is a Reserved Font Name for this Font
-    Software.\n\"cmcsc10\" is a Reserved Font Name for this Font Software.\n\"cmcsc8\"
-    is a Reserved Font Name for this Font Software.\n\"cmcsc9\" is a Reserved Font
-    Name for this Font Software.\n\"cmdunh10\" is a Reserved Font Name for this Font
-    Software.\n\"cmex10\" is a Reserved Font Name for this Font Software.\n\"cmex7\"
-    is a Reserved Font Name for this Font Software.\n\"cmex8\" is a Reserved Font
-    Name for this Font Software.\n\"cmex9\" is a Reserved Font Name for this Font
-    Software.\n\"cmff10\" is a Reserved Font Name for this Font Software.\n\"cmfi10\"
-    is a Reserved Font Name for this Font Software.\n\"cmfib8\" is a Reserved Font
-    Name for this Font Software.\n\"cminch\" is a Reserved Font Name for this Font
-    Software.\n\"cmitt10\" is a Reserved Font Name for this Font Software.\n\"cmmi10\"
-    is a Reserved Font Name for this Font Software.\n\"cmmi12\" is a Reserved Font
-    Name for this Font Software.\n\"cmmi5\" is a Reserved Font Name for this Font
-    Software.\n\"cmmi6\" is a Reserved Font Name for this Font Software.\n\"cmmi7\"
-    is a Reserved Font Name for this Font Software.\n\"cmmi8\" is a Reserved Font
-    Name for this Font Software.\n\"cmmi9\" is a Reserved Font Name for this Font
-    Software.\n\"cmmib10\" is a Reserved Font Name for this Font Software.\n\"cmmib5\"
-    is a Reserved Font Name for this Font Software.\n\"cmmib6\" is a Reserved Font
-    Name for this Font Software.\n\"cmmib7\" is a Reserved Font Name for this Font
-    Software.\n\"cmmib8\" is a Reserved Font Name for this Font Software.\n\"cmmib9\"
-    is a Reserved Font Name for this Font Software.\n\"cmr10\" is a Reserved Font
-    Name for this Font Software.\n\"cmr12\" is a Reserved Font Name for this Font
-    Software.\n\"cmr17\" is a Reserved Font Name for this Font Software.\n\"cmr5\"
-    is a Reserved Font Name for this Font Software.\n\"cmr6\" is a Reserved Font Name
-    for this Font Software.\n\"cmr7\" is a Reserved Font Name for this Font Software.\n\"cmr8\"
-    is a Reserved Font Name for this Font Software.\n\"cmr9\" is a Reserved Font Name
-    for this Font Software.\n\"cmsl10\" is a Reserved Font Name for this Font Software.\n\"cmsl12\"
-    is a Reserved Font Name for this Font Software.\n\"cmsl8\" is a Reserved Font
-    Name for this Font Software.\n\"cmsl9\" is a Reserved Font Name for this Font
-    Software.\n\"cmsltt10\" is a Reserved Font Name for this Font Software.\n\"cmss10\"
-    is a Reserved Font Name for this Font Software.\n\"cmss12\" is a Reserved Font
-    Name for this Font Software.\n\"cmss17\" is a Reserved Font Name for this Font
-    Software.\n\"cmss8\" is a Reserved Font Name for this Font Software.\n\"cmss9\"
-    is a Reserved Font Name for this Font Software.\n\"cmssbx10\" is a Reserved Font
-    Name for this Font Software.\n\"cmssdc10\" is a Reserved Font Name for this Font
-    Software.\n\"cmssi10\" is a Reserved Font Name for this Font Software.\n\"cmssi12\"
-    is a Reserved Font Name for this Font Software.\n\"cmssi17\" is a Reserved Font
-    Name for this Font Software.\n\"cmssi8\" is a Reserved Font Name for this Font
-    Software.\n\"cmssi9\" is a Reserved Font Name for this Font Software.\n\"cmssq8\"
-    is a Reserved Font Name for this Font Software.\n\"cmssqi8\" is a Reserved Font
-    Name for this Font Software.\n\"cmsy10\" is a Reserved Font Name for this Font
-    Software.\n\"cmsy5\" is a Reserved Font Name for this Font Software.\n\"cmsy6\"
-    is a Reserved Font Name for this Font Software.\n\"cmsy7\" is a Reserved Font
-    Name for this Font Software.\n\"cmsy8\" is a Reserved Font Name for this Font
-    Software.\n\"cmsy9\" is a Reserved Font Name for this Font Software.\n\"cmtcsc10\"
-    is a Reserved Font Name for this Font Software.\n\"cmtex10\" is a Reserved Font
-    Name for this Font Software.\n\"cmtex8\" is a Reserved Font Name for this Font
-    Software.\n\"cmtex9\" is a Reserved Font Name for this Font Software.\n\"cmti10\"
-    is a Reserved Font Name for this Font Software.\n\"cmti12\" is a Reserved Font
-    Name for this Font Software.\n\"cmti7\" is a Reserved Font Name for this Font
-    Software.\n\"cmti8\" is a Reserved Font Name for this Font Software.\n\"cmti9\"
-    is a Reserved Font Name for this Font Software.\n\"cmtt10\" is a Reserved Font
-    Name for this Font Software.\n\"cmtt12\" is a Reserved Font Name for this Font
-    Software.\n\"cmtt8\" is a Reserved Font Name for this Font Software.\n\"cmtt9\"
-    is a Reserved Font Name for this Font Software.\n\"cmu10\" is a Reserved Font
-    Name for this Font Software.\n\"cmvtt10\" is a Reserved Font Name for this Font
-    Software.\n\"euex10\" is a Reserved Font Name for this Font Software.\n\"euex7\"
-    is a Reserved Font Name for this Font Software.\n\"euex8\" is a Reserved Font
-    Name for this Font Software.\n\"euex9\" is a Reserved Font Name for this Font
-    Software.\n\"eufb10\" is a Reserved Font Name for this Font Software.\n\"eufb5\"
-    is a Reserved Font Name for this Font Software.\n\"eufb7\" is a Reserved Font
-    Name for this Font Software.\n\"eufm10\" is a Reserved Font Name for this Font
-    Software.\n\"eufm5\" is a Reserved Font Name for this Font Software.\n\"eufm7\"
-    is a Reserved Font Name for this Font Software.\n\"eurb10\" is a Reserved Font
-    Name for this Font Software.\n\"eurb5\" is a Reserved Font Name for this Font
-    Software.\n\"eurb7\" is a Reserved Font Name for this Font Software.\n\"eurm10\"
-    is a Reserved Font Name for this Font Software.\n\"eurm5\" is a Reserved Font
-    Name for this Font Software.\n\"eurm7\" is a Reserved Font Name for this Font
-    Software.\n\"eusb10\" is a Reserved Font Name for this Font Software.\n\"eusb5\"
-    is a Reserved Font Name for this Font Software.\n\"eusb7\" is a Reserved Font
-    Name for this Font Software.\n\"eusm10\" is a Reserved Font Name for this Font
-    Software.\n\"eusm5\" is a Reserved Font Name for this Font Software.\n\"eusm7\"
-    is a Reserved Font Name for this Font Software.\n\"lasy10\" is a Reserved Font
-    Name for this Font Software.\n\"lasy5\" is a Reserved Font Name for this Font
-    Software.\n\"lasy6\" is a Reserved Font Name for this Font Software.\n\"lasy7\"
-    is a Reserved Font Name for this Font Software.\n\"lasy8\" is a Reserved Font
-    Name for this Font Software.\n\"lasy9\" is a Reserved Font Name for this Font
-    Software.\n\"lasyb10\" is a Reserved Font Name for this Font Software.\n\"lcircle1\"
-    is a Reserved Font Name for this Font Software.\n\"lcirclew\" is a Reserved Font
-    Name for this Font Software.\n\"lcmss8\" is a Reserved Font Name for this Font
-    Software.\n\"lcmssb8\" is a Reserved Font Name for this Font Software.\n\"lcmssi8\"
-    is a Reserved Font Name for this Font Software.\n\"line10\" is a Reserved Font
-    Name for this Font Software.\n\"linew10\" is a Reserved Font Name for this Font
-    Software.\n\"msam10\" is a Reserved Font Name for this Font Software.\n\"msam5\"
-    is a Reserved Font Name for this Font Software.\n\"msam6\" is a Reserved Font
-    Name for this Font Software.\n\"msam7\" is a Reserved Font Name for this Font
-    Software.\n\"msam8\" is a Reserved Font Name for this Font Software.\n\"msam9\"
-    is a Reserved Font Name for this Font Software.\n\"msbm10\" is a Reserved Font
-    Name for this Font Software.\n\"msbm5\" is a Reserved Font Name for this Font
-    Software.\n\"msbm6\" is a Reserved Font Name for this Font Software.\n\"msbm7\"
-    is a Reserved Font Name for this Font Software.\n\"msbm8\" is a Reserved Font
-    Name for this Font Software.\n\"msbm9\" is a Reserved Font Name for this Font
-    Software.\n\"wncyb10\" is a Reserved Font Name for this Font Software.\n\"wncyi10\"
-    is a Reserved Font Name for this Font Software.\n\"wncyr10\" is a Reserved Font
-    Name for this Font Software.\n\"wncysc10\" is a Reserved Font Name for this Font
-    Software.\n\"wncyss10\" is a Reserved Font Name for this Font Software.\n\nThis
-    Font Software is licensed under the SIL Open Font License, Version 1.1.\nThis
-    license is copied below, and is also available with a FAQ at:\nhttp://scripts.sil.org/OFL\n\n-----------------------------------------------------------\nSIL
-    OPEN FONT LICENSE Version 1.1 - 26 February 2007\n-----------------------------------------------------------\n\nPREAMBLE\nThe
-    goals of the Open Font License (OFL) are to stimulate worldwide\ndevelopment of
-    collaborative font projects, to support the font creation\nefforts of academic
-    and linguistic communities, and to provide a free and\nopen framework in which
-    fonts may be shared and improved in partnership\nwith others.\n\nThe OFL allows
-    the licensed fonts to be used, studied, modified and\nredistributed freely as
-    long as they are not sold by themselves. The\nfonts, including any derivative
-    works, can be bundled, embedded, \nredistributed and/or sold with any software
-    provided that any reserved\nnames are not used by derivative works. The fonts
-    and derivatives,\nhowever, cannot be released under any other type of license.
-    The\nrequirement for fonts to remain under this license does not apply\nto any
-    document created using the fonts or their derivatives.\n\nDEFINITIONS\n\"Font
-    Software\" refers to the set of files released by the Copyright\nHolder(s) under
-    this license and clearly marked as such. This may\ninclude source files, build
-    scripts and documentation.\n\n\"Reserved Font Name\" refers to any names specified
-    as such after the\ncopyright statement(s).\n\n\"Original Version\" refers to the
-    collection of Font Software components as\ndistributed by the Copyright Holder(s).\n\n\"Modified
-    Version\" refers to any derivative made by adding to, deleting,\nor substituting
-    -- in part or in whole -- any of the components of the\nOriginal Version, by changing
-    formats or by porting the Font Software to a\nnew environment.\n\n\"Author\" refers
-    to any designer, engineer, programmer, technical\nwriter or other person who contributed
-    to the Font Software.\n\nPERMISSION & CONDITIONS\nPermission is hereby granted,
-    free of charge, to any person obtaining\na copy of the Font Software, to use,
-    study, copy, merge, embed, modify,\nredistribute, and sell modified and unmodified
-    copies of the Font\nSoftware, subject to the following conditions:\n\n1) Neither
-    the Font Software nor any of its individual components,\nin Original or Modified
-    Versions, may be sold by itself.\n\n2) Original or Modified Versions of the Font
-    Software may be bundled,\nredistributed and/or sold with any software, provided
-    that each copy\ncontains the above copyright notice and this license. These can
-    be\nincluded either as stand-alone text files, human-readable headers or\nin the
-    appropriate machine-readable metadata fields within text or\nbinary files as long
-    as those fields can be easily viewed by the user.\n\n3) No Modified Version of
-    the Font Software may use the Reserved Font\nName(s) unless explicit written permission
-    is granted by the corresponding\nCopyright Holder. This restriction only applies
-    to the primary font name as\npresented to the users.\n\n4) The name(s) of the
-    Copyright Holder(s) or the Author(s) of the Font\nSoftware shall not be used to
-    promote, endorse or advertise any\nModified Version, except to acknowledge the
-    contribution(s) of the\nCopyright Holder(s) and the Author(s) or with their explicit
-    written\npermission.\n\n5) The Font Software, modified or unmodified, in part
-    or in whole,\nmust be distributed entirely under this license, and must not be\ndistributed
-    under any other license. The requirement for fonts to\nremain under this license
-    does not apply to any document created\nusing the Font Software.\n\nTERMINATION\nThis
-    license becomes null and void if any of the above conditions are\nnot met.\n\nDISCLAIMER\nTHE
-    FONT SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\nMERCHANTABILITY, FITNESS
-    FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT\nOF COPYRIGHT, PATENT, TRADEMARK,
-    OR OTHER RIGHT. IN NO EVENT SHALL THE\nCOPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
-    DAMAGES OR OTHER LIABILITY,\nINCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL,
-    OR CONSEQUENTIAL\nDAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-    ARISING\nFROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\nOTHER
-    DEALINGS IN THE FONT SOFTWARE.\n"
-- sources: LICENSE_STIX
-  text: "TERMS AND CONDITIONS\n\n   1. Permission is hereby granted, free of charge,
-    to any person \nobtaining a copy of the STIX Fonts-TM set accompanying this license
-    \n(collectively, the \"Fonts\") and the associated documentation files \n(collectively
-    with the Fonts, the \"Font Software\"), to reproduce and \ndistribute the Font
-    Software, including the rights to use, copy, merge \nand publish copies of the
-    Font Software, and to permit persons to whom \nthe Font Software is furnished
-    to do so same, subject to the following \nterms and conditions (the \"License\").\n\n
-    \  2. The following copyright and trademark notice and these Terms and \nConditions
-    shall be included in all copies of one or more of the Font \ntypefaces and any
-    derivative work created as permitted under this \nLicense:\n\n\tCopyright (c)
-    2001-2005 by the STI Pub Companies, consisting of \nthe American Institute of
-    Physics, the American Chemical Society, the \nAmerican Mathematical Society, the
-    American Physical Society, Elsevier, \nInc., and The Institute of Electrical and
-    Electronic Engineers, Inc. \nPortions copyright (c) 1998-2003 by MicroPress, Inc.
-    Portions copyright \n(c) 1990 by Elsevier, Inc. All rights reserved. STIX Fonts-TM
-    is a \ntrademark of The Institute of Electrical and Electronics Engineers, Inc.\n\n
-    \  3. You may (a) convert the Fonts from one format to another (e.g., \nfrom TrueType
-    to PostScript), in which case the normal and reasonable \ndistortion that occurs
-    during such conversion shall be permitted and (b) \nembed or include a subset
-    of the Fonts in a document for the purposes of \nallowing users to read text in
-    the document that utilizes the Fonts. In \neach case, you may use the STIX Fonts-TM
-    mark to designate the resulting \nFonts or subset of the Fonts.\n\n   4. You may
-    also (a) add glyphs or characters to the Fonts, or modify \nthe shape of existing
-    glyphs, so long as the base set of glyphs is not \nremoved and (b) delete glyphs
-    or characters from the Fonts, provided \nthat the resulting font set is distributed
-    with the following \ndisclaimer: \"This [name] font does not include all the Unicode
-    points \ncovered in the STIX Fonts-TM set but may include others.\" In each case,
-    \nthe name used to denote the resulting font set shall not include the \nterm
-    \"STIX\" or any similar term.\n\n   5. You may charge a fee in connection with
-    the distribution of the \nFont Software, provided that no copy of one or more
-    of the individual \nFont typefaces that form the STIX Fonts-TM set may be sold
-    by itself.\n\n   6. THE FONT SOFTWARE IS PROVIDED \"AS IS,\" WITHOUT WARRANTY
-    OF ANY \nKIND, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, ANY WARRANTIES
-    \nOF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT \nOF
-    COPYRIGHT, PATENT, TRADEMARK OR OTHER RIGHT. IN NO EVENT SHALL \nMICROPRESS OR
-    ANY OF THE STI PUB COMPANIES BE LIABLE FOR ANY CLAIM, \nDAMAGES OR OTHER LIABILITY,
-    INCLUDING, BUT NOT LIMITED TO, ANY GENERAL, \nSPECIAL, INDIRECT, INCIDENTAL OR
-    CONSEQUENTIAL DAMAGES, WHETHER IN AN \nACTION OF CONTRACT, TORT OR OTHERWISE,
-    ARISING FROM OR OUT OF THE USE OR \nINABILITY TO USE THE FONT SOFTWARE OR FROM
-    OTHER DEALINGS IN THE FONT \nSOFTWARE.\n\n   7. Except as contained in the notice
-    set forth in Section 2, the \nnames MicroPress Inc. and STI Pub Companies, as
-    well as the names of the \ncompanies/organizations that compose the STI Pub Companies,
-    shall not be \nused in advertising or otherwise to promote the sale, use or other
-    \ndealings in the Font Software without the prior written consent of the \nrespective
-    company or organization.\n\n   8. This License shall become null and void in the
-    event of any \nmaterial breach of the Terms and Conditions herein by licensee.\n\n
-    \  9. A substantial portion of the STIX Fonts set was developed by \nMicroPress
-    Inc. for the STI Pub Companies. To obtain additional \nmathematical fonts, please
-    contact MicroPress, Inc., 68-30 Harrow \nStreet, Forest Hills, NY 11375, USA -
-    Phone: (718) 575-1816.\n\n"
-- sources: LICENSE_CARLOGO
-  text: |-
-    ----> we renamed carlito -> carlogo to comply with the terms <----
-
-    Copyright (c) 2010-2013 by tyPoland Lukasz Dziedzic with Reserved Font Name "Carlito".
-
-    This Font Software is licensed under the SIL Open Font License, Version 1.1.
-    This license is copied below, and is also available with a FAQ at: http://scripts.sil.org/OFL
-
-    -----------------------------------------------------------
-    SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
-    -----------------------------------------------------------
-
-    PREAMBLE
-    The goals of the Open Font License (OFL) are to stimulate worldwide development of collaborative font projects, to support the font creation efforts of academic and linguistic communities, and to provide a free and open framework in which fonts may be shared and improved in partnership with others.
-
-    The OFL allows the licensed fonts to be used, studied, modified and redistributed freely as long as they are not sold by themselves. The fonts, including any derivative works, can be bundled, embedded, redistributed and/or sold with any software provided that any reserved names are not used by derivative works. The fonts and derivatives, however, cannot be released under any other type of license. The requirement for fonts to remain under this license does not apply to any document created using the fonts or their derivatives.
-
-    DEFINITIONS
-    "Font Software" refers to the set of files released by the Copyright Holder(s) under this license and clearly marked as such. This may include source files, build scripts and documentation.
-
-    "Reserved Font Name" refers to any names specified as such after the copyright statement(s).
-
-    "Original Version" refers to the collection of Font Software components as distributed by the Copyright Holder(s).
-
-    "Modified Version" refers to any derivative made by adding to, deleting, or substituting -- in part or in whole -- any of the components of the Original Version, by changing formats or by porting the Font Software to a new environment.
-
-    "Author" refers to any designer, engineer, programmer, technical writer or other person who contributed to the Font Software.
-
-    PERMISSION & CONDITIONS
-    Permission is hereby granted, free of charge, to any person obtaining a copy of the Font Software, to use, study, copy, merge, embed, modify, redistribute, and sell modified and unmodified copies of the Font Software, subject to the following conditions:
-
-    1) Neither the Font Software nor any of its individual components, in Original or Modified Versions, may be sold by itself.
-
-    2) Original or Modified Versions of the Font Software may be bundled, redistributed and/or sold with any software, provided that each copy contains the above copyright notice and this license. These can be included either as stand-alone text files, human-readable headers or in the appropriate machine-readable metadata fields within text or binary files as long as those fields can be easily viewed by the user.
-
-    3) No Modified Version of the Font Software may use the Reserved Font Name(s) unless explicit written permission is granted by the corresponding Copyright Holder. This restriction only applies to the primary font name as presented to the users.
-
-    4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font Software shall not be used to promote, endorse or advertise any Modified Version, except to acknowledge the contribution(s) of the Copyright Holder(s) and the Author(s) or with their explicit written permission.
-
-    5) The Font Software, modified or unmodified, in part or in whole, must be distributed entirely under this license, and must not be distributed under any other license. The requirement for fonts to remain under this license does not apply to any document created using the Font Software.
-
-    TERMINATION
-    This license becomes null and void if any of the above conditions are not met.
-
-    DISCLAIMER
-    THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.
-- sources: LICENSE_COURIERTEN
-  text: |+
-    The Courier10PitchBT-Bold.pfb file is a Type-1 version of
-    Courier 10 Pitch BT Bold by Bitstream, obtained from
-    <https://ctan.org/tex-archive/fonts/courierten>. It is included
-    here as test data only, but the following license applies.
-
-
-    (c) Copyright 1989-1992, Bitstream Inc., Cambridge, MA.
-
-    You are hereby granted permission under all Bitstream propriety rights
-    to use, copy, modify, sublicense, sell, and redistribute the 4 Bitstream
-    Charter (r) Type 1 outline fonts and the 4 Courier Type 1 outline fonts
-    for any purpose and without restriction; provided, that this notice is
-    left intact on all copies of such fonts and that Bitstream's trademark
-    is acknowledged as shown below on all unmodified copies of the 4 Charter
-    Type 1 fonts.
-
-    BITSTREAM CHARTER is a registered trademark of Bitstream Inc.
-
-- sources: LICENSE_SOLARIZED
-  text: |
-    https://github.com/altercation/solarized/blob/master/LICENSE
-    Copyright (c) 2011 Ethan Schoonover
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
-- sources: LICENSE_JSXTOOLS_RESIZE_OBSERVER
-  text: |
-    # CC0 1.0 Universal
-
-    ## Statement of Purpose
-
-    The laws of most jurisdictions throughout the world automatically confer
-    exclusive Copyright and Related Rights (defined below) upon the creator and
-    subsequent owner(s) (each and all, an “owner”) of an original work of
-    authorship and/or a database (each, a “Work”).
-
-    Certain owners wish to permanently relinquish those rights to a Work for the
-    purpose of contributing to a commons of creative, cultural and scientific works
-    (“Commons”) that the public can reliably and without fear of later claims of
-    infringement build upon, modify, incorporate in other works, reuse and
-    redistribute as freely as possible in any form whatsoever and for any purposes,
-    including without limitation commercial purposes. These owners may contribute
-    to the Commons to promote the ideal of a free culture and the further
-    production of creative, cultural and scientific works, or to gain reputation or
-    greater distribution for their Work in part through the use and efforts of
-    others.
-
-    For these and/or other purposes and motivations, and without any expectation of
-    additional consideration or compensation, the person associating CC0 with a
-    Work (the “Affirmer”), to the extent that he or she is an owner of Copyright
-    and Related Rights in the Work, voluntarily elects to apply CC0 to the Work and
-    publicly distribute the Work under its terms, with knowledge of his or her
-    Copyright and Related Rights in the Work and the meaning and intended legal
-    effect of CC0 on those rights.
-
-    1. Copyright and Related Rights. A Work made available under CC0 may be
-       protected by copyright and related or neighboring rights (“Copyright and
-       Related Rights”). Copyright and Related Rights include, but are not limited
-       to, the following:
-       1. the right to reproduce, adapt, distribute, perform, display, communicate,
-          and translate a Work;
-       2. moral rights retained by the original author(s) and/or performer(s);
-       3. publicity and privacy rights pertaining to a person’s image or likeness
-          depicted in a Work;
-       4. rights protecting against unfair competition in regards to a Work,
-          subject to the limitations in paragraph 4(i), below;
-       5. rights protecting the extraction, dissemination, use and reuse of data in
-          a Work;
-       6. database rights (such as those arising under Directive 96/9/EC of the
-          European Parliament and of the Council of 11 March 1996 on the legal
-          protection of databases, and under any national implementation thereof,
-          including any amended or successor version of such directive); and
-       7. other similar, equivalent or corresponding rights throughout the world
-          based on applicable law or treaty, and any national implementations
-          thereof.
-
-    2. Waiver. To the greatest extent permitted by, but not in contravention of,
-       applicable law, Affirmer hereby overtly, fully, permanently, irrevocably and
-       unconditionally waives, abandons, and surrenders all of Affirmer’s Copyright
-       and Related Rights and associated claims and causes of action, whether now
-       known or unknown (including existing as well as future claims and causes of
-       action), in the Work (i) in all territories worldwide, (ii) for the maximum
-       duration provided by applicable law or treaty (including future time
-       extensions), (iii) in any current or future medium and for any number of
-       copies, and (iv) for any purpose whatsoever, including without limitation
-       commercial, advertising or promotional purposes (the “Waiver”). Affirmer
-       makes the Waiver for the benefit of each member of the public at large and
-       to the detriment of Affirmer’s heirs and successors, fully intending that
-       such Waiver shall not be subject to revocation, rescission, cancellation,
-       termination, or any other legal or equitable action to disrupt the quiet
-       enjoyment of the Work by the public as contemplated by Affirmer’s express
-       Statement of Purpose.
-
-    3. Public License Fallback. Should any part of the Waiver for any reason be
-       judged legally invalid or ineffective under applicable law, then the Waiver
-       shall be preserved to the maximum extent permitted taking into account
-       Affirmer’s express Statement of Purpose. In addition, to the extent the
-       Waiver is so judged Affirmer hereby grants to each affected person a
-       royalty-free, non transferable, non sublicensable, non exclusive,
-       irrevocable and unconditional license to exercise Affirmer’s Copyright and
-       Related Rights in the Work (i) in all territories worldwide, (ii) for the
-       maximum duration provided by applicable law or treaty (including future time
-       extensions), (iii) in any current or future medium and for any number of
-       copies, and (iv) for any purpose whatsoever, including without limitation
-       commercial, advertising or promotional purposes (the “License”). The License
-       shall be deemed effective as of the date CC0 was applied by Affirmer to the
-       Work. Should any part of the License for any reason be judged legally
-       invalid or ineffective under applicable law, such partial invalidity or
-       ineffectiveness shall not invalidate the remainder of the License, and in
-       such case Affirmer hereby affirms that he or she will not (i) exercise any
-       of his or her remaining Copyright and Related Rights in the Work or (ii)
-       assert any associated claims and causes of action with respect to the Work,
-       in either case contrary to Affirmer’s express Statement of Purpose.
-
-    4. Limitations and Disclaimers.
-       1. No trademark or patent rights held by Affirmer are waived, abandoned,
-          surrendered, licensed or otherwise affected by this document.
-       2. Affirmer offers the Work as-is and makes no representations or warranties
-          of any kind concerning the Work, express, implied, statutory or
-          otherwise, including without limitation warranties of title,
-          merchantability, fitness for a particular purpose, non infringement, or
-          the absence of latent or other defects, accuracy, or the present or
-          absence of errors, whether or not discoverable, all to the greatest
-          extent permissible under applicable law.
-       3. Affirmer disclaims responsibility for clearing rights of other persons
-          that may apply to the Work or any use thereof, including without
-          limitation any person’s Copyright and Related Rights in the Work.
-          Further, Affirmer disclaims responsibility for obtaining any necessary
-          consents, permissions or other rights required for any use of the Work.
-       4. Affirmer understands and acknowledges that Creative Commons is not a
-          party to this document and has no duty or obligation with respect to this
-          CC0 or use of the Work.
-
-    For more information, please see
-    http://creativecommons.org/publicdomain/zero/1.0/.
+  text: "License agreement for matplotlib versions 1.3.0 and later\n=========================================================\n\n1.
+    This LICENSE AGREEMENT is between the Matplotlib Development Team\n(\"MDT\"),
+    and the Individual or Organization (\"Licensee\") accessing and\notherwise using
+    matplotlib software in source or binary form and its\nassociated documentation.\n\n2.
+    Subject to the terms and conditions of this License Agreement, MDT\nhereby grants
+    Licensee a nonexclusive, royalty-free, world-wide license\nto reproduce, analyze,
+    test, perform and/or display publicly, prepare\nderivative works, distribute,
+    and otherwise use matplotlib\nalone or in any derivative version, provided, however,
+    that MDT's\nLicense Agreement and MDT's notice of copyright, i.e., \"Copyright
+    (c)\n2012- Matplotlib Development Team; All Rights Reserved\" are retained in\nmatplotlib
+    \ alone or in any derivative version prepared by\nLicensee.\n\n3. In the event
+    Licensee prepares a derivative work that is based on or\nincorporates matplotlib
+    or any part thereof, and wants to\nmake the derivative work available to others
+    as provided herein, then\nLicensee hereby agrees to include in any such work a
+    brief summary of\nthe changes made to matplotlib .\n\n4. MDT is making matplotlib
+    available to Licensee on an \"AS\nIS\" basis.  MDT MAKES NO REPRESENTATIONS OR
+    WARRANTIES, EXPRESS OR\nIMPLIED.  BY WAY OF EXAMPLE, BUT NOT LIMITATION, MDT MAKES
+    NO AND\nDISCLAIMS ANY REPRESENTATION OR WARRANTY OF MERCHANTABILITY OR FITNESS\nFOR
+    ANY PARTICULAR PURPOSE OR THAT THE USE OF MATPLOTLIB\nWILL NOT INFRINGE ANY THIRD
+    PARTY RIGHTS.\n\n5. MDT SHALL NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF
+    MATPLOTLIB\n FOR ANY INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES OR\nLOSS AS
+    A RESULT OF MODIFYING, DISTRIBUTING, OR OTHERWISE USING\nMATPLOTLIB , OR ANY DERIVATIVE
+    THEREOF, EVEN IF ADVISED OF\nTHE POSSIBILITY THEREOF.\n\n6. This License Agreement
+    will automatically terminate upon a material\nbreach of its terms and conditions.\n\n7.
+    Nothing in this License Agreement shall be deemed to create any\nrelationship
+    of agency, partnership, or joint venture between MDT and\nLicensee.  This License
+    Agreement does not grant permission to use MDT\ntrademarks or trade name in a
+    trademark sense to endorse or promote\nproducts or services of Licensee, or any
+    third party.\n\n8. By copying, installing or otherwise using matplotlib ,\nLicensee
+    agrees to be bound by the terms and conditions of this License\nAgreement.\n\nLicense
+    agreement for matplotlib versions prior to 1.3.0\n========================================================\n\n1.
+    This LICENSE AGREEMENT is between John D. Hunter (\"JDH\"), and the\nIndividual
+    or Organization (\"Licensee\") accessing and otherwise using\nmatplotlib software
+    in source or binary form and its associated\ndocumentation.\n\n2. Subject to the
+    terms and conditions of this License Agreement, JDH\nhereby grants Licensee a
+    nonexclusive, royalty-free, world-wide license\nto reproduce, analyze, test, perform
+    and/or display publicly, prepare\nderivative works, distribute, and otherwise
+    use matplotlib\nalone or in any derivative version, provided, however, that JDH's\nLicense
+    Agreement and JDH's notice of copyright, i.e., \"Copyright (c)\n2002-2011 John
+    D. Hunter; All Rights Reserved\" are retained in\nmatplotlib  alone or in any
+    derivative version prepared by\nLicensee.\n\n3. In the event Licensee prepares
+    a derivative work that is based on or\nincorporates matplotlib  or any part thereof,
+    and wants to\nmake the derivative work available to others as provided herein,
+    then\nLicensee hereby agrees to include in any such work a brief summary of\nthe
+    changes made to matplotlib.\n\n4. JDH is making matplotlib  available to Licensee
+    on an \"AS\nIS\" basis.  JDH MAKES NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR\nIMPLIED.
+    \ BY WAY OF EXAMPLE, BUT NOT LIMITATION, JDH MAKES NO AND\nDISCLAIMS ANY REPRESENTATION
+    OR WARRANTY OF MERCHANTABILITY OR FITNESS\nFOR ANY PARTICULAR PURPOSE OR THAT
+    THE USE OF MATPLOTLIB\nWILL NOT INFRINGE ANY THIRD PARTY RIGHTS.\n\n5. JDH SHALL
+    NOT BE LIABLE TO LICENSEE OR ANY OTHER USERS OF MATPLOTLIB\n FOR ANY INCIDENTAL,
+    SPECIAL, OR CONSEQUENTIAL DAMAGES OR\nLOSS AS A RESULT OF MODIFYING, DISTRIBUTING,
+    OR OTHERWISE USING\nMATPLOTLIB , OR ANY DERIVATIVE THEREOF, EVEN IF ADVISED OF\nTHE
+    POSSIBILITY THEREOF.\n\n6. This License Agreement will automatically terminate
+    upon a material\nbreach of its terms and conditions.\n\n7. Nothing in this License
+    Agreement shall be deemed to create any\nrelationship of agency, partnership,
+    or joint venture between JDH and\nLicensee.  This License Agreement does not grant
+    permission to use JDH\ntrademarks or trade name in a trademark sense to endorse
+    or promote\nproducts or services of Licensee, or any third party.\n\n8. By copying,
+    installing or otherwise using matplotlib,\nLicensee agrees to be bound by the
+    terms and conditions of this License\nAgreement.\n----\n\nThis binary distrubution
+    of Matplotlib can also bundle the following software\n(depending on the build):\n\nName:
+    AMS Fonts\nFiles: matplotlib/tests/cmr10.pfb\nDescription: Type-1 version of one
+    of Knuth's Computer Modern fonts\nLicense: OFL-1.1\n  The cmr10.pfb file is a
+    Type-1 version of one of Knuth's Computer Modern fonts.\n  It is included here
+    as test data only, but the following license applies.\n\n  Copyright (c) 1997,
+    2009, American Mathematical Society (http://www.ams.org).\n  All Rights Reserved.\n\n
+    \ \"cmb10\" is a Reserved Font Name for this Font Software.\n  \"cmbsy10\" is
+    a Reserved Font Name for this Font Software.\n  \"cmbsy5\" is a Reserved Font
+    Name for this Font Software.\n  \"cmbsy6\" is a Reserved Font Name for this Font
+    Software.\n  \"cmbsy7\" is a Reserved Font Name for this Font Software.\n  \"cmbsy8\"
+    is a Reserved Font Name for this Font Software.\n  \"cmbsy9\" is a Reserved Font
+    Name for this Font Software.\n  \"cmbx10\" is a Reserved Font Name for this Font
+    Software.\n  \"cmbx12\" is a Reserved Font Name for this Font Software.\n  \"cmbx5\"
+    is a Reserved Font Name for this Font Software.\n  \"cmbx6\" is a Reserved Font
+    Name for this Font Software.\n  \"cmbx7\" is a Reserved Font Name for this Font
+    Software.\n  \"cmbx8\" is a Reserved Font Name for this Font Software.\n  \"cmbx9\"
+    is a Reserved Font Name for this Font Software.\n  \"cmbxsl10\" is a Reserved
+    Font Name for this Font Software.\n  \"cmbxti10\" is a Reserved Font Name for
+    this Font Software.\n  \"cmcsc10\" is a Reserved Font Name for this Font Software.\n
+    \ \"cmcsc8\" is a Reserved Font Name for this Font Software.\n  \"cmcsc9\" is
+    a Reserved Font Name for this Font Software.\n  \"cmdunh10\" is a Reserved Font
+    Name for this Font Software.\n  \"cmex10\" is a Reserved Font Name for this Font
+    Software.\n  \"cmex7\" is a Reserved Font Name for this Font Software.\n  \"cmex8\"
+    is a Reserved Font Name for this Font Software.\n  \"cmex9\" is a Reserved Font
+    Name for this Font Software.\n  \"cmff10\" is a Reserved Font Name for this Font
+    Software.\n  \"cmfi10\" is a Reserved Font Name for this Font Software.\n  \"cmfib8\"
+    is a Reserved Font Name for this Font Software.\n  \"cminch\" is a Reserved Font
+    Name for this Font Software.\n  \"cmitt10\" is a Reserved Font Name for this Font
+    Software.\n  \"cmmi10\" is a Reserved Font Name for this Font Software.\n  \"cmmi12\"
+    is a Reserved Font Name for this Font Software.\n  \"cmmi5\" is a Reserved Font
+    Name for this Font Software.\n  \"cmmi6\" is a Reserved Font Name for this Font
+    Software.\n  \"cmmi7\" is a Reserved Font Name for this Font Software.\n  \"cmmi8\"
+    is a Reserved Font Name for this Font Software.\n  \"cmmi9\" is a Reserved Font
+    Name for this Font Software.\n  \"cmmib10\" is a Reserved Font Name for this Font
+    Software.\n  \"cmmib5\" is a Reserved Font Name for this Font Software.\n  \"cmmib6\"
+    is a Reserved Font Name for this Font Software.\n  \"cmmib7\" is a Reserved Font
+    Name for this Font Software.\n  \"cmmib8\" is a Reserved Font Name for this Font
+    Software.\n  \"cmmib9\" is a Reserved Font Name for this Font Software.\n  \"cmr10\"
+    is a Reserved Font Name for this Font Software.\n  \"cmr12\" is a Reserved Font
+    Name for this Font Software.\n  \"cmr17\" is a Reserved Font Name for this Font
+    Software.\n  \"cmr5\" is a Reserved Font Name for this Font Software.\n  \"cmr6\"
+    is a Reserved Font Name for this Font Software.\n  \"cmr7\" is a Reserved Font
+    Name for this Font Software.\n  \"cmr8\" is a Reserved Font Name for this Font
+    Software.\n  \"cmr9\" is a Reserved Font Name for this Font Software.\n  \"cmsl10\"
+    is a Reserved Font Name for this Font Software.\n  \"cmsl12\" is a Reserved Font
+    Name for this Font Software.\n  \"cmsl8\" is a Reserved Font Name for this Font
+    Software.\n  \"cmsl9\" is a Reserved Font Name for this Font Software.\n  \"cmsltt10\"
+    is a Reserved Font Name for this Font Software.\n  \"cmss10\" is a Reserved Font
+    Name for this Font Software.\n  \"cmss12\" is a Reserved Font Name for this Font
+    Software.\n  \"cmss17\" is a Reserved Font Name for this Font Software.\n  \"cmss8\"
+    is a Reserved Font Name for this Font Software.\n  \"cmss9\" is a Reserved Font
+    Name for this Font Software.\n  \"cmssbx10\" is a Reserved Font Name for this
+    Font Software.\n  \"cmssdc10\" is a Reserved Font Name for this Font Software.\n
+    \ \"cmssi10\" is a Reserved Font Name for this Font Software.\n  \"cmssi12\" is
+    a Reserved Font Name for this Font Software.\n  \"cmssi17\" is a Reserved Font
+    Name for this Font Software.\n  \"cmssi8\" is a Reserved Font Name for this Font
+    Software.\n  \"cmssi9\" is a Reserved Font Name for this Font Software.\n  \"cmssq8\"
+    is a Reserved Font Name for this Font Software.\n  \"cmssqi8\" is a Reserved Font
+    Name for this Font Software.\n  \"cmsy10\" is a Reserved Font Name for this Font
+    Software.\n  \"cmsy5\" is a Reserved Font Name for this Font Software.\n  \"cmsy6\"
+    is a Reserved Font Name for this Font Software.\n  \"cmsy7\" is a Reserved Font
+    Name for this Font Software.\n  \"cmsy8\" is a Reserved Font Name for this Font
+    Software.\n  \"cmsy9\" is a Reserved Font Name for this Font Software.\n  \"cmtcsc10\"
+    is a Reserved Font Name for this Font Software.\n  \"cmtex10\" is a Reserved Font
+    Name for this Font Software.\n  \"cmtex8\" is a Reserved Font Name for this Font
+    Software.\n  \"cmtex9\" is a Reserved Font Name for this Font Software.\n  \"cmti10\"
+    is a Reserved Font Name for this Font Software.\n  \"cmti12\" is a Reserved Font
+    Name for this Font Software.\n  \"cmti7\" is a Reserved Font Name for this Font
+    Software.\n  \"cmti8\" is a Reserved Font Name for this Font Software.\n  \"cmti9\"
+    is a Reserved Font Name for this Font Software.\n  \"cmtt10\" is a Reserved Font
+    Name for this Font Software.\n  \"cmtt12\" is a Reserved Font Name for this Font
+    Software.\n  \"cmtt8\" is a Reserved Font Name for this Font Software.\n  \"cmtt9\"
+    is a Reserved Font Name for this Font Software.\n  \"cmu10\" is a Reserved Font
+    Name for this Font Software.\n  \"cmvtt10\" is a Reserved Font Name for this Font
+    Software.\n  \"euex10\" is a Reserved Font Name for this Font Software.\n  \"euex7\"
+    is a Reserved Font Name for this Font Software.\n  \"euex8\" is a Reserved Font
+    Name for this Font Software.\n  \"euex9\" is a Reserved Font Name for this Font
+    Software.\n  \"eufb10\" is a Reserved Font Name for this Font Software.\n  \"eufb5\"
+    is a Reserved Font Name for this Font Software.\n  \"eufb7\" is a Reserved Font
+    Name for this Font Software.\n  \"eufm10\" is a Reserved Font Name for this Font
+    Software.\n  \"eufm5\" is a Reserved Font Name for this Font Software.\n  \"eufm7\"
+    is a Reserved Font Name for this Font Software.\n  \"eurb10\" is a Reserved Font
+    Name for this Font Software.\n  \"eurb5\" is a Reserved Font Name for this Font
+    Software.\n  \"eurb7\" is a Reserved Font Name for this Font Software.\n  \"eurm10\"
+    is a Reserved Font Name for this Font Software.\n  \"eurm5\" is a Reserved Font
+    Name for this Font Software.\n  \"eurm7\" is a Reserved Font Name for this Font
+    Software.\n  \"eusb10\" is a Reserved Font Name for this Font Software.\n  \"eusb5\"
+    is a Reserved Font Name for this Font Software.\n  \"eusb7\" is a Reserved Font
+    Name for this Font Software.\n  \"eusm10\" is a Reserved Font Name for this Font
+    Software.\n  \"eusm5\" is a Reserved Font Name for this Font Software.\n  \"eusm7\"
+    is a Reserved Font Name for this Font Software.\n  \"lasy10\" is a Reserved Font
+    Name for this Font Software.\n  \"lasy5\" is a Reserved Font Name for this Font
+    Software.\n  \"lasy6\" is a Reserved Font Name for this Font Software.\n  \"lasy7\"
+    is a Reserved Font Name for this Font Software.\n  \"lasy8\" is a Reserved Font
+    Name for this Font Software.\n  \"lasy9\" is a Reserved Font Name for this Font
+    Software.\n  \"lasyb10\" is a Reserved Font Name for this Font Software.\n  \"lcircle1\"
+    is a Reserved Font Name for this Font Software.\n  \"lcirclew\" is a Reserved
+    Font Name for this Font Software.\n  \"lcmss8\" is a Reserved Font Name for this
+    Font Software.\n  \"lcmssb8\" is a Reserved Font Name for this Font Software.\n
+    \ \"lcmssi8\" is a Reserved Font Name for this Font Software.\n  \"line10\" is
+    a Reserved Font Name for this Font Software.\n  \"linew10\" is a Reserved Font
+    Name for this Font Software.\n  \"msam10\" is a Reserved Font Name for this Font
+    Software.\n  \"msam5\" is a Reserved Font Name for this Font Software.\n  \"msam6\"
+    is a Reserved Font Name for this Font Software.\n  \"msam7\" is a Reserved Font
+    Name for this Font Software.\n  \"msam8\" is a Reserved Font Name for this Font
+    Software.\n  \"msam9\" is a Reserved Font Name for this Font Software.\n  \"msbm10\"
+    is a Reserved Font Name for this Font Software.\n  \"msbm5\" is a Reserved Font
+    Name for this Font Software.\n  \"msbm6\" is a Reserved Font Name for this Font
+    Software.\n  \"msbm7\" is a Reserved Font Name for this Font Software.\n  \"msbm8\"
+    is a Reserved Font Name for this Font Software.\n  \"msbm9\" is a Reserved Font
+    Name for this Font Software.\n  \"wncyb10\" is a Reserved Font Name for this Font
+    Software.\n  \"wncyi10\" is a Reserved Font Name for this Font Software.\n  \"wncyr10\"
+    is a Reserved Font Name for this Font Software.\n  \"wncysc10\" is a Reserved
+    Font Name for this Font Software.\n  \"wncyss10\" is a Reserved Font Name for
+    this Font Software.\n\n  This Font Software is licensed under the SIL Open Font
+    License, Version 1.1.\n  This license is copied below, and is also available with
+    a FAQ at:\n  http://scripts.sil.org/OFL\n\n  -----------------------------------------------------------\n
+    \ SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n  -----------------------------------------------------------\n\n
+    \ PREAMBLE\n  The goals of the Open Font License (OFL) are to stimulate worldwide\n
+    \ development of collaborative font projects, to support the font creation\n  efforts
+    of academic and linguistic communities, and to provide a free and\n  open framework
+    in which fonts may be shared and improved in partnership\n  with others.\n\n  The
+    OFL allows the licensed fonts to be used, studied, modified and\n  redistributed
+    freely as long as they are not sold by themselves. The\n  fonts, including any
+    derivative works, can be bundled, embedded,\n  redistributed and/or sold with
+    any software provided that any reserved\n  names are not used by derivative works.
+    The fonts and derivatives,\n  however, cannot be released under any other type
+    of license. The\n  requirement for fonts to remain under this license does not
+    apply\n  to any document created using the fonts or their derivatives.\n\n  DEFINITIONS\n
+    \ \"Font Software\" refers to the set of files released by the Copyright\n  Holder(s)
+    under this license and clearly marked as such. This may\n  include source files,
+    build scripts and documentation.\n\n  \"Reserved Font Name\" refers to any names
+    specified as such after the\n  copyright statement(s).\n\n  \"Original Version\"
+    refers to the collection of Font Software components as\n  distributed by the
+    Copyright Holder(s).\n\n  \"Modified Version\" refers to any derivative made by
+    adding to, deleting,\n  or substituting -- in part or in whole -- any of the components
+    of the\n  Original Version, by changing formats or by porting the Font Software
+    to a\n  new environment.\n\n  \"Author\" refers to any designer, engineer, programmer,
+    technical\n  writer or other person who contributed to the Font Software.\n\n
+    \ PERMISSION & CONDITIONS\n  Permission is hereby granted, free of charge, to
+    any person obtaining\n  a copy of the Font Software, to use, study, copy, merge,
+    embed, modify,\n  redistribute, and sell modified and unmodified copies of the
+    Font\n  Software, subject to the following conditions:\n\n  1) Neither the Font
+    Software nor any of its individual components,\n  in Original or Modified Versions,
+    may be sold by itself.\n\n  2) Original or Modified Versions of the Font Software
+    may be bundled,\n  redistributed and/or sold with any software, provided that
+    each copy\n  contains the above copyright notice and this license. These can be\n
+    \ included either as stand-alone text files, human-readable headers or\n  in the
+    appropriate machine-readable metadata fields within text or\n  binary files as
+    long as those fields can be easily viewed by the user.\n\n  3) No Modified Version
+    of the Font Software may use the Reserved Font\n  Name(s) unless explicit written
+    permission is granted by the corresponding\n  Copyright Holder. This restriction
+    only applies to the primary font name as\n  presented to the users.\n\n  4) The
+    name(s) of the Copyright Holder(s) or the Author(s) of the Font\n  Software shall
+    not be used to promote, endorse or advertise any\n  Modified Version, except to
+    acknowledge the contribution(s) of the\n  Copyright Holder(s) and the Author(s)
+    or with their explicit written\n  permission.\n\n  5) The Font Software, modified
+    or unmodified, in part or in whole,\n  must be distributed entirely under this
+    license, and must not be\n  distributed under any other license. The requirement
+    for fonts to\n  remain under this license does not apply to any document created\n
+    \ using the Font Software.\n\n  TERMINATION\n  This license becomes null and void
+    if any of the above conditions are\n  not met.\n\n  DISCLAIMER\n  THE FONT SOFTWARE
+    IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n  EXPRESS OR IMPLIED, INCLUDING
+    BUT NOT LIMITED TO ANY WARRANTIES OF\n  MERCHANTABILITY, FITNESS FOR A PARTICULAR
+    PURPOSE AND NONINFRINGEMENT\n  OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT.
+    IN NO EVENT SHALL THE\n  COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+    OTHER LIABILITY,\n  INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\n
+    \ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\n  FROM,
+    OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\n  OTHER DEALINGS
+    IN THE FONT SOFTWARE.\n\n\n\nName: BaKoMa Fonts\nFiles: matplotlib/mpl-data/fonts/ttf/cm*.ttf
+    matplotlib/mpl-data/fonts/afm/cm*.afm\nDescription: Computer Modern Fonts in PostScript
+    Type 1 and TrueType font formats.\nLicense: BaKoMa Fonts Licence\n        BaKoMa
+    Fonts Licence\n        --------------------\n\n    This licence covers two font
+    packs (known as BaKoMa Fonts Collection,\n    which is available at `CTAN:fonts/cm/ps-type1/bakoma/'):\n\n
+    \     1) BaKoMa-CM (1.1/12-Nov-94)\n         Computer Modern Fonts in PostScript
+    Type 1 and TrueType font formats.\n\n      2) BaKoMa-AMS (1.2/19-Jan-95)\n         AMS
+    TeX fonts in PostScript Type 1 and TrueType font formats.\n\n    Copyright (C)
+    1994, 1995, Basil K. Malyshev. All Rights Reserved.\n\n    Permission to copy
+    and distribute these fonts for any purpose is\n    hereby granted without fee,
+    provided that the above copyright notice,\n    author statement and this permission
+    notice appear in all copies of\n    these fonts and related documentation.\n\n
+    \   Permission to modify and distribute modified fonts for any purpose is\n    hereby
+    granted without fee, provided that the copyright notice,\n    author statement,
+    this permission notice and location of original\n    fonts (http://www.ctan.org/tex-archive/fonts/cm/ps-type1/bakoma)\n
+    \   appear in all copies of modified fonts and related documentation.\n\n    Permission
+    to use these fonts (embedding into PostScript, PDF, SVG\n    and printing by using
+    any software) is hereby granted without fee.\n    It is not required to provide
+    any notices about using these fonts.\n\n   Basil K. Malyshev\n   INSTITUTE FOR
+    HIGH ENERGY PHYSICS\n   IHEP, OMVT\n   Moscow Region\n   142281 PROTVINO\n   RUSSIA\n\n
+    \  E-Mail:\tbakoma@mail.ru\n        or\tmalyshev@mail.ihep.ru\n\n\n\n\nName: ColorBrewer
+    Color Schemes\nFiles: lib/matplotlib/_cm.py\nDescription: Color schemes from ColorBrewer\nLicense:
+    Apache-2.0\n  Apache-Style Software License for ColorBrewer software and ColorBrewer
+    Color Schemes\n\n  Copyright (c) 2002 Cynthia Brewer, Mark Harrower, and The Pennsylvania
+    State University.\n\n  Licensed under the Apache License, Version 2.0 (the \"License\");
+    you may not use this file except in compliance with the License.\n  You may obtain
+    a copy of the License at\n\n  http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless
+    required by applicable law or agreed to in writing, software distributed\n  under
+    the License is distributed on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR\n  CONDITIONS
+    OF ANY KIND, either express or implied. See the License for the\n  specific language
+    governing permissions and limitations under the License.\n\n\nName: Courier 10\nFiles:
+    matplotlib/tests/Courier10PitchBT-Bold.pfb\nDescription: Courier 10 font, used
+    in tests.\nLicense: Bitstream-Charter\n  The Courier10PitchBT-Bold.pfb file is
+    a Type-1 version of\n  Courier 10 Pitch BT Bold by Bitstream, obtained from\n
+    \ <https://ctan.org/tex-archive/fonts/courierten>. It is included\n  here as test
+    data only, but the following license applies.\n\n\n  (c) Copyright 1989-1992,
+    Bitstream Inc., Cambridge, MA.\n\n  You are hereby granted permission under all
+    Bitstream propriety rights\n  to use, copy, modify, sublicense, sell, and redistribute
+    the 4 Bitstream\n  Charter (r) Type 1 outline fonts and the 4 Courier Type 1 outline
+    fonts\n  for any purpose and without restriction; provided, that this notice is\n
+    \ left intact on all copies of such fonts and that Bitstream's trademark\n  is
+    acknowledged as shown below on all unmodified copies of the 4 Charter\n  Type
+    1 fonts.\n\n  BITSTREAM CHARTER is a registered trademark of Bitstream Inc.\n\n\nName:
+    FreeType\nFiles: matplotlib/ft2font.*.so\nDescription: Font rendering library\nLicense:
+    FTL OR GPL-2.0-or-later\n  The FreeType  2 font  engine is  copyrighted work  and
+    cannot  be used\n  legally without  a software  license.  In order  to make  this
+    project\n  usable to  a vast majority of  developers, we distribute it  under
+    two\n  mutually exclusive open-source licenses.\n\n  This means that *you* must
+    choose  *one* of the two licenses described\n  below, then obey all its terms
+    and conditions when using FreeType 2 in\n  any of your projects or products.\n\n
+    \   - The FreeType License,  found in the file  `docs/FTL.TXT`, which is\n      similar
+    to the  original BSD license *with*  an advertising clause\n      that forces
+    \ you to explicitly  cite the FreeType project  in your\n      product's  documentation.
+    \ All  details are  in the  license file.\n      This license is suited to products
+    which don't use the GNU General\n      Public License.\n\n      Note that  this
+    license  is compatible to  the GNU  General Public\n      License version 3, but
+    not version 2.\n\n    - The   GNU   General   Public   License   version   2,
+    \  found   in\n      `docs/GPLv2.TXT`  (any  later  version  can  be  used  also),
+    \ for\n      programs  which  already  use  the  GPL.  Note  that  the  FTL  is\n
+    \     incompatible with GPLv2 due to its advertisement clause.\n\n  The contributed
+    \ BDF and PCF  drivers come  with a license  similar to\n  that  of the  X Window
+    \ System.   It is  compatible to  the above  two\n  licenses (see files `src/bdf/README`
+    \ and `src/pcf/README`).  The same\n  holds   for   the   source    code   files
+    \  `src/base/fthash.c`   and\n  `include/freetype/internal/fthash.h`; they were
+    part of the BDF driver\n  in earlier FreeType versions.\n\n  The gzip  module
+    uses the  zlib license (see  `src/gzip/zlib.h`) which\n  too is compatible to
+    the above two licenses.\n\n  The files `src/autofit/ft-hb.c` and `src/autofit/ft-hb.h`
+    contain code\n  taken almost  verbatim from the  HarfBuzz file `hb-ft.cc`,  which
+    uses\n  the 'Old MIT' license, compatible to the above two licenses.\n\n  The
+    \ MD5 checksum  support  (only used  for  debugging in  development\n  builds)
+    is in the public domain.\n\n\nName: HarfBuzz\nFiles: matplotlib/ft2font.*.so\nDescription:
+    Text shaping library\nLicense: MIT-Modern-Variant\n  HarfBuzz is licensed under
+    the so-called \"Old MIT\" license.  Details follow.\n  For parts of HarfBuzz that
+    are licensed under different licenses see individual\n  files names COPYING in
+    subdirectories where applicable.\n\n  Copyright © 2010-2022  Google, Inc.\n  Copyright
+    © 2015-2020  Ebrahim Byagowi\n  Copyright © 2019,2020  Facebook, Inc.\n  Copyright
+    © 2012,2015  Mozilla Foundation\n  Copyright © 2011  Codethink Limited\n  Copyright
+    © 2008,2010  Nokia Corporation and/or its subsidiary(-ies)\n  Copyright © 2009
+    \ Keith Stribley\n  Copyright © 2011  Martin Hosken and SIL International\n  Copyright
+    © 2007  Chris Wilson\n  Copyright © 2005,2006,2020,2021,2022,2023  Behdad Esfahbod\n
+    \ Copyright © 2004,2007,2008,2009,2010,2013,2021,2022,2023  Red Hat, Inc.\n  Copyright
+    © 1998-2005  David Turner and Werner Lemberg\n  Copyright © 2016  Igalia S.L.\n
+    \ Copyright © 2022  Matthias Clasen\n  Copyright © 2018,2021  Khaled Hosny\n  Copyright
+    © 2018,2019,2020  Adobe, Inc\n  Copyright © 2013-2015  Alexei Podtelezhnikov\n\n
+    \ For full copyright notices consult the individual files in the package.\n\n\n
+    \ Permission is hereby granted, without written agreement and without\n  license
+    or royalty fees, to use, copy, modify, and distribute this\n  software and its
+    documentation for any purpose, provided that the\n  above copyright notice and
+    the following two paragraphs appear in\n  all copies of this software.\n\n  IN
+    NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE TO ANY PARTY FOR\n  DIRECT, INDIRECT,
+    SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES\n  ARISING OUT OF THE USE OF THIS
+    SOFTWARE AND ITS DOCUMENTATION, EVEN\n  IF THE COPYRIGHT HOLDER HAS BEEN ADVISED
+    OF THE POSSIBILITY OF SUCH\n  DAMAGE.\n\n  THE COPYRIGHT HOLDER SPECIFICALLY DISCLAIMS
+    ANY WARRANTIES, INCLUDING,\n  BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+    AND\n  FITNESS FOR A PARTICULAR PURPOSE.  THE SOFTWARE PROVIDED HEREUNDER IS\n
+    \ ON AN \"AS IS\" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO\n  PROVIDE
+    MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.\n\n\nName: JSXTools
+    resize observer\nFiles: lib/matplotlib/backends/web_backend/js/mpl.js\nDescription:
+    Minimal polyfill for the ResizeObserver API\nLicense: CC0-1.0\n  # CC0 1.0 Universal\n\n
+    \ ## Statement of Purpose\n\n  The laws of most jurisdictions throughout the world
+    automatically confer\n  exclusive Copyright and Related Rights (defined below)
+    upon the creator and\n  subsequent owner(s) (each and all, an “owner”) of an original
+    work of\n  authorship and/or a database (each, a “Work”).\n\n  Certain owners
+    wish to permanently relinquish those rights to a Work for the\n  purpose of contributing
+    to a commons of creative, cultural and scientific works\n  (“Commons”) that the
+    public can reliably and without fear of later claims of\n  infringement build
+    upon, modify, incorporate in other works, reuse and\n  redistribute as freely
+    as possible in any form whatsoever and for any purposes,\n  including without
+    limitation commercial purposes. These owners may contribute\n  to the Commons
+    to promote the ideal of a free culture and the further\n  production of creative,
+    cultural and scientific works, or to gain reputation or\n  greater distribution
+    for their Work in part through the use and efforts of\n  others.\n\n  For these
+    and/or other purposes and motivations, and without any expectation of\n  additional
+    consideration or compensation, the person associating CC0 with a\n  Work (the
+    “Affirmer”), to the extent that he or she is an owner of Copyright\n  and Related
+    Rights in the Work, voluntarily elects to apply CC0 to the Work and\n  publicly
+    distribute the Work under its terms, with knowledge of his or her\n  Copyright
+    and Related Rights in the Work and the meaning and intended legal\n  effect of
+    CC0 on those rights.\n\n  1. Copyright and Related Rights. A Work made available
+    under CC0 may be\n     protected by copyright and related or neighboring rights
+    (“Copyright and\n     Related Rights”). Copyright and Related Rights include,
+    but are not limited\n     to, the following:\n     1. the right to reproduce,
+    adapt, distribute, perform, display, communicate,\n        and translate a Work;\n
+    \    2. moral rights retained by the original author(s) and/or performer(s);\n
+    \    3. publicity and privacy rights pertaining to a person’s image or likeness\n
+    \       depicted in a Work;\n     4. rights protecting against unfair competition
+    in regards to a Work,\n        subject to the limitations in paragraph 4(i), below;\n
+    \    5. rights protecting the extraction, dissemination, use and reuse of data
+    in\n        a Work;\n     6. database rights (such as those arising under Directive
+    96/9/EC of the\n        European Parliament and of the Council of 11 March 1996
+    on the legal\n        protection of databases, and under any national implementation
+    thereof,\n        including any amended or successor version of such directive);
+    and\n     7. other similar, equivalent or corresponding rights throughout the
+    world\n        based on applicable law or treaty, and any national implementations\n
+    \       thereof.\n\n  2. Waiver. To the greatest extent permitted by, but not
+    in contravention of,\n     applicable law, Affirmer hereby overtly, fully, permanently,
+    irrevocably and\n     unconditionally waives, abandons, and surrenders all of
+    Affirmer’s Copyright\n     and Related Rights and associated claims and causes
+    of action, whether now\n     known or unknown (including existing as well as future
+    claims and causes of\n     action), in the Work (i) in all territories worldwide,
+    (ii) for the maximum\n     duration provided by applicable law or treaty (including
+    future time\n     extensions), (iii) in any current or future medium and for any
+    number of\n     copies, and (iv) for any purpose whatsoever, including without
+    limitation\n     commercial, advertising or promotional purposes (the “Waiver”).
+    Affirmer\n     makes the Waiver for the benefit of each member of the public at
+    large and\n     to the detriment of Affirmer’s heirs and successors, fully intending
+    that\n     such Waiver shall not be subject to revocation, rescission, cancellation,\n
+    \    termination, or any other legal or equitable action to disrupt the quiet\n
+    \    enjoyment of the Work by the public as contemplated by Affirmer’s express\n
+    \    Statement of Purpose.\n\n  3. Public License Fallback. Should any part of
+    the Waiver for any reason be\n     judged legally invalid or ineffective under
+    applicable law, then the Waiver\n     shall be preserved to the maximum extent
+    permitted taking into account\n     Affirmer’s express Statement of Purpose. In
+    addition, to the extent the\n     Waiver is so judged Affirmer hereby grants to
+    each affected person a\n     royalty-free, non transferable, non sublicensable,
+    non exclusive,\n     irrevocable and unconditional license to exercise Affirmer’s
+    Copyright and\n     Related Rights in the Work (i) in all territories worldwide,
+    (ii) for the\n     maximum duration provided by applicable law or treaty (including
+    future time\n     extensions), (iii) in any current or future medium and for any
+    number of\n     copies, and (iv) for any purpose whatsoever, including without
+    limitation\n     commercial, advertising or promotional purposes (the “License”).
+    The License\n     shall be deemed effective as of the date CC0 was applied by
+    Affirmer to the\n     Work. Should any part of the License for any reason be judged
+    legally\n     invalid or ineffective under applicable law, such partial invalidity
+    or\n     ineffectiveness shall not invalidate the remainder of the License, and
+    in\n     such case Affirmer hereby affirms that he or she will not (i) exercise
+    any\n     of his or her remaining Copyright and Related Rights in the Work or
+    (ii)\n     assert any associated claims and causes of action with respect to the
+    Work,\n     in either case contrary to Affirmer’s express Statement of Purpose.\n\n
+    \ 4. Limitations and Disclaimers.\n     1. No trademark or patent rights held
+    by Affirmer are waived, abandoned,\n        surrendered, licensed or otherwise
+    affected by this document.\n     2. Affirmer offers the Work as-is and makes no
+    representations or warranties\n        of any kind concerning the Work, express,
+    implied, statutory or\n        otherwise, including without limitation warranties
+    of title,\n        merchantability, fitness for a particular purpose, non infringement,
+    or\n        the absence of latent or other defects, accuracy, or the present or\n
+    \       absence of errors, whether or not discoverable, all to the greatest\n
+    \       extent permissible under applicable law.\n     3. Affirmer disclaims responsibility
+    for clearing rights of other persons\n        that may apply to the Work or any
+    use thereof, including without\n        limitation any person’s Copyright and
+    Related Rights in the Work.\n        Further, Affirmer disclaims responsibility
+    for obtaining any necessary\n        consents, permissions or other rights required
+    for any use of the Work.\n     4. Affirmer understands and acknowledges that Creative
+    Commons is not a\n        party to this document and has no duty or obligation
+    with respect to this\n        CC0 or use of the Work.\n\n  For more information,
+    please see\n  http://creativecommons.org/publicdomain/zero/1.0/.\n\n\nName: Last
+    Resort fonts\nFiles: matplotlib/mpl-data/fonts/ttf/LastResortHE-Regular.ttf\nDescription:
+    Last Resort High-Efficiency Font\nLicense: OFL-1.1\n  This Font Software is licensed
+    under the SIL Open Font License,\n  Version 1.1.\n\n  This license is copied below,
+    and is also available with a FAQ at:\n  http://scripts.sil.org/OFL\n\n  -----------------------------------------------------------\n
+    \ SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007\n  -----------------------------------------------------------\n\n
+    \ PREAMBLE\n  The goals of the Open Font License (OFL) are to stimulate worldwide\n
+    \ development of collaborative font projects, to support the font\n  creation
+    efforts of academic and linguistic communities, and to\n  provide a free and open
+    framework in which fonts may be shared and\n  improved in partnership with others.\n\n
+    \ The OFL allows the licensed fonts to be used, studied, modified and\n  redistributed
+    freely as long as they are not sold by themselves. The\n  fonts, including any
+    derivative works, can be bundled, embedded,\n  redistributed and/or sold with
+    any software provided that any reserved\n  names are not used by derivative works.
+    The fonts and derivatives,\n  however, cannot be released under any other type
+    of license. The\n  requirement for fonts to remain under this license does not
+    apply to\n  any document created using the fonts or their derivatives.\n\n  DEFINITIONS\n
+    \ \"Font Software\" refers to the set of files released by the Copyright\n  Holder(s)
+    under this license and clearly marked as such. This may\n  include source files,
+    build scripts and documentation.\n\n  \"Reserved Font Name\" refers to any names
+    specified as such after the\n  copyright statement(s).\n\n  \"Original Version\"
+    refers to the collection of Font Software\n  components as distributed by the
+    Copyright Holder(s).\n\n  \"Modified Version\" refers to any derivative made by
+    adding to,\n  deleting, or substituting -- in part or in whole -- any of the\n
+    \ components of the Original Version, by changing formats or by porting\n  the
+    Font Software to a new environment.\n\n  \"Author\" refers to any designer, engineer,
+    programmer, technical\n  writer or other person who contributed to the Font Software.\n\n
+    \ PERMISSION & CONDITIONS\n  Permission is hereby granted, free of charge, to
+    any person obtaining\n  a copy of the Font Software, to use, study, copy, merge,
+    embed,\n  modify, redistribute, and sell modified and unmodified copies of the\n
+    \ Font Software, subject to the following conditions:\n\n  1) Neither the Font
+    Software nor any of its individual components, in\n  Original or Modified Versions,
+    may be sold by itself.\n\n  2) Original or Modified Versions of the Font Software
+    may be bundled,\n  redistributed and/or sold with any software, provided that
+    each copy\n  contains the above copyright notice and this license. These can be\n
+    \ included either as stand-alone text files, human-readable headers or\n  in the
+    appropriate machine-readable metadata fields within text or\n  binary files as
+    long as those fields can be easily viewed by the user.\n\n  3) No Modified Version
+    of the Font Software may use the Reserved Font\n  Name(s) unless explicit written
+    permission is granted by the\n  corresponding Copyright Holder. This restriction
+    only applies to the\n  primary font name as presented to the users.\n\n  4) The
+    name(s) of the Copyright Holder(s) or the Author(s) of the Font\n  Software shall
+    not be used to promote, endorse or advertise any\n  Modified Version, except to
+    acknowledge the contribution(s) of the\n  Copyright Holder(s) and the Author(s)
+    or with their explicit written\n  permission.\n\n  5) The Font Software, modified
+    or unmodified, in part or in whole,\n  must be distributed entirely under this
+    license, and must not be\n  distributed under any other license. The requirement
+    for fonts to\n  remain under this license does not apply to any document created
+    using\n  the Font Software.\n\n  TERMINATION\n  This license becomes null and
+    void if any of the above conditions are\n  not met.\n\n  DISCLAIMER\n  THE FONT
+    SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n  EXPRESS OR IMPLIED,
+    INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF\n  MERCHANTABILITY, FITNESS FOR
+    A PARTICULAR PURPOSE AND NONINFRINGEMENT\n  OF COPYRIGHT, PATENT, TRADEMARK, OR
+    OTHER RIGHT. IN NO EVENT SHALL THE\n  COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM,
+    DAMAGES OR OTHER LIABILITY,\n  INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL,
+    OR CONSEQUENTIAL\n  DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+    ARISING\n  FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\n
+    \ OTHER DEALINGS IN THE FONT SOFTWARE.\n\n  SPDX-License-Identifier: OFL-1.1\n\n\nName:
+    libraqm\nFiles: matplotlib/ft2font.*.so\nDescription: Complex text layout library\nLicense:
+    MIT\n  The MIT License (MIT)\n\n  Copyright © 2015 Information Technology Authority
+    (ITA) <foss@ita.gov.om>\n  Copyright © 2016-2023 Khaled Hosny <khaled@aliftype.com>\n\n
+    \ Permission is hereby granted, free of charge, to any person obtaining a copy\n
+    \ of this software and associated documentation files (the \"Software\"), to deal\n
+    \ in the Software without restriction, including without limitation the rights\n
+    \ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\n
+    \ copies of the Software, and to permit persons to whom the Software is\n  furnished
+    to do so, subject to the following conditions:\n\n  The above copyright notice
+    and this permission notice shall be included in all\n  copies or substantial portions
+    of the Software.\n\n  THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF
+    ANY KIND, EXPRESS OR\n  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY,\n  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO
+    EVENT SHALL THE\n  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+    OR OTHER\n  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+    FROM,\n  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+    IN THE\n  SOFTWARE.\n\n\nName: QHull\nFiles: matplotlib/_qhull.*.so\nDescription:
+    Convex hull, Delaunay triangulation, Voronoi diagrams, Halfspace intersection\nLicense:
+    Qhull\n                      Qhull, Copyright (c) 1993-2020\n\n                              C.B.
+    Barber\n                             Arlington, MA\n\n                                 and\n\n
+    \        The National Science and Technology Research Center for\n          Computation
+    and Visualization of Geometric Structures\n                          (The Geometry
+    Center)\n                         University of Minnesota\n\n                         email:
+    qhull@qhull.org\n\n  This software includes Qhull from C.B. Barber and The Geometry
+    Center.\n  Files derived from Qhull 1.0 are copyrighted by the Geometry Center.
+    \ The\n  remaining files are copyrighted by C.B. Barber.  Qhull is free software\n
+    \ and may be obtained via http from www.qhull.org.  It may be freely copied,\n
+    \ modified, and redistributed under the following conditions:\n\n  1. All copyright
+    notices must remain intact in all files.\n\n  2. A copy of this text file must
+    be distributed along with any copies\n     of Qhull that you redistribute; this
+    includes copies that you have\n     modified, or copies of programs or other software
+    products that\n     include Qhull.\n\n  3. If you modify Qhull, you must include
+    a notice giving the\n     name of the person performing the modification, the
+    date of\n     modification, and the reason for such modification.\n\n  4. When
+    distributing modified versions of Qhull, or other software\n     products that
+    include Qhull, you must provide notice that the original\n     source code may
+    be obtained as noted above.\n\n  5. There is no warranty or other guarantee of
+    fitness for Qhull, it is\n     provided solely \"as is\".  Bug reports or fixes
+    may be sent to\n     qhull_bug@qhull.org; the authors may or may not act on them
+    as\n     they desire.\n\n\nName: Qt4 Editor\nFiles: matplotlib/backends/qt_editor\nDescription:
+    Module creating PyQt4 form dialogs/layouts to edit various type of parameters\nLicense:
+    MIT\n  Module creating PyQt4 form dialogs/layouts to edit various type of parameters\n\n\n
+    \ formlayout License Agreement (MIT License)\n  ------------------------------------------\n\n
+    \ Copyright (c) 2009 Pierre Raybaut\n\n  Permission is hereby granted, free of
+    charge, to any person\n  obtaining a copy of this software and associated documentation\n
+    \ files (the \"Software\"), to deal in the Software without\n  restriction, including
+    without limitation the rights to use,\n  copy, modify, merge, publish, distribute,
+    sublicense, and/or sell\n  copies of the Software, and to permit persons to whom
+    the\n  Software is furnished to do so, subject to the following\n  conditions:\n\n
+    \ The above copyright notice and this permission notice shall be\n  included in
+    all copies or substantial portions of the Software.\n\n  THE SOFTWARE IS PROVIDED
+    \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n  EXPRESS OR IMPLIED, INCLUDING BUT
+    NOT LIMITED TO THE WARRANTIES\n  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+    PURPOSE AND\n  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT\n  HOLDERS
+    BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,\n  WHETHER IN AN ACTION OF
+    CONTRACT, TORT OR OTHERWISE, ARISING\n  FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR\n  OTHER DEALINGS IN THE SOFTWARE.\n\n\nName: SheenBidi\nFiles:
+    matplotlib/ft2font.*.so\nDescription: Unicode Bidirectional Algorithm implementation\nLicense:
+    Apache-2.0\n                                   Apache License\n                             Version
+    2.0, January 2004\n                          http://www.apache.org/licenses/\n\n
+    \    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n     1. Definitions.\n\n
+    \       \"License\" shall mean the terms and conditions for use, reproduction,\n
+    \       and distribution as defined by Sections 1 through 9 of this document.\n\n
+    \       \"Licensor\" shall mean the copyright owner or entity authorized by\n
+    \       the copyright owner that is granting the License.\n\n        \"Legal Entity\"
+    shall mean the union of the acting entity and all\n        other entities that
+    control, are controlled by, or are under common\n        control with that entity.
+    For the purposes of this definition,\n        \"control\" means (i) the power,
+    direct or indirect, to cause the\n        direction or management of such entity,
+    whether by contract or\n        otherwise, or (ii) ownership of fifty percent
+    (50%) or more of the\n        outstanding shares, or (iii) beneficial ownership
+    of such entity.\n\n        \"You\" (or \"Your\") shall mean an individual or Legal
+    Entity\n        exercising permissions granted by this License.\n\n        \"Source\"
+    form shall mean the preferred form for making modifications,\n        including
+    but not limited to software source code, documentation\n        source, and configuration
+    files.\n\n        \"Object\" form shall mean any form resulting from mechanical\n
+    \       transformation or translation of a Source form, including but\n        not
+    limited to compiled object code, generated documentation,\n        and conversions
+    to other media types.\n\n        \"Work\" shall mean the work of authorship, whether
+    in Source or\n        Object form, made available under the License, as indicated
+    by a\n        copyright notice that is included in or attached to the work\n        (an
+    example is provided in the Appendix below).\n\n        \"Derivative Works\" shall
+    mean any work, whether in Source or Object\n        form, that is based on (or
+    derived from) the Work and for which the\n        editorial revisions, annotations,
+    elaborations, or other modifications\n        represent, as a whole, an original
+    work of authorship. For the purposes\n        of this License, Derivative Works
+    shall not include works that remain\n        separable from, or merely link (or
+    bind by name) to the interfaces of,\n        the Work and Derivative Works thereof.\n\n
+    \       \"Contribution\" shall mean any work of authorship, including\n        the
+    original version of the Work and any modifications or additions\n        to that
+    Work or Derivative Works thereof, that is intentionally\n        submitted to
+    Licensor for inclusion in the Work by the copyright owner\n        or by an individual
+    or Legal Entity authorized to submit on behalf of\n        the copyright owner.
+    For the purposes of this definition, \"submitted\"\n        means any form of
+    electronic, verbal, or written communication sent\n        to the Licensor or
+    its representatives, including but not limited to\n        communication on electronic
+    mailing lists, source code control systems,\n        and issue tracking systems
+    that are managed by, or on behalf of, the\n        Licensor for the purpose of
+    discussing and improving the Work, but\n        excluding communication that is
+    conspicuously marked or otherwise\n        designated in writing by the copyright
+    owner as \"Not a Contribution.\"\n\n        \"Contributor\" shall mean Licensor
+    and any individual or Legal Entity\n        on behalf of whom a Contribution has
+    been received by Licensor and\n        subsequently incorporated within the Work.\n\n
+    \    2. Grant of Copyright License. Subject to the terms and conditions of\n        this
+    License, each Contributor hereby grants to You a perpetual,\n        worldwide,
+    non-exclusive, no-charge, royalty-free, irrevocable\n        copyright license
+    to reproduce, prepare Derivative Works of,\n        publicly display, publicly
+    perform, sublicense, and distribute the\n        Work and such Derivative Works
+    in Source or Object form.\n\n     3. Grant of Patent License. Subject to the terms
+    and conditions of\n        this License, each Contributor hereby grants to You
+    a perpetual,\n        worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n
+    \       (except as stated in this section) patent license to make, have made,\n
+    \       use, offer to sell, sell, import, and otherwise transfer the Work,\n        where
+    such license applies only to those patent claims licensable\n        by such Contributor
+    that are necessarily infringed by their\n        Contribution(s) alone or by combination
+    of their Contribution(s)\n        with the Work to which such Contribution(s)
+    was submitted. If You\n        institute patent litigation against any entity
+    (including a\n        cross-claim or counterclaim in a lawsuit) alleging that
+    the Work\n        or a Contribution incorporated within the Work constitutes direct\n
+    \       or contributory patent infringement, then any patent licenses\n        granted
+    to You under this License for that Work shall terminate\n        as of the date
+    such litigation is filed.\n\n     4. Redistribution. You may reproduce and distribute
+    copies of the\n        Work or Derivative Works thereof in any medium, with or
+    without\n        modifications, and in Source or Object form, provided that You\n
+    \       meet the following conditions:\n\n        (a) You must give any other
+    recipients of the Work or\n            Derivative Works a copy of this License;
+    and\n\n        (b) You must cause any modified files to carry prominent notices\n
+    \           stating that You changed the files; and\n\n        (c) You must retain,
+    in the Source form of any Derivative Works\n            that You distribute, all
+    copyright, patent, trademark, and\n            attribution notices from the Source
+    form of the Work,\n            excluding those notices that do not pertain to
+    any part of\n            the Derivative Works; and\n\n        (d) If the Work
+    includes a \"NOTICE\" text file as part of its\n            distribution, then
+    any Derivative Works that You distribute must\n            include a readable
+    copy of the attribution notices contained\n            within such NOTICE file,
+    excluding those notices that do not\n            pertain to any part of the Derivative
+    Works, in at least one\n            of the following places: within a NOTICE text
+    file distributed\n            as part of the Derivative Works; within the Source
+    form or\n            documentation, if provided along with the Derivative Works;
+    or,\n            within a display generated by the Derivative Works, if and\n
+    \           wherever such third-party notices normally appear. The contents\n
+    \           of the NOTICE file are for informational purposes only and\n            do
+    not modify the License. You may add Your own attribution\n            notices
+    within Derivative Works that You distribute, alongside\n            or as an addendum
+    to the NOTICE text from the Work, provided\n            that such additional attribution
+    notices cannot be construed\n            as modifying the License.\n\n        You
+    may add Your own copyright statement to Your modifications and\n        may provide
+    additional or different license terms and conditions\n        for use, reproduction,
+    or distribution of Your modifications, or\n        for any such Derivative Works
+    as a whole, provided Your use,\n        reproduction, and distribution of the
+    Work otherwise complies with\n        the conditions stated in this License.\n\n
+    \    5. Submission of Contributions. Unless You explicitly state otherwise,\n
+    \       any Contribution intentionally submitted for inclusion in the Work\n        by
+    You to the Licensor shall be under the terms and conditions of\n        this License,
+    without any additional terms or conditions.\n        Notwithstanding the above,
+    nothing herein shall supersede or modify\n        the terms of any separate license
+    agreement you may have executed\n        with Licensor regarding such Contributions.\n\n
+    \    6. Trademarks. This License does not grant permission to use the trade\n
+    \       names, trademarks, service marks, or product names of the Licensor,\n
+    \       except as required for reasonable and customary use in describing the\n
+    \       origin of the Work and reproducing the content of the NOTICE file.\n\n
+    \    7. Disclaimer of Warranty. Unless required by applicable law or\n        agreed
+    to in writing, Licensor provides the Work (and each\n        Contributor provides
+    its Contributions) on an \"AS IS\" BASIS,\n        WITHOUT WARRANTIES OR CONDITIONS
+    OF ANY KIND, either express or\n        implied, including, without limitation,
+    any warranties or conditions\n        of TITLE, NON-INFRINGEMENT, MERCHANTABILITY,
+    or FITNESS FOR A\n        PARTICULAR PURPOSE. You are solely responsible for determining
+    the\n        appropriateness of using or redistributing the Work and assume any\n
+    \       risks associated with Your exercise of permissions under this License.\n\n
+    \    8. Limitation of Liability. In no event and under no legal theory,\n        whether
+    in tort (including negligence), contract, or otherwise,\n        unless required
+    by applicable law (such as deliberate and grossly\n        negligent acts) or
+    agreed to in writing, shall any Contributor be\n        liable to You for damages,
+    including any direct, indirect, special,\n        incidental, or consequential
+    damages of any character arising as a\n        result of this License or out of
+    the use or inability to use the\n        Work (including but not limited to damages
+    for loss of goodwill,\n        work stoppage, computer failure or malfunction,
+    or any and all\n        other commercial damages or losses), even if such Contributor\n
+    \       has been advised of the possibility of such damages.\n\n     9. Accepting
+    Warranty or Additional Liability. While redistributing\n        the Work or Derivative
+    Works thereof, You may choose to offer,\n        and charge a fee for, acceptance
+    of support, warranty, indemnity,\n        or other liability obligations and/or
+    rights consistent with this\n        License. However, in accepting such obligations,
+    You may act only\n        on Your own behalf and on Your sole responsibility,
+    not on behalf\n        of any other Contributor, and only if You agree to indemnify,\n
+    \       defend, and hold each Contributor harmless for any liability\n        incurred
+    by, or claims asserted against, such Contributor by reason\n        of your accepting
+    any such warranty or additional liability.\n\n     END OF TERMS AND CONDITIONS\n\n
+    \    APPENDIX: How to apply the Apache License to your work.\n\n        To apply
+    the Apache License to your work, attach the following\n        boilerplate notice,
+    with the fields enclosed by brackets \"[]\"\n        replaced with your own identifying
+    information. (Don't include\n        the brackets!)  The text should be enclosed
+    in the appropriate\n        comment syntax for the file format. We also recommend
+    that a\n        file or class name and description of purpose be included on the\n
+    \       same \"printed page\" as the copyright notice for easier\n        identification
+    within third-party archives.\n\n     Copyright [yyyy] [name of copyright owner]\n\n
+    \    Licensed under the Apache License, Version 2.0 (the \"License\");\n     you
+    may not use this file except in compliance with the License.\n     You may obtain
+    a copy of the License at\n\n         http://www.apache.org/licenses/LICENSE-2.0\n\n
+    \    Unless required by applicable law or agreed to in writing, software\n     distributed
+    under the License is distributed on an \"AS IS\" BASIS,\n     WITHOUT WARRANTIES
+    OR CONDITIONS OF ANY KIND, either express or implied.\n     See the License for
+    the specific language governing permissions and\n     limitations under the License.\n\n\nName:
+    Solarized\nFiles: matplotlib/mpl-data/stylelib/Solarize_Light2.mplstyle\nDescription:
+    Solarized color scheme/style\nLicense: MIT\n  https://github.com/altercation/solarized/blob/master/LICENSE\n
+    \ Copyright (c) 2011 Ethan Schoonover\n\n  Permission is hereby granted, free
+    of charge, to any person obtaining a copy\n  of this software and associated documentation
+    files (the \"Software\"), to deal\n  in the Software without restriction, including
+    without limitation the rights\n  to use, copy, modify, merge, publish, distribute,
+    sublicense, and/or sell\n  copies of the Software, and to permit persons to whom
+    the Software is\n  furnished to do so, subject to the following conditions:\n\n
+    \ The above copyright notice and this permission notice shall be included in\n
+    \ all copies or substantial portions of the Software.\n\n  THE SOFTWARE IS PROVIDED
+    \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\n  IMPLIED, INCLUDING BUT
+    NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\n  FITNESS FOR A PARTICULAR
+    PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\n  AUTHORS OR COPYRIGHT HOLDERS
+    BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\n  LIABILITY, WHETHER IN AN ACTION OF
+    CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n  OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN\n  THE SOFTWARE.\n\n\nName: Stix fonts\nFiles:
+    matplotlib/mpl-data/fonts/ttf/STIX*.ttf\nDescription: STIX fonts\nLicense: OFL-1.1\n
+    \ STIX Font License\n\n  24 May 2010\n\n  Copyright (c) 2001-2010 by the STI Pub
+    Companies, consisting of the American\n  Institute of Physics, the American Chemical
+    Society, the American Mathematical\n  Society, the American Physical Society,
+    Elsevier, Inc., and The Institute of\n  Electrical and Electronic Engineers, Inc.
+    (www.stixfonts.org), with Reserved\n  Font Name STIX Fonts, STIX Fonts (TM) is
+    a  trademark of The Institute of\n  Electrical and Electronics Engineers, Inc.\n\n
+    \ Portions copyright (c) 1998-2003 by MicroPress, Inc. (www.micropress-inc.com),\n
+    \ with Reserved Font Name TM Math. To obtain additional mathematical fonts, please\n
+    \ contact MicroPress, Inc., 68-30 Harrow Street, Forest Hills, NY 11375, USA,\n
+    \ Phone: (718) 575-1816.\n\n  Portions copyright (c) 1990 by Elsevier, Inc.\n\n
+    \ This Font Software is licensed under the SIL Open Font License, Version 1.1.\n
+    \ This license is copied below, and is also available with a FAQ at:\n  https://scripts.sil.org/OFL\n\n
+    \ -----------------------------------------------------------\n  SIL OPEN FONT
+    LICENSE Version 1.1 - 26 February 2007\n  -----------------------------------------------------------\n\n
+    \ PREAMBLE\n  The goals of the Open Font License (OFL) are to stimulate worldwide\n
+    \ development of collaborative font projects, to support the font creation\n  efforts
+    of academic and linguistic communities, and to provide a free and\n  open framework
+    in which fonts may be shared and improved in partnership\n  with others.\n\n  The
+    OFL allows the licensed fonts to be used, studied, modified and\n  redistributed
+    freely as long as they are not sold by themselves. The\n  fonts, including any
+    derivative works, can be bundled, embedded,\n  redistributed and/or sold with
+    any software provided that any reserved\n  names are not used by derivative works.
+    The fonts and derivatives,\n  however, cannot be released under any other type
+    of license. The\n  requirement for fonts to remain under this license does not
+    apply\n  to any document created using the fonts or their derivatives.\n\n  DEFINITIONS\n
+    \ \"Font Software\" refers to the set of files released by the Copyright\n  Holder(s)
+    under this license and clearly marked as such. This may\n  include source files,
+    build scripts and documentation.\n\n  \"Reserved Font Name\" refers to any names
+    specified as such after the\n  copyright statement(s).\n\n  \"Original Version\"
+    refers to the collection of Font Software components as\n  distributed by the
+    Copyright Holder(s).\n\n  \"Modified Version\" refers to any derivative made by
+    adding to, deleting,\n  or substituting -- in part or in whole -- any of the components
+    of the\n  Original Version, by changing formats or by porting the Font Software
+    to a\n  new environment.\n\n  \"Author\" refers to any designer, engineer, programmer,
+    technical\n  writer or other person who contributed to the Font Software.\n\n
+    \ PERMISSION & CONDITIONS\n  Permission is hereby granted, free of charge, to
+    any person obtaining\n  a copy of the Font Software, to use, study, copy, merge,
+    embed, modify,\n  redistribute, and sell modified and unmodified copies of the
+    Font\n  Software, subject to the following conditions:\n\n  1) Neither the Font
+    Software nor any of its individual components,\n  in Original or Modified Versions,
+    may be sold by itself.\n\n  2) Original or Modified Versions of the Font Software
+    may be bundled,\n  redistributed and/or sold with any software, provided that
+    each copy\n  contains the above copyright notice and this license. These can be\n
+    \ included either as stand-alone text files, human-readable headers or\n  in the
+    appropriate machine-readable metadata fields within text or\n  binary files as
+    long as those fields can be easily viewed by the user.\n\n  3) No Modified Version
+    of the Font Software may use the Reserved Font\n  Name(s) unless explicit written
+    permission is granted by the corresponding\n  Copyright Holder. This restriction
+    only applies to the primary font name as\n  presented to the users.\n\n  4) The
+    name(s) of the Copyright Holder(s) or the Author(s) of the Font\n  Software shall
+    not be used to promote, endorse or advertise any\n  Modified Version, except to
+    acknowledge the contribution(s) of the\n  Copyright Holder(s) and the Author(s)
+    or with their explicit written\n  permission.\n\n  5) The Font Software, modified
+    or unmodified, in part or in whole,\n  must be distributed entirely under this
+    license, and must not be\n  distributed under any other license. The requirement
+    for fonts to\n  remain under this license does not apply to any document created\n
+    \ using the Font Software.\n\n  TERMINATION\n  This license becomes null and void
+    if any of the above conditions are\n  not met.\n\n  DISCLAIMER\n  THE FONT SOFTWARE
+    IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\n  EXPRESS OR IMPLIED, INCLUDING
+    BUT NOT LIMITED TO ANY WARRANTIES OF\n  MERCHANTABILITY, FITNESS FOR A PARTICULAR
+    PURPOSE AND NONINFRINGEMENT\n  OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT.
+    IN NO EVENT SHALL THE\n  COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR
+    OTHER LIABILITY,\n  INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL\n
+    \ DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING\n  FROM,
+    OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM\n  OTHER DEALINGS
+    IN THE FONT SOFTWARE.\n\nName: Yorick Colormaps\nFiles: lib/matplotlib/_cm.py\nDescription:
+    Gist/Yorick colormaps\nLicense:\n  BSD-style license for gist/yorick colormaps.\n\n
+    \ Copyright:\n\n    Copyright (c) 1996.  The Regents of the University of California.\n
+    \                        All rights reserved.\n\n  Permission to use, copy, modify,
+    and distribute this software for any\n  purpose without fee is hereby granted,
+    provided that this entire\n  notice is included in all copies of any software
+    which is or includes\n  a copy or modification of this software and in all copies
+    of the\n  supporting documentation for such software.\n\n  This work was produced
+    at the University of California, Lawrence\n  Livermore National Laboratory under
+    contract no. W-7405-ENG-48 between\n  the U.S. Department of Energy and The Regents
+    of the University of\n  California for the operation of UC LLNL.\n\n\n              DISCLAIMER\n\n
+    \ This software was prepared as an account of work sponsored by an\n  agency of
+    the United States Government.  Neither the United States\n  Government nor the
+    University of California nor any of their\n  employees, makes any warranty, express
+    or implied, or assumes any\n  liability or responsibility for the accuracy, completeness,
+    or\n  usefulness of any information, apparatus, product, or process\n  disclosed,
+    or represents that its use would not infringe\n  privately-owned rights.  Reference
+    herein to any specific commercial\n  products, process, or service by trade name,
+    trademark, manufacturer,\n  or otherwise, does not necessarily constitute or imply
+    its\n  endorsement, recommendation, or favoring by the United States\n  Government
+    or the University of California.  The views and opinions of\n  authors expressed
+    herein do not necessarily state or reflect those of\n  the United States Government
+    or the University of California, and\n  shall not be used for advertising or product
+    endorsement purposes.\n\n\n          AUTHOR\n\n  David H. Munro wrote Yorick and
+    Gist.  Berkeley Yacc (byacc) generated\n  the Yorick parser.  The routines in
+    Math are from LAPACK and FFTPACK;\n  MathC contains C translations by David H.
+    Munro.  The algorithms for\n  Yorick's random number generator and several special
+    functions in\n  Yorick/include were taken from Numerical Recipes by Press, et.
+    al.,\n  although the Yorick implementations are unrelated to those in\n  Numerical
+    Recipes.  A small amount of code in Gist was adapted from\n  the X11R4 release,
+    copyright M.I.T. -- the complete copyright notice\n  may be found in the (unused)
+    file Gist/host.c.\n"
 notices: []
