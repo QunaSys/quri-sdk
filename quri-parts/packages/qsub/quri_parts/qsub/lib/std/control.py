@@ -21,6 +21,10 @@ Contents:
 - :data:`Controlled`: op factory: ``Controlled(op)`` adds one control
 - :func:`controlled_sub_resolver`: generic resolver for Controlled ops
 - :func:`register_controlled_resolver`: register custom resolvers
+- ``controlled_*_resolver`` (for example :func:`controlled_x_resolver`):
+  per-gate resolvers for ``Controlled`` standard gates
+- :func:`control_target_condition`: match Controlled ops by target op
+- :func:`get_new_ctrl_label`: count control registers already in a qreg spec
 """
 
 import math

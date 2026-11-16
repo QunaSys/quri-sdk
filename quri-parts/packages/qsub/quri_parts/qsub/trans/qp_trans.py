@@ -22,6 +22,7 @@ Contents:
 - :class:`SeparateQURIPartsTranspiler`: chunk-based QURI Parts bridge
 - :func:`convert_to_qp`: operations to QuantumCircuit
 - :func:`convert_from_qp`: QuantumCircuit to operations
+- :func:`gateset_from_primitives`: QURI Parts gate names for qsub primitives
 """
 
 from collections.abc import Collection, Iterable, Mapping

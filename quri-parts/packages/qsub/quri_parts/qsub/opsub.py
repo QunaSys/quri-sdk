@@ -21,6 +21,11 @@ Contents:
 
 - :func:`opsub`: create a fixed Op + Sub pair and register it
 - :func:`param_opsub`: create a parametric OpFactory + SubFactory pair
+- :class:`OpSubDef`, :class:`UnitarySubDef`, :class:`NonUnitarySubDef`:
+  declarative bases for a fixed Op and its Sub
+- :class:`ParamOpSubDef`, :class:`ParamUnitarySubDef`,
+  :class:`ParamNonUnitarySubDef`: declarative bases for a parametric
+  OpFactory and its SubFactory
 """
 
 from .op import (

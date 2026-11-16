@@ -22,6 +22,7 @@ Contents:
 - :class:`Register`: hashable classical register, referenced by integer index
 - :class:`QRegSpec`: name + qubit-count spec for a quantum register
 - :class:`QuantumRegister`: named, indexable group of qubits
+- :func:`check_register_appear_once`: reject duplicate QRegSpec names
 - :func:`get_default_qreg_sequence`: default single-qubit QRegSpecs for a circuit
 - :func:`get_qregs_from_quantum_register_map`: derive QRegSpecs from named
   QuantumRegisters

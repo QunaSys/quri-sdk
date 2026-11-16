@@ -20,6 +20,10 @@ Contents:
 - :data:`Inverse`: op factory: ``Inverse(op)`` yields the adjoint
 - :func:`get_inverted_sub`: reverses and conjugates a Sub
 - :func:`inverse_sub_resolver`: generic resolver for Inverse ops
+- :func:`inverse_controlled_resolver`,
+  :func:`inverse_multicontrolled_resolver`: move the inverse inside the control
+- :func:`inverse_inverse_resolver`: cancel a double inverse
+- :func:`inverse_target_condition`: match Inverse ops by target op
 """
 
 from collections.abc import Collection, Sequence

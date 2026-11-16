@@ -20,6 +20,8 @@ qubit/register consistency checks performed by :func:`resolve_sub`.
 Contents:
 
 - :class:`SubResolver`: callable protocol: ``Op -> Sub | None``
+- :class:`SimpleSubResolver`: resolver backed by a fixed Sub or a SubFactory
+- :data:`SubResolverCondition`: predicate on an Ident that selects a resolver
 - :class:`SubRepository`: resolver-registry protocol
 - :class:`SimpleSubRepository`: mutable, standalone registry of sub-resolvers
 - :class:`CompositeSubRepository`: overrides a base repository with an addition

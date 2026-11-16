@@ -21,6 +21,9 @@ Contents:
 - :data:`MultiControlled`: op factory with (op, control_bits, control_value)
 - :func:`MultiControlledSub`: Toffoli-based recursive decomposition
 - :func:`MultiControlledCliffordTSub`: Clifford+T decomposition
+- :func:`MultiControlledSingleToffoliSub`: Toffoli compute, measurement-based uncompute
+- :func:`controlled_multicontrolled_resolver`: merge a Controlled into
+  MultiControlled
 """
 
 from collections.abc import Callable

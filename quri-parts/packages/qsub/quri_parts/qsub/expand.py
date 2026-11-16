@@ -22,6 +22,7 @@ Contents:
 - :func:`expand`: one-level or recursive inline expansion
 - :func:`full_expand`: convenience wrapper for recursive expansion
 - :func:`map_qubits`: remap qubit indices in a MachineSub
+- :func:`map_registers`: remap registers in a MachineSub
 """
 
 from collections.abc import Mapping

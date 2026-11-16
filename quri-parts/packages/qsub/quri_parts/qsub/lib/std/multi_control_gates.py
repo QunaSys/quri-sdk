@@ -19,9 +19,18 @@ count, together with their sub-resolvers.
 Contents:
 
 - :data:`MCX`, :data:`MCY`, :data:`MCZ`: multi-controlled Paulis
-- :data:`MCS`, :data:`MCT`, :data:`MCH`: multi-controlled Clifford gates
-- :data:`MCRX`, :data:`MCRY`, :data:`MCRZ`: multi-controlled rotations
+- :data:`MCS`, :data:`MCSdag`, :data:`MCT`, :data:`MCTdag`: multi-controlled
+  phase gates
+- :data:`MCSqrtX`, :data:`MCSqrtXdag`, :data:`MCSqrtY`, :data:`MCSqrtYdag`:
+  multi-controlled square-root gates
+- :data:`MCH`: multi-controlled Hadamard
+- :data:`MCRX`, :data:`MCRY`, :data:`MCRZ`, :data:`MCPhase`: multi-controlled
+  rotations
 - :func:`generate_multicontrolled_to_mc_sub_resolver`: smart resolver
+- :func:`MultiControlledNamedMCGatesSub`: decompose MultiControlled into named
+  MC gates
+- ``mc*_resolver`` (for example :func:`mcx_resolver`): per-gate resolvers
+  for the named MC gates
 """
 
 import math

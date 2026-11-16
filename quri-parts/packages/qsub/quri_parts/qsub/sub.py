@@ -22,6 +22,8 @@ Contents:
 - :class:`SubBuilder`: imperative builder with aux-qubit management
 - :class:`SubDef`: declarative base for fixed sub definitions
 - :class:`ParamSubDef`: declarative base for parametric subs
+- :func:`sub`: build a Sub from a SubDef subclass
+- :func:`param_sub`: build a SubFactory from a ParamSubDef subclass
 """
 
 import functools

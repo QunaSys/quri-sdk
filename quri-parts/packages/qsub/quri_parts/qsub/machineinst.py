@@ -18,9 +18,11 @@ either a hardware primitive or a call into another sub-routine.
 Contents:
 
 - :class:`MachineSub`: a subroutine of machine instructions
+- :class:`MachineOp`: base of Primitive and SubCall
 - :class:`Primitive`: a leaf hardware operation
 - :class:`SubCall`: a call to another MachineSub
 - :class:`MachineSubRecursionError`: raised on recursive sub-calls
+- :func:`is_primitive`, :func:`is_subcall`: type guards for MachineOp
 """
 
 from collections.abc import Sequence

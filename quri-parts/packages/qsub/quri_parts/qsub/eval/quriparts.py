@@ -20,6 +20,7 @@ to QURI Parts gates.
 Contents:
 
 - :class:`QURIPartsEvaluatorHooks`: produces a QuantumCircuit result
+- :func:`convert_op`: convert one primitive Op to a QURI Parts gate
 - :data:`quri_parts_codegen`: pre-configured CodeGenerator
 - :data:`primitive_op_gate_mapping`: qsub-op to gate lookup table
 """

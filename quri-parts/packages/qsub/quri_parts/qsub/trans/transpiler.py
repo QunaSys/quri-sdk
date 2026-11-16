@@ -17,6 +17,7 @@ concrete combinators for composing sub-routine rewrites.
 
 Contents:
 
+- :class:`SubTranspilerProtocol`: callable protocol: ``Sub -> Sub``
 - :class:`SequentialTranspiler`: runs transpilers in sequence
 - :class:`SeparateTranspiler`: applies a pass to contiguous op chunks
 """
