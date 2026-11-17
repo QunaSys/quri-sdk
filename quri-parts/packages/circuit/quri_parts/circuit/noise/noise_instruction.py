@@ -167,8 +167,10 @@ def PauliNoise(
 ) -> GateNoiseInstruction:
     """Multi qubit Pauli noise.
 
-    In the case of multi qubit noise, qubit_indices should specify the qubits on
-    which the target gate is acting, in any order, without excess or deficiency.
+    When qubit_indices is empty, applicable gate qubits are used. For
+    single-qubit noise, a list of qubit_indices acts as a filter applied
+    individually to matching qubits. For explicit multi-qubit noise, Pauli IDs
+    follow the given qubit index order.
 
     Args:
         pauli_list: Sequence of series of Pauli ids.

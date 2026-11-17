@@ -18,29 +18,31 @@ fn make_dense_matrix<'py>(
 
 fn convert_add_pauli_noise<'py>(
     py: Python<'py>,
-    _qubits: &Vec<usize>,
+    qubits: &Vec<usize>,
     pauli_noise: &GateNoiseInstruction,
     qulacs_circuit: Bound<'py, PyAny>,
     fill_identity: bool,
 ) -> PyResult<Bound<'py, PyAny>> {
     let module = py.import("qulacs.gate")?;
+    let target_qubits: &[usize] =
+        if pauli_noise.qubit_count == 1 || pauli_noise.qubit_indices.is_empty() {
+            qubits
+        } else {
+            &pauli_noise.qubit_indices
+        };
     let mut probs = pauli_noise.prob_list.clone();
     let mut gates = vec![];
     for pauli in &pauli_noise.pauli_list {
         gates.push(
             module
                 .getattr("Pauli")?
-                .call1((pauli_noise.qubit_indices.clone(), pauli.clone()))?,
+                .call1((target_qubits, pauli.as_slice()))?,
         );
     }
     if fill_identity {
         let psum: f64 = probs.iter().sum();
         if psum < 1.0 {
-            gates.push(
-                module
-                    .getattr("Identity")?
-                    .call1((pauli_noise.qubit_indices[0],))?,
-            );
+            gates.push(module.getattr("Identity")?.call1((target_qubits[0],))?);
             probs.push(1.0 - psum);
         }
     }
