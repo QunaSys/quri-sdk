@@ -225,8 +225,16 @@ def test_truncate() -> None:
 
 
 def test_is_hermitian() -> None:
+    assert is_hermitian(zero())
+    assert is_hermitian(zero(), atol=0.0)
     assert is_hermitian(Operator({PAULI_IDENTITY: 1.0}))
+    assert is_hermitian(Operator({PAULI_IDENTITY: 1.0}), atol=0.0)
     assert not is_hermitian(Operator({PAULI_IDENTITY: 1.0j}))
     assert is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0}))
     assert not is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0 + 0.01j}))
     assert is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0 + 0.01j}), atol=0.1)
+    assert is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0 + 0.01j}), atol=0.02)
+    assert not is_hermitian(Operator({pauli_label("X0 Y1 Z2"): 2.0 + 0.01j}), atol=0.01)
+    assert is_hermitian(Operator({PAULI_IDENTITY: 1e-9j}))
+    assert not is_hermitian(Operator({PAULI_IDENTITY: 1e4 + 1e-5j}))
+    assert not is_hermitian(Operator({PAULI_IDENTITY: 1e-9j}), atol=0.0)
