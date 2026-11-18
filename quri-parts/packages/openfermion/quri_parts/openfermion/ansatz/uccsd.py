@@ -8,6 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional, Sequence
 
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
@@ -36,12 +37,13 @@ from ..utils.add_exp_excitation_gates_trotter_decomposition import (
 class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
     r"""Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
-    operator decomposed by first-order Trotter product formula. Note that the
-    occupied orbitals are the lowest :attr:`n_fermions` spin orbitals. The
-    decomposition using Trotter product formula is executed for each qubit
-    operators obtained by mapping excitation operators. The excitation operator
-    involved in the UCCSD ansatz will be determined by (n_spin_orbitals,
-    n_fermions, delta_sz).
+    operator decomposed by first-order Trotter product formula. The occupied
+    orbitals are the lowest :attr:`n_fermions` spin orbitals, unless the
+    mapping sets ``sz``. In that case, the occupied orbitals are the lowest
+    spin-up and spin-down orbitals that give this ``sz``. The decomposition
+    using Trotter product formula is executed for each qubit operators obtained
+    by mapping excitation operators. The excitation operator involved in the
+    UCCSD ansatz will be determined by (n_spin_orbitals, n_fermions, delta_sz).
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
@@ -143,6 +145,9 @@ class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
         if delta_sz != 0 and singlet_excitation:
             raise ValueError("Singlet excitation is only allowed when ΔSz = 0")
 
+        if mapping.sz not in (None, 0) and singlet_excitation:
+            raise ValueError("Singlet excitation is only allowed when sz = 0.")
+
         circuit = (
             _construct_singlet_excitation_circuit(
                 mapping,
@@ -174,7 +179,14 @@ def _construct_circuit(
         n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
     ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
 
-    s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=delta_sz)
+    s_excs, d_excs = excitations(
+        n_spin_orbitals,
+        n_fermions,
+        delta_sz=delta_sz,
+        occupied_indices=_reference_occupation(
+            n_spin_orbitals, n_fermions, fermion_qubit_mapping.sz
+        ),
+    )
 
     circuit = LinearMappedParametricQuantumCircuit(n_qubits)
     if use_singles:
@@ -193,6 +205,28 @@ def _construct_circuit(
             )
 
     return circuit
+
+
+def _reference_occupation(
+    n_spin_orbitals: int, n_fermions: int, sz: Optional[float]
+) -> Sequence[int]:
+    """Occupied spin orbitals of the reference state with spin projection
+    ``sz``: the lowest spin-up (even) and spin-down (odd) orbitals."""
+    if sz is None:
+        return range(n_fermions)
+    n_up, n_down = n_fermions / 2 + sz, n_fermions / 2 - sz
+    if not (
+        n_up.is_integer()
+        and 0 <= n_up <= (n_spin_orbitals + 1) // 2
+        and 0 <= n_down <= n_spin_orbitals // 2
+    ):
+        raise ValueError(
+            f"sz={sz} is not possible for {n_fermions} fermions in "
+            f"{n_spin_orbitals} spin orbitals."
+        )
+    up = [2 * i for i in range(int(n_up))]
+    down = [2 * i + 1 for i in range(int(n_down))]
+    return sorted(up + down)
 
 
 def _construct_singlet_excitation_circuit(

@@ -412,6 +412,43 @@ class TestUCCSD:
         with pytest.raises(AssertionError):
             TrotterUCCSD(4, 4, fermion_qubit_mapping=jordan_wigner(4, 2))
 
+    def test_trotter_uccsd_uses_sz_of_mapping(self) -> None:
+        # 3 spin-up electrons (sz = 1.5) in 8 spin orbitals
+        mapping = jordan_wigner(8, 3, sz=1.5)
+        ansatz = TrotterUCCSD(8, 3, fermion_qubit_mapping=mapping)
+
+        occupied = [0, 2, 4]
+        mapping.state_mapper(occupied)  # the reference is in the mapping's sector
+        s_excs, d_excs = excitations(8, 3, occupied_indices=occupied)
+        assert all(i in occupied and a not in occupied for i, a in s_excs)
+        expected = LinearMappedParametricQuantumCircuit(8)
+        s_params = [expected.add_parameter(f"s{i}") for i in range(len(s_excs))]
+        d_params = [expected.add_parameter(f"d{i}") for i in range(len(d_excs))]
+        op_mapper = mapping.of_operator_mapper
+        add_exp_excitation_gates_trotter_decomposition(
+            expected, d_excs, d_params, op_mapper, 1.0
+        )
+        add_exp_excitation_gates_trotter_decomposition(
+            expected, s_excs, s_params, op_mapper, 1.0
+        )
+        assert ansatz.parameter_count == expected.parameter_count == 3
+        assert ansatz.gates == expected.gates
+
+        # 8 spatial orbitals, (n_up, n_down) = (8, 3): only spin-down excitations
+        ansatz = TrotterUCCSD(16, 11, fermion_qubit_mapping=jordan_wigner(16, 11, 2.5))
+        assert ansatz.parameter_count == 3 * 5 + 3 * 10
+
+    def test_trotter_uccsd_invalid_sz(self) -> None:
+        with pytest.raises(ValueError, match="sz = 0"):
+            TrotterUCCSD(
+                8,
+                4,
+                fermion_qubit_mapping=jordan_wigner(8, 4, 1),
+                singlet_excitation=True,
+            )
+        with pytest.raises(ValueError, match="not possible"):
+            TrotterUCCSD(6, 4, fermion_qubit_mapping=jordan_wigner(6, 4, 2))
+
 
 class TestSingletUCCSD:
     @staticmethod
