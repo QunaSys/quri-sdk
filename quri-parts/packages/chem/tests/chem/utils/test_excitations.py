@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from quri_parts.chem.utils.excitations import (
     add_double_excitation_circuit,
     add_single_excitation_circuit,
@@ -32,6 +34,23 @@ def test_excitations() -> None:
         [(0, 4), (1, 5), (2, 4), (3, 5)],
         [(0, 1, 4, 5), (0, 3, 4, 5), (1, 2, 4, 5), (2, 3, 4, 5)],
     )
+
+
+def test_excitations_occupied_indices() -> None:
+    # 2 spin-up electrons (sz = 1) in 6 spin orbitals
+    assert excitations(6, 2, occupied_indices=[0, 2]) == (
+        [(0, 4), (2, 4)],
+        [],
+    )
+    assert excitations(6, 2, occupied_indices=[0, 2], delta_sz=-1.0) == (
+        [(0, 1), (0, 3), (0, 5), (2, 1), (2, 3), (2, 5)],
+        [(0, 2, 1, 4), (0, 2, 3, 4), (0, 2, 4, 5)],
+    )
+    assert excitations(6, 4, occupied_indices=range(4)) == excitations(6, 4)
+    with pytest.raises(ValueError):
+        excitations(6, 2, occupied_indices=[0, 0])
+    with pytest.raises(ValueError):
+        excitations(6, 2, occupied_indices=[0, 6])
 
 
 def test_to_spin_symmetric_order() -> None:
