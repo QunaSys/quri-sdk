@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection
+from typing import Collection, Optional
 
 
 def occupation_state_sz(occ_indices: Collection[int]) -> float:
@@ -20,3 +20,44 @@ def occupation_state_sz(occ_indices: Collection[int]) -> float:
         else:
             n_up += 1
     return (n_up - n_down) / 2
+
+
+def reference_occupation(
+    n_spin_orbitals: int, n_fermions: int, sz: Optional[float] = None
+) -> list[int]:
+    """Returns the occupied spin orbitals of the reference state for a spin
+    sector.
+
+    Even indices are spin up and odd indices are spin down. The reference fills
+    the lowest ``n_fermions / 2 + sz`` spin-up orbitals and the lowest
+    ``n_fermions / 2 - sz`` spin-down orbitals. This is the reference that
+    :class:`~quri_parts.openfermion.ansatz.TrotterUCCSD` and
+    :class:`~quri_parts.chem.ansatz.AllSinglesDoubles` build their excitations
+    from.
+
+    Args:
+        n_spin_orbitals: Number of spin orbitals.
+        n_fermions: Number of fermions.
+        sz: Spin projection of the reference state. If ``None``, the lowest
+            :attr:`n_fermions` spin orbitals are occupied, which is the most
+            balanced sector.
+
+    Raises:
+        ValueError: If no state with :attr:`n_fermions` fermions in
+            :attr:`n_spin_orbitals` spin orbitals has this ``sz``.
+    """
+    if sz is None:
+        return list(range(n_fermions))
+    n_up, n_down = n_fermions / 2 + sz, n_fermions / 2 - sz
+    if not (
+        n_up.is_integer()
+        and 0 <= n_up <= (n_spin_orbitals + 1) // 2
+        and 0 <= n_down <= n_spin_orbitals // 2
+    ):
+        raise ValueError(
+            f"sz={sz} is not possible for {n_fermions} fermions in "
+            f"{n_spin_orbitals} spin orbitals."
+        )
+    up = [2 * i for i in range(int(n_up))]
+    down = [2 * i + 1 for i in range(int(n_down))]
+    return sorted(up + down)
