@@ -8,12 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import warnings
 from typing import Sequence
 
 import pytest
 from openfermion import FermionOperator
 
 from quri_parts.chem.utils.excitations import excitations
+from quri_parts.chem.utils.spin import reference_occupation
 from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 from quri_parts.core.circuit import add_parametric_commuting_paulis_exp_gate
 from quri_parts.core.operator import Operator, pauli_label, truncate
@@ -417,7 +419,8 @@ class TestUCCSD:
         mapping = jordan_wigner(8, 3, sz=1.5)
         ansatz = TrotterUCCSD(8, 3, fermion_qubit_mapping=mapping)
 
-        occupied = [0, 2, 4]
+        occupied = reference_occupation(8, 3, 1.5)
+        assert occupied == [0, 2, 4]
         mapping.state_mapper(occupied)  # the reference is in the mapping's sector
         s_excs, d_excs = excitations(8, 3, occupied_indices=occupied)
         assert all(i in occupied and a not in occupied for i, a in s_excs)
@@ -448,6 +451,17 @@ class TestUCCSD:
             )
         with pytest.raises(ValueError, match="not possible"):
             TrotterUCCSD(6, 4, fermion_qubit_mapping=jordan_wigner(6, 4, 2))
+        with pytest.raises(ValueError, match="not possible"):
+            TrotterUCCSD(8, 3, fermion_qubit_mapping=jordan_wigner(8, 3, 0))
+
+    def test_trotter_uccsd_warns_without_sz(self) -> None:
+        with pytest.warns(FutureWarning, match="sz"):
+            TrotterUCCSD(4, 2)
+        with pytest.warns(FutureWarning, match="sz"):
+            TrotterUCCSD(4, 2, fermion_qubit_mapping=jordan_wigner(4, 2))
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            TrotterUCCSD(4, 2, fermion_qubit_mapping=jordan_wigner(4, 2, 0))
 
 
 class TestSingletUCCSD:
