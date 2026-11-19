@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Sequence
 
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
@@ -16,6 +15,7 @@ from quri_parts.chem.utils.excitations import (
     excitations,
     to_spin_symmetric_order,
 )
+from quri_parts.chem.utils.spin import reference_occupation
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     LinearMappedParametricQuantumCircuit,
@@ -183,7 +183,7 @@ def _construct_circuit(
         n_spin_orbitals,
         n_fermions,
         delta_sz=delta_sz,
-        occupied_indices=_reference_occupation(
+        occupied_indices=reference_occupation(
             n_spin_orbitals, n_fermions, fermion_qubit_mapping.sz
         ),
     )
@@ -205,28 +205,6 @@ def _construct_circuit(
             )
 
     return circuit
-
-
-def _reference_occupation(
-    n_spin_orbitals: int, n_fermions: int, sz: Optional[float]
-) -> Sequence[int]:
-    """Occupied spin orbitals of the reference state with spin projection
-    ``sz``: the lowest spin-up (even) and spin-down (odd) orbitals."""
-    if sz is None:
-        return range(n_fermions)
-    n_up, n_down = n_fermions / 2 + sz, n_fermions / 2 - sz
-    if not (
-        n_up.is_integer()
-        and 0 <= n_up <= (n_spin_orbitals + 1) // 2
-        and 0 <= n_down <= n_spin_orbitals // 2
-    ):
-        raise ValueError(
-            f"sz={sz} is not possible for {n_fermions} fermions in "
-            f"{n_spin_orbitals} spin orbitals."
-        )
-    up = [2 * i for i in range(int(n_up))]
-    down = [2 * i + 1 for i in range(int(n_down))]
-    return sorted(up + down)
 
 
 def _construct_singlet_excitation_circuit(
