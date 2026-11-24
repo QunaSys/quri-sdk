@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import warnings
 from typing import Optional
 
 from quri_parts.chem.utils.excitations import (
@@ -42,9 +41,10 @@ class AllSinglesDoubles(ImmutableLinearMappedParametricQuantumCircuit):
     Args:
         n_spin_orbitals: Number of spin orbitals.
         n_fermions: Number of fermions.
-        sz: Spin projection of the reference state. Without it, the most
-            balanced sector is used and a :class:`FutureWarning` is emitted.
-            ``sz`` will be required in a future release.
+        sz: Spin projection of the reference state. If ``None``, the lowest
+            :attr:`n_fermions` spin orbitals are occupied: ``sz = 0`` for an
+            even count and ``sz = 0.5`` for an odd count. Set ``sz`` for any
+            other spin sector.
     """
 
     def __init__(
@@ -53,14 +53,6 @@ class AllSinglesDoubles(ImmutableLinearMappedParametricQuantumCircuit):
         n_fermions: int,
         sz: Optional[float] = None,
     ):
-        if sz is None:
-            warnings.warn(
-                "AllSinglesDoubles got no sz, so it uses the most balanced spin "
-                "sector. Pass sz, for example AllSinglesDoubles(n_spin_orbitals, "
-                "n_fermions, sz=0). sz will be required in a future release.",
-                FutureWarning,
-                stacklevel=2,
-            )
         single_excitations, double_excitations = excitations(
             n_spin_orbitals,
             n_fermions,

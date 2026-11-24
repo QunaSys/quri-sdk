@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import warnings
 from typing import Sequence
 
 import pytest
@@ -454,14 +453,14 @@ class TestUCCSD:
         with pytest.raises(ValueError, match="not possible"):
             TrotterUCCSD(8, 3, fermion_qubit_mapping=jordan_wigner(8, 3, 0))
 
-    def test_trotter_uccsd_warns_without_sz(self) -> None:
-        with pytest.warns(FutureWarning, match="sz"):
-            TrotterUCCSD(4, 2)
-        with pytest.warns(FutureWarning, match="sz"):
-            TrotterUCCSD(4, 2, fermion_qubit_mapping=jordan_wigner(4, 2))
-        with warnings.catch_warnings():
-            warnings.simplefilter("error")
-            TrotterUCCSD(4, 2, fermion_qubit_mapping=jordan_wigner(4, 2, 0))
+    def test_trotter_uccsd_without_sz(self) -> None:
+        # Without sz, the reference is the lowest n_fermions spin orbitals.
+        for n_fermions, sz in [(2, 0), (3, 0.5)]:
+            default = TrotterUCCSD(6, n_fermions)
+            explicit = TrotterUCCSD(
+                6, n_fermions, fermion_qubit_mapping=jordan_wigner(6, n_fermions, sz)
+            )
+            assert default.gates == explicit.gates
 
 
 class TestSingletUCCSD:

@@ -8,7 +8,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import warnings
 
 from quri_parts.chem.utils.excitations import (
     DoubleExcitation,
@@ -54,8 +53,8 @@ class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
         n_fermions: Number of fermions.
         fermion_qubit_mapping: Mapping from :class:`FermionOperator` to
           :class:`Operator`. Set its ``sz`` to choose the spin sector. Without
-          ``sz``, the most balanced sector is used and a :class:`FutureWarning`
-          is emitted. ``sz`` will be required in a future release.
+          ``sz``, the lowest :attr:`n_fermions` spin orbitals are occupied:
+          ``sz = 0`` for an even count and ``sz = 0.5`` for an odd count.
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
@@ -157,16 +156,6 @@ class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
 
         if delta_sz != 0 and singlet_excitation:
             raise ValueError("Singlet excitation is only allowed when ΔSz = 0")
-
-        if mapping.sz is None:
-            warnings.warn(
-                "TrotterUCCSD got a fermion_qubit_mapping without sz, so it uses "
-                "the most balanced spin sector. Pass a mapping with sz, for "
-                "example jordan_wigner(n_spin_orbitals, n_fermions, sz=0). sz "
-                "will be required in a future release.",
-                FutureWarning,
-                stacklevel=2,
-            )
 
         if mapping.sz not in (None, 0) and singlet_excitation:
             raise ValueError("Singlet excitation is only allowed when sz = 0.")

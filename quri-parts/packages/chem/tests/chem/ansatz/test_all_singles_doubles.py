@@ -22,7 +22,7 @@ from quri_parts.circuit import LinearMappedParametricQuantumCircuit
 def test_all_singles_doubles() -> None:
     qubit_count = 4
     n_electrons = 2
-    circuit = AllSinglesDoubles(qubit_count, n_electrons, sz=0)
+    circuit = AllSinglesDoubles(qubit_count, n_electrons)
     expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     s_exc_indices, d_exc_indices = excitations(qubit_count, n_electrons)
     s_exc_params = expected_circuit.add_parameters(
@@ -44,7 +44,7 @@ def test_all_singles_doubles() -> None:
 
     qubit_count = 8
     n_electrons = 4
-    circuit = AllSinglesDoubles(qubit_count, n_electrons, sz=0)
+    circuit = AllSinglesDoubles(qubit_count, n_electrons)
     expected_circuit = LinearMappedParametricQuantumCircuit(qubit_count)
     s_exc_indices, d_exc_indices = excitations(qubit_count, n_electrons)
     s_exc_params = expected_circuit.add_parameters(
@@ -72,7 +72,5 @@ def test_all_singles_doubles_sz() -> None:
     assert s_exc == [(0, 6), (2, 6), (4, 6)]
     assert circuit.parameter_count == len(s_exc) + len(d_exc)
 
-    with pytest.warns(FutureWarning, match="sz"):
-        AllSinglesDoubles(4, 2)
     with pytest.raises(ValueError):
         AllSinglesDoubles(8, 3, sz=0)
