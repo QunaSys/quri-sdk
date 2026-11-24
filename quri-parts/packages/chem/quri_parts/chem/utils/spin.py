@@ -55,18 +55,18 @@ def reference_occupation(
     if sz is None:
         return list(range(n_fermions))
     twice_sz = 2.0 * sz
-    n_up = (n_fermions + int(twice_sz)) // 2
-    n_down = n_fermions - n_up
-    if not (
-        twice_sz.is_integer()
-        and (n_fermions + int(twice_sz)) % 2 == 0
-        and 0 <= n_up <= (n_spin_orbitals + 1) // 2
-        and 0 <= n_down <= n_spin_orbitals // 2
-    ):
-        raise ValueError(
-            f"Invalid sz={sz} for {n_fermions} fermions in "
-            f"{n_spin_orbitals} spin orbitals."
-        )
-    up = [2 * i for i in range(n_up)]
-    down = [2 * i + 1 for i in range(n_down)]
-    return sorted(up + down)
+    # Check is_integer() before int(), which fails for inf and nan.
+    if twice_sz.is_integer() and (n_fermions + int(twice_sz)) % 2 == 0:
+        n_up = (n_fermions + int(twice_sz)) // 2
+        n_down = n_fermions - n_up
+        if (
+            0 <= n_up <= (n_spin_orbitals + 1) // 2
+            and 0 <= n_down <= n_spin_orbitals // 2
+        ):
+            up = [2 * i for i in range(n_up)]
+            down = [2 * i + 1 for i in range(n_down)]
+            return sorted(up + down)
+    raise ValueError(
+        f"Invalid sz={sz} for {n_fermions} fermions in "
+        f"{n_spin_orbitals} spin orbitals."
+    )

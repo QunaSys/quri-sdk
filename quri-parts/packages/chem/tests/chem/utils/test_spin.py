@@ -39,3 +39,6 @@ def test_reference_occupation() -> None:
         reference_occupation(2, 3)  # more fermions than spin orbitals
     with pytest.raises(ValueError):
         reference_occupation(8, 3, 0.5000000000000001)  # not a half-integer
+    for sz in (float("inf"), float("nan")):
+        with pytest.raises(ValueError, match="Invalid sz"):
+            reference_occupation(8, 3, sz)
