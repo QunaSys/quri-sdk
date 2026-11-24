@@ -47,9 +47,13 @@ def test_excitations_occupied_indices() -> None:
         [(0, 2, 1, 4), (0, 2, 3, 4), (0, 2, 4, 5)],
     )
     assert excitations(6, 4, occupied_indices=range(4)) == excitations(6, 4)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="unique"):
         excitations(6, 2, occupied_indices=[0, 0])
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="unique"):
+        excitations(6, 2, occupied_indices=[0, 1, 1])
+    with pytest.raises(ValueError, match="must have 2 indices"):
+        excitations(6, 2, occupied_indices=[0, 1, 2])
+    with pytest.raises(ValueError, match=r"must be in \[0, 6\)"):
         excitations(6, 2, occupied_indices=[0, 6])
 
 

@@ -52,13 +52,24 @@ def excitations(
     """
     if occupied_indices is None:
         occupied_indices = range(n_fermions)
-    occ = sorted(occupied_indices)
-    if len(set(occ)) != n_fermions or not all(0 <= i < n_spin_orbitals for i in occ):
+    occ_set = set(occupied_indices)
+    if len(occ_set) != len(occupied_indices):
         raise ValueError(
-            f"occupied_indices must be {n_fermions} distinct indices in "
-            f"[0, {n_spin_orbitals}), but got {list(occupied_indices)}."
+            "occupied_indices must contain unique indices, but got "
+            f"{list(occupied_indices)}."
         )
-    vir = [i for i in range(n_spin_orbitals) if i not in set(occ)]
+    if len(occ_set) != n_fermions:
+        raise ValueError(
+            f"occupied_indices must have {n_fermions} indices (n_fermions), "
+            f"but got {len(occ_set)}."
+        )
+    if not all(0 <= i < n_spin_orbitals for i in occ_set):
+        raise ValueError(
+            f"occupied_indices must be in [0, {n_spin_orbitals}), but got "
+            f"{list(occupied_indices)}."
+        )
+    occ = sorted(occ_set)
+    vir = [i for i in range(n_spin_orbitals) if i not in occ_set]
     sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
     singles = []
     doubles = []
