@@ -35,3 +35,7 @@ def test_reference_occupation() -> None:
         reference_occupation(8, 3, 0)  # odd count needs a half-integer sz
     with pytest.raises(ValueError):
         reference_occupation(6, 4, 2)  # only 3 spin-up orbitals
+    with pytest.raises(ValueError):
+        reference_occupation(2, 3)  # more fermions than spin orbitals
+    with pytest.raises(ValueError):
+        reference_occupation(8, 3, 0.5000000000000001)  # not a half-integer

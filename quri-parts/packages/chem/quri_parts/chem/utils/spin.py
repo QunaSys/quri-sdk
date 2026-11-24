@@ -43,14 +43,23 @@ def reference_occupation(
             balanced sector.
 
     Raises:
-        ValueError: If no state with :attr:`n_fermions` fermions in
+        ValueError: If :attr:`n_fermions` is not in ``[0, n_spin_orbitals]``, or
+            if no state with :attr:`n_fermions` fermions in
             :attr:`n_spin_orbitals` spin orbitals has this ``sz``.
     """
+    if not 0 <= n_fermions <= n_spin_orbitals:
+        raise ValueError(
+            f"n_fermions={n_fermions} is not possible for "
+            f"{n_spin_orbitals} spin orbitals."
+        )
     if sz is None:
         return list(range(n_fermions))
-    n_up, n_down = n_fermions / 2 + sz, n_fermions / 2 - sz
+    twice_sz = 2.0 * sz
+    n_up = (n_fermions + int(twice_sz)) // 2
+    n_down = n_fermions - n_up
     if not (
-        n_up.is_integer()
+        twice_sz.is_integer()
+        and (n_fermions + int(twice_sz)) % 2 == 0
         and 0 <= n_up <= (n_spin_orbitals + 1) // 2
         and 0 <= n_down <= n_spin_orbitals // 2
     ):
@@ -58,6 +67,6 @@ def reference_occupation(
             f"sz={sz} is not possible for {n_fermions} fermions in "
             f"{n_spin_orbitals} spin orbitals."
         )
-    up = [2 * i for i in range(int(n_up))]
-    down = [2 * i + 1 for i in range(int(n_down))]
+    up = [2 * i for i in range(n_up)]
+    down = [2 * i + 1 for i in range(n_down)]
     return sorted(up + down)
