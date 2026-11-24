@@ -94,7 +94,10 @@ jobs:
           yes | sudo dpkg -i pandoc-2.18-1-amd64.deb
 
       - name: Install Julia dependency
-        run: uv run --no-sync julia -e 'using Pkg; Pkg.add("PythonCall")'
+        # Runner images may not ship Julia, so use the one JuliaPkg installs for JuliaCall.
+        run: |
+          julia=$(uv run --no-sync python -c "import juliapkg; print('JULIA={}'.format(juliapkg.executable()))" | sed -ne 's/^JULIA=//p')
+          uv run --no-sync "$julia" -e 'using Pkg; Pkg.add("PythonCall")'
 
       - name: Install documentation dependencies
         working-directory: docs

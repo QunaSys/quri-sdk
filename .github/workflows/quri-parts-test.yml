@@ -86,16 +86,17 @@ jobs:
         uv sync --locked
 
     # The following steps activate the venv instead of using `uv run`.
-    - name: Detect Julia project
+    # Runner images may not ship Julia, so use the one JuliaPkg installs for JuliaCall.
+    - name: Detect Julia executable and project
       id: julia_project
       run: |
         source .venv/bin/activate
-        python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project()))" | sed -ne '/^PROJECT=/p' >> "$GITHUB_OUTPUT"
+        python -c "import juliapkg; print('PROJECT={}'.format(juliapkg.project())); print('JULIA={}'.format(juliapkg.executable()))" | sed -nE '/^(PROJECT|JULIA)=/p' >> "$GITHUB_OUTPUT"
 
     - name: Prepare Julia deps
       run: |
         source .venv/bin/activate
-        julia  "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
+        "${{ steps.julia_project.outputs.JULIA }}" "--project=${{ steps.julia_project.outputs.PROJECT }}" -e 'using Pkg; Pkg.add("PythonCall"); Pkg.instantiate()'
 
     # draw_call_graph tests render with dot and are skipped without it.
     - name: Install Graphviz
