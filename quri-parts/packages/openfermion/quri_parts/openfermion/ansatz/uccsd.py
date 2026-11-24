@@ -78,6 +78,13 @@ class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
                 from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
 
+    Examples:
+        Set ``sz`` when you create the mapping to choose the spin sector:
+
+        >>> from quri_parts.openfermion.ansatz import TrotterUCCSD
+        >>> from quri_parts.openfermion.transforms import jordan_wigner
+        >>> mapping = jordan_wigner(8, 3, sz=1.5)
+        >>> ansatz = TrotterUCCSD(8, 3, fermion_qubit_mapping=mapping)
 
     Note:
 
