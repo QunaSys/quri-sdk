@@ -448,9 +448,9 @@ class TestUCCSD:
                 fermion_qubit_mapping=jordan_wigner(8, 4, 1),
                 singlet_excitation=True,
             )
-        with pytest.raises(ValueError, match="not possible"):
+        with pytest.raises(ValueError, match="Invalid sz"):
             TrotterUCCSD(6, 4, fermion_qubit_mapping=jordan_wigner(6, 4, 2))
-        with pytest.raises(ValueError, match="not possible"):
+        with pytest.raises(ValueError, match="Invalid sz"):
             TrotterUCCSD(8, 3, fermion_qubit_mapping=jordan_wigner(8, 3, 0))
 
     def test_trotter_uccsd_without_sz(self) -> None:

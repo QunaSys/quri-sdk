@@ -64,7 +64,7 @@ def reference_occupation(
         and 0 <= n_down <= n_spin_orbitals // 2
     ):
         raise ValueError(
-            f"sz={sz} is not possible for {n_fermions} fermions in "
+            f"Invalid sz={sz} for {n_fermions} fermions in "
             f"{n_spin_orbitals} spin orbitals."
         )
     up = [2 * i for i in range(n_up)]
