@@ -13,8 +13,8 @@ Built-in evaluator hooks (:mod:`quri_parts.qsub.eval`)
 ======================================================
 
 Re-exports concrete :class:`~quri_parts.qsub.evaluate.EvaluatorHooks`
-implementations for gate counting, qubit counting, and QURI Parts
-circuit conversion.
+implementations for gate counting, qubit counting, per-sub profiling,
+call graphs, and QURI Parts circuit conversion.
 """
 
 from .callgraph import CallGraphEvaluatorHooks

@@ -8,6 +8,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Call-graph evaluator hooks (:mod:`quri_parts.qsub.eval.callgraph`)
+==================================================================
+
+Evaluator hooks that record which subs call which while traversing a
+:class:`~quri_parts.qsub.machineinst.MachineSub` tree, with the number
+of calls per caller invocation.
+
+Contents:
+
+- :class:`CallGraphEvaluatorHooks`: reports the call graph of a sub
+"""
+
 from collections.abc import Sequence
 from typing import Optional
 

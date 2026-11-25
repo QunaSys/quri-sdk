@@ -8,6 +8,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Sub-wise profile evaluator hooks (:mod:`quri_parts.qsub.eval.subwiseprofile`)
+=============================================================================
+
+Evaluator hooks that report, for each distinct sub in a
+:class:`~quri_parts.qsub.machineinst.MachineSub` tree, how often it is
+called and the gate and qubit counts attributable to it.
+
+Contents:
+
+- :class:`SubwiseProfileEvaluatorHooks`: produces one profile row per distinct sub
+- :class:`SubwiseProfileEntry`: one profile row
+- :class:`GateCountBreakdown`: gate counts of a sub, split by where the gates come
+  from
+- :class:`GateCounts`: primitive-gate counts of one scope
+- :class:`QubitCounts`: qubits a sub occupies during one invocation
+"""
+
 from collections import Counter
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
