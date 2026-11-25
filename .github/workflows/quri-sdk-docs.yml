@@ -112,8 +112,12 @@ jobs:
           test -f docs/_build/html/index.html
           test -f docs/_build/html/api/index.html
           test -f docs/_build/html/api/objects.inv
-          if rg -n 'quri-sdk-internal|internal-main' docs/_build/html; then
+          # grep exits 1 only when it finds no match; any other status stops the deploy.
+          if grep -rInE 'quri-sdk-internal|internal-main' docs/_build/html; then
             echo "Generated documentation contains an internal repository reference."
+            exit 1
+          elif [ $? -ne 1 ]; then
+            echo "Could not scan the generated documentation."
             exit 1
           fi
 
