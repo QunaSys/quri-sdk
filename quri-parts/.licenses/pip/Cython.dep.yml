@@ -1,12 +1,12 @@
 ---
 name: Cython
-version: 3.3.1
+version: 3.3.2
 type: pip
 summary: The Cython compiler for writing C extensions in the Python language.
 homepage: https://cython.org/
 license: apache-2.0
 licenses:
-- sources: https://github.com/cython/cython/blob/3.3.1/LICENSE.txt
+- sources: https://github.com/cython/cython/blob/3.3.2/LICENSE.txt
   text: |2
                                      Apache License
                                Version 2.0, January 2004
