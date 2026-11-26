@@ -203,5 +203,6 @@ def truncate(op: Operator, atol: float = 1e-8) -> Operator:
 
 
 def is_hermitian(op: Operator, atol: float = 1e-8) -> bool:
-    """Returns ``True`` if given operator is hermitian."""
-    return is_ops_close(op, op.hermitian_conjugated(), atol)
+    """Returns ``True`` if given operator is hermitian within the specified
+    absolute per-coefficient tolerance ``atol``."""
+    return is_ops_close(op, op.hermitian_conjugated(), rtol=0.0, atol=atol)
