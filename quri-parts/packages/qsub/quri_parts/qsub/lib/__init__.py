@@ -8,6 +8,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Gate libraries root namespace (:mod:`quri_parts.qsub.lib`)
+==========================================================
+
+Defines the ``lib`` :class:`~quri_parts.qsub.namespace.NameSpace` that
+parents all shipped gate-library modules such as
+:mod:`~quri_parts.qsub.lib.std`.
+"""
+
 from quri_parts.qsub.namespace import NameSpace
 
 NS = NameSpace("lib")

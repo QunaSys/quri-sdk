@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+MachineSub linker (:mod:`quri_parts.qsub.link`)
+===============================================
+
+Resolves :class:`~quri_parts.qsub.machineinst.SubCall` references in a
+:class:`~quri_parts.qsub.machineinst.MachineSub` by binding them to
+concrete MachineSub instances via a call table.
+
+Contents:
+
+- :class:`Linker`: reusable linker with a pre-linked call table
+- :func:`link`: one-shot linking of a MachineSub
+- :func:`link_table`: mutually link all entries in a call table
+"""
+
 import copy
 from collections.abc import Mapping
 from typing import TypeAlias

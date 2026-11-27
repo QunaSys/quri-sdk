@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Qubit and register allocation (:mod:`quri_parts.qsub.allocate`)
+===============================================================
+
+Allocation strategies for assigning logical qubits and classical
+registers during circuit expansion and evaluation.
+
+Contents:
+
+- :class:`Allocator`: abstract base for allocation strategies
+- :class:`HierarchicalReuseAllocator`: stack-based allocator
+- :class:`QubitAllocator`: concrete allocator for :class:`Qubit`
+- :class:`RegisterAllocator`: concrete allocator for :class:`Register`
+"""
+
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from typing import Generic, TypeVar

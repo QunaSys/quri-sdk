@@ -8,6 +8,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Operation identifiers and factories (:mod:`quri_parts.qsub.op`)
+===============================================================
+
+Core type system for quantum operations: fixed ops, parametric op
+factories, and the :class:`Ident` naming scheme that combines a
+namespace, local name, and optional parameters.
+
+Contents:
+
+- :class:`Op`: a concrete (frozen) quantum operation descriptor
+- :class:`OpFactory`: protocol for parametric op constructors
+- :class:`Ident`: namespaced identifier with optional parameters
+- :class:`SimpleParamOp`: convenience parametric op with fixed counts
+- :class:`AbstractOp`: protocol shared by Op and OpFactory (``base_id``)
+- :class:`OpDef`, :class:`UnitaryDef`, :class:`NonUnitaryDef`: declarative
+  bases for fixed ops
+- :func:`op`: build an Op from an OpDef subclass
+- :class:`ParamOpDef`, :class:`ParamUnitaryDef`, :class:`ParamNonUnitaryDef`:
+  declarative bases for parametric ops
+- :class:`ParametricMixin`: per-parameter counts and qregs for parametric definitions
+- :func:`param_op`: build an OpFactory from a ParamOpDef subclass
+- :class:`ParameterValidationError`: raised for invalid op parameters
+"""
+
 from dataclasses import dataclass
 from typing import (
     Any,

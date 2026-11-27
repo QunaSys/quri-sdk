@@ -8,6 +8,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Inverse-gate wrapper (:mod:`quri_parts.qsub.lib.std.inverse`)
+=============================================================
+
+Defines the :data:`Inverse` parametric op factory and resolvers that
+produce the adjoint (inverse) of any unitary gate or sub-routine.
+
+Contents:
+
+- :data:`Inverse`: op factory: ``Inverse(op)`` yields the adjoint
+- :func:`get_inverted_sub`: reverses and conjugates a Sub
+- :func:`inverse_sub_resolver`: generic resolver for Inverse ops
+- :func:`inverse_controlled_resolver`,
+  :func:`inverse_multicontrolled_resolver`: move the inverse inside the control
+- :func:`inverse_inverse_resolver`: cancel a double inverse
+- :func:`inverse_target_condition`: match Inverse ops by target op
+"""
+
 from collections.abc import Collection, Sequence
 
 from quri_parts.qsub.lib.std import Controlled, MultiControlled

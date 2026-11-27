@@ -8,6 +8,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Single-qubit rotation gates (:mod:`quri_parts.qsub.lib.std.rotation`)
+=====================================================================
+
+Parametric single-qubit rotation ops that take a float angle parameter.
+
+Contents:
+
+- :data:`RX`, :data:`RY`, :data:`RZ`: Pauli-axis rotations
+- :data:`Phase`: relative phase / U1 gate
+"""
+
 from quri_parts.qsub.op import ParamUnitaryDef, param_op
 from quri_parts.qsub.register import DEFAULT_QNAME, QRegSpec
 from quri_parts.qsub.resolve import default_repository

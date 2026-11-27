@@ -8,6 +8,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Circuit visualization helpers (:mod:`quri_parts.qsub.visualize`)
+================================================================
+
+Converts :class:`~quri_parts.qsub.sub.Sub` and
+:class:`~quri_parts.qsub.machineinst.MachineSub` objects into
+``qulacsvis`` data structures and renders them with matplotlib. Also
+draws sub call graphs with Graphviz.
+
+Contents:
+
+- :func:`draw`: auto-dispatching drawer for Sub, Op, or MachineSub
+- :func:`draw_sub`: draw a Sub (resolves Op if needed)
+- :func:`draw_msub`: draw a MachineSub
+- :func:`draw_call_graph`: draw a call graph, optionally annotated with a profile
+"""
+
 from collections import Counter
 from collections.abc import Collection, Iterable, Sequence
 from typing import TYPE_CHECKING, Mapping, Optional, TypeAlias

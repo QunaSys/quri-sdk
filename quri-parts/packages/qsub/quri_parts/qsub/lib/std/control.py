@@ -8,6 +8,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Single-qubit controlled-gate wrapper (:mod:`quri_parts.qsub.lib.std.control`)
+=============================================================================
+
+Defines the :data:`Controlled` parametric op factory that wraps any
+unitary :class:`~quri_parts.qsub.op.Op` with a single control qubit,
+together with sub-resolvers for all standard one- and two-qubit gates.
+
+Contents:
+
+- :data:`Controlled`: op factory: ``Controlled(op)`` adds one control
+- :func:`controlled_sub_resolver`: generic resolver for Controlled ops
+- :func:`register_controlled_resolver`: register custom resolvers
+- ``controlled_*_resolver`` (for example :func:`controlled_x_resolver`):
+  per-gate resolvers for ``Controlled`` standard gates
+- :func:`control_target_condition`: match Controlled ops by target op
+- :func:`get_new_ctrl_label`: count control registers already in a qreg spec
+"""
+
 import math
 from collections.abc import Collection, Sequence
 from typing import Any

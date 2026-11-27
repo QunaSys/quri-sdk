@@ -8,6 +8,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Pre-defined primitive gate sets (:mod:`quri_parts.qsub.primitive`)
+==================================================================
+
+Curated tuples of standard-library ops used as primitive sets during
+compilation, targeting common hardware / simulator instruction sets.
+
+Contents:
+
+- :data:`Clifford`: all single- and two-qubit Clifford gates
+- :data:`CliffordT`: Clifford + T/Tdag
+- :data:`FTQCBasicSet`: H, S, T, CNOT for fault-tolerant QC
+- :data:`SimulatorBasicSet`: full set including multi-controlled gates
+"""
+
 from quri_parts.qsub.lib.std import (
     CNOT,
     CZ,
