@@ -8,11 +8,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Optional
+
 from quri_parts.chem.utils.excitations import (
     add_double_excitation_circuit,
     add_single_excitation_circuit,
     excitations,
 )
+from quri_parts.chem.utils.spin import reference_occupation
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     LinearMappedParametricQuantumCircuit,
@@ -32,18 +35,28 @@ class AllSinglesDoubles(ImmutableLinearMappedParametricQuantumCircuit):
         `qml.AllSinglesDoubles <https://docs.pennylane.ai/en/stable/code/
         api/pennylane.AllSinglesDoubles.html>`_
 
+    The excitations start from the reference given by
+    :func:`~quri_parts.chem.utils.spin.reference_occupation`.
+
     Args:
         n_spin_orbitals: Number of spin orbitals.
         n_fermions: Number of fermions.
+        sz: Spin projection of the reference state. If ``None``, the lowest
+            :attr:`n_fermions` spin orbitals are occupied: ``sz = 0`` for an
+            even count and ``sz = 0.5`` for an odd count. Set ``sz`` for any
+            other spin sector.
     """
 
     def __init__(
         self,
         n_spin_orbitals: int,
         n_fermions: int,
+        sz: Optional[float] = None,
     ):
         single_excitations, double_excitations = excitations(
-            n_spin_orbitals, n_fermions
+            n_spin_orbitals,
+            n_fermions,
+            occupied_indices=reference_occupation(n_spin_orbitals, n_fermions, sz),
         )
 
         circuit = LinearMappedParametricQuantumCircuit(n_spin_orbitals)

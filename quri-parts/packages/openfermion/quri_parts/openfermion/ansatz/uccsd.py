@@ -15,6 +15,7 @@ from quri_parts.chem.utils.excitations import (
     excitations,
     to_spin_symmetric_order,
 )
+from quri_parts.chem.utils.spin import reference_occupation
 from quri_parts.circuit import (
     ImmutableLinearMappedParametricQuantumCircuit,
     LinearMappedParametricQuantumCircuit,
@@ -36,18 +37,24 @@ from ..utils.add_exp_excitation_gates_trotter_decomposition import (
 class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
     r"""Unitary coupled-cluster singles and doubles (UCCSD) ansatz. The ansatz
     consists of the exponentials of single excitation and double excitation
-    operator decomposed by first-order Trotter product formula. Note that the
-    occupied orbitals are the lowest :attr:`n_fermions` spin orbitals. The
-    decomposition using Trotter product formula is executed for each qubit
-    operators obtained by mapping excitation operators. The excitation operator
-    involved in the UCCSD ansatz will be determined by (n_spin_orbitals,
-    n_fermions, delta_sz).
+    operator decomposed by first-order Trotter product formula. The occupied
+    orbitals are the lowest :attr:`n_fermions` spin orbitals, unless the
+    mapping sets ``sz``. In that case, the occupied orbitals are the lowest
+    spin-up and spin-down orbitals that give this ``sz``. The decomposition
+    using Trotter product formula is executed for each qubit operators obtained
+    by mapping excitation operators. The excitation operator involved in the
+    UCCSD ansatz will be determined by (n_spin_orbitals, n_fermions, the
+    ``sz`` of the mapping, delta_sz). Use
+    :func:`~quri_parts.chem.utils.spin.reference_occupation` to get the
+    occupied orbitals, for example to prepare the reference state.
 
     Args:
         n_spin_orbitals: Number of spin orbitals.
         n_fermions: Number of fermions.
         fermion_qubit_mapping: Mapping from :class:`FermionOperator` to
-          :class:`Operator`
+          :class:`Operator`. Set its ``sz`` to choose the spin sector. Without
+          ``sz``, the lowest :attr:`n_fermions` spin orbitals are occupied:
+          ``sz = 0`` for an even count and ``sz = 0.5`` for an odd count.
         trotter_number: Number for first-order Trotter product formula.
         use_singles: If ``True``, single-excitation gates are applied.
         delta_sz: The spin difference of the molecule before and after the transition.
@@ -70,6 +77,13 @@ class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
                 from occupied spin orbital (i, ↑), (j, ↓) to virtual spin orbitals
                 (a, ↑), (b, ↓).
 
+    Examples:
+        Set ``sz`` when you create the mapping to choose the spin sector:
+
+        >>> from quri_parts.openfermion.ansatz import TrotterUCCSD
+        >>> from quri_parts.openfermion.transforms import jordan_wigner
+        >>> mapping = jordan_wigner(8, 3, sz=1.5)
+        >>> ansatz = TrotterUCCSD(8, 3, fermion_qubit_mapping=mapping)
 
     Note:
 
@@ -143,6 +157,9 @@ class TrotterUCCSD(ImmutableLinearMappedParametricQuantumCircuit):
         if delta_sz != 0 and singlet_excitation:
             raise ValueError("Singlet excitation is only allowed when ΔSz = 0")
 
+        if mapping.sz not in (None, 0) and singlet_excitation:
+            raise ValueError("Singlet excitation is only allowed when sz = 0.")
+
         circuit = (
             _construct_singlet_excitation_circuit(
                 mapping,
@@ -174,7 +191,14 @@ def _construct_circuit(
         n_spin_orbitals is not None and n_fermions is not None and n_qubits is not None
     ), "n_spin_orbitals and n_fermions must not be None for ansatz construction."
 
-    s_excs, d_excs = excitations(n_spin_orbitals, n_fermions, delta_sz=delta_sz)
+    s_excs, d_excs = excitations(
+        n_spin_orbitals,
+        n_fermions,
+        delta_sz=delta_sz,
+        occupied_indices=reference_occupation(
+            n_spin_orbitals, n_fermions, fermion_qubit_mapping.sz
+        ),
+    )
 
     circuit = LinearMappedParametricQuantumCircuit(n_qubits)
     if use_singles:

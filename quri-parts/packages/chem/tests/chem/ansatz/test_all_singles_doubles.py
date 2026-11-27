@@ -8,6 +8,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from quri_parts.chem.ansatz.all_singles_doubles import AllSinglesDoubles
 from quri_parts.chem.utils.excitations import (
     add_double_excitation_circuit,
@@ -61,3 +63,14 @@ def test_all_singles_doubles() -> None:
     bound_circuit = circuit.bind_parameters(params)
     expected_bound_circuit = expected_circuit.bind_parameters(params)
     assert bound_circuit == expected_bound_circuit
+
+
+def test_all_singles_doubles_sz() -> None:
+    # 3 spin-up electrons (sz = 1.5) in 8 spin orbitals
+    circuit = AllSinglesDoubles(8, 3, sz=1.5)
+    s_exc, d_exc = excitations(8, 3, occupied_indices=[0, 2, 4])
+    assert s_exc == [(0, 6), (2, 6), (4, 6)]
+    assert circuit.parameter_count == len(s_exc) + len(d_exc)
+
+    with pytest.raises(ValueError):
+        AllSinglesDoubles(8, 3, sz=0)

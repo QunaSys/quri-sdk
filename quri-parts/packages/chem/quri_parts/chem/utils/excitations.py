@@ -8,7 +8,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, cast
+from typing import Optional, Sequence, cast
 
 from typing_extensions import TypeAlias
 
@@ -31,22 +31,56 @@ DoubleExcitation: TypeAlias = tuple[int, int, int, int]
 
 
 def excitations(
-    n_spin_orbitals: int, n_fermions: int, delta_sz: float = 0
+    n_spin_orbitals: int,
+    n_fermions: int,
+    delta_sz: float = 0,
+    occupied_indices: Optional[Sequence[int]] = None,
 ) -> tuple[Sequence[SingleExcitation], Sequence[DoubleExcitation]]:
     """Returns the list of excitation indices for :attr:`n_spin_orbitals` and
     :attr:`n_fermions` with :attr:`delta_sz` as a tuple of
-    :attr:`SingleExcitation` and :class:`DoubleExcitation`."""
+    :attr:`SingleExcitation` and :class:`DoubleExcitation`.
+
+    Even indices are spin up and odd indices are spin down.
+
+    Args:
+        n_spin_orbitals: Number of spin orbitals.
+        n_fermions: Number of fermions.
+        delta_sz: Change of the spin projection caused by each excitation.
+        occupied_indices: Spin orbitals occupied in the reference state. Excitations
+            go from these orbitals to the others. Defaults to the lowest
+            :attr:`n_fermions` spin orbitals.
+    """
+    if occupied_indices is None:
+        occupied_indices = range(n_fermions)
+    occ_set = set(occupied_indices)
+    if len(occ_set) != len(occupied_indices):
+        raise ValueError(
+            "occupied_indices must contain unique indices, but got "
+            f"{list(occupied_indices)}."
+        )
+    if len(occ_set) != n_fermions:
+        raise ValueError(
+            f"occupied_indices must have {n_fermions} indices (n_fermions), "
+            f"but got {len(occ_set)}."
+        )
+    if not all(0 <= i < n_spin_orbitals for i in occ_set):
+        raise ValueError(
+            f"occupied_indices must be in [0, {n_spin_orbitals}), but got "
+            f"{list(occupied_indices)}."
+        )
+    occ = sorted(occ_set)
+    vir = [i for i in range(n_spin_orbitals) if i not in occ_set]
     sz = [0.5 if (i % 2 == 0) else -0.5 for i in range(n_spin_orbitals)]
     singles = []
     doubles = []
-    for r in range(n_fermions):
-        for p in range(n_fermions, n_spin_orbitals):
+    for r in occ:
+        for p in vir:
             if sz[p] - sz[r] == delta_sz:
                 singles.append((r, p))
-    for s in range(n_fermions - 1):
-        for r in range(s + 1, n_fermions):
-            for q in range(n_fermions, n_spin_orbitals - 1):
-                for p in range(q + 1, n_spin_orbitals):
+    for i_s, s in enumerate(occ):
+        for r in occ[i_s + 1 :]:
+            for i_q, q in enumerate(vir):
+                for p in vir[i_q + 1 :]:
                     if sz[p] + sz[q] - sz[r] - sz[s] == delta_sz:
                         doubles.append((s, r, q, p))
 
