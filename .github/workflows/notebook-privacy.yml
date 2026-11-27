@@ -1,0 +1,23 @@
+name: Notebook Privacy
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check notebooks for private paths
+        run: python3 scripts/check_notebook_privacy.py --all

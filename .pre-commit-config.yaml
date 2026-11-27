@@ -1,6 +1,11 @@
 repos:
   - repo: local
     hooks:
+      - id: check-notebook-privacy
+        name: Check notebooks for private paths
+        entry: python3 scripts/check_notebook_privacy.py
+        language: system
+        files: \.ipynb$
       - id: isort-quri-algo
         name: uv run --no-sync isort (quri-algo)
         entry: uv run --no-sync isort quri-algo
