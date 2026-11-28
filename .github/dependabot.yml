@@ -12,9 +12,21 @@ updates:
       time: "08:50"
       timezone: "Asia/Tokyo"
     target-branch: "main"
+    # The uv updater also collects requirements files from first-level
+    # subdirectories and resolves their `-e ./...` entries against the repository
+    # root, where they do not exist, which aborts the whole job. These files are
+    # pip install helpers, not uv manifests.
+    exclude-paths:
+      - "quri-parts/requirements-local.txt"
+      - "quri-algo/requirements.txt"
     ignore:
       - dependency-name: "quri-parts-*"
       - dependency-name: "botocore"
         update-types: ["version-update:semver-patch"]
       - dependency-name: "boto3"
         update-types: ["version-update:semver-patch"]
+      # furo<2024 and myst-parser<2.1 in the doc group require sphinx<8, so this
+      # update cannot resolve and marks the whole job as failed. Remove once both
+      # are bumped.
+      - dependency-name: "sphinx"
+        versions: [">=8"]
